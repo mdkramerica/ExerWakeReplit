@@ -369,6 +369,46 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
               </div>
             </div>
 
+            {/* Timeline Scrubber */}
+            <div className="bg-white border border-gray-200 p-4 rounded-lg">
+              <div className="flex items-center justify-between mb-2 text-sm text-gray-600">
+                <span>Frame: {currentFrame + 1} / {replayData.length}</span>
+                <span>Time: {((currentFrame / 30)).toFixed(1)}s / {(replayData.length / 30).toFixed(1)}s</span>
+              </div>
+              
+              <div className="relative">
+                <input
+                  type="range"
+                  min={0}
+                  max={Math.max(0, replayData.length - 1)}
+                  value={currentFrame}
+                  onChange={(e) => {
+                    const frame = parseInt(e.target.value);
+                    setCurrentFrame(frame);
+                    drawFrame(frame);
+                  }}
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                  style={{
+                    background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(currentFrame / Math.max(1, replayData.length - 1)) * 100}%, #e5e7eb ${(currentFrame / Math.max(1, replayData.length - 1)) * 100}%, #e5e7eb 100%)`
+                  }}
+                />
+                
+                {/* Timeline markers */}
+                <div className="flex justify-between mt-1 text-xs text-gray-400">
+                  <span>0s</span>
+                  <span>{(replayData.length / 30 / 4).toFixed(1)}s</span>
+                  <span>{(replayData.length / 30 / 2).toFixed(1)}s</span>
+                  <span>{(replayData.length / 30 * 3/4).toFixed(1)}s</span>
+                  <span>{(replayData.length / 30).toFixed(1)}s</span>
+                </div>
+              </div>
+              
+              <div className="flex justify-between items-center mt-3 text-xs text-gray-500">
+                <span>Drag to navigate • Click anywhere on timeline to jump</span>
+                <span>30 FPS</span>
+              </div>
+            </div>
+
             {/* Live ROM Data Display */}
             {currentROM && (
               <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
