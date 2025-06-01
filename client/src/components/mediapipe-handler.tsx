@@ -105,6 +105,8 @@ export default function MediaPipeHandler({ onUpdate, isRecording, assessmentType
     if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
       handDetected = true;
       landmarks = results.multiHandLandmarks[0];
+      
+      console.log(`Hand detected with ${landmarks.length} landmarks`);
 
       // Draw hand landmarks
       ctx.fillStyle = '#00ff00';
