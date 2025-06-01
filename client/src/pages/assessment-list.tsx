@@ -246,12 +246,7 @@ export default function AssessmentList() {
                               <Clock className="w-3 h-3" />
                               <span>{new Date(record.completedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                             </div>
-                            {record.totalActiveRom && (
-                              <div className="flex items-center gap-1">
-                                <BarChart3 className="w-3 h-3" />
-                                <span>Total ROM: {parseFloat(record.totalActiveRom).toFixed(1)}°</span>
-                              </div>
-                            )}
+
                           </div>
                         </div>
                         
