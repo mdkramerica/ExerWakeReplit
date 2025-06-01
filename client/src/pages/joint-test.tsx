@@ -117,7 +117,7 @@ export default function JointTest() {
     // Highlight the anatomical landmarks
     indexFingerPoints.forEach((pointIndex, i) => {
       if (handLandmarks[pointIndex]) {
-        const x = handLandmarks[pointIndex].x * canvas.width;
+        const x = (1 - handLandmarks[pointIndex].x) * canvas.width;
         const y = handLandmarks[pointIndex].y * canvas.height;
         
         // Different colors for different anatomical points
@@ -145,17 +145,17 @@ export default function JointTest() {
     if (!landmarks[p1] || !landmarks[p2] || !landmarks[p3]) return;
     
     const center = {
-      x: landmarks[p2].x * ctx.canvas.width,
+      x: (1 - landmarks[p2].x) * ctx.canvas.width,
       y: landmarks[p2].y * ctx.canvas.height
     };
     
     const point1 = {
-      x: landmarks[p1].x * ctx.canvas.width,
+      x: (1 - landmarks[p1].x) * ctx.canvas.width,
       y: landmarks[p1].y * ctx.canvas.height
     };
     
     const point3 = {
-      x: landmarks[p3].x * ctx.canvas.width,
+      x: (1 - landmarks[p3].x) * ctx.canvas.width,
       y: landmarks[p3].y * ctx.canvas.height
     };
     
