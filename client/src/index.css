@@ -178,6 +178,40 @@ button[class*="medical-button"]:disabled {
   border: none !important;
 }
 
+/* Fix button disappearing issue - ensure all button states are visible */
+button, 
+button[class*="flex"],
+button[class*="items-center"],
+.btn,
+[role="button"] {
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+button:hover,
+button[class*="flex"]:hover,
+button[class*="items-center"]:hover,
+.btn:hover,
+[role="button"]:hover {
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Specific fix for buttons with text content */
+button span,
+button[class*="flex"] span,
+button[class*="items-center"] span {
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+button:hover span,
+button[class*="flex"]:hover span,
+button[class*="items-center"]:hover span {
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
 .medical-card {
   @apply bg-white rounded-xl shadow-lg p-8;
 }
