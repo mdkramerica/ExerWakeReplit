@@ -152,7 +152,7 @@ export default function MediaPipeHandler({ onUpdate, isRecording, assessmentType
       };
       
       if (isRecording) {
-        console.log(`MediaPipe sending ${landmarks.length} landmarks to recording system`);
+        console.log(`MediaPipe sending ${landmarks.length} landmarks to recording system`, landmarks.slice(0, 2));
       }
       
       onUpdate(updateData);

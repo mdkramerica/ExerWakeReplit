@@ -147,6 +147,8 @@ export default function Recording() {
   };
 
   const handleMediaPipeUpdate = (data: any) => {
+    console.log(`MediaPipe update: handDetected=${data.handDetected}, landmarks=${data.landmarks ? data.landmarks.length : 'none'}, isRecording=${isRecording}`);
+    
     setHandDetected(data.handDetected);
     setLandmarksCount(data.landmarksCount);
     setTrackingQuality(data.trackingQuality);
