@@ -311,82 +311,80 @@ export class MemStorage implements IStorage {
 // Initialize the database with default data
 async function initializeDatabase() {
   try {
-    // Initialize default injury types
-    const defaultInjuryTypes = [
-      { name: "Wrist Fracture", description: "Recovery from wrist bone fractures and related mobility issues", icon: "fas fa-hand-paper" },
-      { name: "Carpal Tunnel", description: "Post-surgical recovery from carpal tunnel release procedure", icon: "fas fa-hand-scissors" },
-      { name: "Tendon Injury", description: "Recovery from hand or wrist tendon repair surgery", icon: "fas fa-hand-rock" },
-      { name: "Other Injury", description: "Other hand or wrist conditions requiring assessment", icon: "fas fa-hand-spock" }
-    ];
+    // Check if data already exists
+    const existingInjuryTypes = await db.select().from(injuryTypes);
+    const existingAssessments = await db.select().from(assessments);
 
-    for (const injuryType of defaultInjuryTypes) {
-      try {
-        await db.insert(injuryTypes).values(injuryType);
-      } catch (e) {
-        // Ignore duplicate entries
-      }
+    if (existingInjuryTypes.length === 0) {
+      // Initialize default injury types
+      const defaultInjuryTypes = [
+        { name: "Wrist Fracture", description: "Recovery from wrist bone fractures and related mobility issues", icon: "fas fa-hand-paper" },
+        { name: "Carpal Tunnel", description: "Post-surgical recovery from carpal tunnel release procedure", icon: "fas fa-hand-scissors" },
+        { name: "Tendon Injury", description: "Recovery from hand or wrist tendon repair surgery", icon: "fas fa-hand-rock" },
+        { name: "Other Injury", description: "Other hand or wrist conditions requiring assessment", icon: "fas fa-hand-spock" }
+      ];
+
+      await db.insert(injuryTypes).values(defaultInjuryTypes);
+      console.log("Initialized injury types");
     }
 
-    // Initialize default assessments
-    const defaultAssessments = [
-      {
-        name: "Wrist Flexion",
-        description: "Measure forward bending range of motion",
-        videoUrl: "/videos/wrist-flexion.mp4",
-        duration: 10,
-        repetitions: 3,
-        instructions: "Slowly bend your wrist forward as far as comfortable, then return to neutral position",
-        isActive: true,
-        orderIndex: 1
-      },
-      {
-        name: "Wrist Extension",
-        description: "Measure backward bending range of motion",
-        videoUrl: "/videos/wrist-extension.mp4",
-        duration: 10,
-        repetitions: 3,
-        instructions: "Slowly bend your wrist backward as far as comfortable, then return to neutral position",
-        isActive: true,
-        orderIndex: 2
-      },
-      {
-        name: "Finger Flexion",
-        description: "Measure finger closing range of motion",
-        videoUrl: "/videos/finger-flexion.mp4",
-        duration: 10,
-        repetitions: 3,
-        instructions: "Slowly close your fingers into a fist, then open them completely",
-        isActive: true,
-        orderIndex: 3
-      },
-      {
-        name: "Finger Extension",
-        description: "Measure finger opening range of motion",
-        videoUrl: "/videos/finger-extension.mp4",
-        duration: 10,
-        repetitions: 3,
-        instructions: "Slowly extend your fingers as far as comfortable, spreading them apart",
-        isActive: true,
-        orderIndex: 4
-      },
-      {
-        name: "Thumb Opposition",
-        description: "Measure thumb to finger touch capability",
-        videoUrl: "/videos/thumb-opposition.mp4",
-        duration: 15,
-        repetitions: 3,
-        instructions: "Touch your thumb to each fingertip in sequence",
-        isActive: true,
-        orderIndex: 5
-      }
-    ];
+    if (existingAssessments.length === 0) {
+      // Initialize default assessments
+      const defaultAssessments = [
+        {
+          name: "Wrist Flexion",
+          description: "Measure forward bending range of motion",
+          videoUrl: "/videos/wrist-flexion.mp4",
+          duration: 10,
+          repetitions: 3,
+          instructions: "Slowly bend your wrist forward as far as comfortable, then return to neutral position",
+          isActive: true,
+          orderIndex: 1
+        },
+        {
+          name: "Wrist Extension",
+          description: "Measure backward bending range of motion",
+          videoUrl: "/videos/wrist-extension.mp4",
+          duration: 10,
+          repetitions: 3,
+          instructions: "Slowly bend your wrist backward as far as comfortable, then return to neutral position",
+          isActive: true,
+          orderIndex: 2
+        },
+        {
+          name: "Finger Flexion",
+          description: "Measure finger closing range of motion",
+          videoUrl: "/videos/finger-flexion.mp4",
+          duration: 10,
+          repetitions: 3,
+          instructions: "Slowly close your fingers into a fist, then open them completely",
+          isActive: true,
+          orderIndex: 3
+        },
+        {
+          name: "Finger Extension",
+          description: "Measure finger opening range of motion",
+          videoUrl: "/videos/finger-extension.mp4",
+          duration: 10,
+          repetitions: 3,
+          instructions: "Slowly extend your fingers as far as comfortable, spreading them apart",
+          isActive: true,
+          orderIndex: 4
+        },
+        {
+          name: "Thumb Opposition",
+          description: "Measure thumb to finger touch capability",
+          videoUrl: "/videos/thumb-opposition.mp4",
+          duration: 15,
+          repetitions: 3,
+          instructions: "Touch your thumb to each fingertip in sequence",
+          isActive: true,
+          orderIndex: 5
+        }
+      ];
 
-    for (const assessment of defaultAssessments) {
-      try {
-        await db.insert(assessments).values(assessment);
-      } catch (e) {
-        // Ignore duplicate entries
-      }
+      await db.insert(assessments).values(defaultAssessments);
+      console.log("Initialized assessments");
     }
   } catch (error) {
     console.error("Error initializing database:", error);
