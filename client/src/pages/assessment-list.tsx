@@ -256,9 +256,39 @@ export default function AssessmentList() {
                         </div>
                         
                         {/* Individual Finger ROM Breakdown */}
-                        {(record.maxMcpAngle || record.maxPipAngle || record.maxDipAngle) && (
+                        {(record.indexFingerRom || record.middleFingerRom || record.ringFingerRom || record.pinkyFingerRom) ? (
                           <div className="mt-3 pt-3 border-t border-gray-100">
-                            <div className="text-xs font-medium text-gray-700 mb-2">Finger Joint Analysis</div>
+                            <div className="text-xs font-medium text-gray-700 mb-2">Maximum ROM by Finger</div>
+                            <div className="grid grid-cols-4 gap-2 text-xs">
+                              <div className="bg-blue-50 px-2 py-1 rounded">
+                                <div className="font-medium text-blue-700">Index</div>
+                                <div className="text-blue-900">
+                                  {record.indexFingerRom ? parseFloat(record.indexFingerRom).toFixed(1) : '0.0'}°
+                                </div>
+                              </div>
+                              <div className="bg-green-50 px-2 py-1 rounded">
+                                <div className="font-medium text-green-700">Middle</div>
+                                <div className="text-green-900">
+                                  {record.middleFingerRom ? parseFloat(record.middleFingerRom).toFixed(1) : '0.0'}°
+                                </div>
+                              </div>
+                              <div className="bg-orange-50 px-2 py-1 rounded">
+                                <div className="font-medium text-orange-700">Ring</div>
+                                <div className="text-orange-900">
+                                  {record.ringFingerRom ? parseFloat(record.ringFingerRom).toFixed(1) : '0.0'}°
+                                </div>
+                              </div>
+                              <div className="bg-purple-50 px-2 py-1 rounded">
+                                <div className="font-medium text-purple-700">Pinky</div>
+                                <div className="text-purple-900">
+                                  {record.pinkyFingerRom ? parseFloat(record.pinkyFingerRom).toFixed(1) : '0.0'}°
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (record.maxMcpAngle || record.maxPipAngle || record.maxDipAngle) && (
+                          <div className="mt-3 pt-3 border-t border-gray-100">
+                            <div className="text-xs font-medium text-gray-700 mb-2">Joint Analysis (Index Finger)</div>
                             <div className="grid grid-cols-3 gap-3 text-xs">
                               <div className="bg-blue-50 px-2 py-1 rounded">
                                 <div className="font-medium text-blue-700">MCP</div>
