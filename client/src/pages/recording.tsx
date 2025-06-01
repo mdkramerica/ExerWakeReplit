@@ -50,16 +50,24 @@ export default function Recording() {
       const response = await apiRequest("POST", `/api/users/${currentUser.id}/assessments/${id}/complete`, data);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       // Invalidate both assessment list and progress queries to refresh the UI
       queryClient.invalidateQueries({ queryKey: [`/api/users/${currentUser.id}/assessments`] });
       queryClient.invalidateQueries({ queryKey: [`/api/users/${currentUser.id}/progress`] });
+      
+      const userAssessmentId = data?.userAssessment?.id;
       
       toast({
         title: "Assessment Complete!",
         description: "Your range of motion data has been recorded successfully.",
       });
-      setLocation("/assessments");
+      
+      // Navigate to detailed results page if we have an assessment ID
+      if (userAssessmentId) {
+        setLocation(`/results/${userAssessmentId}`);
+      } else {
+        setLocation("/assessments");
+      }
     },
     onError: () => {
       toast({
@@ -180,6 +188,7 @@ export default function Recording() {
     const recordingElapsed = recordingStartTimeRef.current ? (currentTime - recordingStartTimeRef.current) / 1000 : 0;
     
     console.log(`MediaPipe update: handDetected=${data.handDetected}, landmarks=${data.landmarks ? data.landmarks.length : 'none'}, isRecording=${isRecording}, elapsed=${recordingElapsed.toFixed(1)}s, startTime=${recordingStartTimeRef.current}`);
+    console.log(`Current user injury type: ${currentUser?.injuryType}`);
     
     setHandDetected(data.handDetected);
     setLandmarksCount(data.landmarksCount);
