@@ -100,7 +100,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ? await storage.getAssessmentsForInjury(user.injuryType)
         : await storage.getAssessments();
       
-      // Combine assessments with user progress
+      // Combine assessments with user progress and sort by orderIndex
       const assessmentsWithProgress = allAssessments.map(assessment => {
         const userAssessment = userAssessments.find(ua => ua.assessmentId === assessment.id);
         return {
@@ -110,7 +110,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           qualityScore: userAssessment?.qualityScore,
           userAssessmentId: userAssessment?.id
         };
-      });
+      }).sort((a, b) => a.orderIndex - b.orderIndex);
       
       res.json({ assessments: assessmentsWithProgress });
     } catch (error) {

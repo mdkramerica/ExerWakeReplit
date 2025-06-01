@@ -70,8 +70,9 @@ export default function AssessmentList() {
   const assessments: AssessmentWithProgress[] = assessmentsData?.assessments || [];
   const progress = progressData || { completed: 0, total: 0, percentage: 0 };
 
-  // Find next assessment to do
-  const nextAssessment = assessments.find(a => !a.isCompleted);
+  // Find next assessment to do - ensure proper sequential order
+  const sortedAssessments = [...assessments].sort((a, b) => a.orderIndex - b.orderIndex);
+  const nextAssessment = sortedAssessments.find(a => !a.isCompleted);
   const allCompleted = assessments.length > 0 && assessments.every(a => a.isCompleted);
 
   if (showReplay) {
@@ -109,7 +110,7 @@ export default function AssessmentList() {
           </div>
 
           <div className="space-y-4 mb-8">
-            {assessments.map((assessment, index) => {
+            {sortedAssessments.map((assessment, index) => {
               const isCompleted = assessment.isCompleted;
               const isNext = assessment.id === nextAssessment?.id;
               const isLocked = !isCompleted && !isNext;
