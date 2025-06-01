@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Targeted yellow background removal - preserve all other styling */
+/* CRITICAL: Force remove yellow backgrounds - deployment cache fix */
 .bg-yellow-50,
 .bg-yellow-100,
 .bg-yellow-200,
@@ -12,11 +12,28 @@
 .bg-amber-100,
 .bg-amber-200,
 .bg-amber-300,
-.bg-amber-400 {
+.bg-amber-400,
+*[style*="background-color: yellow"],
+*[style*="background: yellow"],
+*[style*="background-color: #fef3c7"],
+*[style*="background-color: #fde68a"],
+*[style*="background-color: #fbbf24"],
+div[class*="yellow"],
+section[class*="yellow"],
+article[class*="yellow"] {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+}
+
+/* Force white backgrounds on all main content areas */
+main, section, article, .card, [data-testid="card"] {
   background-color: #ffffff !important;
 }
 
-/* Remove all our problematic overrides that break text visibility */
+/* Ensure body and root have proper backgrounds */
+body, #root {
+  background-color: #f9fafb !important;
+}
 
 :root {
   --background: 255 255 255; /* #FFFFFF - clean white background */
