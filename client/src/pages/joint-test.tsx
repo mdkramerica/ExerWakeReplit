@@ -278,9 +278,9 @@ export default function JointTest() {
                 <div><strong>Index Finger Points:</strong> 5, 6, 7, 8</div>
               </div>
               <div>
-                <div><strong>MCP Angle:</strong> Between points 5-6-7</div>
-                <div><strong>PIP Angle:</strong> Between points 6-7-8</div>
-                <div><strong>DIP Angle:</strong> Calculated from point 7-8</div>
+                <div><strong>MCP Angle:</strong> Between points 0-5-6</div>
+                <div><strong>PIP Angle:</strong> Between points 5-6-7</div>
+                <div><strong>DIP Angle:</strong> Between points 6-7-8</div>
               </div>
             </div>
             
