@@ -158,6 +158,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let ringFingerRom: number | null = null;
       let pinkyFingerRom: number | null = null;
       
+      // Individual joint angles for each finger
+      let middleFingerMcp: number | null = null;
+      let middleFingerPip: number | null = null;
+      let middleFingerDip: number | null = null;
+      
+      let ringFingerMcp: number | null = null;
+      let ringFingerPip: number | null = null;
+      let ringFingerDip: number | null = null;
+      
+      let pinkyFingerMcp: number | null = null;
+      let pinkyFingerPip: number | null = null;
+      let pinkyFingerDip: number | null = null;
+      
       if (repetitionData && Array.isArray(repetitionData)) {
         // Collect all motion frames for multi-finger ROM calculation
         const allMotionFrames: any[] = [];
@@ -197,6 +210,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
             ringFingerRom = allFingersROM.ring?.totalActiveRom || null;
             pinkyFingerRom = allFingersROM.pinky?.totalActiveRom || null;
             
+            // Store individual joint angles for detailed breakdown
+            const middleFingerMcp = allFingersROM.middle?.mcpAngle || null;
+            const middleFingerPip = allFingersROM.middle?.pipAngle || null;
+            const middleFingerDip = allFingersROM.middle?.dipAngle || null;
+            
+            const ringFingerMcp = allFingersROM.ring?.mcpAngle || null;
+            const ringFingerPip = allFingersROM.ring?.pipAngle || null;
+            const ringFingerDip = allFingersROM.ring?.dipAngle || null;
+            
+            const pinkyFingerMcp = allFingersROM.pinky?.mcpAngle || null;
+            const pinkyFingerPip = allFingersROM.pinky?.pipAngle || null;
+            const pinkyFingerDip = allFingersROM.pinky?.dipAngle || null;
+            
             console.log('Multi-finger ROM calculated:', {
               index: indexFingerRom,
               middle: middleFingerRom,
@@ -232,7 +258,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         indexFingerRom: indexFingerRom !== null ? indexFingerRom.toString() : null,
         middleFingerRom: middleFingerRom !== null ? middleFingerRom.toString() : null,
         ringFingerRom: ringFingerRom !== null ? ringFingerRom.toString() : null,
-        pinkyFingerRom: pinkyFingerRom !== null ? pinkyFingerRom.toString() : null
+        pinkyFingerRom: pinkyFingerRom !== null ? pinkyFingerRom.toString() : null,
+        
+        // Individual joint angles for detailed breakdown
+        middleFingerMcp: middleFingerMcp !== null ? middleFingerMcp.toString() : null,
+        middleFingerPip: middleFingerPip !== null ? middleFingerPip.toString() : null,
+        middleFingerDip: middleFingerDip !== null ? middleFingerDip.toString() : null,
+        
+        ringFingerMcp: ringFingerMcp !== null ? ringFingerMcp.toString() : null,
+        ringFingerPip: ringFingerPip !== null ? ringFingerPip.toString() : null,
+        ringFingerDip: ringFingerDip !== null ? ringFingerDip.toString() : null,
+        
+        pinkyFingerMcp: pinkyFingerMcp !== null ? pinkyFingerMcp.toString() : null,
+        pinkyFingerPip: pinkyFingerPip !== null ? pinkyFingerPip.toString() : null,
+        pinkyFingerDip: pinkyFingerDip !== null ? pinkyFingerDip.toString() : null
       });
       
       res.json({ userAssessment });

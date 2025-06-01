@@ -41,6 +41,19 @@ export const userAssessments = pgTable("user_assessments", {
   middleFingerRom: numeric("middle_finger_rom", { precision: 5, scale: 2 }), // Middle finger total ROM
   ringFingerRom: numeric("ring_finger_rom", { precision: 5, scale: 2 }), // Ring finger total ROM
   pinkyFingerRom: numeric("pinky_finger_rom", { precision: 5, scale: 2 }), // Pinky finger total ROM
+  
+  // Individual joint angles for each finger
+  middleFingerMcp: numeric("middle_finger_mcp", { precision: 5, scale: 2 }),
+  middleFingerPip: numeric("middle_finger_pip", { precision: 5, scale: 2 }),
+  middleFingerDip: numeric("middle_finger_dip", { precision: 5, scale: 2 }),
+  
+  ringFingerMcp: numeric("ring_finger_mcp", { precision: 5, scale: 2 }),
+  ringFingerPip: numeric("ring_finger_pip", { precision: 5, scale: 2 }),
+  ringFingerDip: numeric("ring_finger_dip", { precision: 5, scale: 2 }),
+  
+  pinkyFingerMcp: numeric("pinky_finger_mcp", { precision: 5, scale: 2 }),
+  pinkyFingerPip: numeric("pinky_finger_pip", { precision: 5, scale: 2 }),
+  pinkyFingerDip: numeric("pinky_finger_dip", { precision: 5, scale: 2 }),
   shareToken: text("share_token").unique(), // Unique token for public sharing
 });
 

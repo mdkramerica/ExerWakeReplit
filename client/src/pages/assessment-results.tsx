@@ -259,17 +259,23 @@ export default function AssessmentResults() {
                             <div className="grid grid-cols-3 gap-4">
                               <div>
                                 <div className="text-sm text-blue-600 font-medium">MCP Joint</div>
-                                <div className="text-xl font-bold text-blue-700">--°</div>
+                                <div className="text-xl font-bold text-blue-700">
+                                  {userAssessment.middleFingerMcp ? parseFloat(userAssessment.middleFingerMcp).toFixed(0) : '0'}°
+                                </div>
                                 <div className="text-xs text-gray-500">Normal: 70-90°</div>
                               </div>
                               <div>
                                 <div className="text-sm text-green-600 font-medium">PIP Joint</div>
-                                <div className="text-xl font-bold text-green-700">--°</div>
+                                <div className="text-xl font-bold text-green-700">
+                                  {userAssessment.middleFingerPip ? parseFloat(userAssessment.middleFingerPip).toFixed(0) : '0'}°
+                                </div>
                                 <div className="text-xs text-gray-500">Normal: 90-110°</div>
                               </div>
                               <div>
                                 <div className="text-sm text-purple-600 font-medium">DIP Joint</div>
-                                <div className="text-xl font-bold text-purple-700">--°</div>
+                                <div className="text-xl font-bold text-purple-700">
+                                  {userAssessment.middleFingerDip ? parseFloat(userAssessment.middleFingerDip).toFixed(0) : '0'}°
+                                </div>
                                 <div className="text-xs text-gray-500">Normal: 70-90°</div>
                               </div>
                             </div>
