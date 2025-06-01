@@ -249,11 +249,38 @@ export default function AssessmentList() {
                             {record.totalActiveRom && (
                               <div className="flex items-center gap-1">
                                 <BarChart3 className="w-3 h-3" />
-                                <span>ROM: {record.totalActiveRom}°</span>
+                                <span>Total ROM: {parseFloat(record.totalActiveRom).toFixed(1)}°</span>
                               </div>
                             )}
                           </div>
                         </div>
+                        
+                        {/* Individual Finger ROM Breakdown */}
+                        {(record.maxMcpAngle || record.maxPipAngle || record.maxDipAngle) && (
+                          <div className="mt-3 pt-3 border-t border-gray-100">
+                            <div className="text-xs font-medium text-gray-700 mb-2">Finger Joint Analysis</div>
+                            <div className="grid grid-cols-3 gap-3 text-xs">
+                              <div className="bg-blue-50 px-2 py-1 rounded">
+                                <div className="font-medium text-blue-700">MCP</div>
+                                <div className="text-blue-900">
+                                  {record.maxMcpAngle ? parseFloat(record.maxMcpAngle).toFixed(1) : '0.0'}°
+                                </div>
+                              </div>
+                              <div className="bg-green-50 px-2 py-1 rounded">
+                                <div className="font-medium text-green-700">PIP</div>
+                                <div className="text-green-900">
+                                  {record.maxPipAngle ? parseFloat(record.maxPipAngle).toFixed(1) : '0.0'}°
+                                </div>
+                              </div>
+                              <div className="bg-purple-50 px-2 py-1 rounded">
+                                <div className="font-medium text-purple-700">DIP</div>
+                                <div className="text-purple-900">
+                                  {record.maxDipAngle ? parseFloat(record.maxDipAngle).toFixed(1) : '0.0'}°
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                       <div className="flex items-center gap-2">
                         {record.qualityScore && (
