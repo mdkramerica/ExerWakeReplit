@@ -205,6 +205,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.log(`Calculating ROM for ${formattedFrames.length} motion frames`);
             const allFingersROM = calculateAllFingersMaxROM(formattedFrames);
             
+            console.log('Raw allFingersROM object:', JSON.stringify(allFingersROM, null, 2));
+            
             indexFingerRom = allFingersROM.index?.totalActiveRom || null;
             middleFingerRom = allFingersROM.middle?.totalActiveRom || null;
             ringFingerRom = allFingersROM.ring?.totalActiveRom || null;
