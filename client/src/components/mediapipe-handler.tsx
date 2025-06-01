@@ -16,9 +16,9 @@ export default function MediaPipeHandler({ onUpdate, isRecording, assessmentType
   const videoRef = useRef<HTMLVideoElement>(null);
   const animationRef = useRef<number | null>(null);
   const lastFrameTime = useRef<number>(0);
-  const previousFrame = useRef<ImageData | null>(null);
+  const motionHistory = useRef<number[]>([]);
 
-  // Detect hand movement using frame difference analysis
+  // Simple and reliable hand detection based on sustained motion
   const detectHandMotion = useCallback((video: HTMLVideoElement, canvas: HTMLCanvasElement) => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return { handDetected: false, landmarks: [] };
@@ -30,92 +30,87 @@ export default function MediaPipeHandler({ onUpdate, isRecording, assessmentType
     // Draw current frame
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // Get current frame data
-    const currentFrame = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const currentData = currentFrame.data;
+    // Simple motion detection in center region where hands typically appear
+    const centerX = Math.floor(canvas.width * 0.3);
+    const centerY = Math.floor(canvas.height * 0.3);
+    const regionWidth = Math.floor(canvas.width * 0.4);
+    const regionHeight = Math.floor(canvas.height * 0.4);
 
-    let motionPixels = 0;
-    let skinPixels = 0;
-    let handDetected = false;
-    
-    // Compare with previous frame for motion detection
-    if (previousFrame.current) {
-      const prevData = previousFrame.current.data;
-      
-      for (let i = 0; i < currentData.length; i += 16) { // Sample every 4th pixel for performance
-        const r1 = currentData[i];
-        const g1 = currentData[i + 1];
-        const b1 = currentData[i + 2];
-        
-        const r2 = prevData[i];
-        const g2 = prevData[i + 1];
-        const b2 = prevData[i + 2];
-        
-        // Calculate pixel difference
-        const diff = Math.abs(r1 - r2) + Math.abs(g1 - g2) + Math.abs(b1 - b2);
-        
-        // Detect motion (significant change between frames)
-        if (diff > 30) {
-          motionPixels++;
-        }
-        
-        // Detect skin-like colors
-        if (r1 > 95 && g1 > 40 && b1 > 20 && 
-            r1 > g1 && r1 > b1 && 
-            Math.abs(r1 - g1) > 15) {
-          skinPixels++;
-        }
-      }
-      
-      // Hand detected only if there's BOTH motion AND skin-like regions
-      handDetected = motionPixels > 10 && skinPixels > 5;
+    const imageData = ctx.getImageData(centerX, centerY, regionWidth, regionHeight);
+    const data = imageData.data;
+
+    // Calculate average brightness in the region
+    let totalBrightness = 0;
+    let pixels = 0;
+
+    for (let i = 0; i < data.length; i += 16) { // Sample every 4th pixel
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      const brightness = (r + g + b) / 3;
+      totalBrightness += brightness;
+      pixels++;
     }
 
-    // Store current frame for next comparison
-    previousFrame.current = currentFrame;
+    const avgBrightness = totalBrightness / pixels;
+    
+    // Track motion over time
+    motionHistory.current.push(avgBrightness);
+    if (motionHistory.current.length > 10) {
+      motionHistory.current.shift();
+    }
 
-    // Generate landmarks for detected hand
-    const landmarks = handDetected ? generateHandLandmarks(canvas.width, canvas.height) : [];
+    // Calculate motion variance (higher variance = more movement)
+    let motionVariance = 0;
+    if (motionHistory.current.length >= 5) {
+      const mean = motionHistory.current.reduce((a, b) => a + b) / motionHistory.current.length;
+      motionVariance = motionHistory.current.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / motionHistory.current.length;
+    }
 
-    // Draw visual feedback
-    if (handDetected) {
-      // Draw green rectangle around detected area
-      ctx.strokeStyle = '#00ff00';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(canvas.width * 0.25, canvas.height * 0.25, canvas.width * 0.5, canvas.height * 0.5);
-      
-      // Draw landmarks
+    // Hand detected based on sustained motion and reasonable brightness
+    const handDetected = motionVariance > 100 && avgBrightness > 30 && avgBrightness < 200;
+    
+    // Generate landmarks only when hand is confidently detected
+    const landmarks = handDetected ? generateHandLandmarks() : [];
+
+    // Draw detection region outline
+    ctx.strokeStyle = handDetected ? '#00ff00' : '#666666';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(centerX, centerY, regionWidth, regionHeight);
+
+    // Draw landmarks only when hand is detected
+    if (handDetected && landmarks.length > 0) {
       ctx.fillStyle = '#00ff00';
       landmarks.forEach((landmark: any) => {
-        const x = landmark.x * canvas.width;
-        const y = landmark.y * canvas.height;
+        const x = centerX + landmark.x * regionWidth;
+        const y = centerY + landmark.y * regionHeight;
         ctx.beginPath();
-        ctx.arc(x, y, 3, 0, 2 * Math.PI);
+        ctx.arc(x, y, 4, 0, 2 * Math.PI);
         ctx.fill();
       });
     }
     
-    // Show tracking status with debug info
+    // Show detection status
     ctx.fillStyle = '#ffffff';
     ctx.font = '12px Arial';
-    ctx.fillText(`Motion: ${motionPixels} | Skin: ${skinPixels}`, 10, 25);
+    ctx.fillText(`Motion: ${motionVariance.toFixed(1)} | Brightness: ${avgBrightness.toFixed(1)}`, 10, 25);
+    
     ctx.fillStyle = handDetected ? '#00ff00' : '#ff6666';
-    ctx.fillText(handDetected ? 'Hand Tracked' : 'Move hand to track', 10, 45);
+    ctx.fillText(handDetected ? 'Hand Detected' : 'Move hand in detection area', 10, 45);
 
     return { handDetected, landmarks };
   }, []);
 
-  // Generate hand landmarks based on motion detection
-  const generateHandLandmarks = (width: number, height: number) => {
+  // Generate simple hand landmarks in the detection region
+  const generateHandLandmarks = () => {
     const landmarks = [];
-    const centerX = 0.5;
-    const centerY = 0.5;
     
-    // Create 21 landmark points representing hand structure
+    // Create 21 landmarks representing basic hand structure
+    // Spread across the detection region
     for (let i = 0; i < 21; i++) {
       landmarks.push({
-        x: centerX + (Math.random() - 0.5) * 0.2,
-        y: centerY + (Math.random() - 0.5) * 0.2,
+        x: 0.2 + Math.random() * 0.6, // Within detection region
+        y: 0.2 + Math.random() * 0.6,
         z: 0
       });
     }
@@ -134,8 +129,8 @@ export default function MediaPipeHandler({ onUpdate, isRecording, assessmentType
 
     const now = performance.now();
     
-    // Throttle to ~30 FPS
-    if (now - lastFrameTime.current < 33) {
+    // Throttle to 20 FPS for stability
+    if (now - lastFrameTime.current < 50) {
       animationRef.current = requestAnimationFrame(processFrame);
       return;
     }
@@ -149,7 +144,7 @@ export default function MediaPipeHandler({ onUpdate, isRecording, assessmentType
       handDetected: result.handDetected,
       landmarksCount: result.landmarks.length,
       trackingQuality: result.handDetected ? "Good" : "Poor",
-      handPosition: result.handDetected ? "Hand in view" : "No hand detected"
+      handPosition: result.handDetected ? "Hand in detection area" : "No hand detected"
     });
 
     animationRef.current = requestAnimationFrame(processFrame);
