@@ -33,41 +33,79 @@
   --exer-dark-blue: 37 99 235; /* #2563EB - blue for buttons */
 }
 
-/* COMPREHENSIVE TEXT VISIBILITY FIX - Override all light gray text */
+/* COMPREHENSIVE TEXT VISIBILITY FIX - Override ALL light text across the app */
+.text-gray-100,
+.text-gray-200,
 .text-gray-300,
 .text-gray-400,
 .text-gray-500,
+.text-gray-600,
+.text-slate-100,
+.text-slate-200,
 .text-slate-300,
 .text-slate-400,
-.text-slate-500 {
-  color: rgb(31 41 55) !important; /* Force dark gray-800 */
+.text-slate-500,
+.text-slate-600,
+.text-zinc-300,
+.text-zinc-400,
+.text-zinc-500,
+.text-neutral-300,
+.text-neutral-400,
+.text-neutral-500 {
+  color: rgb(17 24 39) !important; /* Force dark gray-900 */
+  font-weight: 600 !important;
 }
 
 .text-muted-foreground,
 .text-muted {
-  color: rgb(31 41 55) !important; /* Force dark gray-800 */
+  color: rgb(17 24 39) !important; /* Force dark gray-900 */
+  font-weight: 600 !important;
+}
+
+/* Targeted fix for text elements */
+p, span, div, label, h1, h2, h3, h4, h5, h6, a, li, td, th, 
+small, em, strong, b, i, u, code, pre, blockquote, cite, time {
+  color: rgb(17 24 39) !important;
+}
+
+/* Special targeting for common problematic patterns */
+[class*="text-gray-"],
+[class*="text-slate-"],
+[class*="text-zinc-"],
+[class*="text-neutral-"] {
+  color: rgb(17 24 39) !important;
+  font-weight: 600 !important;
 }
 
 /* Ensure all small text is readable */
 .text-xs,
-.text-sm {
-  color: rgb(31 41 55) !important;
-  font-weight: 500 !important;
+.text-sm,
+.text-base {
+  color: rgb(17 24 39) !important;
+  font-weight: 600 !important;
 }
 
-/* Force visibility for common UI elements */
-label,
-span[class*="text-gray"],
-div[class*="text-gray"],
-p[class*="text-gray"] {
-  color: rgb(31 41 55) !important;
+/* Button text override */
+button,
+.btn,
+[role="button"] {
+  color: rgb(17 24 39) !important;
+  font-weight: 600 !important;
 }
 
-/* Specific overrides for assessment components */
-.assessment-text,
-.rom-text,
-.timeline-text {
-  color: rgb(17 24 39) !important; /* gray-900 */
+/* Card and content text */
+.card,
+.content,
+[class*="card-"] {
+  color: rgb(17 24 39) !important;
+}
+
+/* Instructions and description text */
+.instructions,
+.description,
+[class*="instruction"],
+[class*="description"] {
+  color: rgb(17 24 39) !important;
   font-weight: 600 !important;
 }
 
@@ -141,6 +179,15 @@ p[class*="text-gray"] {
   
   .bg-exer-dark-blue {
     background-color: hsl(var(--exer-dark-blue));
+  }
+  
+  .text-medical-gray {
+    color: rgb(31 41 55) !important; /* Force dark gray-800 */
+    font-weight: 600 !important;
+  }
+  
+  .text-medical-blue {
+    color: hsl(var(--exer-dark-blue)) !important;
   }
 }
 
