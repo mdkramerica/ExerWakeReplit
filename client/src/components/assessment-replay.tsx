@@ -239,27 +239,40 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
       const x = landmark.x * canvas.width;
       const y = landmark.y * canvas.height;
       
+      // Get active finger joint landmarks based on selected digit
+      const getActiveFingerJoints = (digit: string) => {
+        switch (digit) {
+          case 'INDEX': return { mcp: 5, pip: 6, dip: 7, tip: 8 };
+          case 'MIDDLE': return { mcp: 9, pip: 10, dip: 11, tip: 12 };
+          case 'RING': return { mcp: 13, pip: 14, dip: 15, tip: 16 };
+          case 'PINKY': return { mcp: 17, pip: 18, dip: 19, tip: 20 };
+          default: return { mcp: 5, pip: 6, dip: 7, tip: 8 };
+        }
+      };
+      
+      const activeJoints = getActiveFingerJoints(selectedDigit);
+      
       // Color-code joints to match live joint angles display
       let color = '#10b981'; // Default green for other landmarks
       let size = 4;
       
-      if (index === 5) {
+      if (index === activeJoints.mcp) {
         // MCP joint - blue to match live display
         color = '#3b82f6';
         size = 8;
-      } else if (index === 6) {
+      } else if (index === activeJoints.pip) {
         // PIP joint - green to match live display
         color = '#10b981';
         size = 8;
-      } else if (index === 7) {
+      } else if (index === activeJoints.dip) {
         // DIP joint - purple to match live display
         color = '#8b5cf6';
         size = 8;
-      } else if (index === 8) {
-        // Fingertip - light blue
-        color = '#60a5fa';
+      } else if (index === activeJoints.tip) {
+        // Fingertip - orange for selected finger
+        color = '#f59e0b';
         size = 6;
-      } else if ([0].includes(index)) {
+      } else if (index === 0) {
         // Wrist landmark
         color = '#ef4444'; // Red for wrist
         size = 5;
