@@ -240,11 +240,24 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
       ctx.fillStyle = '#10b981';
     });
 
-    // Draw hand connections (natural position without mirroring)
-    ctx.strokeStyle = '#10b981';
-    ctx.lineWidth = 2;
+    // Draw hand connections with highlighted measurement path
+    const measurementConnections = [[5, 6], [6, 7], [7, 8]]; // Index finger joints being measured
+    
     HAND_CONNECTIONS.forEach(([start, end]) => {
       if (frame.landmarks[start] && frame.landmarks[end]) {
+        // Highlight measurement path in yellow
+        const isMeasurementPath = measurementConnections.some(([s, e]) => 
+          (s === start && e === end) || (s === end && e === start)
+        );
+        
+        if (isMeasurementPath) {
+          ctx.strokeStyle = '#fbbf24'; // Yellow for measurement path
+          ctx.lineWidth = 4;
+        } else {
+          ctx.strokeStyle = '#10b981'; // Green for other connections
+          ctx.lineWidth = 2;
+        }
+        
         ctx.beginPath();
         ctx.moveTo(
           frame.landmarks[start].x * canvas.width,
