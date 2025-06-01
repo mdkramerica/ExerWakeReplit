@@ -140,10 +140,10 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
     ctx.fillStyle = '#000000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Always try to draw the video frame first
+    // Always try to draw the video frame first (mirrored)
     try {
       if (video.readyState >= 2 && video.videoWidth > 0 && video.videoHeight > 0) {
-        // Draw video frame (mirrored for natural interaction)
+        // Draw mirrored video frame for natural interaction
         ctx.save();
         ctx.scale(-1, 1);
         ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
@@ -178,7 +178,8 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
       // Draw hand landmarks
       ctx.fillStyle = '#00ff00';
       landmarks.forEach((landmark: any, index: number) => {
-        const x = landmark.x * canvas.width;
+        // Mirror the x coordinate to match the mirrored video
+        const x = canvas.width - (landmark.x * canvas.width);
         const y = landmark.y * canvas.height;
         
         // Draw landmark point
@@ -199,8 +200,9 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
       HAND_CONNECTIONS.forEach(([start, end]) => {
         if (landmarks[start] && landmarks[end]) {
           ctx.beginPath();
-          ctx.moveTo(landmarks[start].x * canvas.width, landmarks[start].y * canvas.height);
-          ctx.lineTo(landmarks[end].x * canvas.width, landmarks[end].y * canvas.height);
+          // Mirror x coordinates to match the mirrored video
+          ctx.moveTo(canvas.width - (landmarks[start].x * canvas.width), landmarks[start].y * canvas.height);
+          ctx.lineTo(canvas.width - (landmarks[end].x * canvas.width), landmarks[end].y * canvas.height);
           ctx.stroke();
         }
       });
