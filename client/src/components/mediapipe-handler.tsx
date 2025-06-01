@@ -554,11 +554,8 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
 
       try {
         if (video.readyState >= 2 && video.videoWidth > 0) {
-          // Draw mirrored video
-          ctx.save();
-          ctx.scale(-1, 1);
-          ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
-          ctx.restore();
+          // Draw unmirrored video for joint-test page
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
           
           // Add "Camera Only" indicator
           ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
