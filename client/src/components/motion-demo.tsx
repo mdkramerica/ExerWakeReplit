@@ -53,13 +53,8 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
     canvas.width = video.videoWidth || 640;
     canvas.height = video.videoHeight || 480;
 
-    // Draw video frame with slight blur for privacy
-    ctx.filter = 'blur(2px) brightness(0.7)';
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    ctx.filter = 'none';
-
-    // Draw dark overlay for better contrast
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+    // Draw clean dark background
+    ctx.fillStyle = '#1a1a1a';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     let detectedHand = false;
@@ -68,18 +63,26 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
       detectedHand = true;
       const landmarks = results.multiHandLandmarks[0];
 
-      // Draw hand landmarks in bright green
+      // Draw hand landmarks in bright green with larger, more visible points
       ctx.fillStyle = '#00ff00';
       landmarks.forEach((landmark: any) => {
         const x = landmark.x * canvas.width;
         const y = landmark.y * canvas.height;
         
         ctx.beginPath();
-        ctx.arc(x, y, 4, 0, 2 * Math.PI);
+        ctx.arc(x, y, 6, 0, 2 * Math.PI);
         ctx.fill();
+        
+        // Add glow effect
+        ctx.shadowColor = '#00ff00';
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.arc(x, y, 3, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.shadowBlur = 0;
       });
 
-      // Draw hand connections
+      // Draw hand connections with glow effect
       const connections = [
         [0, 1], [1, 2], [2, 3], [3, 4], // thumb
         [0, 5], [5, 6], [6, 7], [7, 8], // index
@@ -90,7 +93,9 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
       ];
 
       ctx.strokeStyle = '#00ff00';
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 3;
+      ctx.shadowColor = '#00ff00';
+      ctx.shadowBlur = 5;
       connections.forEach(([start, end]) => {
         const startLandmark = landmarks[start];
         const endLandmark = landmarks[end];
@@ -100,6 +105,7 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
         ctx.lineTo(endLandmark.x * canvas.width, endLandmark.y * canvas.height);
         ctx.stroke();
       });
+      ctx.shadowBlur = 0;
     }
 
     setHandDetected(detectedHand);
