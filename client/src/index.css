@@ -4,255 +4,330 @@
 
 :root {
   --background: 255 255 255; /* #FFFFFF - clean white background */
-  --foreground: 51 65 85; /* #334155 - dark slate text */
+  --foreground: 31 41 55; /* #1F2937 - dark gray-800 */
   --muted: 248 250 252; /* #F8FAFC - very light gray */
-  --muted-foreground: 100 116 139; /* #64748B - medium gray */
+  --muted-foreground: 55 65 81; /* #374151 - gray-700 */
   --popover: 255 255 255; /* #FFFFFF */
-  --popover-foreground: 51 65 85; /* #334155 */
+  --popover-foreground: 31 41 55; /* #1F2937 */
   --card: 255 255 255; /* #FFFFFF */
-  --card-foreground: 51 65 85; /* #334155 */
+  --card-foreground: 31 41 55; /* #1F2937 */
   --border: 226 232 240; /* #E2E8F0 - light border */
   --input: 226 232 240; /* #E2E8F0 */
-  --primary: 139 92 246; /* #8B5CF6 - purple accent */
+  --primary: 59 130 246; /* #3B82F6 - blue-500 */
   --primary-foreground: 255 255 255; /* #FFFFFF */
   --secondary: 248 250 252; /* #F8FAFC */
-  --secondary-foreground: 71 85 105; /* #475569 */
-  --accent: 250 245 255; /* #FAF5FF - purple-50 */
-  --accent-foreground: 124 58 237; /* #7C3AED */
+  --secondary-foreground: 31 41 55; /* #1F2937 */
+  --accent: 239 246 255; /* #EFF6FF - blue-50 */
+  --accent-foreground: 31 41 55; /* #1F2937 */
   --destructive: 239 68 68; /* #EF4444 - red-500 */
   --destructive-foreground: 254 242 242; /* #FEF2F2 */
-  --ring: 139 92 246; /* #8B5CF6 - purple accent */
+  --ring: 59 130 246; /* #3B82F6 - blue-500 */
   --radius: 0.5rem;
   
-  /* Exer.ai colors matching their actual website */
-  --exer-purple: 139 92 246; /* #8B5CF6 - purple accent for "Motion" */
-  --exer-purple-dark: 124 58 237; /* #7C3AED - darker purple */
-  --exer-navy: 55 65 81; /* #374151 - dark gray text */
-  --exer-gray: 107 114 128; /* #6B7280 - medium gray */
-  --exer-light: 249 250 251; /* #F9FAFB - light background */
-  --exer-dark-blue: 37 99 235; /* #2563EB - blue for buttons */
+  /* Medical app colors */
+  --medical-primary: 59 130 246; /* #3B82F6 - blue-500 */
+  --medical-secondary: 37 99 235; /* #2563EB - blue-600 */
+  --medical-gray: 31 41 55; /* #1F2937 - gray-800 */
+  --medical-light-gray: 55 65 81; /* #374151 - gray-700 */
+  --medical-border: 209 213 219; /* #D1D5DB - gray-300 */
+  --medical-bg: 249 250 251; /* #F9FAFB - gray-50 */
 }
 
-/* Clean Color System Reset */
-/* Base text colors - dark and readable */
-* {
-  color: #1f2937; /* gray-800 - darker for better readability */
+/* Global resets and base styles */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
+html, body {
+  height: 100%;
+  background-color: rgb(249 250 251); /* Light gray background */
+  color: rgb(31 41 55); /* Dark gray text */
+  font-family: system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+}
+
+#root {
+  min-height: 100vh;
+  background-color: rgb(249 250 251);
+}
+
+/* Typography */
 h1, h2, h3, h4, h5, h6 {
-  color: #111827; /* gray-900 */
+  color: rgb(17 24 39); /* gray-900 */
   font-weight: 600;
+  line-height: 1.25;
 }
 
-/* Clean background system */
-body {
-  background-color: #f9fafb; /* Very light gray background */
-  color: #1f2937;
+p, span, div, label {
+  color: rgb(31 41 55); /* gray-800 */
 }
 
-/* Card styling with clean white backgrounds */
-.card, [data-slot="card"] {
-  background-color: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+.text-sm {
+  color: rgb(55 65 81); /* gray-700 */
+  font-size: 0.875rem;
 }
 
-/* Medical application specific styling */
+.text-xs {
+  color: rgb(55 65 81); /* gray-700 */
+  font-size: 0.75rem;
+}
+
+/* Card components */
+.card {
+  background-color: rgb(255 255 255);
+  border: 1px solid rgb(226 232 240);
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
 .medical-card {
-  background-color: #ffffff;
-  border: 1px solid #d1d5db;
-  border-radius: 12px;
+  background-color: rgb(255 255 255);
+  border: 1px solid rgb(209 213 219);
+  border-radius: 0.75rem;
   padding: 2rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-/* Assessment cards */
 .assessment-card {
-  background-color: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
+  background-color: rgb(255 255 255);
+  border: 1px solid rgb(226 232 240);
+  border-radius: 0.75rem;
   padding: 1.5rem;
-  transition: all 0.2s ease;
+  transition: all 0.2s ease-in-out;
 }
 
 .assessment-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border-color: #3b82f6;
+  border-color: rgb(59 130 246);
+  box-shadow: 0 4px 12px -1px rgba(0, 0, 0, 0.15);
 }
 
-.assessment-card.completed {
-  border-color: #10b981;
-  background-color: #f0fdf4;
-}
-
-/* Button styling based on Exer.ai design */
+/* Button styles */
 .medical-button {
-  background-color: #3b82f6;
-  color: #ffffff;
+  background-color: rgb(59 130 246);
+  color: rgb(255 255 255);
   border: none;
-  border-radius: 8px;
-  padding: 12px 24px;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1.5rem;
   font-weight: 500;
-  transition: all 0.2s ease;
+  font-size: 0.875rem;
   cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .medical-button:hover {
-  background-color: #2563eb;
+  background-color: rgb(37 99 235);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
 }
 
 .medical-button:disabled {
-  background-color: #9ca3af;
+  background-color: rgb(156 163 175);
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
 }
 
-/* Text size and weight system - darker for better contrast */
-.text-xs, .text-sm {
-  color: #374151; /* gray-700 - much darker for readability */
-}
-
-.text-base, .text-lg {
-  color: #1f2937; /* gray-800 - even darker for main text */
-}
-
-/* Labels and form text */
-label {
-  color: #1f2937; /* gray-800 for strong contrast */
-  font-weight: 500;
-}
-
-/* Button hover fix - prevent text from disappearing */
+/* Button text visibility fixes */
 button {
-  color: #1f2937;
+  color: rgb(31 41 55);
+}
+
+button * {
+  color: inherit;
 }
 
 button:hover {
-  color: #1f2937;
+  color: rgb(31 41 55);
 }
 
-/* Specific fixes for button variants */
-button[class*="bg-blue"], 
-.bg-blue-600,
-.bg-blue-500 {
-  color: #ffffff !important;
+button:hover * {
+  color: inherit;
 }
 
-button[class*="bg-blue"]:hover, 
-.bg-blue-600:hover,
-.bg-blue-500:hover {
-  color: #ffffff !important;
+/* Specific button variant overrides */
+button[class*="bg-blue"] {
+  color: rgb(255 255 255) !important;
 }
 
-/* Fix for ghost/outline buttons */
-button[class*="variant-ghost"],
+button[class*="bg-blue"] * {
+  color: rgb(255 255 255) !important;
+}
+
+button[class*="bg-blue"]:hover {
+  color: rgb(255 255 255) !important;
+}
+
+button[class*="bg-blue"]:hover * {
+  color: rgb(255 255 255) !important;
+}
+
 button[class*="variant-outline"] {
-  color: #1f2937 !important;
+  color: rgb(31 41 55) !important;
+  background-color: rgb(255 255 255) !important;
+  border: 1px solid rgb(209 213 219) !important;
 }
 
-button[class*="variant-ghost"]:hover,
+button[class*="variant-outline"] * {
+  color: rgb(31 41 55) !important;
+}
+
 button[class*="variant-outline"]:hover {
-  color: #1f2937 !important;
-  background-color: #f3f4f6 !important;
+  color: rgb(31 41 55) !important;
+  background-color: rgb(249 250 251) !important;
 }
 
-/* Input styling */
+button[class*="variant-outline"]:hover * {
+  color: rgb(31 41 55) !important;
+}
+
+/* Form inputs */
 input, textarea, select {
-  background-color: #ffffff;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  color: #1f2937;
+  background-color: rgb(255 255 255);
+  border: 1px solid rgb(209 213 219);
+  border-radius: 0.5rem;
+  color: rgb(31 41 55);
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  transition: border-color 0.2s ease-in-out;
 }
 
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: rgb(59 130 246);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Status indicators */
+.status-excellent {
+  background-color: rgb(220 252 231);
+  color: rgb(22 101 52);
+  border: 1px solid rgb(187 247 208);
+}
+
+.status-good {
+  background-color: rgb(219 234 254);
+  color: rgb(30 64 175);
+  border: 1px solid rgb(191 219 254);
+}
+
+.status-needs-attention {
+  background-color: rgb(254 243 199);
+  color: rgb(146 64 14);
+  border: 1px solid rgb(253 230 138);
+}
+
+.status-poor {
+  background-color: rgb(254 226 226);
+  color: rgb(220 38 38);
+  border: 1px solid rgb(254 202 202);
+}
+
+/* Dark mode support */
 .dark {
   --background: 15 23 42; /* #0F172A */
   --foreground: 248 250 252; /* #F8FAFC */
-  --muted: 30 41 59; /* #1E293B */
-  --muted-foreground: 148 163 184; /* #94A3B8 */
-  --popover: 15 23 42; /* #0F172A */
-  --popover-foreground: 248 250 252; /* #F8FAFC */
   --card: 15 23 42; /* #0F172A */
   --card-foreground: 248 250 252; /* #F8FAFC */
+  --popover: 15 23 42; /* #0F172A */
+  --popover-foreground: 248 250 252; /* #F8FAFC */
+  --primary: 59 130 246; /* #3B82F6 */
+  --primary-foreground: 255 255 255; /* #FFFFFF */
+  --secondary: 30 41 59; /* #1E293B */
+  --secondary-foreground: 248 250 252; /* #F8FAFC */
+  --muted: 30 41 59; /* #1E293B */
+  --muted-foreground: 148 163 184; /* #94A3B8 */
+  --accent: 30 41 59; /* #1E293B */
+  --accent-foreground: 248 250 252; /* #F8FAFC */
+  --destructive: 239 68 68; /* #EF4444 */
+  --destructive-foreground: 254 242 242; /* #FEF2F2 */
   --border: 30 41 59; /* #1E293B */
   --input: 30 41 59; /* #1E293B */
-  --primary: 37 99 235; /* #2563EB */
-  --primary-foreground: 248 250 252; /* #F8FAFC */
-  --secondary: 30 41 59; /* #1E293B */
-  --secondary-foreground: 148 163 184; /* #94A3B8 */
-  --accent: 30 41 59; /* #1E293B */
-  --accent-foreground: 148 163 184; /* #94A3B8 */
-  --destructive: 220 38 38; /* #DC2626 */
-  --destructive-foreground: 254 242 242; /* #FEF2F2 */
-  --ring: 37 99 235; /* #2563EB */
+  --ring: 59 130 246; /* #3B82F6 */
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-
-  body {
-    @apply font-sans antialiased;
-    font-family: 'Inter', sans-serif;
-    background: #ffffff !important;
-    color: #374151 !important;
-  }
-}
-
+/* Custom utility classes */
 @layer utilities {
-  .exer-purple {
-    color: hsl(var(--exer-purple));
+  .text-medical {
+    color: rgb(31 41 55);
   }
   
-  .bg-exer-purple {
-    background-color: hsl(var(--exer-purple));
+  .text-medical-light {
+    color: rgb(55 65 81);
   }
   
-  .border-exer-purple {
-    border-color: hsl(var(--exer-purple));
+  .bg-medical {
+    background-color: rgb(249 250 251);
   }
   
-  .exer-purple-dark {
-    color: hsl(var(--exer-purple-dark));
+  .bg-medical-card {
+    background-color: rgb(255 255 255);
   }
   
-  .bg-exer-purple-dark {
-    background-color: hsl(var(--exer-purple-dark));
+  .border-medical {
+    border-color: rgb(209 213 219);
   }
-  
-  .exer-navy {
-    color: hsl(var(--exer-navy));
-  }
-  
-  .exer-gray {
-    color: hsl(var(--exer-gray));
-  }
-  
-  .bg-exer-light {
-    background-color: hsl(var(--exer-light));
-  }
-  
-  .bg-exer-dark-blue {
-    background-color: hsl(var(--exer-dark-blue));
-  }
-  
-  .text-medical-gray {
-    color: rgb(31 41 55) !important; /* Force dark gray-800 */
-    font-weight: 600 !important;
-  }
-  
-  .text-medical-blue {
-    color: hsl(var(--exer-dark-blue)) !important;
-  }
+}
+
+/* Timeline scrubber styling */
+.slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 8px;
+  border-radius: 4px;
+  background: rgb(226 232 240);
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgb(59 130 246);
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+  transition: all 0.2s ease;
+}
+
+.slider::-webkit-slider-thumb:hover {
+  background: rgb(37 99 235);
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.4);
+}
+
+.slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgb(59 130 246);
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+  transition: all 0.2s ease;
+}
+
+.slider::-moz-range-thumb:hover {
+  background: rgb(37 99 235);
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.4);
+}
+
+.slider:focus {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 /* MediaPipe Canvas Styles */
 .mediapipe-canvas {
-  @apply w-full h-full object-cover;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 /* Recording indicator animation */
@@ -269,6 +344,12 @@ input, textarea, select {
   animation: pulse-red 1s infinite;
 }
 
+/* Focus improvements for accessibility */
+.focus-visible:focus {
+  outline: 2px solid rgb(59 130 246);
+  outline-offset: 2px;
+}
+
 /* High contrast accessibility improvements */
 @media (prefers-contrast: high) {
   :root {
@@ -276,192 +357,3 @@ input, textarea, select {
     --input: 0 0 0;
   }
 }
-
-/* Focus improvements for accessibility */
-.focus-visible:focus {
-  @apply ring-2 ring-offset-2 ring-primary outline-none;
-}
-
-/* Clean input styling */
-.medical-input {
-  width: 100%;
-  padding: 12px 16px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  background-color: #ffffff;
-  color: #1f2937;
-  font-size: 16px;
-  transition: all 0.2s ease;
-}
-
-.medical-input:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-/* Status indicators for assessment results */
-.status-excellent {
-  background-color: #dcfce7;
-  color: #166534;
-  border: 1px solid #bbf7d0;
-}
-
-.status-good {
-  background-color: #dbeafe;
-  color: #1e40af;
-  border: 1px solid #bfdbfe;
-}
-
-.status-needs-attention {
-  background-color: #fef3c7;
-  color: #92400e;
-  border: 1px solid #fde68a;
-}
-
-.status-poor {
-  background-color: #fee2e2;
-  color: #dc2626;
-  border: 1px solid #fecaca;
-}
-
-/* Timeline scrubber styling */
-.slider {
-  -webkit-appearance: none;
-  appearance: none;
-  height: 8px;
-  border-radius: 4px;
-  outline: none;
-  transition: all 0.2s ease;
-}
-
-.slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: #3b82f6;
-  cursor: pointer;
-  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
-  transition: all 0.2s ease;
-}
-
-.slider::-webkit-slider-thumb:hover {
-  background: #2563eb;
-  transform: scale(1.1);
-  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.4);
-}
-
-.slider::-moz-range-thumb {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: #3b82f6;
-  cursor: pointer;
-  border: none;
-  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
-  transition: all 0.2s ease;
-}
-
-.slider::-moz-range-thumb:hover {
-  background: #2563eb;
-  transform: scale(1.1);
-  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.4);
-}
-
-.slider:focus {
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-/* Clean button text styling with proper contrast */
-button {
-  font-weight: 500;
-}
-
-button span {
-  color: inherit;
-}
-
-/* Comprehensive button text visibility fixes */
-button[class*="text-gray"],
-button[class*="text-slate"] {
-  color: #1f2937 !important;
-}
-
-button[class*="text-gray"]:hover,
-button[class*="text-slate"]:hover {
-  color: #1f2937 !important;
-}
-
-/* Ensure all button states maintain proper text color */
-.btn, [role="button"] {
-  color: #1f2937;
-}
-
-.btn:hover, [role="button"]:hover {
-  color: #1f2937;
-}
-
-/* Fix specific shadcn button variants */
-[data-variant="ghost"],
-[data-variant="outline"],
-[data-variant="secondary"] {
-  color: #1f2937 !important;
-}
-
-[data-variant="ghost"]:hover,
-[data-variant="outline"]:hover,
-[data-variant="secondary"]:hover {
-  color: #1f2937 !important;
-}
-
-/* AGGRESSIVE button text visibility fixes */
-button * {
-  color: inherit !important;
-}
-
-button:hover * {
-  color: inherit !important;
-}
-
-/* Target all possible button classes that could be causing disappearing text */
-.inline-flex,
-.items-center,
-.justify-center,
-.gap-2,
-.rounded-md,
-.text-sm,
-.font-medium,
-.ring-offset-background,
-.transition-colors,
-.focus-visible\:outline-none,
-.focus-visible\:ring-2,
-.focus-visible\:ring-ring,
-.focus-visible\:ring-offset-2,
-.disabled\:pointer-events-none,
-.disabled\:opacity-50 {
-  color: #1f2937 !important;
-}
-
-/* Specific fix for the Share Motion Replay button */
-button[class*="variant-outline"] {
-  color: #1f2937 !important;
-  border: 1px solid #d1d5db !important;
-}
-
-button[class*="variant-outline"]:hover {
-  color: #1f2937 !important;
-  background-color: #f9fafb !important;
-}
-
-/* Universal button text fix - most aggressive approach */
-button, button span, button div, button p, button * {
-  color: #1f2937 !important;
-}
-
-button:hover, button:hover span, button:hover div, button:hover p, button:hover * {
-  color: #1f2937 !important;
-}
-
-/* Remove old styling - now handled above with clean CSS */
