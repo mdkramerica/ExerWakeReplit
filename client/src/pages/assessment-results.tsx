@@ -195,21 +195,21 @@ export default function AssessmentResults() {
                               <div className="text-xl font-bold text-blue-700">
                                 {userAssessment.maxMcpAngle ? parseFloat(userAssessment.maxMcpAngle).toFixed(0) : '0'}°
                               </div>
-                              <div className="text-xs text-gray-500">Normal: 70-90°</div>
+                              <div className="text-xs text-gray-700">Normal: 70-90°</div>
                             </div>
                             <div>
                               <div className="text-sm text-green-600 font-medium">PIP Joint</div>
                               <div className="text-xl font-bold text-green-700">
                                 {userAssessment.maxPipAngle ? parseFloat(userAssessment.maxPipAngle).toFixed(0) : '0'}°
                               </div>
-                              <div className="text-xs text-gray-500">Normal: 90-110°</div>
+                              <div className="text-xs text-gray-700">Normal: 90-110°</div>
                             </div>
                             <div>
                               <div className="text-sm text-purple-600 font-medium">DIP Joint</div>
                               <div className="text-xl font-bold text-purple-700">
                                 {userAssessment.maxDipAngle ? parseFloat(userAssessment.maxDipAngle).toFixed(0) : '0'}°
                               </div>
-                              <div className="text-xs text-gray-500">Normal: 70-90°</div>
+                              <div className="text-xs text-gray-700">Normal: 70-90°</div>
                             </div>
                           </div>
                         </div>
@@ -237,7 +237,7 @@ export default function AssessmentResults() {
                                 }`}>
                                   {userAssessment.middleFingerMcp ? parseFloat(userAssessment.middleFingerMcp).toFixed(0) : '0'}°
                                 </div>
-                                <div className="text-xs text-gray-500">Normal: 70-90°</div>
+                                <div className="text-xs text-gray-700">Normal: 70-90°</div>
                               </div>
                               <div className={`p-4 rounded-lg border ${
                                 userAssessment.middleFingerPip && 
@@ -252,7 +252,7 @@ export default function AssessmentResults() {
                                 }`}>
                                   {userAssessment.middleFingerPip ? parseFloat(userAssessment.middleFingerPip).toFixed(0) : '0'}°
                                 </div>
-                                <div className="text-xs text-gray-500">Normal: 90-110°</div>
+                                <div className="text-xs text-gray-700">Normal: 90-110°</div>
                               </div>
                               <div className={`p-4 rounded-lg border ${
                                 userAssessment.middleFingerDip && 
@@ -267,7 +267,7 @@ export default function AssessmentResults() {
                                 }`}>
                                   {userAssessment.middleFingerDip ? parseFloat(userAssessment.middleFingerDip).toFixed(0) : '0'}°
                                 </div>
-                                <div className="text-xs text-gray-500">Normal: 70-90°</div>
+                                <div className="text-xs text-gray-700">Normal: 70-90°</div>
                               </div>
                             </div>
                           </div>
@@ -296,7 +296,7 @@ export default function AssessmentResults() {
                                 }`}>
                                   {userAssessment.ringFingerMcp ? parseFloat(userAssessment.ringFingerMcp).toFixed(0) : '0'}°
                                 </div>
-                                <div className="text-xs text-gray-500">Normal: 70-90°</div>
+                                <div className="text-xs text-gray-700">Normal: 70-90°</div>
                               </div>
                               <div className={`p-4 rounded-lg border ${
                                 userAssessment.ringFingerPip && 
@@ -311,7 +311,7 @@ export default function AssessmentResults() {
                                 }`}>
                                   {userAssessment.ringFingerPip ? parseFloat(userAssessment.ringFingerPip).toFixed(0) : '0'}°
                                 </div>
-                                <div className="text-xs text-gray-500">Normal: 90-110°</div>
+                                <div className="text-xs text-gray-700">Normal: 90-110°</div>
                               </div>
                               <div className={`p-4 rounded-lg border ${
                                 userAssessment.ringFingerDip && 
@@ -326,7 +326,7 @@ export default function AssessmentResults() {
                                 }`}>
                                   {userAssessment.ringFingerDip ? parseFloat(userAssessment.ringFingerDip).toFixed(0) : '0'}°
                                 </div>
-                                <div className="text-xs text-gray-500">Normal: 70-90°</div>
+                                <div className="text-xs text-gray-700">Normal: 70-90°</div>
                               </div>
                             </div>
                           </div>
@@ -355,7 +355,7 @@ export default function AssessmentResults() {
                                 }`}>
                                   {userAssessment.pinkyFingerMcp ? parseFloat(userAssessment.pinkyFingerMcp).toFixed(0) : '0'}°
                                 </div>
-                                <div className="text-xs text-gray-500">Normal: 70-90°</div>
+                                <div className="text-xs text-gray-700">Normal: 70-90°</div>
                               </div>
                               <div className={`p-4 rounded-lg border ${
                                 userAssessment.pinkyFingerPip && 
@@ -370,7 +370,7 @@ export default function AssessmentResults() {
                                 }`}>
                                   {userAssessment.pinkyFingerPip ? parseFloat(userAssessment.pinkyFingerPip).toFixed(0) : '0'}°
                                 </div>
-                                <div className="text-xs text-gray-500">Normal: 90-110°</div>
+                                <div className="text-xs text-gray-700">Normal: 90-110°</div>
                               </div>
                               <div className={`p-4 rounded-lg border ${
                                 userAssessment.pinkyFingerDip && 
@@ -385,7 +385,7 @@ export default function AssessmentResults() {
                                 }`}>
                                   {userAssessment.pinkyFingerDip ? parseFloat(userAssessment.pinkyFingerDip).toFixed(0) : '0'}°
                                 </div>
-                                <div className="text-xs text-gray-500">Normal: 70-90°</div>
+                                <div className="text-xs text-gray-700">Normal: 70-90°</div>
                               </div>
                             </div>
                           </div>
@@ -456,7 +456,7 @@ export default function AssessmentResults() {
                     ))}
                   </div>
                 ) : (
-                  <div className="text-gray-500">No repetition data available</div>
+                  <div className="text-gray-700">No repetition data available</div>
                 )}
               </CardContent>
             </Card>

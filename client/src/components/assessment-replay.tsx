@@ -777,7 +777,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
                 />
                 
                 {/* Timeline markers */}
-                <div className="flex justify-between mt-1 text-xs text-gray-400">
+                <div className="flex justify-between mt-1 text-xs text-gray-600">
                   <span>0s</span>
                   <span>{(replayData.length / 30 / 4).toFixed(1)}s</span>
                   <span>{(replayData.length / 30 / 2).toFixed(1)}s</span>
@@ -786,7 +786,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
                 </div>
               </div>
               
-              <div className="flex justify-between items-center mt-3 text-xs text-gray-500">
+              <div className="flex justify-between items-center mt-3 text-xs text-gray-700">
                 <span>Drag to navigate • Click anywhere on timeline to jump</span>
                 <span>30 FPS</span>
               </div>
@@ -804,28 +804,28 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
                     <span className="text-gray-600 block">MCP Joint:</span>
                     <div className="font-bold text-lg text-blue-600">{Math.round(currentROM.mcpAngle)}°</div>
                     {maxROM && (
-                      <div className="text-xs text-gray-500">Max: {Math.round(maxROM.mcpAngle)}°</div>
+                      <div className="text-xs text-gray-700">Max: {Math.round(maxROM.mcpAngle)}°</div>
                     )}
                   </div>
                   <div className="bg-white p-3 rounded border">
                     <span className="text-gray-600 block">PIP Joint:</span>
                     <div className="font-bold text-lg text-green-600">{Math.round(currentROM.pipAngle)}°</div>
                     {maxROM && (
-                      <div className="text-xs text-gray-500">Max: {Math.round(maxROM.pipAngle)}°</div>
+                      <div className="text-xs text-gray-700">Max: {Math.round(maxROM.pipAngle)}°</div>
                     )}
                   </div>
                   <div className="bg-white p-3 rounded border">
                     <span className="text-gray-600 block">DIP Joint:</span>
                     <div className="font-bold text-lg text-purple-600">{Math.round(currentROM.dipAngle)}°</div>
                     {maxROM && (
-                      <div className="text-xs text-gray-500">Max: {Math.round(maxROM.dipAngle)}°</div>
+                      <div className="text-xs text-gray-700">Max: {Math.round(maxROM.dipAngle)}°</div>
                     )}
                   </div>
                   <div className="bg-white p-3 rounded border">
                     <span className="text-gray-600 block">Total ROM:</span>
                     <div className="font-bold text-lg text-gray-900">{Math.round(currentROM.totalActiveRom)}°</div>
                     {maxROM && (
-                      <div className="text-xs text-gray-500">Max: {Math.round(maxROM.totalActiveRom)}°</div>
+                      <div className="text-xs text-gray-700">Max: {Math.round(maxROM.totalActiveRom)}°</div>
                     )}
                   </div>
                 </div>
@@ -857,7 +857,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
                             {Math.round(rom.mcpAngle)}°
                             {rom.mcpAngle < 70 && <span className="ml-1 text-xs">⚠</span>}
                           </div>
-                          <div className="text-xs text-gray-500">Normal: 70-90°</div>
+                          <div className="text-xs text-gray-700">Normal: 70-90°</div>
                         </div>
                         
                         <div className={`p-2 rounded ${
@@ -870,7 +870,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
                             {Math.round(rom.pipAngle)}°
                             {rom.pipAngle < 90 && <span className="ml-1 text-xs">⚠</span>}
                           </div>
-                          <div className="text-xs text-gray-500">Normal: 90-110°</div>
+                          <div className="text-xs text-gray-700">Normal: 90-110°</div>
                         </div>
                         
                         <div className={`p-2 rounded ${
@@ -883,7 +883,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
                             {Math.round(rom.dipAngle)}°
                             {rom.dipAngle < 70 && <span className="ml-1 text-xs">⚠</span>}
                           </div>
-                          <div className="text-xs text-gray-500">Normal: 70-90°</div>
+                          <div className="text-xs text-gray-700">Normal: 70-90°</div>
                         </div>
                       </div>
                     </div>

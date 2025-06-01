@@ -128,7 +128,7 @@ export default function AssessmentList() {
                       <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
                         isCompleted ? "bg-medical-success text-white" :
                         isNext ? "bg-medical-blue text-white" :
-                        "bg-gray-200 text-gray-400"
+                        "bg-gray-200 text-gray-600"
                       }`}>
                         {isCompleted ? (
                           <Check className="w-6 h-6" />
@@ -142,7 +142,7 @@ export default function AssessmentList() {
                         <h3 className={`font-medium ${isLocked ? "text-gray-600" : "text-gray-900"}`}>
                           {assessment.name}
                         </h3>
-                        <p className={`text-sm ${isLocked ? "text-gray-400" : "text-gray-600"}`}>
+                        <p className={`text-sm ${isLocked ? "text-gray-600" : "text-gray-700"}`}>
                           {assessment.description}
                         </p>
                         <div className="flex items-center mt-1 text-xs">
@@ -159,7 +159,7 @@ export default function AssessmentList() {
                               <span>Est. 3-5 minutes</span>
                             </div>
                           ) : (
-                            <div className="flex items-center text-gray-400">
+                            <div className="flex items-center text-gray-600">
                               <Lock className="w-3 h-3 mr-1" />
                               <span>Unlocks after previous assessment</span>
                             </div>
@@ -171,7 +171,7 @@ export default function AssessmentList() {
                       <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                         isCompleted ? "bg-green-100 text-green-800" :
                         isNext ? "bg-blue-100 text-blue-800" :
-                        "bg-gray-100 text-gray-500"
+                        "bg-gray-100 text-gray-700"
                       }`}>
                         {isCompleted ? "Complete" : isNext ? "Next" : "Locked"}
                       </span>
