@@ -13,16 +13,20 @@ export default function AssessmentResults() {
   const [shareUrl, setShareUrl] = useState("");
 
   // Fetch user assessment data
-  const { data: userAssessment, isLoading } = useQuery({
-    queryKey: ['/api/user-assessments', params?.userAssessmentId],
+  const { data: assessmentData, isLoading } = useQuery({
+    queryKey: [`/api/user-assessments/${params?.userAssessmentId}/details`],
     enabled: !!params?.userAssessmentId
   });
 
+  const userAssessment = assessmentData?.userAssessment;
+
   // Fetch user data
-  const { data: user } = useQuery({
-    queryKey: ['/api/users/by-code', params?.code],
+  const { data: userData } = useQuery({
+    queryKey: [`/api/users/by-code/${params?.code}`],
     enabled: !!params?.code
   });
+
+  const user = userData?.user || assessmentData?.user;
 
   const generateShareLink = async () => {
     try {
