@@ -95,16 +95,16 @@ export default function Recording() {
     if (isRecording) {
       interval = setInterval(() => {
         setRecordingTimer(prev => {
-          if (prev >= (assessment?.duration || 10)) {
+          if (prev <= 0) {
             setIsRecording(false);
             // Delay clearing start time to allow final motion data capture
             setTimeout(() => {
               recordingStartTimeRef.current = null;
               handleRepetitionComplete();
             }, 100);
-            return 0;
+            return assessment?.duration || 10;
           }
-          return prev + 1;
+          return prev - 1;
         });
       }, 1000);
     }
@@ -116,7 +116,7 @@ export default function Recording() {
     console.log(`startRecording called - setting start time to ${startTime}`);
     recordingStartTimeRef.current = startTime; // Set start time first using ref
     setIsRecording(true);
-    setRecordingTimer(0);
+    setRecordingTimer(assessment?.duration || 10); // Start with full duration for countdown
     setRecordingMotionData([]); // Clear previous motion data
     recordingMotionDataRef.current = []; // Clear ref data too
     // Reset ROM values for new recording
