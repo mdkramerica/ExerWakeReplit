@@ -152,15 +152,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let maxDipAngle: number | null = null;
       let totalActiveRom: number | null = null;
       
+      // Individual finger ROM calculations
+      let indexFingerRom: number | null = null;
+      let middleFingerRom: number | null = null;
+      let ringFingerRom: number | null = null;
+      let pinkyFingerRom: number | null = null;
+      
       if (repetitionData && Array.isArray(repetitionData)) {
+        // Collect all motion frames for multi-finger ROM calculation
+        const allMotionFrames: any[] = [];
+        
         repetitionData.forEach((rep: any) => {
           if (rep.romData) {
+            // Keep existing index finger calculations for backward compatibility
             maxMcpAngle = Math.max(maxMcpAngle || 0, rep.romData.mcpAngle || 0);
             maxPipAngle = Math.max(maxPipAngle || 0, rep.romData.pipAngle || 0);
             maxDipAngle = Math.max(maxDipAngle || 0, rep.romData.dipAngle || 0);
             totalActiveRom = Math.max(totalActiveRom || 0, rep.romData.totalActiveRom || 0);
           }
+          
+          // Collect motion data for all finger calculations
+          if (rep.motionData && Array.isArray(rep.motionData)) {
+            allMotionFrames.push(...rep.motionData);
+          }
         });
+        
+        // Calculate max ROM for all fingers if motion data exists
+        if (allMotionFrames.length > 0) {
+          try {
+            // Import ROM calculation function (will be available at runtime)
+            const { calculateAllFingersMaxROM } = require('../client/src/lib/rom-calculator');
+            const allFingersROM = calculateAllFingersMaxROM(allMotionFrames);
+            
+            indexFingerRom = allFingersROM.index?.totalActiveRom || null;
+            middleFingerRom = allFingersROM.middle?.totalActiveRom || null;
+            ringFingerRom = allFingersROM.ring?.totalActiveRom || null;
+            pinkyFingerRom = allFingersROM.pinky?.totalActiveRom || null;
+          } catch (error) {
+            console.log('ROM calculation for all fingers failed, using index finger only');
+          }
+        }
       }
       
       // Find existing user assessments to determine session number
@@ -181,7 +212,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         maxMcpAngle: maxMcpAngle !== null ? maxMcpAngle.toString() : null,
         maxPipAngle: maxPipAngle !== null ? maxPipAngle.toString() : null,
         maxDipAngle: maxDipAngle !== null ? maxDipAngle.toString() : null,
-        totalActiveRom: totalActiveRom !== null ? totalActiveRom.toString() : null
+        totalActiveRom: totalActiveRom !== null ? totalActiveRom.toString() : null,
+        indexFingerRom: indexFingerRom !== null ? indexFingerRom.toString() : null,
+        middleFingerRom: middleFingerRom !== null ? middleFingerRom.toString() : null,
+        ringFingerRom: ringFingerRom !== null ? ringFingerRom.toString() : null,
+        pinkyFingerRom: pinkyFingerRom !== null ? pinkyFingerRom.toString() : null
       });
       
       res.json({ userAssessment });
@@ -232,6 +267,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             maxPipAngle: ua.maxPipAngle,
             maxDipAngle: ua.maxDipAngle,
             totalActiveRom: ua.totalActiveRom,
+            indexFingerRom: ua.indexFingerRom,
+            middleFingerRom: ua.middleFingerRom,
+            ringFingerRom: ua.ringFingerRom,
+            pinkyFingerRom: ua.pinkyFingerRom,
             sessionNumber: ua.sessionNumber || 1,
             repetitionData: ua.repetitionData
           };

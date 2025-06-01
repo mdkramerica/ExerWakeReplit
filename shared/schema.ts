@@ -32,10 +32,15 @@ export const userAssessments = pgTable("user_assessments", {
   romData: jsonb("rom_data"), // ROM calculations: MCP, PIP, DIP angles
   repetitionData: jsonb("repetition_data"), // Array of repetition recordings
   qualityScore: integer("quality_score"), // 1-100
-  maxMcpAngle: numeric("max_mcp_angle", { precision: 5, scale: 2 }), // Maximum MCP joint angle
-  maxPipAngle: numeric("max_pip_angle", { precision: 5, scale: 2 }), // Maximum PIP joint angle  
-  maxDipAngle: numeric("max_dip_angle", { precision: 5, scale: 2 }), // Maximum DIP joint angle
-  totalActiveRom: numeric("total_active_rom", { precision: 5, scale: 2 }), // Sum of max angles
+  maxMcpAngle: numeric("max_mcp_angle", { precision: 5, scale: 2 }), // Maximum MCP joint angle (index finger)
+  maxPipAngle: numeric("max_pip_angle", { precision: 5, scale: 2 }), // Maximum PIP joint angle (index finger)
+  maxDipAngle: numeric("max_dip_angle", { precision: 5, scale: 2 }), // Maximum DIP joint angle (index finger)
+  totalActiveRom: numeric("total_active_rom", { precision: 5, scale: 2 }), // Sum of max angles (index finger)
+  // Individual finger ROM data
+  indexFingerRom: numeric("index_finger_rom", { precision: 5, scale: 2 }), // Index finger total ROM
+  middleFingerRom: numeric("middle_finger_rom", { precision: 5, scale: 2 }), // Middle finger total ROM
+  ringFingerRom: numeric("ring_finger_rom", { precision: 5, scale: 2 }), // Ring finger total ROM
+  pinkyFingerRom: numeric("pinky_finger_rom", { precision: 5, scale: 2 }), // Pinky finger total ROM
   shareToken: text("share_token").unique(), // Unique token for public sharing
 });
 

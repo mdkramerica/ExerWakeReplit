@@ -153,3 +153,37 @@ export function calculateCurrentROM(landmarks: HandLandmark[]): JointAngles {
   
   return calculateFingerROM(landmarks, 'INDEX');
 }
+
+// Calculate max ROM for all fingers
+export function calculateAllFingersMaxROM(motionFrames: Array<{landmarks: HandLandmark[]}>): {
+  index: JointAngles;
+  middle: JointAngles;
+  ring: JointAngles;
+  pinky: JointAngles;
+} {
+  const fingers: ('INDEX' | 'MIDDLE' | 'RING' | 'PINKY')[] = ['INDEX', 'MIDDLE', 'RING', 'PINKY'];
+  const maxROMByFinger: any = {};
+
+  fingers.forEach(finger => {
+    let maxMcp = 0, maxPip = 0, maxDip = 0, maxTotal = 0;
+    
+    motionFrames.forEach(frame => {
+      if (frame.landmarks && frame.landmarks.length >= 21) {
+        const rom = calculateFingerROM(frame.landmarks, finger);
+        maxMcp = Math.max(maxMcp, rom.mcpAngle);
+        maxPip = Math.max(maxPip, rom.pipAngle);
+        maxDip = Math.max(maxDip, rom.dipAngle);
+        maxTotal = Math.max(maxTotal, rom.totalActiveRom);
+      }
+    });
+
+    maxROMByFinger[finger.toLowerCase()] = {
+      mcpAngle: maxMcp,
+      pipAngle: maxPip,
+      dipAngle: maxDip,
+      totalActiveRom: maxTotal
+    };
+  });
+
+  return maxROMByFinger;
+}
