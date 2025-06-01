@@ -34,7 +34,9 @@ export default function Recording() {
   useEffect(() => {
     const savedUser = sessionStorage.getItem('currentUser');
     if (savedUser) {
-      setCurrentUser(JSON.parse(savedUser));
+      const user = JSON.parse(savedUser);
+      console.log('Loaded user from sessionStorage:', user);
+      setCurrentUser(user);
     } else {
       setLocation("/");
     }
@@ -200,10 +202,15 @@ export default function Recording() {
       setCurrentLandmarks(data.landmarks);
       
       // Calculate real-time ROM for trigger finger assessment
-      if (currentUser?.injuryType === 'Trigger Finger' && data.landmarks.length >= 21) {
+      // Check both exact match and contains for flexibility
+      const isTriggerFingerAssessment = currentUser?.injuryType === 'Trigger Finger' || 
+                                       assessment?.name?.includes('TAM') || 
+                                       assessment?.name?.includes('Total Active Motion');
+      
+      if (isTriggerFingerAssessment && data.landmarks.length >= 21) {
         try {
           const romData = calculateCurrentROM(data.landmarks);
-          console.log('ROM calculated:', romData);
+          console.log('ROM calculated for trigger finger:', romData);
           setCurrentROM(romData);
           
           // Update max ROM values during recording
@@ -215,7 +222,7 @@ export default function Recording() {
                 dipAngle: Math.max(prev.dipAngle, romData.dipAngle),
                 totalActiveRom: Math.max(prev.totalActiveRom, romData.totalActiveRom)
               };
-              console.log('Max ROM updated:', updated);
+              console.log('Max ROM updated during recording:', updated);
               return updated;
             });
           }
