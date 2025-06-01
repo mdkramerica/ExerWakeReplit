@@ -12,6 +12,8 @@ import {
   type InjuryType,
   type InsertInjuryType
 } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 export interface IStorage {
   // User methods
@@ -34,6 +36,93 @@ export interface IStorage {
   // Injury Type methods
   getInjuryTypes(): Promise<InjuryType[]>;
   createInjuryType(injuryType: InsertInjuryType): Promise<InjuryType>;
+}
+
+export class DatabaseStorage implements IStorage {
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async getUserByCode(code: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.code, code));
+    return user || undefined;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
+    return user;
+  }
+
+  async updateUser(id: number, updates: Partial<User>): Promise<User | undefined> {
+    const [user] = await db
+      .update(users)
+      .set(updates)
+      .where(eq(users.id, id))
+      .returning();
+    return user || undefined;
+  }
+
+  async getAssessments(): Promise<Assessment[]> {
+    return await db.select().from(assessments).where(eq(assessments.isActive, true));
+  }
+
+  async getAssessment(id: number): Promise<Assessment | undefined> {
+    const [assessment] = await db.select().from(assessments).where(eq(assessments.id, id));
+    return assessment || undefined;
+  }
+
+  async createAssessment(insertAssessment: InsertAssessment): Promise<Assessment> {
+    const [assessment] = await db
+      .insert(assessments)
+      .values(insertAssessment)
+      .returning();
+    return assessment;
+  }
+
+  async getUserAssessments(userId: number): Promise<UserAssessment[]> {
+    return await db.select().from(userAssessments).where(eq(userAssessments.userId, userId));
+  }
+
+  async getUserAssessment(userId: number, assessmentId: number): Promise<UserAssessment | undefined> {
+    const results = await db
+      .select()
+      .from(userAssessments)
+      .where(eq(userAssessments.userId, userId));
+    return results.find(ua => ua.assessmentId === assessmentId) || undefined;
+  }
+
+  async createUserAssessment(insertUserAssessment: InsertUserAssessment): Promise<UserAssessment> {
+    const [userAssessment] = await db
+      .insert(userAssessments)
+      .values(insertUserAssessment)
+      .returning();
+    return userAssessment;
+  }
+
+  async updateUserAssessment(id: number, updates: Partial<UserAssessment>): Promise<UserAssessment | undefined> {
+    const [userAssessment] = await db
+      .update(userAssessments)
+      .set(updates)
+      .where(eq(userAssessments.id, id))
+      .returning();
+    return userAssessment || undefined;
+  }
+
+  async getInjuryTypes(): Promise<InjuryType[]> {
+    return await db.select().from(injuryTypes);
+  }
+
+  async createInjuryType(insertInjuryType: InsertInjuryType): Promise<InjuryType> {
+    const [injuryType] = await db
+      .insert(injuryTypes)
+      .values(insertInjuryType)
+      .returning();
+    return injuryType;
+  }
 }
 
 export class MemStorage implements IStorage {
@@ -219,4 +308,92 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Initialize the database with default data
+async function initializeDatabase() {
+  try {
+    // Initialize default injury types
+    const defaultInjuryTypes = [
+      { name: "Wrist Fracture", description: "Recovery from wrist bone fractures and related mobility issues", icon: "fas fa-hand-paper" },
+      { name: "Carpal Tunnel", description: "Post-surgical recovery from carpal tunnel release procedure", icon: "fas fa-hand-scissors" },
+      { name: "Tendon Injury", description: "Recovery from hand or wrist tendon repair surgery", icon: "fas fa-hand-rock" },
+      { name: "Other Injury", description: "Other hand or wrist conditions requiring assessment", icon: "fas fa-hand-spock" }
+    ];
+
+    for (const injuryType of defaultInjuryTypes) {
+      try {
+        await db.insert(injuryTypes).values(injuryType);
+      } catch (e) {
+        // Ignore duplicate entries
+      }
+    }
+
+    // Initialize default assessments
+    const defaultAssessments = [
+      {
+        name: "Wrist Flexion",
+        description: "Measure forward bending range of motion",
+        videoUrl: "/videos/wrist-flexion.mp4",
+        duration: 10,
+        repetitions: 3,
+        instructions: "Slowly bend your wrist forward as far as comfortable, then return to neutral position",
+        isActive: true,
+        orderIndex: 1
+      },
+      {
+        name: "Wrist Extension",
+        description: "Measure backward bending range of motion",
+        videoUrl: "/videos/wrist-extension.mp4",
+        duration: 10,
+        repetitions: 3,
+        instructions: "Slowly bend your wrist backward as far as comfortable, then return to neutral position",
+        isActive: true,
+        orderIndex: 2
+      },
+      {
+        name: "Finger Flexion",
+        description: "Measure finger closing range of motion",
+        videoUrl: "/videos/finger-flexion.mp4",
+        duration: 10,
+        repetitions: 3,
+        instructions: "Slowly close your fingers into a fist, then open them completely",
+        isActive: true,
+        orderIndex: 3
+      },
+      {
+        name: "Finger Extension",
+        description: "Measure finger opening range of motion",
+        videoUrl: "/videos/finger-extension.mp4",
+        duration: 10,
+        repetitions: 3,
+        instructions: "Slowly extend your fingers as far as comfortable, spreading them apart",
+        isActive: true,
+        orderIndex: 4
+      },
+      {
+        name: "Thumb Opposition",
+        description: "Measure thumb to finger touch capability",
+        videoUrl: "/videos/thumb-opposition.mp4",
+        duration: 15,
+        repetitions: 3,
+        instructions: "Touch your thumb to each fingertip in sequence",
+        isActive: true,
+        orderIndex: 5
+      }
+    ];
+
+    for (const assessment of defaultAssessments) {
+      try {
+        await db.insert(assessments).values(assessment);
+      } catch (e) {
+        // Ignore duplicate entries
+      }
+    }
+  } catch (error) {
+    console.error("Error initializing database:", error);
+  }
+}
+
+export const storage = new DatabaseStorage();
+
+// Initialize database on startup
+initializeDatabase();
