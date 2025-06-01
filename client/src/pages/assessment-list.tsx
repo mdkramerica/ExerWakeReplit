@@ -255,32 +255,32 @@ export default function AssessmentList() {
                           <div className="mt-3 pt-3 border-t border-gray-100">
                             <div className="text-xs font-medium text-gray-700 mb-2">Total ROM by Finger</div>
                             <div className="grid grid-cols-4 gap-2 text-xs">
-                              <div className={`px-2 py-1 rounded ${
+                              <div className={`px-3 py-2 rounded-lg border-2 ${
                                 record.indexFingerRom && (parseFloat(record.indexFingerRom) < 240 || parseFloat(record.indexFingerRom) > 280)
-                                  ? 'bg-red-50' : 'bg-blue-50'
+                                  ? 'bg-red-500 border-red-600 shadow-lg' : 'bg-blue-50 border-blue-200'
                               }`}>
-                                <div className={`font-medium ${
+                                <div className={`font-bold text-xs ${
                                   record.indexFingerRom && (parseFloat(record.indexFingerRom) < 240 || parseFloat(record.indexFingerRom) > 280)
-                                    ? 'text-red-700' : 'text-blue-700'
+                                    ? 'text-white' : 'text-blue-700'
                                 }`}>Index</div>
-                                <div className={`${
+                                <div className={`font-black text-sm ${
                                   record.indexFingerRom && (parseFloat(record.indexFingerRom) < 240 || parseFloat(record.indexFingerRom) > 280)
-                                    ? 'text-red-900' : 'text-blue-900'
+                                    ? 'text-white' : 'text-blue-900'
                                 }`}>
                                   {record.indexFingerRom ? parseFloat(record.indexFingerRom).toFixed(1) : '0.0'}°
                                 </div>
                               </div>
-                              <div className={`px-2 py-1 rounded ${
+                              <div className={`px-3 py-2 rounded-lg border-2 ${
                                 record.middleFingerRom && (parseFloat(record.middleFingerRom) < 240 || parseFloat(record.middleFingerRom) > 280)
-                                  ? 'bg-red-50' : 'bg-green-50'
+                                  ? 'bg-red-500 border-red-600 shadow-lg' : 'bg-green-50 border-green-200'
                               }`}>
-                                <div className={`font-medium ${
+                                <div className={`font-bold text-xs ${
                                   record.middleFingerRom && (parseFloat(record.middleFingerRom) < 240 || parseFloat(record.middleFingerRom) > 280)
-                                    ? 'text-red-700' : 'text-green-700'
+                                    ? 'text-white' : 'text-green-700'
                                 }`}>Middle</div>
-                                <div className={`${
+                                <div className={`font-black text-sm ${
                                   record.middleFingerRom && (parseFloat(record.middleFingerRom) < 240 || parseFloat(record.middleFingerRom) > 280)
-                                    ? 'text-red-900' : 'text-green-900'
+                                    ? 'text-white' : 'text-green-900'
                                 }`}>
                                   {record.middleFingerRom ? parseFloat(record.middleFingerRom).toFixed(1) : '0.0'}°
                                 </div>
