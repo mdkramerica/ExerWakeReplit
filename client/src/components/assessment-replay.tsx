@@ -40,6 +40,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
   const [maxROM, setMaxROM] = useState<JointAngles | null>(null);
   const [selectedDigit, setSelectedDigit] = useState<'INDEX' | 'MIDDLE' | 'RING' | 'PINKY'>('INDEX');
   const [allDigitsROM, setAllDigitsROM] = useState<{[key: string]: JointAngles} | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   
   // Fetch real motion data if userAssessmentId is provided
   const { data: motionData, isLoading } = useQuery({
@@ -544,8 +545,8 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
     URL.revokeObjectURL(url);
   };
 
-  // Canvas timeline scrubber interaction
-  const handleCanvasClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
+  // Canvas timeline scrubber interaction with drag support
+  const handleCanvasMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas || replayData.length === 0) return;
 
@@ -563,12 +564,13 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
     if (y >= timelineY && y <= timelineY + timelineHeight && 
         x >= timelineMargin && x <= timelineMargin + timelineWidth) {
       
+      setIsDragging(true);
+      setIsPlaying(false); // Pause playback when starting to drag
+      
       // Calculate new frame position
       const clickPosition = (x - timelineMargin - 5) / (timelineWidth - 10);
       const newFrame = Math.max(0, Math.min(replayData.length - 1, Math.floor(clickPosition * (replayData.length - 1))));
-      
       setCurrentFrame(newFrame);
-      setIsPlaying(false); // Pause playback when manually scrubbing
     }
   };
 
@@ -586,14 +588,40 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
     const timelineMargin = 40;
     const timelineWidth = canvas.width - (timelineMargin * 2);
 
+    // Handle dragging
+    if (isDragging && y >= timelineY - 20 && y <= timelineY + timelineHeight + 20 && 
+        x >= timelineMargin && x <= timelineMargin + timelineWidth) {
+      
+      // Calculate new frame position while dragging
+      const dragPosition = (x - timelineMargin - 5) / (timelineWidth - 10);
+      const newFrame = Math.max(0, Math.min(replayData.length - 1, Math.floor(dragPosition * (replayData.length - 1))));
+      setCurrentFrame(newFrame);
+    }
+
     // Change cursor style when hovering over timeline
     if (y >= timelineY && y <= timelineY + timelineHeight && 
         x >= timelineMargin && x <= timelineMargin + timelineWidth) {
-      canvas.style.cursor = 'pointer';
+      canvas.style.cursor = isDragging ? 'grabbing' : 'grab';
     } else {
       canvas.style.cursor = 'default';
     }
   };
+
+  const handleCanvasMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  // Global mouse up handler to stop dragging even if mouse leaves canvas
+  useEffect(() => {
+    const handleGlobalMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    if (isDragging) {
+      document.addEventListener('mouseup', handleGlobalMouseUp);
+      return () => document.removeEventListener('mouseup', handleGlobalMouseUp);
+    }
+  }, [isDragging]);
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -613,8 +641,9 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
               width={640}
               height={480}
               className="w-full border-2 border-gray-300 rounded-lg bg-gray-900"
-              onClick={handleCanvasClick}
+              onMouseDown={handleCanvasMouseDown}
               onMouseMove={handleCanvasMouseMove}
+              onMouseUp={handleCanvasMouseUp}
             />
             
             <div className="flex items-center justify-between">
