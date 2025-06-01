@@ -75,7 +75,11 @@ export default function Recording() {
         setRecordingTimer(prev => {
           if (prev >= (assessment?.duration || 10)) {
             setIsRecording(false);
-            handleRepetitionComplete();
+            // Delay clearing start time to allow final motion data capture
+            setTimeout(() => {
+              setRecordingStartTime(null);
+              handleRepetitionComplete();
+            }, 100);
             return 0;
           }
           return prev + 1;
@@ -94,8 +98,11 @@ export default function Recording() {
 
   const stopRecording = () => {
     setIsRecording(false);
-    setRecordingStartTime(null);
-    handleRepetitionComplete();
+    // Delay clearing start time to allow final motion data capture
+    setTimeout(() => {
+      setRecordingStartTime(null);
+      handleRepetitionComplete();
+    }, 100);
   };
 
   const handleRepetitionComplete = () => {
