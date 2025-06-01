@@ -113,8 +113,7 @@ export default function JointTest() {
     // Highlight the anatomical landmarks
     indexFingerPoints.forEach((pointIndex, i) => {
       if (handLandmarks[pointIndex]) {
-        // Mirror x coordinate to match the mirrored video display
-        const x = canvas.width - (handLandmarks[pointIndex].x * canvas.width);
+        const x = handLandmarks[pointIndex].x * canvas.width;
         const y = handLandmarks[pointIndex].y * canvas.height;
         
         // Different colors for different anatomical points
@@ -142,17 +141,17 @@ export default function JointTest() {
     if (!landmarks[p1] || !landmarks[p2] || !landmarks[p3]) return;
     
     const center = {
-      x: ctx.canvas.width - (landmarks[p2].x * ctx.canvas.width),
+      x: landmarks[p2].x * ctx.canvas.width,
       y: landmarks[p2].y * ctx.canvas.height
     };
     
     const point1 = {
-      x: ctx.canvas.width - (landmarks[p1].x * ctx.canvas.width),
+      x: landmarks[p1].x * ctx.canvas.width,
       y: landmarks[p1].y * ctx.canvas.height
     };
     
     const point3 = {
-      x: ctx.canvas.width - (landmarks[p3].x * ctx.canvas.width),
+      x: landmarks[p3].x * ctx.canvas.width,
       y: landmarks[p3].y * ctx.canvas.height
     };
     
