@@ -419,8 +419,8 @@ async function initializeDatabase() {
           name: "TAM (Total Active Motion)",
           description: "Comprehensive finger flexion and extension measurement",
           videoUrl: "/videos/tam-assessment.mp4",
-          duration: 15,
-          repetitions: 3,
+          duration: 10,
+          repetitions: 1,
           instructions: "Make a complete fist, then fully extend all fingers. Repeat slowly and deliberately.",
           isActive: true,
           orderIndex: 1
@@ -429,8 +429,8 @@ async function initializeDatabase() {
           name: "Kapandji Score",
           description: "Thumb opposition assessment using standardized scoring",
           videoUrl: "/videos/kapandji-assessment.mp4",
-          duration: 12,
-          repetitions: 3,
+          duration: 10,
+          repetitions: 1,
           instructions: "Touch your thumb to each finger tip, then to the base of each finger, progressing down the hand.",
           isActive: true,
           orderIndex: 2
@@ -440,7 +440,7 @@ async function initializeDatabase() {
           description: "Measure wrist forward and backward bending range of motion",
           videoUrl: "/videos/wrist-fe-assessment.mp4",
           duration: 10,
-          repetitions: 3,
+          repetitions: 1,
           instructions: "Bend your wrist forward as far as comfortable, then backward. Keep forearm stable.",
           isActive: true,
           orderIndex: 3
@@ -450,7 +450,7 @@ async function initializeDatabase() {
           description: "Measure forearm rotation with palm up and palm down movements",
           videoUrl: "/videos/forearm-ps-assessment.mp4",
           duration: 10,
-          repetitions: 3,
+          repetitions: 1,
           instructions: "Rotate your forearm to turn palm up, then palm down. Keep elbow at your side.",
           isActive: true,
           orderIndex: 4
@@ -460,7 +460,7 @@ async function initializeDatabase() {
           description: "Measure side-to-side wrist movement toward thumb and pinky",
           videoUrl: "/videos/wrist-ru-assessment.mp4",
           duration: 10,
-          repetitions: 3,
+          repetitions: 1,
           instructions: "Move your wrist toward your thumb side, then toward your pinky side. Keep hand flat.",
           isActive: true,
           orderIndex: 5
