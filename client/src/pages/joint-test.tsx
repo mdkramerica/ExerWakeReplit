@@ -79,12 +79,7 @@ export default function JointTest() {
       ctx.lineTo(handLandmarks[6].x * canvas.width, handLandmarks[6].y * canvas.height);
       ctx.stroke();
       
-      // Label MCP angle (calculated from 0-5-6)
-      const midX = (handLandmarks[5].x + handLandmarks[6].x) / 2 * canvas.width;
-      const midY = (handLandmarks[5].y + handLandmarks[6].y) / 2 * canvas.height;
-      ctx.fillStyle = '#ef4444';
-      ctx.font = '12px Arial';
-      ctx.fillText(`MCP: ${romData.mcpAngle.toFixed(1)}°`, midX + 10, midY);
+
     }
     
     // Middle phalanx (6-7) - Green
@@ -95,12 +90,7 @@ export default function JointTest() {
       ctx.lineTo(handLandmarks[7].x * canvas.width, handLandmarks[7].y * canvas.height);
       ctx.stroke();
       
-      // Label PIP angle (calculated from 5-6-7)
-      const midX = (handLandmarks[6].x + handLandmarks[7].x) / 2 * canvas.width;
-      const midY = (handLandmarks[6].y + handLandmarks[7].y) / 2 * canvas.height;
-      ctx.fillStyle = '#10b981';
-      ctx.font = '12px Arial';
-      ctx.fillText(`PIP: ${romData.pipAngle.toFixed(1)}°`, midX + 10, midY);
+
     }
     
     // Distal phalanx (7-8) - Blue
@@ -111,12 +101,7 @@ export default function JointTest() {
       ctx.lineTo(handLandmarks[8].x * canvas.width, handLandmarks[8].y * canvas.height);
       ctx.stroke();
       
-      // Label DIP angle (calculated from 6-7-8)
-      const midX = (handLandmarks[7].x + handLandmarks[8].x) / 2 * canvas.width;
-      const midY = (handLandmarks[7].y + handLandmarks[8].y) / 2 * canvas.height;
-      ctx.fillStyle = '#3b82f6';
-      ctx.font = '12px Arial';
-      ctx.fillText(`DIP: ${romData.dipAngle.toFixed(1)}°`, midX + 10, midY);
+
     }
 
     // Highlight the anatomical landmarks
@@ -132,11 +117,9 @@ export default function JointTest() {
         ctx.arc(x, y, 6, 0, 2 * Math.PI);
         ctx.fill();
         
-        // Anatomically correct labels
+        // Store label position for later drawing (after transformation is restored)
         const labels = ['MCP Joint (5)', 'PIP Joint (6)', 'DIP Joint (7)', 'Fingertip (8)'];
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '11px Arial';
-        ctx.fillText(labels[i], x + 8, y + 3);
+        // Will draw labels after ctx.restore()
       }
     });
 
@@ -147,6 +130,45 @@ export default function JointTest() {
     
     // Restore the canvas context to remove the transformation
     ctx.restore();
+    
+    // Draw text labels with correct orientation (after transformation is removed)
+    // Calculate unmirrored positions for text labels
+    if (handLandmarks[5] && handLandmarks[6]) {
+      const mcpLabelX = canvas.width - (handLandmarks[5].x + handLandmarks[6].x) / 2 * canvas.width;
+      const mcpLabelY = (handLandmarks[5].y + handLandmarks[6].y) / 2 * canvas.height;
+      ctx.fillStyle = '#ef4444';
+      ctx.font = '12px Arial';
+      ctx.fillText(`MCP: ${romData.mcpAngle.toFixed(1)}°`, mcpLabelX + 10, mcpLabelY);
+    }
+    
+    if (handLandmarks[6] && handLandmarks[7]) {
+      const pipLabelX = canvas.width - (handLandmarks[6].x + handLandmarks[7].x) / 2 * canvas.width;
+      const pipLabelY = (handLandmarks[6].y + handLandmarks[7].y) / 2 * canvas.height;
+      ctx.fillStyle = '#10b981';
+      ctx.font = '12px Arial';
+      ctx.fillText(`PIP: ${romData.pipAngle.toFixed(1)}°`, pipLabelX + 10, pipLabelY);
+    }
+    
+    if (handLandmarks[7] && handLandmarks[8]) {
+      const dipLabelX = canvas.width - (handLandmarks[7].x + handLandmarks[8].x) / 2 * canvas.width;
+      const dipLabelY = (handLandmarks[7].y + handLandmarks[8].y) / 2 * canvas.height;
+      ctx.fillStyle = '#3b82f6';
+      ctx.font = '12px Arial';
+      ctx.fillText(`DIP: ${romData.dipAngle.toFixed(1)}°`, dipLabelX + 10, dipLabelY);
+    }
+    
+    // Draw anatomical point labels
+    const labels = ['MCP Joint (5)', 'PIP Joint (6)', 'DIP Joint (7)', 'Fingertip (8)'];
+    indexFingerPoints.forEach((pointIndex, i) => {
+      if (handLandmarks[pointIndex]) {
+        const x = canvas.width - handLandmarks[pointIndex].x * canvas.width;
+        const y = handLandmarks[pointIndex].y * canvas.height;
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '11px Arial';
+        ctx.fillText(labels[i], x + 8, y + 3);
+      }
+    });
   };
 
   const drawAngleArc = (ctx: CanvasRenderingContext2D, landmarks: any[], p1: number, p2: number, p3: number, color: string, label: string) => {
