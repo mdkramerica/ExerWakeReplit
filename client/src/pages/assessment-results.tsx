@@ -172,37 +172,78 @@ export default function AssessmentResults() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="grid md:grid-cols-4 gap-4">
-                    <div className="bg-blue-50 p-4 rounded-lg">
-                      <div className="text-sm font-medium text-blue-700">MCP Joint</div>
-                      <div className="text-2xl font-bold text-blue-900">
-                        {userAssessment.maxMcpAngle ? parseFloat(userAssessment.maxMcpAngle).toFixed(1) : '0.0'}°
+                <div className="space-y-6">
+                  {/* Overall Joint Analysis */}
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-3">Overall Joint Analysis (Index Finger)</h4>
+                    <div className="grid md:grid-cols-4 gap-4">
+                      <div className="bg-blue-50 p-4 rounded-lg">
+                        <div className="text-sm font-medium text-blue-700">MCP Joint</div>
+                        <div className="text-2xl font-bold text-blue-900">
+                          {userAssessment.maxMcpAngle ? parseFloat(userAssessment.maxMcpAngle).toFixed(1) : '0.0'}°
+                        </div>
+                        <div className="text-xs text-blue-600">Metacarpophalangeal</div>
                       </div>
-                      <div className="text-xs text-blue-600">Metacarpophalangeal</div>
-                    </div>
-                    <div className="bg-green-50 p-4 rounded-lg">
-                      <div className="text-sm font-medium text-green-700">PIP Joint</div>
-                      <div className="text-2xl font-bold text-green-900">
-                        {userAssessment.maxPipAngle ? parseFloat(userAssessment.maxPipAngle).toFixed(1) : '0.0'}°
+                      <div className="bg-green-50 p-4 rounded-lg">
+                        <div className="text-sm font-medium text-green-700">PIP Joint</div>
+                        <div className="text-2xl font-bold text-green-900">
+                          {userAssessment.maxPipAngle ? parseFloat(userAssessment.maxPipAngle).toFixed(1) : '0.0'}°
+                        </div>
+                        <div className="text-xs text-green-600">Proximal Interphalangeal</div>
                       </div>
-                      <div className="text-xs text-green-600">Proximal Interphalangeal</div>
-                    </div>
-                    <div className="bg-purple-50 p-4 rounded-lg">
-                      <div className="text-sm font-medium text-purple-700">DIP Joint</div>
-                      <div className="text-2xl font-bold text-purple-900">
-                        {userAssessment.maxDipAngle ? parseFloat(userAssessment.maxDipAngle).toFixed(1) : '0.0'}°
+                      <div className="bg-purple-50 p-4 rounded-lg">
+                        <div className="text-sm font-medium text-purple-700">DIP Joint</div>
+                        <div className="text-2xl font-bold text-purple-900">
+                          {userAssessment.maxDipAngle ? parseFloat(userAssessment.maxDipAngle).toFixed(1) : '0.0'}°
+                        </div>
+                        <div className="text-xs text-purple-600">Distal Interphalangeal</div>
                       </div>
-                      <div className="text-xs text-purple-600">Distal Interphalangeal</div>
-                    </div>
-                    <div className="bg-orange-50 p-4 rounded-lg">
-                      <div className="text-sm font-medium text-orange-700">Total Active ROM</div>
-                      <div className="text-2xl font-bold text-orange-900">
-                        {userAssessment.totalActiveRom ? parseFloat(userAssessment.totalActiveRom).toFixed(1) : '0.0'}°
+                      <div className="bg-orange-50 p-4 rounded-lg">
+                        <div className="text-sm font-medium text-orange-700">Total Active ROM</div>
+                        <div className="text-2xl font-bold text-orange-900">
+                          {userAssessment.totalActiveRom ? parseFloat(userAssessment.totalActiveRom).toFixed(1) : '0.0'}°
+                        </div>
+                        <div className="text-xs text-orange-600">Combined Range</div>
                       </div>
-                      <div className="text-xs text-orange-600">Combined Range</div>
                     </div>
                   </div>
+
+                  {/* Individual Finger Analysis */}
+                  {(userAssessment.indexFingerRom || userAssessment.middleFingerRom || userAssessment.ringFingerRom || userAssessment.pinkyFingerRom) && (
+                    <div>
+                      <h4 className="font-medium text-gray-900 mb-3">Individual Finger Analysis</h4>
+                      <div className="grid md:grid-cols-4 gap-4">
+                        <div className="bg-blue-50 p-4 rounded-lg">
+                          <div className="text-sm font-medium text-blue-700">Index Finger</div>
+                          <div className="text-2xl font-bold text-blue-900">
+                            {userAssessment.indexFingerRom ? parseFloat(userAssessment.indexFingerRom).toFixed(1) : '0.0'}°
+                          </div>
+                          <div className="text-xs text-blue-600">Total Active Motion</div>
+                        </div>
+                        <div className="bg-green-50 p-4 rounded-lg">
+                          <div className="text-sm font-medium text-green-700">Middle Finger</div>
+                          <div className="text-2xl font-bold text-green-900">
+                            {userAssessment.middleFingerRom ? parseFloat(userAssessment.middleFingerRom).toFixed(1) : '0.0'}°
+                          </div>
+                          <div className="text-xs text-green-600">Total Active Motion</div>
+                        </div>
+                        <div className="bg-purple-50 p-4 rounded-lg">
+                          <div className="text-sm font-medium text-purple-700">Ring Finger</div>
+                          <div className="text-2xl font-bold text-purple-900">
+                            {userAssessment.ringFingerRom ? parseFloat(userAssessment.ringFingerRom).toFixed(1) : '0.0'}°
+                          </div>
+                          <div className="text-xs text-purple-600">Total Active Motion</div>
+                        </div>
+                        <div className="bg-orange-50 p-4 rounded-lg">
+                          <div className="text-sm font-medium text-orange-700">Pinky Finger</div>
+                          <div className="text-2xl font-bold text-orange-900">
+                            {userAssessment.pinkyFingerRom ? parseFloat(userAssessment.pinkyFingerRom).toFixed(1) : '0.0'}°
+                          </div>
+                          <div className="text-xs text-orange-600">Total Active Motion</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   <div className="bg-gray-50 p-4 rounded-lg">
                     <h4 className="font-medium text-gray-900 mb-2">Clinical Interpretation</h4>
