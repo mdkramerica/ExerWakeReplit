@@ -8,6 +8,7 @@ import ProgressBar from "@/components/progress-bar";
 import MediaPipeHandler from "@/components/mediapipe-handler";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { calculateCurrentROM, calculateMaxROM, type JointAngles } from "@/lib/rom-calculator";
 
 export default function Recording() {
   const { id } = useParams();
@@ -25,6 +26,8 @@ export default function Recording() {
   const [recordingMotionData, setRecordingMotionData] = useState<any[]>([]);
   const recordingMotionDataRef = useRef<any[]>([]);
   const recordingStartTimeRef = useRef<number | null>(null);
+  const [currentROM, setCurrentROM] = useState<JointAngles>({ mcpAngle: 0, pipAngle: 0, dipAngle: 0, totalActiveRom: 0 });
+  const [maxROM, setMaxROM] = useState<JointAngles>({ mcpAngle: 0, pipAngle: 0, dipAngle: 0, totalActiveRom: 0 });
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
@@ -113,13 +116,19 @@ export default function Recording() {
   const handleRepetitionComplete = () => {
     console.log(`Repetition ${currentRepetition} completed with ${recordingMotionData.length} motion frames (state) and ${recordingMotionDataRef.current.length} motion frames (ref)`);
     
+    // Calculate final ROM values from recorded motion data
+    const finalMaxROM = recordingMotionDataRef.current.length > 0 
+      ? calculateMaxROM(recordingMotionDataRef.current) 
+      : maxROM;
+
     const repetitionData = {
       repetition: currentRepetition,
       duration: recordingTimer,
       landmarksDetected: landmarksCount,
       qualityScore: calculateQualityScore(),
       timestamp: new Date().toISOString(),
-      motionData: [...recordingMotionDataRef.current] // Use ref data for immediate access
+      motionData: [...recordingMotionDataRef.current], // Use ref data for immediate access
+      romData: finalMaxROM // Include ROM calculations
     };
 
     const newRecordedData = [...recordedData, repetitionData];
@@ -178,6 +187,22 @@ export default function Recording() {
     // Store current landmarks for recording
     if (data.landmarks && data.landmarks.length > 0) {
       setCurrentLandmarks(data.landmarks);
+      
+      // Calculate real-time ROM for trigger finger assessment
+      if (currentUser?.injuryType === 'Trigger Finger' && data.landmarks.length >= 21) {
+        const romData = calculateCurrentROM(data.landmarks);
+        setCurrentROM(romData);
+        
+        // Update max ROM values during recording
+        if (isRecording) {
+          setMaxROM(prev => ({
+            mcpAngle: Math.max(prev.mcpAngle, romData.mcpAngle),
+            pipAngle: Math.max(prev.pipAngle, romData.pipAngle),
+            dipAngle: Math.max(prev.dipAngle, romData.dipAngle),
+            totalActiveRom: Math.max(prev.totalActiveRom, romData.totalActiveRom)
+          }));
+        }
+      }
       
       // Capture motion data if we're within the recording period (0-10 seconds)
       if (recordingStartTimeRef.current && recordingElapsed > 0 && recordingElapsed <= 10 && data.handDetected && data.landmarks && data.landmarks.length > 0) {
@@ -351,6 +376,55 @@ export default function Recording() {
                   </div>
                 </div>
               </div>
+
+              {/* Real-time ROM Display for Trigger Finger */}
+              {currentUser?.injuryType === 'Trigger Finger' && (
+                <div className="bg-blue-50 rounded-lg p-6 border border-blue-200">
+                  <h3 className="font-semibold text-blue-900 mb-3">Range of Motion (Live)</h3>
+                  <div className="space-y-3 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-blue-700">MCP Joint:</span>
+                      <span className="font-medium text-blue-900">{currentROM.mcpAngle.toFixed(1)}°</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-blue-700">PIP Joint:</span>
+                      <span className="font-medium text-blue-900">{currentROM.pipAngle.toFixed(1)}°</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-blue-700">DIP Joint:</span>
+                      <span className="font-medium text-blue-900">{currentROM.dipAngle.toFixed(1)}°</span>
+                    </div>
+                    <div className="flex justify-between pt-2 border-t border-blue-300">
+                      <span className="font-medium text-blue-700">Total Active ROM:</span>
+                      <span className="font-bold text-blue-900">{currentROM.totalActiveRom.toFixed(1)}°</span>
+                    </div>
+                  </div>
+
+                  {isRecording && (
+                    <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded">
+                      <h4 className="font-medium text-green-900 mb-2">Maximum Values (This Session)</h4>
+                      <div className="space-y-1 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-green-700">Max MCP:</span>
+                          <span className="font-medium text-green-900">{maxROM.mcpAngle.toFixed(1)}°</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-green-700">Max PIP:</span>
+                          <span className="font-medium text-green-900">{maxROM.pipAngle.toFixed(1)}°</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-green-700">Max DIP:</span>
+                          <span className="font-medium text-green-900">{maxROM.dipAngle.toFixed(1)}°</span>
+                        </div>
+                        <div className="flex justify-between pt-1 border-t border-green-300">
+                          <span className="font-medium text-green-700">Max Total:</span>
+                          <span className="font-bold text-green-900">{maxROM.totalActiveRom.toFixed(1)}°</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Tips */}
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-6">
