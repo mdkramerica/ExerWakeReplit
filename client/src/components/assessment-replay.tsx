@@ -169,10 +169,10 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
       ctx.stroke();
     }
 
-    // Draw hand landmarks
+    // Draw hand landmarks (flip horizontally to match real movements)
     ctx.fillStyle = '#10b981';
     frame.landmarks.forEach((landmark, index) => {
-      const x = landmark.x * canvas.width;
+      const x = (1 - landmark.x) * canvas.width; // Flip horizontally
       const y = landmark.y * canvas.height;
       
       ctx.beginPath();
@@ -186,18 +186,18 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
       ctx.fillStyle = '#10b981';
     });
 
-    // Draw hand connections
+    // Draw hand connections (flip horizontally to match real movements)
     ctx.strokeStyle = '#10b981';
     ctx.lineWidth = 2;
     HAND_CONNECTIONS.forEach(([start, end]) => {
       if (frame.landmarks[start] && frame.landmarks[end]) {
         ctx.beginPath();
         ctx.moveTo(
-          frame.landmarks[start].x * canvas.width,
+          (1 - frame.landmarks[start].x) * canvas.width,
           frame.landmarks[start].y * canvas.height
         );
         ctx.lineTo(
-          frame.landmarks[end].x * canvas.width,
+          (1 - frame.landmarks[end].x) * canvas.width,
           frame.landmarks[end].y * canvas.height
         );
         ctx.stroke();
