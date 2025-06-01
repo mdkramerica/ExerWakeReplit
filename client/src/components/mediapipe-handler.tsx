@@ -67,8 +67,8 @@ export default function MediaPipeHandler({ onUpdate, isRecording, assessmentType
         }
       }
       
-      // Hand detected if there's both motion and skin-like regions
-      handDetected = motionPixels > 50 && skinPixels > 30;
+      // Hand detected if there's motion OR skin-like regions (more sensitive)
+      handDetected = motionPixels > 20 || skinPixels > 15;
     }
 
     // Store current frame for next comparison
@@ -95,10 +95,12 @@ export default function MediaPipeHandler({ onUpdate, isRecording, assessmentType
       });
     }
     
-    // Show tracking status
+    // Show tracking status with debug info
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '12px Arial';
+    ctx.fillText(`Motion: ${motionPixels} | Skin: ${skinPixels}`, 10, 25);
     ctx.fillStyle = handDetected ? '#00ff00' : '#ff6666';
-    ctx.font = '14px Arial';
-    ctx.fillText(handDetected ? 'Hand Tracked' : 'Move hand to track', 10, 25);
+    ctx.fillText(handDetected ? 'Hand Tracked' : 'Move hand to track', 10, 45);
 
     return { handDetected, landmarks };
   }, []);
