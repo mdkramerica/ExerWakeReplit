@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, ArrowRight, Check, Lock, Play, Eye, Clock } from "lucide-react";
 import ProgressBar from "@/components/progress-bar";
+import AssessmentReplay from "@/components/assessment-replay";
 import type { AssessmentWithProgress } from "@/types/assessment";
 
 export default function AssessmentList() {
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [showReplay, setShowReplay] = useState<string | null>(null);
   const [, setLocation] = useLocation();
 
   useEffect(() => {
@@ -65,6 +67,15 @@ export default function AssessmentList() {
   // Find next assessment to do
   const nextAssessment = assessments.find(a => !a.isCompleted);
   const allCompleted = assessments.length > 0 && assessments.every(a => a.isCompleted);
+
+  if (showReplay) {
+    return (
+      <AssessmentReplay
+        assessmentName={showReplay}
+        onClose={() => setShowReplay(null)}
+      />
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -156,12 +167,22 @@ export default function AssessmentList() {
                         {isCompleted ? "Complete" : isNext ? "Next" : "Locked"}
                       </span>
                       {isCompleted ? (
-                        <button
-                          onClick={() => handleViewAssessment(assessment.id)}
-                          className="text-medical-gray hover:text-medical-blue p-2"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleViewAssessment(assessment.id)}
+                            className="text-medical-gray hover:text-medical-blue p-2"
+                            title="View Results"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => setShowReplay(assessment.name)}
+                            className="text-medical-gray hover:text-medical-blue p-2"
+                            title="View Motion Replay"
+                          >
+                            <Play className="w-4 h-4" />
+                          </button>
+                        </div>
                       ) : isNext ? (
                         <Button
                           onClick={() => handleStartAssessment(assessment.id)}
