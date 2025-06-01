@@ -141,13 +141,19 @@ export default function MediaPipeHandler({ onUpdate, isRecording, assessmentType
       const centerY = landmarks.reduce((sum: number, landmark: any) => sum + landmark.y, 0) / landmarks.length;
 
       // Update tracking information
-      onUpdate({
+      const updateData = {
         handDetected: true,
         landmarksCount: landmarks.length,
         trackingQuality: "Excellent",
         handPosition: `X: ${Math.round(centerX * 100)}%, Y: ${Math.round(centerY * 100)}%`,
         landmarks: landmarks
-      });
+      };
+      
+      if (isRecording) {
+        console.log(`MediaPipe sending ${landmarks.length} landmarks to recording system`);
+      }
+      
+      onUpdate(updateData);
     } else {
       // No hand detected
       onUpdate({

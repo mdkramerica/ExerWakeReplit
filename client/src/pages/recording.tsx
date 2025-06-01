@@ -166,6 +166,7 @@ export default function Recording() {
       
       // If recording, capture motion data with timestamp
       if (isRecording && data.handDetected) {
+        console.log(`Recording motion data: ${data.landmarks.length} landmarks`);
         const motionFrame = {
           timestamp: Date.now(),
           landmarks: data.landmarks.map((landmark: any) => ({
@@ -176,7 +177,11 @@ export default function Recording() {
           handedness: "Right",
           quality: data.trackingQuality === "Excellent" ? 90 : data.trackingQuality === "Good" ? 70 : 50
         };
-        setRecordingMotionData(prev => [...prev, motionFrame]);
+        setRecordingMotionData(prev => {
+          const newData = [...prev, motionFrame];
+          console.log(`Total motion frames captured: ${newData.length}`);
+          return newData;
+        });
       }
     }
   };
