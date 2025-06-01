@@ -27,10 +27,10 @@
   /* Exer.ai colors matching their actual website */
   --exer-purple: 139 92 246; /* #8B5CF6 - purple accent for "Motion" */
   --exer-purple-dark: 124 58 237; /* #7C3AED - darker purple */
-  --exer-navy: 51 65 85; /* #334155 - dark slate text */
-  --exer-gray: 100 116 139; /* #64748B - medium gray */
-  --exer-light: 248 250 252; /* #F8FAFC - light background */
-  --exer-dark-blue: 30 58 138; /* #1E3A8A - dark blue for buttons */
+  --exer-navy: 55 65 81; /* #374151 - dark gray text */
+  --exer-gray: 107 114 128; /* #6B7280 - medium gray */
+  --exer-light: 249 250 251; /* #F9FAFB - light background */
+  --exer-dark-blue: 37 99 235; /* #2563EB - blue for buttons */
 }
 
 .dark {
@@ -61,8 +61,10 @@
   }
 
   body {
-    @apply font-sans antialiased bg-background text-foreground;
+    @apply font-sans antialiased;
     font-family: 'Inter', sans-serif;
+    background: #ffffff !important;
+    color: #374151 !important;
   }
 }
 
