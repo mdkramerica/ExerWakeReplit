@@ -163,7 +163,7 @@ export default function MediaPipeHandler({ onUpdate, isRecording, assessmentType
     if (handDetected) {
       ctx.fillStyle = '#ffffff';
       ctx.font = '12px Arial';
-      ctx.fillText('MediaPipe hand tracking active', 10, 50);
+      ctx.fillText('ExerAI hand tracking active', 10, 50);
     }
   }, [onUpdate]);
 
@@ -281,7 +281,7 @@ export default function MediaPipeHandler({ onUpdate, isRecording, assessmentType
     if (poseDetected) {
       ctx.fillStyle = '#ffffff';
       ctx.font = '12px Arial';
-      ctx.fillText('MediaPipe pose tracking - shoulders, elbows, wrists', 10, 50);
+      ctx.fillText('ExerAI pose tracking - shoulders, elbows, wrists', 10, 50);
     }
   }, [onUpdate]);
 
@@ -409,7 +409,7 @@ export default function MediaPipeHandler({ onUpdate, isRecording, assessmentType
         {isRecording ? "Recording..." : "Preview"}
       </div>
       <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">
-        MediaPipe Hand Tracking
+        ExerAI Hand Tracking
       </div>
     </div>
   );
