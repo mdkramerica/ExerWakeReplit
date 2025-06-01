@@ -649,8 +649,8 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
     <div className="max-w-4xl mx-auto space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>Motion Replay: {assessmentName}</span>
+          <CardTitle className="flex items-center justify-between text-gray-900">
+            <span className="text-gray-900 font-bold">Motion Replay: {assessmentName}</span>
             <Button variant="outline" onClick={onClose}>
               Close
             </Button>
