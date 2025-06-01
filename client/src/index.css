@@ -250,73 +250,27 @@ input:focus, textarea:focus, select:focus {
   --ring: 59 130 246; /* #3B82F6 */
 }
 
-/* AGGRESSIVE YELLOW BACKGROUND REMOVAL - DEPLOYMENT FIX */
-/* Target every possible element that could have yellow backgrounds */
-* {
-  background-color: transparent !important;
+/* Preserve measurement text colors */
+.text-blue-700,
+.text-green-700,
+.text-purple-700,
+.text-orange-700,
+.text-red-700 {
+  color: revert !important;
 }
 
-html {
-  background-color: rgb(249 250 251) !important;
+.text-white {
+  color: rgb(255 255 255) !important;
 }
 
-body {
-  background-color: rgb(249 250 251) !important;
-}
-
-#root {
-  background-color: rgb(249 250 251) !important;
-}
-
-/* Restore intentional backgrounds with highest specificity */
-.card,
-[data-testid="card"],
-[class*="card"],
-div[class*="rounded"],
-div[class*="border"],
-section[class*="bg-white"] {
-  background-color: rgb(255 255 255) !important;
-}
-
-/* Status color backgrounds that should be preserved */
+/* Preserve background colors for assessment cards */
 .bg-red-500,
 .bg-green-50,
 .bg-blue-50,
 .bg-purple-50,
 .bg-orange-50,
-div[class*="bg-red"],
-div[class*="bg-green"],
-div[class*="bg-blue"],
-div[class*="bg-purple"],
-div[class*="bg-orange"] {
+.bg-gray-50 {
   background-color: revert !important;
-}
-
-/* Specific fixes for assessment cards */
-div[class*="grid"] > div[class*="border"],
-div[class*="space-y"] > div[class*="border"] {
-  background-color: rgb(255 255 255) !important;
-}
-
-/* Universal yellow killer */
-*[style*="background-color: yellow"],
-*[style*="background: yellow"],
-*[style*="background-color: #ffff"],
-*[style*="background-color: #fef3c7"],
-*[style*="background-color: #fde68a"],
-*[style*="background-color: #fbbf24"],
-.bg-yellow-50,
-.bg-yellow-100,
-.bg-yellow-200,
-.bg-yellow-300,
-.bg-yellow-400,
-.bg-amber-50,
-.bg-amber-100,
-.bg-amber-200,
-.bg-amber-300,
-.bg-amber-400 {
-  background-color: rgb(255 255 255) !important;
-  background: rgb(255 255 255) !important;
 }
 
 /* Custom utility classes */
