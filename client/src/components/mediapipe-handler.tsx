@@ -103,8 +103,28 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
     canvas.width = video.videoWidth || 640;
     canvas.height = video.videoHeight || 480;
 
-    // Draw video frame
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    // Clear canvas with black background
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw video frame if available
+    try {
+      if (video.readyState === video.HAVE_ENOUGH_DATA && video.videoWidth > 0) {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      } else {
+        // Show loading state
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '16px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Initializing camera...', canvas.width / 2, canvas.height / 2);
+      }
+    } catch (error) {
+      console.warn('Video drawing error:', error);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '16px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('Camera loading...', canvas.width / 2, canvas.height / 2);
+    }
 
     let handDetected = false;
     let landmarks: any[] = [];
