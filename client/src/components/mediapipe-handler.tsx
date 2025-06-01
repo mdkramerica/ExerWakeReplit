@@ -67,50 +67,76 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
         poseRef.current.onResults(onPoseResults);
         console.log('Pose tracking initialized successfully');
       } else {
-        // Direct MediaPipe initialization without complex loader
-        console.log('Initializing MediaPipe with direct approach...');
+        // Production-ready MediaPipe initialization
+        console.log('Initializing MediaPipe for production deployment...');
         
         let HandsClass;
         
-        // Try direct import first
+        // Strategy 1: Try to load MediaPipe via CDN first (more reliable for production)
         try {
-          const { Hands } = await import('@mediapipe/hands');
-          HandsClass = Hands;
-          console.log('Direct import successful');
-        } catch (importError) {
-          console.log('Direct import failed, trying window object...');
+          console.log('Loading MediaPipe via CDN for production...');
           
-          // Check if MediaPipe is available on window
-          if (typeof window !== 'undefined' && (window as any).Hands) {
+          // Load MediaPipe script if not already loaded
+          if (!document.querySelector('script[src*="mediapipe"]')) {
+            await new Promise<void>((resolve, reject) => {
+              const script = document.createElement('script');
+              script.src = 'https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.js';
+              script.crossOrigin = 'anonymous';
+              
+              script.onload = () => {
+                console.log('MediaPipe CDN script loaded');
+                setTimeout(resolve, 200); // Give it time to initialize
+              };
+              
+              script.onerror = () => {
+                console.log('CDN script failed to load');
+                reject(new Error('CDN load failed'));
+              };
+              
+              document.head.appendChild(script);
+            });
+          }
+          
+          // Wait for MediaPipe to be available
+          let attempts = 0;
+          while (attempts < 20 && !(window as any).Hands) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            attempts++;
+          }
+          
+          if ((window as any).Hands) {
             HandsClass = (window as any).Hands;
-            console.log('Using MediaPipe from window object');
+            console.log('MediaPipe loaded from CDN successfully');
           } else {
-            console.log('MediaPipe not available, creating fallback...');
+            throw new Error('MediaPipe not available after CDN load');
+          }
+        } catch (cdnError) {
+          console.log('CDN loading failed, trying direct import...');
+          
+          // Strategy 2: Try direct import as fallback
+          try {
+            const { Hands } = await import('@mediapipe/hands');
+            HandsClass = Hands;
+            console.log('Direct import successful as fallback');
+          } catch (importError) {
+            console.log('All MediaPipe loading failed, using camera-only mode...');
             
-            // Create a simple fallback that works
+            // Create a working fallback for camera-only mode
             HandsClass = function(config: any) {
-              this.options = {};
-              this.onResultsCallback = null;
-              
-              this.setOptions = (opts: any) => {
-                this.options = opts;
-              };
-              
-              this.onResults = (callback: any) => {
-                this.onResultsCallback = callback;
-              };
-              
-              this.send = async (inputs: any) => {
-                if (this.onResultsCallback) {
-                  this.onResultsCallback({
-                    multiHandLandmarks: [],
-                    multiHandedness: []
-                  });
+              return {
+                setOptions: (opts: any) => {
+                  console.log('Camera-only mode: options set');
+                },
+                onResults: (callback: any) => {
+                  console.log('Camera-only mode: results callback set');
+                },
+                send: async (inputs: any) => {
+                  // Do nothing - camera-only mode
                 }
               };
             };
             
-            console.log('Using fallback MediaPipe implementation');
+            console.log('Using camera-only fallback mode');
           }
         }
 
