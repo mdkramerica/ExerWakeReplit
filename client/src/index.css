@@ -21,6 +21,29 @@
   .card {
     background-color: #ffffff !important;
   }
+  
+  /* Ensure text is always visible */
+  * {
+    color: inherit !important;
+  }
+  
+  div, span, p, h1, h2, h3, h4, h5, h6 {
+    color: #1f2937 !important;
+  }
+  
+  .text-2xl, .text-lg, .text-sm, .text-xs {
+    color: #1f2937 !important;
+  }
+  
+  /* Specific fixes for measurement displays */
+  div[class*="text-2xl"] {
+    color: #1f2937 !important;
+    font-weight: 800 !important;
+  }
+  
+  div[class*="text-white"] {
+    color: #ffffff !important;
+  }
 }
 
 :root {
