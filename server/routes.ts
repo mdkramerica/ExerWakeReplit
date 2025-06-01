@@ -196,8 +196,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/user-assessments/:userAssessmentId/motion-data", async (req, res) => {
     try {
       const userAssessmentId = parseInt(req.params.userAssessmentId);
-      const allUserAssessments = await storage.getUserAssessments(0); // Get all to find by ID
-      const userAssessment = allUserAssessments.find(ua => ua.id === userAssessmentId);
+      
+      // Try to find the user assessment by iterating through all users
+      let userAssessment = null;
+      for (let userId = 1; userId <= 10; userId++) {
+        try {
+          const userAssessments = await storage.getUserAssessments(userId);
+          const found = userAssessments.find(ua => ua.id === userAssessmentId);
+          if (found) {
+            userAssessment = found;
+            break;
+          }
+        } catch (e) {
+          // Continue searching
+        }
+      }
       
       if (!userAssessment || !userAssessment.repetitionData) {
         return res.status(404).json({ message: "Motion data not found" });
