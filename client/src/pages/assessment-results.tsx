@@ -199,23 +199,43 @@ export default function AssessmentResults() {
                           <div className="text-4xl font-bold text-blue-600 mb-2">
                             {(() => {
                               // Calculate Kapandji score from motion data
-                              if (motionData && motionData.length > 0) {
-                                const { calculateMaxKapandjiScore } = require('@shared/kapandji-calculator');
-                                const motionFrames = motionData.map(frame => ({
-                                  landmarks: frame.landmarks
-                                }));
-                                const kapandjiResult = calculateMaxKapandjiScore(motionFrames);
-                                return kapandjiResult.maxScore;
+                              if (userAssessment.repetitionData && Array.isArray(userAssessment.repetitionData)) {
+                                for (const rep of userAssessment.repetitionData) {
+                                  if (rep.motionData && Array.isArray(rep.motionData)) {
+                                    const motionFrames = rep.motionData.map((frame: any) => ({
+                                      landmarks: frame.landmarks
+                                    }));
+                                    const kapandjiResult = calculateMaxKapandjiScore(motionFrames);
+                                    return kapandjiResult.maxScore;
+                                  }
+                                }
                               }
                               return '0';
                             })()}/10
                           </div>
                           <div className="text-sm text-gray-700">
-                            {parseInt(userAssessment.totalActiveRom || '0') >= 10 ? 'Excellent Opposition' :
-                             parseInt(userAssessment.totalActiveRom || '0') >= 8 ? 'Good Opposition' :
-                             parseInt(userAssessment.totalActiveRom || '0') >= 6 ? 'Moderate Opposition' :
-                             parseInt(userAssessment.totalActiveRom || '0') >= 4 ? 'Limited Opposition' :
-                             'Severely Limited Opposition'}
+                            {(() => {
+                              const score = (() => {
+                                if (userAssessment.repetitionData && Array.isArray(userAssessment.repetitionData)) {
+                                  for (const rep of userAssessment.repetitionData) {
+                                    if (rep.motionData && Array.isArray(rep.motionData)) {
+                                      const motionFrames = rep.motionData.map((frame: any) => ({
+                                        landmarks: frame.landmarks
+                                      }));
+                                      const kapandjiResult = calculateMaxKapandjiScore(motionFrames);
+                                      return kapandjiResult.maxScore;
+                                    }
+                                  }
+                                }
+                                return 0;
+                              })();
+                              
+                              return score >= 10 ? 'Excellent Opposition' :
+                                     score >= 8 ? 'Good Opposition' :
+                                     score >= 6 ? 'Moderate Opposition' :
+                                     score >= 4 ? 'Limited Opposition' :
+                                     'Severely Limited Opposition';
+                            })()}
                           </div>
                         </div>
                         
