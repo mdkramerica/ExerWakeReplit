@@ -249,13 +249,12 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
       handDetected = true;
       landmarks = results.multiHandLandmarks[0];
       
-      // Determine hand type from MediaPipe results with mirroring correction
+      // Determine hand type from MediaPipe results 
       if (results.multiHandedness && results.multiHandedness.length > 0) {
         const handedness = results.multiHandedness[0];
         if (handedness.label) {
-          // MediaPipe reports mirrored hand labels, so we need to flip them
-          // When MediaPipe says "Right", it's actually the left hand in camera view
-          detectedHandType = handedness.label === "Right" ? "Left" : "Right";
+          // Use MediaPipe's detection directly - it should match the unmirrored video view
+          detectedHandType = handedness.label; // "Left" or "Right"
         }
       }
       
