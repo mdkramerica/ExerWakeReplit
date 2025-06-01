@@ -165,7 +165,7 @@ export default function Recording() {
     const currentTime = Date.now();
     const recordingElapsed = recordingStartTime ? (currentTime - recordingStartTime) / 1000 : 0;
     
-    console.log(`MediaPipe update: handDetected=${data.handDetected}, landmarks=${data.landmarks ? data.landmarks.length : 'none'}, isRecording=${isRecording}, elapsed=${recordingElapsed.toFixed(1)}s`);
+    console.log(`MediaPipe update: handDetected=${data.handDetected}, landmarks=${data.landmarks ? data.landmarks.length : 'none'}, isRecording=${isRecording}, elapsed=${recordingElapsed.toFixed(1)}s, startTime=${recordingStartTime}`);
     
     setHandDetected(data.handDetected);
     setLandmarksCount(data.landmarksCount);
