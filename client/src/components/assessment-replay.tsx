@@ -202,13 +202,25 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
       const x = landmark.x * canvas.width;
       const y = landmark.y * canvas.height;
       
-      // Highlight index finger joints (5, 6, 7, 8) since we're measuring its ROM
-      let color = '#10b981'; // Default green
+      // Color-code joints to match live joint angles display
+      let color = '#10b981'; // Default green for other landmarks
       let size = 4;
       
-      if ([5, 6, 7, 8].includes(index)) {
-        // Index finger - primary measurement finger
-        color = '#3b82f6'; // Blue for index finger
+      if (index === 5) {
+        // MCP joint - blue to match live display
+        color = '#3b82f6';
+        size = 8;
+      } else if (index === 6) {
+        // PIP joint - green to match live display
+        color = '#10b981';
+        size = 8;
+      } else if (index === 7) {
+        // DIP joint - purple to match live display
+        color = '#8b5cf6';
+        size = 8;
+      } else if (index === 8) {
+        // Fingertip - light blue
+        color = '#60a5fa';
         size = 6;
       } else if ([0].includes(index)) {
         // Wrist landmark
@@ -291,27 +303,28 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
       ctx.font = 'bold 12px Arial';
       ctx.fillText(`Total: ${Math.round(romData.totalActiveRom)}°`, canvas.width - 210, 110);
       
-      // Draw angle visualization on the finger joints
+      // Draw angle visualization on the finger joints with matching colors
       if (frame.landmarks[5] && frame.landmarks[6] && frame.landmarks[7] && frame.landmarks[8]) {
-        // Draw MCP angle arc
-        const mcpCenter = { x: frame.landmarks[5].x * canvas.width, y: frame.landmarks[5].y * canvas.height };
-        ctx.strokeStyle = '#3b82f6';
         ctx.lineWidth = 2;
         ctx.setLineDash([3, 3]);
+        
+        // Draw MCP angle arc (blue to match live display)
+        const mcpCenter = { x: frame.landmarks[5].x * canvas.width, y: frame.landmarks[5].y * canvas.height };
+        ctx.strokeStyle = '#3b82f6'; // Blue - matches MCP in live display
         ctx.beginPath();
         ctx.arc(mcpCenter.x, mcpCenter.y, 15, 0, (romData.mcpAngle / 180) * Math.PI);
         ctx.stroke();
         
-        // Draw PIP angle arc
+        // Draw PIP angle arc (green to match live display)
         const pipCenter = { x: frame.landmarks[6].x * canvas.width, y: frame.landmarks[6].y * canvas.height };
-        ctx.strokeStyle = '#10b981';
+        ctx.strokeStyle = '#10b981'; // Green - matches PIP in live display
         ctx.beginPath();
         ctx.arc(pipCenter.x, pipCenter.y, 12, 0, (romData.pipAngle / 180) * Math.PI);
         ctx.stroke();
         
-        // Draw DIP angle arc
+        // Draw DIP angle arc (purple to match live display)
         const dipCenter = { x: frame.landmarks[7].x * canvas.width, y: frame.landmarks[7].y * canvas.height };
-        ctx.strokeStyle = '#8b5cf6';
+        ctx.strokeStyle = '#8b5cf6'; // Purple - matches DIP in live display
         ctx.beginPath();
         ctx.arc(dipCenter.x, dipCenter.y, 10, 0, (romData.dipAngle / 180) * Math.PI);
         ctx.stroke();
