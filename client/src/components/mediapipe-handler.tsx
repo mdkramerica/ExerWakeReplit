@@ -476,38 +476,28 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
           console.log('Video playback started');
         }
 
-        // Try to initialize MediaPipe with retry logic
-        let initialized = false;
-        let retryCount = 0;
-        const maxRetries = 3;
+        // Always start with basic camera mode to ensure video feed works
+        startBasicCameraMode();
         
-        while (!initialized && retryCount < maxRetries) {
+        // Try to initialize MediaPipe in the background (non-blocking)
+        setTimeout(async () => {
           try {
-            console.log(`MediaPipe initialization attempt ${retryCount + 1}/${maxRetries}`);
-            initialized = await initializeExerAI();
+            console.log('Attempting MediaPipe initialization...');
+            const initialized = await initializeExerAI();
             if (initialized) {
-              console.log('MediaPipe initialized successfully');
-              break;
+              console.log('MediaPipe initialized successfully, starting hand tracking');
+              // Stop basic camera mode and start hand tracking
+              if (animationRef.current) {
+                cancelAnimationFrame(animationRef.current);
+              }
+              processFrame();
+            } else {
+              console.log('MediaPipe initialization failed, continuing with camera-only mode');
             }
           } catch (error) {
-            console.warn(`MediaPipe initialization attempt ${retryCount + 1} failed:`, error);
-            retryCount++;
-            
-            // Wait before retrying
-            if (retryCount < maxRetries) {
-              await new Promise(resolve => setTimeout(resolve, 1000));
-            }
+            console.warn('MediaPipe initialization failed, using camera-only mode:', error);
           }
-        }
-        
-        if (initialized) {
-          // Start processing frames with hand tracking
-          processFrame();
-        } else {
-          console.error('MediaPipe failed to initialize after all retries');
-          // Fallback: show camera feed without hand tracking
-          startBasicCameraMode();
-        }
+        }, 500);
       } catch (error) {
         console.error("Error starting hand tracking:", error);
         let errorMessage = "Camera access error";
