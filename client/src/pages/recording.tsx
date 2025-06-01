@@ -289,12 +289,12 @@ export default function Recording() {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-semibold text-gray-900 mb-2">Recording Assessment</h2>
-                <p className="text-gray-600">
+                <p className="text-gray-800">
                   Position your hand in the camera view and perform the {assessment.name.toLowerCase()} movement.
                 </p>
               </div>
               <div className="text-right">
-                <div className="text-sm text-gray-600">Repetition</div>
+                <div className="text-sm text-gray-800">Repetition</div>
                 <div className="text-2xl font-semibold text-blue-600">
                   {currentRepetition}/{assessment.repetitions}
                 </div>

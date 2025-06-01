@@ -805,28 +805,28 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
                 </h4>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                   <div className="bg-white p-3 rounded border">
-                    <span className="text-gray-600 block">MCP Joint:</span>
+                    <span className="text-gray-800 block">MCP Joint:</span>
                     <div className="font-bold text-lg text-blue-600">{Math.round(currentROM.mcpAngle)}°</div>
                     {maxROM && (
                       <div className="text-xs text-gray-700">Max: {Math.round(maxROM.mcpAngle)}°</div>
                     )}
                   </div>
                   <div className="bg-white p-3 rounded border">
-                    <span className="text-gray-600 block">PIP Joint:</span>
+                    <span className="text-gray-800 block">PIP Joint:</span>
                     <div className="font-bold text-lg text-green-600">{Math.round(currentROM.pipAngle)}°</div>
                     {maxROM && (
                       <div className="text-xs text-gray-700">Max: {Math.round(maxROM.pipAngle)}°</div>
                     )}
                   </div>
                   <div className="bg-white p-3 rounded border">
-                    <span className="text-gray-600 block">DIP Joint:</span>
+                    <span className="text-gray-800 block">DIP Joint:</span>
                     <div className="font-bold text-lg text-purple-600">{Math.round(currentROM.dipAngle)}°</div>
                     {maxROM && (
                       <div className="text-xs text-gray-700">Max: {Math.round(maxROM.dipAngle)}°</div>
                     )}
                   </div>
                   <div className="bg-white p-3 rounded border">
-                    <span className="text-gray-600 block">Total ROM:</span>
+                    <span className="text-gray-800 block">Total ROM:</span>
                     <div className="font-bold text-lg text-gray-900">{Math.round(currentROM.totalActiveRom)}°</div>
                     {maxROM && (
                       <div className="text-xs text-gray-700">Max: {Math.round(maxROM.totalActiveRom)}°</div>
@@ -854,7 +854,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
                         <div className={`p-2 rounded ${
                           rom.mcpAngle < 70 ? 'bg-red-50 border border-red-200' : 'bg-gray-100'
                         }`}>
-                          <div className="text-xs text-gray-600">MCP Joint</div>
+                          <div className="text-xs text-gray-800">MCP Joint</div>
                           <div className={`font-medium ${
                             rom.mcpAngle < 70 ? 'text-red-600' : 'text-blue-600'
                           }`}>
@@ -867,7 +867,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
                         <div className={`p-2 rounded ${
                           rom.pipAngle < 90 ? 'bg-red-50 border border-red-200' : 'bg-gray-100'
                         }`}>
-                          <div className="text-xs text-gray-600">PIP Joint</div>
+                          <div className="text-xs text-gray-800">PIP Joint</div>
                           <div className={`font-medium ${
                             rom.pipAngle < 90 ? 'text-red-600' : 'text-green-600'
                           }`}>
@@ -880,7 +880,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
                         <div className={`p-2 rounded ${
                           rom.dipAngle < 70 ? 'bg-red-50 border border-red-200' : 'bg-gray-100'
                         }`}>
-                          <div className="text-xs text-gray-600">DIP Joint</div>
+                          <div className="text-xs text-gray-800">DIP Joint</div>
                           <div className={`font-medium ${
                             rom.dipAngle < 70 ? 'text-red-600' : 'text-purple-600'
                           }`}>

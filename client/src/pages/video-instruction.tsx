@@ -126,7 +126,7 @@ export default function VideoInstruction() {
                   Ready to Record
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
-                <p className="text-xs text-gray-600 mt-2">
+                <p className="text-xs text-gray-800 mt-2">
                   Make sure you understand the movement before proceeding
                 </p>
               </div>
@@ -140,15 +140,15 @@ export default function VideoInstruction() {
                 </h3>
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Assessment:</span>
+                    <span className="text-gray-800">Assessment:</span>
                     <span className="font-medium">{assessment.name}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Duration:</span>
+                    <span className="text-gray-800">Duration:</span>
                     <span className="font-medium">{assessment.duration} seconds</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Repetitions:</span>
+                    <span className="text-gray-800">Repetitions:</span>
                     <span className="font-medium">{assessment.repetitions} times</span>
                   </div>
                 </div>
@@ -156,24 +156,24 @@ export default function VideoInstruction() {
 
               <div className="bg-gray-100 border border-gray-200 rounded-lg p-6">
                 <h3 className="font-semibold text-gray-900 mb-3 flex items-center">
-                  <AlertTriangle className="w-5 h-5 text-gray-600 mr-2" />
+                  <AlertTriangle className="w-5 h-5 text-gray-800 mr-2" />
                   Important Reminders
                 </h3>
                 <ul className="text-sm text-gray-700 space-y-2">
                   <li className="flex items-start">
-                    <CheckCircle className="w-4 h-4 text-gray-600 mr-2 mt-0.5 flex-shrink-0" />
+                    <CheckCircle className="w-4 h-4 text-gray-800 mr-2 mt-0.5 flex-shrink-0" />
                     Ensure good lighting and clear camera view
                   </li>
                   <li className="flex items-start">
-                    <CheckCircle className="w-4 h-4 text-gray-600 mr-2 mt-0.5 flex-shrink-0" />
+                    <CheckCircle className="w-4 h-4 text-gray-800 mr-2 mt-0.5 flex-shrink-0" />
                     Keep your hand in frame throughout the movement
                   </li>
                   <li className="flex items-start">
-                    <CheckCircle className="w-4 h-4 text-gray-600 mr-2 mt-0.5 flex-shrink-0" />
+                    <CheckCircle className="w-4 h-4 text-gray-800 mr-2 mt-0.5 flex-shrink-0" />
                     Move slowly and smoothly as demonstrated
                   </li>
                   <li className="flex items-start">
-                    <CheckCircle className="w-4 h-4 text-gray-600 mr-2 mt-0.5 flex-shrink-0" />
+                    <CheckCircle className="w-4 h-4 text-gray-800 mr-2 mt-0.5 flex-shrink-0" />
                     Stop if you experience pain or discomfort
                   </li>
                 </ul>
@@ -190,7 +190,7 @@ export default function VideoInstruction() {
                 <Button
                   variant="ghost"
                   onClick={handleBack}
-                  className="flex items-center text-gray-600 hover:text-gray-900 mx-auto"
+                  className="flex items-center text-gray-800 hover:text-gray-900 mx-auto"
                 >
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Back to Assessment List

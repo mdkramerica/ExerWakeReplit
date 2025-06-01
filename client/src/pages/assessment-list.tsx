@@ -95,12 +95,12 @@ export default function AssessmentList() {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-semibold text-gray-900 mb-2">Your Assessments</h2>
-                <p className="text-gray-600">
+                <p className="text-gray-800">
                   Complete each assessment by watching the instruction video and recording your range of motion.
                 </p>
               </div>
               <div className="text-right">
-                <div className="text-sm text-gray-600">Progress</div>
+                <div className="text-sm text-gray-800">Progress</div>
                 <div className="text-2xl font-semibold text-blue-600">
                   {progress.completed}/{progress.total}
                 </div>
@@ -128,7 +128,7 @@ export default function AssessmentList() {
                       <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
                         isCompleted ? "bg-medical-success text-white" :
                         isNext ? "bg-medical-blue text-white" :
-                        "bg-gray-200 text-gray-600"
+                        "bg-gray-200 text-gray-800"
                       }`}>
                         {isCompleted ? (
                           <Check className="w-6 h-6" />
@@ -139,10 +139,10 @@ export default function AssessmentList() {
                         )}
                       </div>
                       <div>
-                        <h3 className={`font-medium ${isLocked ? "text-gray-600" : "text-gray-900"}`}>
+                        <h3 className={`font-medium ${isLocked ? "text-gray-800" : "text-gray-900"}`}>
                           {assessment.name}
                         </h3>
-                        <p className={`text-sm ${isLocked ? "text-gray-600" : "text-gray-700"}`}>
+                        <p className={`text-sm ${isLocked ? "text-gray-800" : "text-gray-700"}`}>
                           {assessment.description}
                         </p>
                         <div className="flex items-center mt-1 text-xs">
@@ -159,7 +159,7 @@ export default function AssessmentList() {
                               <span>Est. 3-5 minutes</span>
                             </div>
                           ) : (
-                            <div className="flex items-center text-gray-600">
+                            <div className="flex items-center text-gray-800">
                               <Lock className="w-3 h-3 mr-1" />
                               <span>Unlocks after previous assessment</span>
                             </div>
@@ -179,14 +179,14 @@ export default function AssessmentList() {
                         <div className="flex space-x-2">
                           <button
                             onClick={() => handleViewAssessment(assessment.userAssessmentId)}
-                            className="text-gray-600 hover:text-blue-600 p-2"
+                            className="text-gray-800 hover:text-blue-600 p-2"
                             title="View Results"
                           >
                             <Eye className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => setShowReplay(assessment.userAssessmentId ? assessment.userAssessmentId.toString() : assessment.name)}
-                            className="text-gray-600 hover:text-blue-600 p-2"
+                            className="text-gray-800 hover:text-blue-600 p-2"
                             title="View Motion Replay"
                           >
                             <Play className="w-4 h-4" />
@@ -218,7 +218,7 @@ export default function AssessmentList() {
                 </div>
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900">Patient History</h3>
-                  <p className="text-sm text-gray-600">All recorded assessments in chronological order</p>
+                  <p className="text-sm text-gray-800">All recorded assessments in chronological order</p>
                 </div>
               </div>
 
@@ -237,7 +237,7 @@ export default function AssessmentList() {
                         </div>
                         <div>
                           <h4 className="font-medium text-gray-900">{record.assessmentName}</h4>
-                          <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
+                          <div className="flex items-center gap-4 text-sm text-gray-800 mt-1">
                             <div className="flex items-center gap-1">
                               <Calendar className="w-3 h-3" />
                               <span>{new Date(record.completedAt).toLocaleDateString()}</span>
@@ -388,12 +388,12 @@ export default function AssessmentList() {
               <Button
                 variant="ghost"
                 onClick={handleBack}
-                className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-900"
+                className="flex items-center px-4 py-2 text-gray-800 hover:text-gray-900"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back
               </Button>
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-gray-800">
                 Questions? Contact your healthcare provider
               </div>
             </div>

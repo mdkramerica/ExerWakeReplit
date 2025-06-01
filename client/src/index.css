@@ -33,6 +33,44 @@
   --exer-dark-blue: 37 99 235; /* #2563EB - blue for buttons */
 }
 
+/* COMPREHENSIVE TEXT VISIBILITY FIX - Override all light gray text */
+.text-gray-300,
+.text-gray-400,
+.text-gray-500,
+.text-slate-300,
+.text-slate-400,
+.text-slate-500 {
+  color: rgb(31 41 55) !important; /* Force dark gray-800 */
+}
+
+.text-muted-foreground,
+.text-muted {
+  color: rgb(31 41 55) !important; /* Force dark gray-800 */
+}
+
+/* Ensure all small text is readable */
+.text-xs,
+.text-sm {
+  color: rgb(31 41 55) !important;
+  font-weight: 500 !important;
+}
+
+/* Force visibility for common UI elements */
+label,
+span[class*="text-gray"],
+div[class*="text-gray"],
+p[class*="text-gray"] {
+  color: rgb(31 41 55) !important;
+}
+
+/* Specific overrides for assessment components */
+.assessment-text,
+.rom-text,
+.timeline-text {
+  color: rgb(17 24 39) !important; /* gray-900 */
+  font-weight: 600 !important;
+}
+
 .dark {
   --background: 15 23 42; /* #0F172A */
   --foreground: 248 250 252; /* #F8FAFC */

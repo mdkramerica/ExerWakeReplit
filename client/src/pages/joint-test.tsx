@@ -209,7 +209,7 @@ export default function JointTest() {
       <Card>
         <CardHeader>
           <CardTitle>Joint Angle Test & Visualization</CardTitle>
-          <p className="text-gray-600">
+          <p className="text-gray-800">
             Live visualization of hand joints and ROM calculations for debugging
           </p>
         </CardHeader>
@@ -305,7 +305,7 @@ export default function JointTest() {
             
             {landmarks.length >= 21 && (
               <div className="mt-3">
-                <div className="text-xs text-gray-600">Index Finger Landmarks:</div>
+                <div className="text-xs text-gray-800">Index Finger Landmarks:</div>
                 <div className="grid grid-cols-4 gap-2 mt-1 text-xs font-mono">
                   <div>P5: ({landmarks[5]?.x.toFixed(3)}, {landmarks[5]?.y.toFixed(3)})</div>
                   <div>P6: ({landmarks[6]?.x.toFixed(3)}, {landmarks[6]?.y.toFixed(3)})</div>

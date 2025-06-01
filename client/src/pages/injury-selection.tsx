@@ -130,7 +130,7 @@ export default function InjurySelection() {
                         return <IconComponent className={`w-10 h-10 transition-colors duration-200 ${
                           selectedInjury === injury.name
                             ? "text-white"
-                            : "text-gray-600 group-hover:text-white"
+                            : "text-gray-800 group-hover:text-white"
                         }`} />;
                       })()
                     )}
