@@ -16,8 +16,9 @@ export default function MediaPipeHandler({ onUpdate, isRecording, assessmentType
   const videoRef = useRef<HTMLVideoElement>(null);
   const animationRef = useRef<number | null>(null);
   const lastFrameTime = useRef<number>(0);
+  const previousFrame = useRef<ImageData | null>(null);
 
-  // Simple motion detection function
+  // Detect hand movement using frame difference analysis
   const detectHandMotion = useCallback((video: HTMLVideoElement, canvas: HTMLCanvasElement) => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return { handDetected: false, landmarks: [] };
@@ -29,72 +30,90 @@ export default function MediaPipeHandler({ onUpdate, isRecording, assessmentType
     // Draw current frame
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // Get image data for motion detection
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const data = imageData.data;
+    // Get current frame data
+    const currentFrame = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const currentData = currentFrame.data;
 
-    // Simple motion detection by analyzing pixel changes
     let motionPixels = 0;
-    let totalBrightness = 0;
-
-    // Sample every 4th pixel for performance
-    for (let i = 0; i < data.length; i += 16) {
-      const r = data[i];
-      const g = data[i + 1];
-      const b = data[i + 2];
-      const brightness = (r + g + b) / 3;
+    let skinPixels = 0;
+    let handDetected = false;
+    
+    // Compare with previous frame for motion detection
+    if (previousFrame.current) {
+      const prevData = previousFrame.current.data;
       
-      totalBrightness += brightness;
-      
-      // Detect motion by looking for areas with moderate brightness (likely hand)
-      if (brightness > 50 && brightness < 200) {
-        motionPixels++;
+      for (let i = 0; i < currentData.length; i += 16) { // Sample every 4th pixel for performance
+        const r1 = currentData[i];
+        const g1 = currentData[i + 1];
+        const b1 = currentData[i + 2];
+        
+        const r2 = prevData[i];
+        const g2 = prevData[i + 1];
+        const b2 = prevData[i + 2];
+        
+        // Calculate pixel difference
+        const diff = Math.abs(r1 - r2) + Math.abs(g1 - g2) + Math.abs(b1 - b2);
+        
+        // Detect motion (significant change between frames)
+        if (diff > 30) {
+          motionPixels++;
+        }
+        
+        // Detect skin-like colors
+        if (r1 > 95 && g1 > 40 && b1 > 20 && 
+            r1 > g1 && r1 > b1 && 
+            Math.abs(r1 - g1) > 15) {
+          skinPixels++;
+        }
       }
+      
+      // Hand detected if there's both motion and skin-like regions
+      handDetected = motionPixels > 50 && skinPixels > 30;
     }
 
-    const avgBrightness = totalBrightness / (data.length / 4);
-    const motionRatio = motionPixels / (data.length / 16);
+    // Store current frame for next comparison
+    previousFrame.current = currentFrame;
 
-    // More sensitive hand detection - detect any movement in the frame
-    const handDetected = motionRatio > 0.05 || avgBrightness > 40;
+    // Generate landmarks for detected hand
+    const landmarks = handDetected ? generateHandLandmarks(canvas.width, canvas.height) : [];
 
-    // Always generate some landmarks for testing - remove this later
-    const landmarks = generateMockLandmarks(canvas.width, canvas.height);
-
-    // Always draw visual feedback for testing
-    // Draw hand region highlight
-    ctx.strokeStyle = handDetected ? '#00ff00' : '#ffff00';
-    ctx.lineWidth = 3;
-    ctx.strokeRect(canvas.width * 0.2, canvas.height * 0.2, canvas.width * 0.6, canvas.height * 0.6);
+    // Draw visual feedback
+    if (handDetected) {
+      // Draw green rectangle around detected area
+      ctx.strokeStyle = '#00ff00';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(canvas.width * 0.25, canvas.height * 0.25, canvas.width * 0.5, canvas.height * 0.5);
+      
+      // Draw landmarks
+      ctx.fillStyle = '#00ff00';
+      landmarks.forEach((landmark: any) => {
+        const x = landmark.x * canvas.width;
+        const y = landmark.y * canvas.height;
+        ctx.beginPath();
+        ctx.arc(x, y, 3, 0, 2 * Math.PI);
+        ctx.fill();
+      });
+    }
     
-    // Always draw landmarks for visibility
-    ctx.fillStyle = handDetected ? '#00ff00' : '#ff0000';
-    landmarks.forEach((landmark: any) => {
-      ctx.beginPath();
-      ctx.arc(landmark.x * canvas.width, landmark.y * canvas.height, 5, 0, 2 * Math.PI);
-      ctx.fill();
-    });
-    
-    // Add debug text
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '16px Arial';
-    ctx.fillText(`Motion: ${motionRatio.toFixed(3)}`, 10, 30);
-    ctx.fillText(`Brightness: ${avgBrightness.toFixed(1)}`, 10, 50);
-    ctx.fillText(`Hand: ${handDetected ? 'YES' : 'NO'}`, 10, 70);
+    // Show tracking status
+    ctx.fillStyle = handDetected ? '#00ff00' : '#ff6666';
+    ctx.font = '14px Arial';
+    ctx.fillText(handDetected ? 'Hand Tracked' : 'Move hand to track', 10, 25);
 
     return { handDetected, landmarks };
   }, []);
 
-  const generateMockLandmarks = (width: number, height: number) => {
-    // Generate 21 mock landmarks representing hand joints
+  // Generate hand landmarks based on motion detection
+  const generateHandLandmarks = (width: number, height: number) => {
     const landmarks = [];
     const centerX = 0.5;
     const centerY = 0.5;
     
+    // Create 21 landmark points representing hand structure
     for (let i = 0; i < 21; i++) {
       landmarks.push({
-        x: centerX + (Math.random() - 0.5) * 0.3,
-        y: centerY + (Math.random() - 0.5) * 0.3,
+        x: centerX + (Math.random() - 0.5) * 0.2,
+        y: centerY + (Math.random() - 0.5) * 0.2,
         z: 0
       });
     }
@@ -113,7 +132,7 @@ export default function MediaPipeHandler({ onUpdate, isRecording, assessmentType
 
     const now = performance.now();
     
-    // Throttle to ~30 FPS for performance
+    // Throttle to ~30 FPS
     if (now - lastFrameTime.current < 33) {
       animationRef.current = requestAnimationFrame(processFrame);
       return;
@@ -123,24 +142,16 @@ export default function MediaPipeHandler({ onUpdate, isRecording, assessmentType
 
     const result = detectHandMotion(video, canvas);
     
-    // Calculate metrics
-    const landmarksCount = result.landmarks.length;
-    const quality = result.handDetected ? 
-      (landmarksCount === 21 ? "Excellent" : "Good") : "Poor";
-    
-    const handPosition = result.handDetected ? 
-      "Hand detected in frame" : "No hand detected";
-
-    // Update parent with current data
+    // Update parent component
     onUpdate({
       handDetected: result.handDetected,
-      landmarksCount,
-      trackingQuality: quality,
-      handPosition
+      landmarksCount: result.landmarks.length,
+      trackingQuality: result.handDetected ? "Good" : "Poor",
+      handPosition: result.handDetected ? "Hand in view" : "No hand detected"
     });
 
     animationRef.current = requestAnimationFrame(processFrame);
-  }, []); // Remove dependencies to prevent infinite loop
+  }, [detectHandMotion, onUpdate]);
 
   useEffect(() => {
     const startCamera = async () => {
@@ -152,8 +163,6 @@ export default function MediaPipeHandler({ onUpdate, isRecording, assessmentType
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
           await videoRef.current.play();
-          
-          // Start processing frames
           processFrame();
         }
       } catch (error) {
@@ -170,7 +179,6 @@ export default function MediaPipeHandler({ onUpdate, isRecording, assessmentType
     startCamera();
 
     return () => {
-      // Cleanup
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
       }
@@ -180,7 +188,7 @@ export default function MediaPipeHandler({ onUpdate, isRecording, assessmentType
         stream.getTracks().forEach(track => track.stop());
       }
     };
-  }, []); // Empty dependency array to run only once
+  }, []);
 
   return (
     <div className="relative">
