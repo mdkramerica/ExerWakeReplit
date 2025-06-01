@@ -416,20 +416,20 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
           console.log('Video playback started');
         }
 
-        // Initialize Exer AI
-        const initialized = await initializeExerAI();
+        // Try to initialize Exer AI, but always show camera
+        let initialized = false;
+        try {
+          initialized = await initializeExerAI();
+        } catch (error) {
+          console.warn('Exer AI initialization failed, using camera-only mode:', error);
+        }
         
         if (initialized) {
-          // Start processing frames
+          // Start processing frames with hand tracking
           processFrame();
         } else {
-          // Fallback to basic hand detection if Exer AI fails
-          onUpdate({
-            handDetected: false,
-            landmarksCount: 0,
-            trackingQuality: "Error",
-            handPosition: "Exer AI initialization failed"
-          });
+          // Fallback: show camera feed without hand tracking
+          startBasicCameraMode();
         }
       } catch (error) {
         console.error("Error starting hand tracking:", error);
@@ -469,6 +469,62 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
       }
     };
   }, []);
+
+  // Basic camera mode without hand tracking when MediaPipe fails
+  const startBasicCameraMode = useCallback(() => {
+    console.log('Starting basic camera mode...');
+    
+    const drawBasicVideo = () => {
+      const canvas = canvasRef.current;
+      const video = videoRef.current;
+      
+      if (!canvas || !video) {
+        requestAnimationFrame(drawBasicVideo);
+        return;
+      }
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        requestAnimationFrame(drawBasicVideo);
+        return;
+      }
+
+      // Set canvas dimensions
+      canvas.width = video.videoWidth || 640;
+      canvas.height = video.videoHeight || 480;
+
+      try {
+        if (video.readyState >= 2 && video.videoWidth > 0) {
+          // Draw mirrored video
+          ctx.save();
+          ctx.scale(-1, 1);
+          ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
+          ctx.restore();
+          
+          // Add "Camera Only" indicator
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+          ctx.fillRect(10, 10, 120, 30);
+          ctx.fillStyle = '#000000';
+          ctx.font = '14px Arial';
+          ctx.fillText('Camera Only', 15, 30);
+          
+          // Update with basic status
+          onUpdate({
+            handDetected: false,
+            landmarksCount: 0,
+            trackingQuality: "Camera Only",
+            handPosition: "Hand tracking unavailable"
+          });
+        }
+      } catch (error) {
+        console.warn('Basic video draw error:', error);
+      }
+
+      requestAnimationFrame(drawBasicVideo);
+    };
+
+    drawBasicVideo();
+  }, [onUpdate]);
 
   return (
     <div className="relative">
