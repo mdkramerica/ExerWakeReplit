@@ -388,12 +388,12 @@ export default function AssessmentList() {
               <Button
                 variant="ghost"
                 onClick={handleBack}
-                className="flex items-center px-4 py-2 text-medical-gray hover:text-gray-900"
+                className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-900"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back
               </Button>
-              <div className="text-sm text-medical-gray">
+              <div className="text-sm text-gray-600">
                 Questions? Contact your healthcare provider
               </div>
             </div>

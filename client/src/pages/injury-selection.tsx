@@ -156,7 +156,7 @@ export default function InjurySelection() {
             <Button
               onClick={handleContinue}
               disabled={!selectedInjury || updateUserMutation.isPending}
-              className="bg-exer-dark-blue hover:bg-blue-800 text-white"
+              className="bg-blue-600 hover:bg-blue-700 text-white"
             >
               {updateUserMutation.isPending ? (
                 "Saving..."

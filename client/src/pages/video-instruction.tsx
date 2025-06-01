@@ -99,7 +99,7 @@ export default function VideoInstruction() {
                     onClick={handleVideoPlay}
                     className="w-16 h-16 bg-white bg-opacity-90 rounded-full flex items-center justify-center hover:bg-opacity-100 transition-all"
                   >
-                    <Play className="w-6 h-6 text-medical-blue ml-1" />
+                    <Play className="w-6 h-6 text-blue-600 ml-1" />
                   </button>
                 </div>
                 <div className="absolute bottom-4 left-4 right-4">
@@ -140,15 +140,15 @@ export default function VideoInstruction() {
                 </h3>
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-medical-gray">Assessment:</span>
+                    <span className="text-gray-600">Assessment:</span>
                     <span className="font-medium">{assessment.name}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-medical-gray">Duration:</span>
+                    <span className="text-gray-600">Duration:</span>
                     <span className="font-medium">{assessment.duration} seconds</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-medical-gray">Repetitions:</span>
+                    <span className="text-gray-600">Repetitions:</span>
                     <span className="font-medium">{assessment.repetitions} times</span>
                   </div>
                 </div>
@@ -190,7 +190,7 @@ export default function VideoInstruction() {
                 <Button
                   variant="ghost"
                   onClick={handleBack}
-                  className="flex items-center text-medical-gray hover:text-gray-900 mx-auto"
+                  className="flex items-center text-gray-600 hover:text-gray-900 mx-auto"
                 >
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Back to Assessment List

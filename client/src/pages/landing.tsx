@@ -92,7 +92,7 @@ export default function Landing() {
             
             <Button 
               type="submit" 
-              className="w-full bg-exer-dark-blue hover:bg-blue-800 text-white"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
               disabled={verifyCodeMutation.isPending || code.length !== 6}
             >
               {verifyCodeMutation.isPending ? (
