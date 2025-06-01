@@ -64,18 +64,23 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
         poseRef.current.onResults(onPoseResults);
       } else {
         // Initialize hand tracking for hand/wrist assessments
-        const { Hands } = await import('@mediapipe/hands');
-
-        handsRef.current = new Hands({
-          locateFile: (file: string) => {
-            // Try multiple CDN sources for better reliability
-            const cdnSources = [
-              `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`,
-              `https://unpkg.com/@mediapipe/hands/${file}`
-            ];
-            return cdnSources[0];
+        try {
+          const mediapipeModule = await import('@mediapipe/hands');
+          const HandsClass = mediapipeModule.Hands || mediapipeModule.default?.Hands || mediapipeModule.default;
+          
+          if (!HandsClass) {
+            throw new Error('Hands class not found in MediaPipe module');
           }
-        });
+
+          handsRef.current = new HandsClass({
+            locateFile: (file: string) => {
+              return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+            }
+          });
+        } catch (importError) {
+          console.error('MediaPipe import failed:', importError);
+          throw new Error('Failed to load MediaPipe Hands module');
+        }
 
         handsRef.current.setOptions({
           maxNumHands: 1,
