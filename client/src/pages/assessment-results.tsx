@@ -226,21 +226,33 @@ export default function AssessmentResults() {
                             <div className="grid grid-cols-3 gap-4">
                               <div>
                                 <div className="text-sm text-blue-600 font-medium">MCP Joint</div>
-                                <div className="text-xl font-bold text-blue-700">
+                                <div className={`text-xl font-bold ${
+                                  userAssessment.middleFingerMcp && 
+                                  (parseFloat(userAssessment.middleFingerMcp) < 70 || parseFloat(userAssessment.middleFingerMcp) > 90)
+                                    ? 'text-red-700' : 'text-blue-700'
+                                }`}>
                                   {userAssessment.middleFingerMcp ? parseFloat(userAssessment.middleFingerMcp).toFixed(0) : '0'}°
                                 </div>
                                 <div className="text-xs text-gray-500">Normal: 70-90°</div>
                               </div>
                               <div>
                                 <div className="text-sm text-green-600 font-medium">PIP Joint</div>
-                                <div className="text-xl font-bold text-green-700">
+                                <div className={`text-xl font-bold ${
+                                  userAssessment.middleFingerPip && 
+                                  (parseFloat(userAssessment.middleFingerPip) < 90 || parseFloat(userAssessment.middleFingerPip) > 110)
+                                    ? 'text-red-700' : 'text-green-700'
+                                }`}>
                                   {userAssessment.middleFingerPip ? parseFloat(userAssessment.middleFingerPip).toFixed(0) : '0'}°
                                 </div>
                                 <div className="text-xs text-gray-500">Normal: 90-110°</div>
                               </div>
                               <div>
                                 <div className="text-sm text-purple-600 font-medium">DIP Joint</div>
-                                <div className="text-xl font-bold text-purple-700">
+                                <div className={`text-xl font-bold ${
+                                  userAssessment.middleFingerDip && 
+                                  (parseFloat(userAssessment.middleFingerDip) < 70 || parseFloat(userAssessment.middleFingerDip) > 90)
+                                    ? 'text-red-700' : 'text-purple-700'
+                                }`}>
                                   {userAssessment.middleFingerDip ? parseFloat(userAssessment.middleFingerDip).toFixed(0) : '0'}°
                                 </div>
                                 <div className="text-xs text-gray-500">Normal: 70-90°</div>
@@ -261,21 +273,33 @@ export default function AssessmentResults() {
                             <div className="grid grid-cols-3 gap-4">
                               <div>
                                 <div className="text-sm text-blue-600 font-medium">MCP Joint</div>
-                                <div className="text-xl font-bold text-blue-700">
+                                <div className={`text-xl font-bold ${
+                                  userAssessment.ringFingerMcp && 
+                                  (parseFloat(userAssessment.ringFingerMcp) < 70 || parseFloat(userAssessment.ringFingerMcp) > 90)
+                                    ? 'text-red-700' : 'text-blue-700'
+                                }`}>
                                   {userAssessment.ringFingerMcp ? parseFloat(userAssessment.ringFingerMcp).toFixed(0) : '0'}°
                                 </div>
                                 <div className="text-xs text-gray-500">Normal: 70-90°</div>
                               </div>
                               <div>
                                 <div className="text-sm text-green-600 font-medium">PIP Joint</div>
-                                <div className="text-xl font-bold text-green-700">
+                                <div className={`text-xl font-bold ${
+                                  userAssessment.ringFingerPip && 
+                                  (parseFloat(userAssessment.ringFingerPip) < 90 || parseFloat(userAssessment.ringFingerPip) > 110)
+                                    ? 'text-red-700' : 'text-green-700'
+                                }`}>
                                   {userAssessment.ringFingerPip ? parseFloat(userAssessment.ringFingerPip).toFixed(0) : '0'}°
                                 </div>
                                 <div className="text-xs text-gray-500">Normal: 90-110°</div>
                               </div>
                               <div>
                                 <div className="text-sm text-purple-600 font-medium">DIP Joint</div>
-                                <div className="text-xl font-bold text-purple-700">
+                                <div className={`text-xl font-bold ${
+                                  userAssessment.ringFingerDip && 
+                                  (parseFloat(userAssessment.ringFingerDip) < 70 || parseFloat(userAssessment.ringFingerDip) > 90)
+                                    ? 'text-red-700' : 'text-purple-700'
+                                }`}>
                                   {userAssessment.ringFingerDip ? parseFloat(userAssessment.ringFingerDip).toFixed(0) : '0'}°
                                 </div>
                                 <div className="text-xs text-gray-500">Normal: 70-90°</div>
@@ -296,21 +320,33 @@ export default function AssessmentResults() {
                             <div className="grid grid-cols-3 gap-4">
                               <div>
                                 <div className="text-sm text-blue-600 font-medium">MCP Joint</div>
-                                <div className="text-xl font-bold text-blue-700">
+                                <div className={`text-xl font-bold ${
+                                  userAssessment.pinkyFingerMcp && 
+                                  (parseFloat(userAssessment.pinkyFingerMcp) < 70 || parseFloat(userAssessment.pinkyFingerMcp) > 90)
+                                    ? 'text-red-700' : 'text-blue-700'
+                                }`}>
                                   {userAssessment.pinkyFingerMcp ? parseFloat(userAssessment.pinkyFingerMcp).toFixed(0) : '0'}°
                                 </div>
                                 <div className="text-xs text-gray-500">Normal: 70-90°</div>
                               </div>
                               <div>
                                 <div className="text-sm text-green-600 font-medium">PIP Joint</div>
-                                <div className="text-xl font-bold text-green-700">
+                                <div className={`text-xl font-bold ${
+                                  userAssessment.pinkyFingerPip && 
+                                  (parseFloat(userAssessment.pinkyFingerPip) < 90 || parseFloat(userAssessment.pinkyFingerPip) > 110)
+                                    ? 'text-red-700' : 'text-green-700'
+                                }`}>
                                   {userAssessment.pinkyFingerPip ? parseFloat(userAssessment.pinkyFingerPip).toFixed(0) : '0'}°
                                 </div>
                                 <div className="text-xs text-gray-500">Normal: 90-110°</div>
                               </div>
                               <div>
                                 <div className="text-sm text-purple-600 font-medium">DIP Joint</div>
-                                <div className="text-xl font-bold text-purple-700">
+                                <div className={`text-xl font-bold ${
+                                  userAssessment.pinkyFingerDip && 
+                                  (parseFloat(userAssessment.pinkyFingerDip) < 70 || parseFloat(userAssessment.pinkyFingerDip) > 90)
+                                    ? 'text-red-700' : 'text-purple-700'
+                                }`}>
                                   {userAssessment.pinkyFingerDip ? parseFloat(userAssessment.pinkyFingerDip).toFixed(0) : '0'}°
                                 </div>
                                 <div className="text-xs text-gray-500">Normal: 70-90°</div>
