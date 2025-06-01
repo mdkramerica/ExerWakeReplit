@@ -117,9 +117,7 @@ export default function JointTest() {
         ctx.arc(x, y, 6, 0, 2 * Math.PI);
         ctx.fill();
         
-        // Store label position for later drawing (after transformation is restored)
-        const labels = ['MCP Joint (5)', 'PIP Joint (6)', 'DIP Joint (7)', 'Fingertip (8)'];
-        // Will draw labels after ctx.restore()
+
       }
     });
 
