@@ -210,10 +210,11 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
       
       console.log(`Hand detected with ${landmarks.length} landmarks`);
 
-      // Draw hand landmarks
+      // Draw hand landmarks (unmirror to match video)
       ctx.fillStyle = '#00ff00';
       landmarks.forEach((landmark: any, index: number) => {
-        const x = landmark.x * canvas.width;
+        // Unmirror the x-coordinate to align with unmirrored video
+        const x = (1 - landmark.x) * canvas.width;
         const y = landmark.y * canvas.height;
         
         // Draw landmark point
@@ -228,14 +229,15 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
         ctx.fillStyle = '#00ff00';
       });
 
-      // Draw hand connections
+      // Draw hand connections (unmirror to match video)
       ctx.strokeStyle = '#00ff00';
       ctx.lineWidth = 2;
       HAND_CONNECTIONS.forEach(([start, end]) => {
         if (landmarks[start] && landmarks[end]) {
           ctx.beginPath();
-          ctx.moveTo(landmarks[start].x * canvas.width, landmarks[start].y * canvas.height);
-          ctx.lineTo(landmarks[end].x * canvas.width, landmarks[end].y * canvas.height);
+          // Unmirror the x-coordinates for connections
+          ctx.moveTo((1 - landmarks[start].x) * canvas.width, landmarks[start].y * canvas.height);
+          ctx.lineTo((1 - landmarks[end].x) * canvas.width, landmarks[end].y * canvas.height);
           ctx.stroke();
         }
       });
