@@ -24,21 +24,21 @@ const FINGER_LANDMARKS = {
   },
   // Middle finger
   MIDDLE: {
-    MCP: [9, 10],
-    PIP: [10, 11],
-    DIP: [11, 12],
+    MCP: [0, 9, 10], // MCP angle: wrist-MCP joint-PIP joint (0-9-10)
+    PIP: [9, 10, 11], // PIP angle: MCP joint-PIP joint-DIP joint (9-10-11)
+    DIP: [10, 11, 12], // DIP angle: PIP joint-DIP joint-fingertip (10-11-12)
   },
   // Ring finger
   RING: {
-    MCP: [13, 14],
-    PIP: [14, 15],
-    DIP: [15, 16],
+    MCP: [0, 13, 14], // MCP angle: wrist-MCP joint-PIP joint (0-13-14)
+    PIP: [13, 14, 15], // PIP angle: MCP joint-PIP joint-DIP joint (13-14-15)
+    DIP: [14, 15, 16], // DIP angle: PIP joint-DIP joint-fingertip (14-15-16)
   },
   // Pinky finger
   PINKY: {
-    MCP: [17, 18],
-    PIP: [18, 19],
-    DIP: [19, 20],
+    MCP: [0, 17, 18], // MCP angle: wrist-MCP joint-PIP joint (0-17-18)
+    PIP: [17, 18, 19], // PIP angle: MCP joint-PIP joint-DIP joint (17-18-19)
+    DIP: [18, 19, 20], // DIP angle: PIP joint-DIP joint-fingertip (18-19-20)
   }
 };
 

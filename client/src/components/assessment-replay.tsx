@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Play, Pause, RotateCcw, Download } from "lucide-react";
-import { calculateCurrentROM, type JointAngles } from "@/lib/rom-calculator";
+import { calculateCurrentROM, calculateFingerROM, type JointAngles } from "@/lib/rom-calculator";
 import exerLogoPath from "@assets/exer-logo.png";
 
 interface ReplayData {
@@ -38,6 +38,8 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
   const animationRef = useRef<number | null>(null);
   const [currentROM, setCurrentROM] = useState<JointAngles | null>(null);
   const [maxROM, setMaxROM] = useState<JointAngles | null>(null);
+  const [selectedDigit, setSelectedDigit] = useState<'INDEX' | 'MIDDLE' | 'RING' | 'PINKY'>('INDEX');
+  const [allDigitsROM, setAllDigitsROM] = useState<{[key: string]: JointAngles} | null>(null);
   
   // Fetch real motion data if userAssessmentId is provided
   const { data: motionData, isLoading } = useQuery({
@@ -52,20 +54,45 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
   // Initialize frame with maximum TAM when replay data changes
   useEffect(() => {
     if (replayData.length > 0) {
-      // Calculate ROM for all frames and find the one with maximum TAM
-      const romFrames = replayData.map(frame => calculateCurrentROM(frame.landmarks));
-      const maxRomFrame = romFrames.reduce((max, current) => 
-        current.totalActiveRom > max.totalActiveRom ? current : max
-      );
-      setMaxROM(maxRomFrame);
+      // Calculate ROM for all digits and frames
+      const allFramesAllDigits = replayData.map(frame => ({
+        INDEX: calculateFingerROM(frame.landmarks, 'INDEX'),
+        MIDDLE: calculateFingerROM(frame.landmarks, 'MIDDLE'),
+        RING: calculateFingerROM(frame.landmarks, 'RING'),
+        PINKY: calculateFingerROM(frame.landmarks, 'PINKY')
+      }));
       
-      // Find the frame index with maximum TAM and set it as initial frame
-      const maxTamFrameIndex = romFrames.findIndex(rom => 
-        rom.totalActiveRom === maxRomFrame.totalActiveRom
+      // Find maximum ROM for each digit across all frames
+      const maxROMByDigit = {
+        INDEX: allFramesAllDigits.reduce((max, current) => 
+          current.INDEX.totalActiveRom > max.totalActiveRom ? current.INDEX : max, 
+          allFramesAllDigits[0].INDEX
+        ),
+        MIDDLE: allFramesAllDigits.reduce((max, current) => 
+          current.MIDDLE.totalActiveRom > max.totalActiveRom ? current.MIDDLE : max, 
+          allFramesAllDigits[0].MIDDLE
+        ),
+        RING: allFramesAllDigits.reduce((max, current) => 
+          current.RING.totalActiveRom > max.totalActiveRom ? current.RING : max, 
+          allFramesAllDigits[0].RING
+        ),
+        PINKY: allFramesAllDigits.reduce((max, current) => 
+          current.PINKY.totalActiveRom > max.totalActiveRom ? current.PINKY : max, 
+          allFramesAllDigits[0].PINKY
+        )
+      };
+      
+      setAllDigitsROM(maxROMByDigit);
+      setMaxROM(maxROMByDigit[selectedDigit]);
+      
+      // Find the frame index with maximum TAM for selected digit and set it as initial frame
+      const selectedDigitFrames = allFramesAllDigits.map(frame => frame[selectedDigit]);
+      const maxTamFrameIndex = selectedDigitFrames.findIndex(rom => 
+        rom.totalActiveRom === maxROMByDigit[selectedDigit].totalActiveRom
       );
       setCurrentFrame(maxTamFrameIndex >= 0 ? maxTamFrameIndex : 0);
     }
-  }, [replayData]);
+  }, [replayData, selectedDigit]);
 
   // Calculate maximum ROM from all frames for comparison
   useEffect(() => {
@@ -209,9 +236,9 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
       ctx.stroke();
     }
 
-    // Calculate and update current ROM for this frame
+    // Calculate and update current ROM for this frame using selected digit
     if (frame.landmarks && frame.landmarks.length >= 21) {
-      const romData = calculateCurrentROM(frame.landmarks);
+      const romData = calculateFingerROM(frame.landmarks, selectedDigit);
       setCurrentROM(romData);
     }
 
@@ -258,8 +285,17 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
       ctx.fillStyle = '#10b981';
     });
 
-    // Draw hand connections with highlighted measurement path
-    const measurementConnections = [[5, 6], [6, 7], [7, 8]]; // Index finger joints being measured
+    // Draw hand connections with highlighted measurement path based on selected digit
+    const getDigitConnections = (digit: string) => {
+      switch (digit) {
+        case 'INDEX': return [[5, 6], [6, 7], [7, 8]];
+        case 'MIDDLE': return [[9, 10], [10, 11], [11, 12]];
+        case 'RING': return [[13, 14], [14, 15], [15, 16]];
+        case 'PINKY': return [[17, 18], [18, 19], [19, 20]];
+        default: return [[5, 6], [6, 7], [7, 8]];
+      }
+    };
+    const measurementConnections = getDigitConnections(selectedDigit);
     
     HAND_CONNECTIONS.forEach(([start, end]) => {
       if (frame.landmarks[start] && frame.landmarks[end]) {
