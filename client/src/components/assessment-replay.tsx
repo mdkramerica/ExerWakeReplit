@@ -352,7 +352,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
     ctx.fillText('Exer AI Motion Replay', canvas.width - 150, canvas.height - 10);
   };
 
-  const playAnimation = () => {
+  const playAnimation = useCallback(() => {
     if (!isPlaying) return;
 
     setCurrentFrame(prev => {
@@ -363,27 +363,21 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
       }
       return Math.floor(next);
     });
-
-    animationRef.current = requestAnimationFrame(() => {
-      setTimeout(playAnimation, 33); // ~30 FPS
-    });
-  };
+  }, [isPlaying, playbackSpeed, replayData.length]);
 
   useEffect(() => {
+    let intervalId: NodeJS.Timeout | null = null;
+
     if (isPlaying) {
-      animationRef.current = requestAnimationFrame(() => {
-        setTimeout(playAnimation, 33); // ~30 FPS
-      });
-    } else if (animationRef.current) {
-      cancelAnimationFrame(animationRef.current);
+      intervalId = setInterval(playAnimation, 33); // ~30 FPS
     }
 
     return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
+      if (intervalId) {
+        clearInterval(intervalId);
       }
     };
-  }, [isPlaying]);
+  }, [isPlaying, playAnimation]);
 
   useEffect(() => {
     drawFrame(currentFrame);
