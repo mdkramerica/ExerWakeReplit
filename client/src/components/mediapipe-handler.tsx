@@ -476,18 +476,35 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
           console.log('Video playback started');
         }
 
-        // Try to initialize Exer AI, but always show camera
+        // Try to initialize MediaPipe with retry logic
         let initialized = false;
-        try {
-          initialized = await initializeExerAI();
-        } catch (error) {
-          console.warn('Exer AI initialization failed, using camera-only mode:', error);
+        let retryCount = 0;
+        const maxRetries = 3;
+        
+        while (!initialized && retryCount < maxRetries) {
+          try {
+            console.log(`MediaPipe initialization attempt ${retryCount + 1}/${maxRetries}`);
+            initialized = await initializeExerAI();
+            if (initialized) {
+              console.log('MediaPipe initialized successfully');
+              break;
+            }
+          } catch (error) {
+            console.warn(`MediaPipe initialization attempt ${retryCount + 1} failed:`, error);
+            retryCount++;
+            
+            // Wait before retrying
+            if (retryCount < maxRetries) {
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+          }
         }
         
         if (initialized) {
           // Start processing frames with hand tracking
           processFrame();
         } else {
+          console.error('MediaPipe failed to initialize after all retries');
           // Fallback: show camera feed without hand tracking
           startBasicCameraMode();
         }
