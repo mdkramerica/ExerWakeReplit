@@ -11,6 +11,7 @@ import AssessmentList from "@/pages/assessment-list";
 import VideoInstruction from "@/pages/video-instruction";
 import Recording from "@/pages/recording";
 import ThankYou from "@/pages/thank-you";
+import AssessmentResults from "@/pages/assessment-results";
 import Header from "@/components/header";
 import Footer from "@/components/footer";
 
@@ -22,6 +23,7 @@ function Router() {
       <Route path="/assessments" component={AssessmentList} />
       <Route path="/assessment/:id/video" component={VideoInstruction} />
       <Route path="/assessment/:id/record" component={Recording} />
+      <Route path="/results/:userAssessmentId" component={AssessmentResults} />
       <Route path="/thank-you" component={ThankYou} />
       <Route component={NotFound} />
     </Switch>
