@@ -131,10 +131,10 @@ export default function JointTest() {
       }
     });
 
-    // Draw angle arcs to visualize the calculations
-    drawAngleArc(ctx, handLandmarks, 5, 6, 7, '#ef4444', 'MCP'); // MCP angle
-    drawAngleArc(ctx, handLandmarks, 6, 7, 8, '#10b981', 'PIP'); // PIP angle
-    drawAngleArc(ctx, handLandmarks, 7, 8, 8, '#3b82f6', 'DIP'); // DIP angle (tip)
+    // Draw angle arcs to visualize the calculations with correct reference points
+    drawAngleArc(ctx, handLandmarks, 0, 5, 6, '#ef4444', 'MCP'); // MCP angle: 0-5-6
+    drawAngleArc(ctx, handLandmarks, 5, 6, 7, '#10b981', 'PIP'); // PIP angle: 5-6-7
+    drawAngleArc(ctx, handLandmarks, 6, 7, 8, '#3b82f6', 'DIP'); // DIP angle: 6-7-8
   };
 
   const drawAngleArc = (ctx: CanvasRenderingContext2D, landmarks: any[], p1: number, p2: number, p3: number, color: string, label: string) => {
