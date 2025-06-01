@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation, useParams } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -23,7 +23,7 @@ export default function Recording() {
   const [recordedData, setRecordedData] = useState<any[]>([]);
   const [currentLandmarks, setCurrentLandmarks] = useState<any[]>([]);
   const [recordingMotionData, setRecordingMotionData] = useState<any[]>([]);
-  const [recordingStartTime, setRecordingStartTime] = useState<number | null>(null);
+  const recordingStartTimeRef = useRef<number | null>(null);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
@@ -77,7 +77,7 @@ export default function Recording() {
             setIsRecording(false);
             // Delay clearing start time to allow final motion data capture
             setTimeout(() => {
-              setRecordingStartTime(null);
+              recordingStartTimeRef.current = null;
               handleRepetitionComplete();
             }, 100);
             return 0;
@@ -91,7 +91,7 @@ export default function Recording() {
 
   const startRecording = () => {
     const startTime = Date.now();
-    setRecordingStartTime(startTime); // Set start time first
+    recordingStartTimeRef.current = startTime; // Set start time first using ref
     setIsRecording(true);
     setRecordingTimer(0);
     setRecordingMotionData([]); // Clear previous motion data
@@ -102,7 +102,7 @@ export default function Recording() {
     setIsRecording(false);
     // Delay clearing start time to allow final motion data capture
     setTimeout(() => {
-      setRecordingStartTime(null);
+      recordingStartTimeRef.current = null;
       handleRepetitionComplete();
     }, 100);
   };
@@ -163,9 +163,9 @@ export default function Recording() {
 
   const handleMediaPipeUpdate = (data: any) => {
     const currentTime = Date.now();
-    const recordingElapsed = recordingStartTime ? (currentTime - recordingStartTime) / 1000 : 0;
+    const recordingElapsed = recordingStartTimeRef.current ? (currentTime - recordingStartTimeRef.current) / 1000 : 0;
     
-    console.log(`MediaPipe update: handDetected=${data.handDetected}, landmarks=${data.landmarks ? data.landmarks.length : 'none'}, isRecording=${isRecording}, elapsed=${recordingElapsed.toFixed(1)}s, startTime=${recordingStartTime}`);
+    console.log(`MediaPipe update: handDetected=${data.handDetected}, landmarks=${data.landmarks ? data.landmarks.length : 'none'}, isRecording=${isRecording}, elapsed=${recordingElapsed.toFixed(1)}s, startTime=${recordingStartTimeRef.current}`);
     
     setHandDetected(data.handDetected);
     setLandmarksCount(data.landmarksCount);
@@ -177,7 +177,7 @@ export default function Recording() {
       setCurrentLandmarks(data.landmarks);
       
       // Capture motion data if we're within the recording period (0-10 seconds)
-      if (recordingStartTime && recordingElapsed > 0 && recordingElapsed <= 10 && data.handDetected && data.landmarks && data.landmarks.length > 0) {
+      if (recordingStartTimeRef.current && recordingElapsed > 0 && recordingElapsed <= 10 && data.handDetected && data.landmarks && data.landmarks.length > 0) {
         console.log(`Recording motion data: ${data.landmarks.length} landmarks detected, elapsed: ${recordingElapsed.toFixed(1)}s`);
         const motionFrame = {
           timestamp: currentTime,
@@ -195,7 +195,7 @@ export default function Recording() {
           console.log(`Total motion frames captured: ${newData.length}`);
           return newData;
         });
-      } else if (recordingStartTime && recordingElapsed > 0 && recordingElapsed <= 10) {
+      } else if (recordingStartTimeRef.current && recordingElapsed > 0 && recordingElapsed <= 10) {
         console.log(`Recording period but no valid landmarks: handDetected=${data.handDetected}, landmarks=${data.landmarks ? data.landmarks.length : 'none'}, elapsed=${recordingElapsed.toFixed(1)}s`);
       }
     }
