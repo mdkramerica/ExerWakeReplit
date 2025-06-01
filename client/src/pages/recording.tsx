@@ -147,7 +147,7 @@ export default function Recording() {
   };
 
   const handleMediaPipeUpdate = (data: any) => {
-    console.log(`MediaPipe update: handDetected=${data.handDetected}, landmarks=${data.landmarks ? data.landmarks.length : 'none'}, isRecording=${isRecording}`);
+    console.log(`MediaPipe update: handDetected=${data.handDetected}, landmarks=${data.landmarks ? data.landmarks.length : 'none'}, isRecording=${isRecording}, timer=${recordingTimer}`);
     
     setHandDetected(data.handDetected);
     setLandmarksCount(data.landmarksCount);
@@ -158,9 +158,9 @@ export default function Recording() {
     if (data.landmarks && data.landmarks.length > 0) {
       setCurrentLandmarks(data.landmarks);
       
-      // If recording, capture motion data with timestamp
-      if (isRecording && data.handDetected && data.landmarks && data.landmarks.length > 0) {
-        console.log(`Recording motion data: ${data.landmarks.length} landmarks detected`);
+      // Capture motion data if recording is active OR if we have timer data (recording was recently active)
+      if ((isRecording || recordingTimer > 0) && data.handDetected && data.landmarks && data.landmarks.length > 0) {
+        console.log(`Recording motion data: ${data.landmarks.length} landmarks detected, timer: ${recordingTimer}`);
         const motionFrame = {
           timestamp: Date.now(),
           landmarks: data.landmarks.map((landmark: any) => ({
@@ -173,12 +173,16 @@ export default function Recording() {
         };
         
         setRecordingMotionData(prev => {
-          const newData = [...prev, motionFrame];
-          console.log(`Total motion frames captured: ${newData.length}`);
-          return newData;
+          // Only add if we're actually during the recording period (timer between 1-10 seconds)
+          if (recordingTimer > 0 && recordingTimer <= 10) {
+            const newData = [...prev, motionFrame];
+            console.log(`Total motion frames captured: ${newData.length}`);
+            return newData;
+          }
+          return prev;
         });
-      } else if (isRecording) {
-        console.log(`Recording active but no valid landmarks: handDetected=${data.handDetected}, landmarks=${data.landmarks ? data.landmarks.length : 'none'}`);
+      } else if (isRecording || recordingTimer > 0) {
+        console.log(`Recording period but no valid landmarks: handDetected=${data.handDetected}, landmarks=${data.landmarks ? data.landmarks.length : 'none'}, timer=${recordingTimer}`);
       }
     }
   };
