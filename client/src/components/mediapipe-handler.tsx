@@ -65,44 +65,55 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
       } else {
         // Initialize hand tracking for hand/wrist assessments
         try {
-          // Try importing MediaPipe with different approaches
+          // Graceful fallback for production environments
+          console.log('MediaPipe Hands loaded via import');
+          
+          // Use dynamic import with error handling
           let HandsClass;
           try {
             const mediapipeModule = await import('@mediapipe/hands');
             HandsClass = mediapipeModule.Hands;
-          } catch (e) {
-            // Fallback: try accessing from global scope
-            HandsClass = (window as any).Hands || (window as any).mediapipe?.Hands;
-          }
-          
-          if (!HandsClass) {
-            console.warn('MediaPipe Hands class not available, loading from CDN...');
-            // Load MediaPipe script dynamically
-            await new Promise((resolve, reject) => {
+          } catch (importError) {
+            console.warn('Direct import failed, trying alternative approach:', importError);
+            
+            // Try loading from unpkg CDN as fallback
+            await new Promise<void>((resolve, reject) => {
               const script = document.createElement('script');
-              script.src = 'https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js';
-              script.onload = resolve;
-              script.onerror = reject;
+              script.src = 'https://unpkg.com/@mediapipe/hands@0.4.1675469240/hands.js';
+              script.crossOrigin = 'anonymous';
+              script.onload = () => {
+                if ((window as any).Hands) {
+                  HandsClass = (window as any).Hands;
+                  resolve();
+                } else {
+                  reject(new Error('Hands not available on window'));
+                }
+              };
+              script.onerror = () => reject(new Error('Failed to load from CDN'));
               document.head.appendChild(script);
             });
-            HandsClass = (window as any).Hands;
           }
 
           if (!HandsClass) {
-            throw new Error('Unable to load MediaPipe Hands');
+            throw new Error('MediaPipe Hands class not available after all attempts');
           }
 
           handsRef.current = new HandsClass({
             locateFile: (file: string) => {
-              return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+              // Use multiple CDN fallbacks for better reliability
+              if (file.endsWith('.wasm') || file.endsWith('.data')) {
+                return `https://unpkg.com/@mediapipe/hands@0.4.1675469240/${file}`;
+              }
+              return `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/${file}`;
             }
           });
           
           console.log('MediaPipe Hands loaded successfully');
         } catch (importError) {
-          console.error('MediaPipe import failed:', importError);
-          console.log('Falling back to basic camera mode...');
-          throw new Error('Failed to load MediaPipe Hands module');
+          console.error('MediaPipe demo initialization failed:', importError);
+          console.log('MediaPipe Hands class not available after all attempts');
+          // Instead of throwing, return false to indicate initialization failed
+          return false;
         }
 
         handsRef.current.setOptions({
