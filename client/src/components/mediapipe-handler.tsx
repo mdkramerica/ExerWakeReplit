@@ -7,6 +7,7 @@ interface MediaPipeHandlerProps {
     landmarksCount: number;
     trackingQuality: string;
     handPosition: string;
+    landmarks?: any[];
   }) => void;
   isRecording: boolean;
   assessmentType: string;
@@ -144,7 +145,8 @@ export default function MediaPipeHandler({ onUpdate, isRecording, assessmentType
         handDetected: true,
         landmarksCount: landmarks.length,
         trackingQuality: "Excellent",
-        handPosition: `X: ${Math.round(centerX * 100)}%, Y: ${Math.round(centerY * 100)}%`
+        handPosition: `X: ${Math.round(centerX * 100)}%, Y: ${Math.round(centerY * 100)}%`,
+        landmarks: landmarks
       });
     } else {
       // No hand detected

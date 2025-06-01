@@ -21,6 +21,8 @@ export default function Recording() {
   const [trackingQuality, setTrackingQuality] = useState("Poor");
   const [handPosition, setHandPosition] = useState("Not Detected");
   const [recordedData, setRecordedData] = useState<any[]>([]);
+  const [currentLandmarks, setCurrentLandmarks] = useState<any[]>([]);
+  const [recordingMotionData, setRecordingMotionData] = useState<any[]>([]);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
