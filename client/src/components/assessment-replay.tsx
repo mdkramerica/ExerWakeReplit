@@ -551,8 +551,11 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
     if (!canvas || replayData.length === 0) return;
 
     const rect = canvas.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
+    // Scale mouse coordinates to canvas dimensions
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const x = (event.clientX - rect.left) * scaleX;
+    const y = (event.clientY - rect.top) * scaleY;
 
     // Timeline dimensions (same as in drawFrame function)
     const timelineHeight = 30;
@@ -579,8 +582,11 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
     if (!canvas || replayData.length === 0) return;
 
     const rect = canvas.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
+    // Scale mouse coordinates to canvas dimensions
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const x = (event.clientX - rect.left) * scaleX;
+    const y = (event.clientY - rect.top) * scaleY;
 
     // Timeline dimensions
     const timelineHeight = 30;
