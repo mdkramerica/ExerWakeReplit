@@ -9,6 +9,7 @@ import ExerAIHandler from "@/components/mediapipe-handler";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { calculateCurrentROM, calculateMaxROM, type JointAngles } from "@/lib/rom-calculator";
+import { calculateFingerROM } from "@shared/rom-calculator";
 
 export default function Recording() {
   const { id } = useParams();
@@ -28,6 +29,12 @@ export default function Recording() {
   const recordingStartTimeRef = useRef<number | null>(null);
   const [currentROM, setCurrentROM] = useState<JointAngles>({ mcpAngle: 0, pipAngle: 0, dipAngle: 0, totalActiveRom: 0 });
   const [maxROM, setMaxROM] = useState<JointAngles>({ mcpAngle: 0, pipAngle: 0, dipAngle: 0, totalActiveRom: 0 });
+  const [allFingersROM, setAllFingersROM] = useState({
+    index: { mcpAngle: 0, pipAngle: 0, dipAngle: 0, totalActiveRom: 0 },
+    middle: { mcpAngle: 0, pipAngle: 0, dipAngle: 0, totalActiveRom: 0 },
+    ring: { mcpAngle: 0, pipAngle: 0, dipAngle: 0, totalActiveRom: 0 },
+    pinky: { mcpAngle: 0, pipAngle: 0, dipAngle: 0, totalActiveRom: 0 }
+  });
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
@@ -206,16 +213,25 @@ export default function Recording() {
     if (data.landmarks && data.landmarks.length > 0) {
       setCurrentLandmarks(data.landmarks);
       
-      // Calculate real-time ROM for trigger finger assessment
-      // Check both exact match and contains for flexibility
-      const isTriggerFingerAssessment = currentUser?.injuryType === 'Trigger Finger' || 
-                                       assessment?.name?.includes('TAM') || 
-                                       assessment?.name?.includes('Total Active Motion');
-      
-      if (isTriggerFingerAssessment && data.landmarks.length >= 21) {
+      // Calculate real-time ROM for all fingers
+      if (data.landmarks.length >= 21) {
         try {
+          // Calculate ROM for all individual fingers
+          const indexROM = calculateFingerROM(data.landmarks, 'INDEX');
+          const middleROM = calculateFingerROM(data.landmarks, 'MIDDLE');
+          const ringROM = calculateFingerROM(data.landmarks, 'RING');
+          const pinkyROM = calculateFingerROM(data.landmarks, 'PINKY');
+          
+          // Update all fingers ROM state
+          setAllFingersROM({
+            index: indexROM,
+            middle: middleROM,
+            ring: ringROM,
+            pinky: pinkyROM
+          });
+          
+          // Also calculate trigger finger specific ROM for compatibility
           const romData = calculateCurrentROM(data.landmarks);
-          console.log('ROM calculated for trigger finger:', romData);
           setCurrentROM(romData);
           
           // Update max ROM values during recording
@@ -227,7 +243,6 @@ export default function Recording() {
                 dipAngle: Math.max(prev.dipAngle, romData.dipAngle),
                 totalActiveRom: Math.max(prev.totalActiveRom, romData.totalActiveRom)
               };
-              console.log('Max ROM updated during recording:', updated);
               return updated;
             });
           }
@@ -337,28 +352,38 @@ export default function Recording() {
                   </div>
                 </div>
 
-                {/* Prominent Live ROM Display */}
+                {/* Live Finger Tracking Display */}
                 {handDetected && (
-                  <div className="absolute bottom-4 left-4 bg-white border-4 border-blue-500 rounded-xl p-4 shadow-2xl min-w-[220px]">
+                  <div className="absolute bottom-4 left-4 bg-white border-4 border-blue-500 rounded-xl p-3 shadow-2xl min-w-[280px]">
                     <div className="text-center">
-                      <div className="text-sm font-bold text-blue-600 mb-1">LIVE ROM</div>
-                      <div className="text-4xl font-black text-gray-900 mb-1">
-                        {currentROM.totalActiveRom.toFixed(0)}°
-                      </div>
-                      <div className="text-xs font-semibold text-gray-600 mb-2">Total Active Motion</div>
+                      <div className="text-sm font-bold text-blue-600 mb-2">LIVE FINGER TRACKING</div>
                       
-                      <div className="grid grid-cols-3 gap-2 mb-2">
-                        <div className="bg-blue-100 rounded p-1">
-                          <div className="text-xs font-bold text-blue-700">MCP</div>
-                          <div className="text-sm font-black text-blue-900">{currentROM.mcpAngle.toFixed(0)}°</div>
+                      {/* Individual Finger ROM Values */}
+                      <div className="grid grid-cols-4 gap-2 mb-3">
+                        <div className="bg-red-100 rounded p-2">
+                          <div className="text-xs font-bold text-red-700">INDEX</div>
+                          <div className="text-lg font-black text-red-900">{allFingersROM.index.totalActiveRom.toFixed(0)}°</div>
                         </div>
-                        <div className="bg-green-100 rounded p-1">
-                          <div className="text-xs font-bold text-green-700">PIP</div>
-                          <div className="text-sm font-black text-green-900">{currentROM.pipAngle.toFixed(0)}°</div>
+                        <div className="bg-green-100 rounded p-2">
+                          <div className="text-xs font-bold text-green-700">MIDDLE</div>
+                          <div className="text-lg font-black text-green-900">{allFingersROM.middle.totalActiveRom.toFixed(0)}°</div>
                         </div>
-                        <div className="bg-purple-100 rounded p-1">
-                          <div className="text-xs font-bold text-purple-700">DIP</div>
-                          <div className="text-sm font-black text-purple-900">{currentROM.dipAngle.toFixed(0)}°</div>
+                        <div className="bg-blue-100 rounded p-2">
+                          <div className="text-xs font-bold text-blue-700">RING</div>
+                          <div className="text-lg font-black text-blue-900">{allFingersROM.ring.totalActiveRom.toFixed(0)}°</div>
+                        </div>
+                        <div className="bg-purple-100 rounded p-2">
+                          <div className="text-xs font-bold text-purple-700">PINKY</div>
+                          <div className="text-lg font-black text-purple-900">{allFingersROM.pinky.totalActiveRom.toFixed(0)}°</div>
+                        </div>
+                      </div>
+                      
+                      {/* Total ROM Display */}
+                      <div className="bg-gray-100 rounded p-2 mb-2">
+                        <div className="text-xs font-bold text-gray-600">TOTAL ACTIVE MOTION</div>
+                        <div className="text-2xl font-black text-gray-900">
+                          {(allFingersROM.index.totalActiveRom + allFingersROM.middle.totalActiveRom + 
+                            allFingersROM.ring.totalActiveRom + allFingersROM.pinky.totalActiveRom).toFixed(0)}°
                         </div>
                       </div>
                       
