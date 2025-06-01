@@ -132,7 +132,7 @@ export default function JointTest() {
     // Draw text labels with correct orientation (after transformation is removed)
     // Calculate unmirrored positions for text labels
     if (handLandmarks[5] && handLandmarks[6]) {
-      const mcpLabelX = canvas.width - (handLandmarks[5].x + handLandmarks[6].x) / 2 * canvas.width;
+      const mcpLabelX = (1 - (handLandmarks[5].x + handLandmarks[6].x) / 2) * canvas.width;
       const mcpLabelY = (handLandmarks[5].y + handLandmarks[6].y) / 2 * canvas.height;
       ctx.fillStyle = '#ef4444';
       ctx.font = '12px Arial';
@@ -140,7 +140,7 @@ export default function JointTest() {
     }
     
     if (handLandmarks[6] && handLandmarks[7]) {
-      const pipLabelX = canvas.width - (handLandmarks[6].x + handLandmarks[7].x) / 2 * canvas.width;
+      const pipLabelX = (1 - (handLandmarks[6].x + handLandmarks[7].x) / 2) * canvas.width;
       const pipLabelY = (handLandmarks[6].y + handLandmarks[7].y) / 2 * canvas.height;
       ctx.fillStyle = '#10b981';
       ctx.font = '12px Arial';
@@ -148,7 +148,7 @@ export default function JointTest() {
     }
     
     if (handLandmarks[7] && handLandmarks[8]) {
-      const dipLabelX = canvas.width - (handLandmarks[7].x + handLandmarks[8].x) / 2 * canvas.width;
+      const dipLabelX = (1 - (handLandmarks[7].x + handLandmarks[8].x) / 2) * canvas.width;
       const dipLabelY = (handLandmarks[7].y + handLandmarks[8].y) / 2 * canvas.height;
       ctx.fillStyle = '#3b82f6';
       ctx.font = '12px Arial';
