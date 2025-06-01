@@ -65,11 +65,31 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
       } else {
         // Initialize hand tracking for hand/wrist assessments
         try {
-          const mediapipeModule = await import('@mediapipe/hands');
-          const HandsClass = mediapipeModule.Hands || mediapipeModule.default?.Hands || mediapipeModule.default;
+          // Try importing MediaPipe with different approaches
+          let HandsClass;
+          try {
+            const mediapipeModule = await import('@mediapipe/hands');
+            HandsClass = mediapipeModule.Hands;
+          } catch (e) {
+            // Fallback: try accessing from global scope
+            HandsClass = (window as any).Hands || (window as any).mediapipe?.Hands;
+          }
           
           if (!HandsClass) {
-            throw new Error('Hands class not found in MediaPipe module');
+            console.warn('MediaPipe Hands class not available, loading from CDN...');
+            // Load MediaPipe script dynamically
+            await new Promise((resolve, reject) => {
+              const script = document.createElement('script');
+              script.src = 'https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js';
+              script.onload = resolve;
+              script.onerror = reject;
+              document.head.appendChild(script);
+            });
+            HandsClass = (window as any).Hands;
+          }
+
+          if (!HandsClass) {
+            throw new Error('Unable to load MediaPipe Hands');
           }
 
           handsRef.current = new HandsClass({
@@ -77,6 +97,8 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
               return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
             }
           });
+          
+          console.log('MediaPipe Hands loaded successfully');
         } catch (importError) {
           console.error('MediaPipe import failed:', importError);
           console.log('Falling back to basic camera mode...');
