@@ -44,7 +44,7 @@ export default function AssessmentList() {
 
   const handleViewAssessment = (userAssessmentId: number) => {
     // Navigate to detailed assessment results page
-    setLocation(`/assessment-results/${params?.code}/${userAssessmentId}`);
+    setLocation(`/assessment-results/${currentUser?.code}/${userAssessmentId}`);
   };
 
   const handleBack = () => {
