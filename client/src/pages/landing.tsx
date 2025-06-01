@@ -63,8 +63,8 @@ export default function Landing() {
           <div className="text-center mb-6">
             <MotionDemo className="rounded-lg mx-auto mb-6 w-full h-48" />
             
-            <h2 className="text-2xl font-semibold text-gray-900 mb-2">Advanced Motion Analysis Platform</h2>
-            <p className="text-medical-gray mb-8">
+            <h2 className="text-2xl font-semibold text-exer-dark mb-2">Advanced Motion Analysis Platform</h2>
+            <p className="text-exer-gray mb-8">
               Experience precision hand tracking with 21-joint detection. Enter your 6-digit code to begin your clinical assessment.
             </p>
           </div>
@@ -92,7 +92,7 @@ export default function Landing() {
             
             <Button 
               type="submit" 
-              className="w-full medical-button"
+              className="w-full bg-exer-teal hover:bg-exer-teal-dark text-white"
               disabled={verifyCodeMutation.isPending || code.length !== 6}
             >
               {verifyCodeMutation.isPending ? (
@@ -107,7 +107,7 @@ export default function Landing() {
           </form>
           
           <div className="mt-8 pt-6 border-t border-gray-200">
-            <div className="flex items-center justify-center space-x-4 text-sm text-medical-gray">
+            <div className="flex items-center justify-center space-x-4 text-sm text-exer-gray">
               <div className="flex items-center">
                 <Lock className="w-4 h-4 mr-1 text-medical-success" />
                 <span>HIPAA Compliant</span>

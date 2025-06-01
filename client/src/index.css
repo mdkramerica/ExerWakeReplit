@@ -3,33 +3,34 @@
 @tailwind utilities;
 
 :root {
-  --background: 248 250 252; /* #F8FAFC - medical-light */
-  --foreground: 15 23 42; /* #0F172A - slate-900 */
-  --muted: 241 245 249; /* #F1F5F9 - slate-100 */
-  --muted-foreground: 100 116 139; /* #64748B - medical-gray */
+  --background: 255 255 255; /* #FFFFFF - clean white */
+  --foreground: 31 41 55; /* #1F2937 - dark gray */
+  --muted: 249 250 251; /* #F9FAFB - light gray */
+  --muted-foreground: 107 114 128; /* #6B7280 - medium gray */
   --popover: 255 255 255; /* #FFFFFF */
-  --popover-foreground: 15 23 42; /* #0F172A */
+  --popover-foreground: 31 41 55; /* #1F2937 */
   --card: 255 255 255; /* #FFFFFF */
-  --card-foreground: 15 23 42; /* #0F172A */
-  --border: 226 232 240; /* #E2E8F0 - slate-200 */
-  --input: 226 232 240; /* #E2E8F0 */
-  --primary: 37 99 235; /* #2563EB - medical-blue */
-  --primary-foreground: 248 250 252; /* #F8FAFC */
-  --secondary: 241 245 249; /* #F1F5F9 */
-  --secondary-foreground: 30 64 175; /* #1E40AF - medical-deep */
-  --accent: 239 246 255; /* #EFF6FF - blue-50 */
-  --accent-foreground: 30 64 175; /* #1E40AF */
+  --card-foreground: 31 41 55; /* #1F2937 */
+  --border: 229 231 235; /* #E5E7EB - light border */
+  --input: 229 231 235; /* #E5E7EB */
+  --primary: 20 184 166; /* #14B8A6 - exer teal */
+  --primary-foreground: 255 255 255; /* #FFFFFF */
+  --secondary: 243 244 246; /* #F3F4F6 */
+  --secondary-foreground: 75 85 99; /* #4B5563 */
+  --accent: 240 253 250; /* #F0FDF9 - teal-50 */
+  --accent-foreground: 13 148 136; /* #0D9488 */
   --destructive: 239 68 68; /* #EF4444 - red-500 */
   --destructive-foreground: 254 242 242; /* #FEF2F2 */
-  --ring: 37 99 235; /* #2563EB */
-  --radius: 0.75rem;
+  --ring: 20 184 166; /* #14B8A6 - exer teal */
+  --radius: 0.5rem;
   
-  /* Custom medical colors */
-  --medical-blue: 37 99 235; /* #2563EB */
-  --medical-deep: 30 64 175; /* #1E40AF */
-  --medical-success: 16 185 129; /* #10B981 */
-  --medical-gray: 100 116 139; /* #64748B */
-  --medical-light: 248 250 252; /* #F8FAFC */
+  /* Exer.ai inspired colors */
+  --exer-teal: 20 184 166; /* #14B8A6 - primary teal */
+  --exer-teal-dark: 13 148 136; /* #0D9488 - darker teal */
+  --exer-teal-light: 153 246 228; /* #99F6E4 - light teal */
+  --exer-gray: 107 114 128; /* #6B7280 - medium gray */
+  --exer-dark: 31 41 55; /* #1F2937 - dark text */
+  --exer-light: 249 250 251; /* #F9FAFB - light background */
 }
 
 .dark {
@@ -66,40 +67,36 @@
 }
 
 @layer utilities {
-  .medical-blue {
-    color: hsl(var(--medical-blue));
+  .exer-teal {
+    color: hsl(var(--exer-teal));
   }
   
-  .bg-medical-blue {
-    background-color: hsl(var(--medical-blue));
+  .bg-exer-teal {
+    background-color: hsl(var(--exer-teal));
   }
   
-  .border-medical-blue {
-    border-color: hsl(var(--medical-blue));
+  .border-exer-teal {
+    border-color: hsl(var(--exer-teal));
   }
   
-  .medical-deep {
-    color: hsl(var(--medical-deep));
+  .exer-teal-dark {
+    color: hsl(var(--exer-teal-dark));
   }
   
-  .bg-medical-deep {
-    background-color: hsl(var(--medical-deep));
+  .bg-exer-teal-dark {
+    background-color: hsl(var(--exer-teal-dark));
   }
   
-  .medical-success {
-    color: hsl(var(--medical-success));
+  .exer-gray {
+    color: hsl(var(--exer-gray));
   }
   
-  .bg-medical-success {
-    background-color: hsl(var(--medical-success));
+  .bg-exer-light {
+    background-color: hsl(var(--exer-light));
   }
   
-  .medical-gray {
-    color: hsl(var(--medical-gray));
-  }
-  
-  .bg-medical-light {
-    background-color: hsl(var(--medical-light));
+  .exer-dark {
+    color: hsl(var(--exer-dark));
   }
 }
 
@@ -270,7 +267,7 @@ button[class*="items-center"]:hover span {
 }
 
 .assessment-card.active {
-  @apply border-2 border-medical-blue bg-blue-50;
+  @apply border-2 border-exer-teal bg-teal-50;
 }
 
 .assessment-card.completed {
