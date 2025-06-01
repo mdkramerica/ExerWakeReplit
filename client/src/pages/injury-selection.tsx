@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import ProgressBar from "@/components/progress-bar";
+import { getInjuryIcon } from "@/components/medical-icons";
 import type { InjuryType } from "@/types/assessment";
 
 export default function InjurySelection() {
@@ -104,12 +105,15 @@ export default function InjurySelection() {
                 }`}
               >
                 <div className="flex items-start space-x-4">
-                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center transition-colors ${
+                  <div className={`w-16 h-16 rounded-lg flex items-center justify-center transition-colors ${
                     selectedInjury === injury.name
                       ? "bg-medical-blue text-white"
                       : "bg-gray-100 group-hover:bg-medical-blue group-hover:text-white"
                   }`}>
-                    <i className={`${injury.icon} text-xl`} />
+                    {(() => {
+                      const IconComponent = getInjuryIcon(injury.name);
+                      return <IconComponent className="w-10 h-10" />;
+                    })()}
                   </div>
                   <div className="flex-1">
                     <h3 className="font-medium text-gray-900 mb-1">{injury.name}</h3>
