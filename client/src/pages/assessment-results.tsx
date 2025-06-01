@@ -190,9 +190,8 @@ export default function AssessmentResults() {
               <CardContent>
                 <div className="space-y-6">
 
-                  {/* Debug: Log assessment data */}
-                  {console.log('Frontend received userAssessment:', userAssessment)}
-                  {console.log('Assessment name check:', userAssessment.assessmentName)}
+                  {/* Force Kapandji display for testing */}
+                  {console.log('Rendering Kapandji section for:', userAssessment.assessmentName)}
                   
                   {/* Kapandji Specific Scoring - Check multiple ways to identify Kapandji */}
                   {(userAssessment.assessmentName === "Kapandji Score" || 
