@@ -102,8 +102,8 @@ export default function InjurySelection() {
                 onClick={() => handleInjurySelect(injury.name)}
                 className={`p-6 border-2 rounded-xl transition-all duration-200 text-left group ${
                   selectedInjury === injury.name
-                    ? "border-exer-teal bg-teal-50"
-                    : "border-gray-200 hover:border-exer-teal hover:bg-teal-50"
+                    ? "border-exer-purple bg-purple-50"
+                    : "border-gray-200 hover:border-exer-purple hover:bg-purple-50"
                 }`}
               >
                 <div className="flex items-start space-x-4">
@@ -136,7 +136,7 @@ export default function InjurySelection() {
                     )}
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-medium text-exer-dark mb-1">{injury.name}</h3>
+                    <h3 className="font-medium text-exer-navy mb-1">{injury.name}</h3>
                     <p className="text-sm text-exer-gray">{injury.description}</p>
                   </div>
                 </div>
@@ -148,7 +148,7 @@ export default function InjurySelection() {
             <Button
               variant="ghost"
               onClick={handleBack}
-              className="flex items-center px-4 py-2 text-exer-gray hover:text-exer-dark"
+              className="flex items-center px-4 py-2 text-exer-gray hover:text-exer-navy"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back
@@ -156,7 +156,7 @@ export default function InjurySelection() {
             <Button
               onClick={handleContinue}
               disabled={!selectedInjury || updateUserMutation.isPending}
-              className="bg-exer-teal hover:bg-exer-teal-dark text-white"
+              className="bg-exer-dark-blue hover:bg-blue-800 text-white"
             >
               {updateUserMutation.isPending ? (
                 "Saving..."
