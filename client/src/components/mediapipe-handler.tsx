@@ -476,28 +476,22 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
           console.log('Video playback started');
         }
 
-        // Always start with basic camera mode to ensure video feed works
-        startBasicCameraMode();
+        // Try to initialize MediaPipe, but don't block camera startup
+        let initialized = false;
+        try {
+          initialized = await initializeExerAI();
+          console.log('MediaPipe initialization result:', initialized);
+        } catch (error) {
+          console.warn('MediaPipe initialization failed:', error);
+        }
         
-        // Try to initialize MediaPipe in the background (non-blocking)
-        setTimeout(async () => {
-          try {
-            console.log('Attempting MediaPipe initialization...');
-            const initialized = await initializeExerAI();
-            if (initialized) {
-              console.log('MediaPipe initialized successfully, starting hand tracking');
-              // Stop basic camera mode and start hand tracking
-              if (animationRef.current) {
-                cancelAnimationFrame(animationRef.current);
-              }
-              processFrame();
-            } else {
-              console.log('MediaPipe initialization failed, continuing with camera-only mode');
-            }
-          } catch (error) {
-            console.warn('MediaPipe initialization failed, using camera-only mode:', error);
-          }
-        }, 500);
+        if (initialized) {
+          // Start processing frames with hand tracking
+          processFrame();
+        } else {
+          // Fallback: show camera feed without hand tracking
+          startBasicCameraMode();
+        }
       } catch (error) {
         console.error("Error starting hand tracking:", error);
         let errorMessage = "Camera access error";
