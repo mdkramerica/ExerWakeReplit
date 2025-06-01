@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, ArrowRight, Check, Lock, Play, Eye, Clock, History, Calendar, BarChart3, RefreshCw } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Lock, Play, Eye, Clock, History, Calendar, BarChart3, RefreshCw, RotateCcw } from "lucide-react";
 import ProgressBar from "@/components/progress-bar";
 import AssessmentReplay from "@/components/assessment-replay";
 import type { AssessmentWithProgress } from "@/types/assessment";
@@ -208,6 +208,13 @@ export default function AssessmentList() {
                             title="View Motion Replay"
                           >
                             <Play className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleStartAssessment(assessment.id)}
+                            className="text-gray-800 hover:text-green-600 p-2"
+                            title="Redo Assessment"
+                          >
+                            <RotateCcw className="w-4 h-4" />
                           </button>
                         </div>
                       ) : isNext ? (
