@@ -42,7 +42,7 @@ export default function JointTest() {
     // Draw all landmarks as small circles
     ctx.fillStyle = '#6b7280';
     handLandmarks.forEach((landmark, index) => {
-      const x = landmark.x * canvas.width;
+      const x = (1 - landmark.x) * canvas.width;
       const y = landmark.y * canvas.height;
       
       ctx.beginPath();
