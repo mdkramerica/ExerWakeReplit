@@ -36,6 +36,8 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
   const [currentFrame, setCurrentFrame] = useState(0);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const animationRef = useRef<number | null>(null);
+  const [currentROM, setCurrentROM] = useState<JointAngles | null>(null);
+  const [maxROM, setMaxROM] = useState<JointAngles | null>(null);
   
   // Fetch real motion data if userAssessmentId is provided
   const { data: motionData, isLoading } = useQuery({
@@ -46,6 +48,25 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
   // Use actual recorded motion data or provided recording data
   const actualMotionData = motionData?.motionData || recordingData;
   const replayData: ReplayData[] = actualMotionData.length > 0 ? actualMotionData : [];
+
+  // Calculate maximum ROM from all frames for comparison
+  useEffect(() => {
+    if (replayData.length > 0) {
+      let maxMcp = 0, maxPip = 0, maxDip = 0, maxTotal = 0;
+      
+      replayData.forEach(frame => {
+        if (frame.landmarks && frame.landmarks.length >= 21) {
+          const rom = calculateCurrentROM(frame.landmarks);
+          maxMcp = Math.max(maxMcp, rom.mcpAngle);
+          maxPip = Math.max(maxPip, rom.pipAngle);
+          maxDip = Math.max(maxDip, rom.dipAngle);
+          maxTotal = Math.max(maxTotal, rom.totalActiveRom);
+        }
+      });
+      
+      setMaxROM({ mcpAngle: maxMcp, pipAngle: maxPip, dipAngle: maxDip, totalActiveRom: maxTotal });
+    }
+  }, [replayData]);
 
   // Draw hand landmarks and connections on canvas
   const drawHandLandmarks = (ctx: CanvasRenderingContext2D, landmarks: Array<{x: number, y: number, z: number}>, canvasWidth: number, canvasHeight: number) => {
@@ -168,6 +189,12 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
       ctx.moveTo(0, y);
       ctx.lineTo(canvas.width, y);
       ctx.stroke();
+    }
+
+    // Calculate and update current ROM for this frame
+    if (frame.landmarks && frame.landmarks.length >= 21) {
+      const romData = calculateCurrentROM(frame.landmarks);
+      setCurrentROM(romData);
     }
 
     // Draw hand landmarks (natural position without mirroring)
@@ -341,6 +368,92 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
                 </select>
               </div>
             </div>
+
+            {/* Live ROM Data Display */}
+            {currentROM && (
+              <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                <h4 className="font-medium mb-3 flex items-center">
+                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
+                  Live Joint Angles
+                </h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                  <div className="bg-white p-3 rounded border">
+                    <span className="text-gray-600 block">MCP Joint:</span>
+                    <div className="font-bold text-lg text-blue-600">{Math.round(currentROM.mcpAngle)}°</div>
+                    {maxROM && (
+                      <div className="text-xs text-gray-500">Max: {Math.round(maxROM.mcpAngle)}°</div>
+                    )}
+                  </div>
+                  <div className="bg-white p-3 rounded border">
+                    <span className="text-gray-600 block">PIP Joint:</span>
+                    <div className="font-bold text-lg text-green-600">{Math.round(currentROM.pipAngle)}°</div>
+                    {maxROM && (
+                      <div className="text-xs text-gray-500">Max: {Math.round(maxROM.pipAngle)}°</div>
+                    )}
+                  </div>
+                  <div className="bg-white p-3 rounded border">
+                    <span className="text-gray-600 block">DIP Joint:</span>
+                    <div className="font-bold text-lg text-purple-600">{Math.round(currentROM.dipAngle)}°</div>
+                    {maxROM && (
+                      <div className="text-xs text-gray-500">Max: {Math.round(maxROM.dipAngle)}°</div>
+                    )}
+                  </div>
+                  <div className="bg-white p-3 rounded border">
+                    <span className="text-gray-600 block">Total ROM:</span>
+                    <div className="font-bold text-lg text-red-600">{Math.round(currentROM.totalActiveRom)}°</div>
+                    {maxROM && (
+                      <div className="text-xs text-gray-500">Max: {Math.round(maxROM.totalActiveRom)}°</div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ROM Analysis Breakdown */}
+            {maxROM && (
+              <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg">
+                <h4 className="font-medium mb-3">ROM Analysis Breakdown</h4>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Maximum Flexion Achieved:</span>
+                    <span className="font-semibold text-lg">{Math.round(maxROM.totalActiveRom)}°</span>
+                  </div>
+                  
+                  <div className="bg-white p-3 rounded border">
+                    <div className="text-sm font-medium mb-2">Joint Contribution Analysis:</div>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span>MCP Joint (0° = straight):</span>
+                        <span className="font-medium">{Math.round(maxROM.mcpAngle)}° ({Math.round((maxROM.mcpAngle / maxROM.totalActiveRom) * 100)}%)</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>PIP Joint (normal max ~100°):</span>
+                        <span className="font-medium">{Math.round(maxROM.pipAngle)}° ({Math.round((maxROM.pipAngle / maxROM.totalActiveRom) * 100)}%)</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>DIP Joint (normal max ~80°):</span>
+                        <span className="font-medium">{Math.round(maxROM.dipAngle)}° ({Math.round((maxROM.dipAngle / maxROM.totalActiveRom) * 100)}%)</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-3 text-xs">
+                    <div className="bg-blue-100 p-2 rounded text-center">
+                      <div className="font-medium">Normal ROM</div>
+                      <div>260-280°</div>
+                    </div>
+                    <div className="bg-yellow-100 p-2 rounded text-center">
+                      <div className="font-medium">Recorded</div>
+                      <div>{Math.round(maxROM.totalActiveRom)}°</div>
+                    </div>
+                    <div className="bg-green-100 p-2 rounded text-center">
+                      <div className="font-medium">Recovery %</div>
+                      <div>{Math.round((maxROM.totalActiveRom / 270) * 100)}%</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="bg-gray-50 p-4 rounded-lg">
               <h4 className="font-medium mb-2">Recording Summary</h4>
