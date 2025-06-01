@@ -67,8 +67,8 @@ export default function MediaPipeHandler({ onUpdate, isRecording, assessmentType
         }
       }
       
-      // Hand detected if there's motion OR skin-like regions (more sensitive)
-      handDetected = motionPixels > 20 || skinPixels > 15;
+      // Hand detected if there's motion OR skin-like regions (very sensitive)
+      handDetected = motionPixels > 5 || skinPixels > 3;
     }
 
     // Store current frame for next comparison
