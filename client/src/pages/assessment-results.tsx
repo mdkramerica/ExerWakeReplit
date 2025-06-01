@@ -1,629 +1,290 @@
-import { useState, useEffect } from "react";
-import { useLocation, useParams } from "wouter";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
+import { useQuery } from "@tanstack/react-query";
+import { useRoute } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Calendar, Clock, BarChart3, Play, Download, Share2, Copy, Check } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, Share, Play } from "lucide-react";
+import { Link } from "wouter";
+import { useState } from "react";
 import AssessmentReplay from "@/components/assessment-replay";
-import { calculateMaxKapandjiScore } from "@shared/kapandji-calculator";
 
 export default function AssessmentResults() {
-  const { userAssessmentId } = useParams();
-  const [, setLocation] = useLocation();
+  const [, params] = useRoute("/assessment-results/:code/:userAssessmentId");
   const [showReplay, setShowReplay] = useState(false);
-  const [shareUrl, setShareUrl] = useState<string>("");
-  const [copied, setCopied] = useState(false);
-  const { toast } = useToast();
+  const [shareUrl, setShareUrl] = useState("");
 
-  const { data: resultData, isLoading } = useQuery({
-    queryKey: [`/api/user-assessments/${userAssessmentId}/details`],
-    enabled: !!userAssessmentId,
+  // Fetch user assessment data
+  const { data: userAssessment, isLoading } = useQuery({
+    queryKey: ['/api/user-assessments', params?.userAssessmentId],
+    enabled: !!params?.userAssessmentId
   });
 
-  const userAssessment = resultData?.userAssessment;
-
-  const shareAssessmentMutation = useMutation({
-    mutationFn: async () => {
-      const response = await apiRequest("POST", `/api/user-assessments/${userAssessmentId}/share`, {});
-      return response.json();
-    },
-    onSuccess: (data) => {
-      const fullUrl = `${window.location.origin}${data.shareUrl}`;
-      setShareUrl(fullUrl);
-      navigator.clipboard.writeText(fullUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-      toast({
-        title: "Shareable link created",
-        description: "The link has been copied to your clipboard",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to create shareable link",
-        variant: "destructive",
-      });
-    }
+  // Fetch user data
+  const { data: user } = useQuery({
+    queryKey: ['/api/users/by-code', params?.code],
+    enabled: !!params?.code
   });
 
-  const copyToClipboard = () => {
-    if (shareUrl) {
-      navigator.clipboard.writeText(shareUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-      toast({
-        title: "Copied to clipboard",
-        description: "Shareable link copied successfully",
+  const generateShareLink = async () => {
+    try {
+      const response = await fetch(`/api/user-assessments/${params?.userAssessmentId}/share`, {
+        method: 'POST'
       });
+      const data = await response.json();
+      if (data.shareToken) {
+        const url = `${window.location.origin}/shared-assessment/${data.shareToken}`;
+        setShareUrl(url);
+        navigator.clipboard.writeText(url);
+      }
+    } catch (error) {
+      console.error('Error generating share link:', error);
     }
   };
 
   if (isLoading) {
     return (
-      <div className="max-w-4xl mx-auto">
-        <Card className="medical-card">
-          <CardContent>
-            <div className="text-center py-8">Loading assessment results...</div>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-lg">Loading assessment results...</div>
       </div>
     );
   }
 
   if (!userAssessment) {
     return (
-      <div className="max-w-4xl mx-auto">
-        <Card className="medical-card">
-          <CardContent>
-            <div className="text-center py-8">Assessment results not found.</div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (showReplay) {
-    return (
-      <AssessmentReplay
-        assessmentName="Assessment Replay"
-        userAssessmentId={userAssessmentId}
-        onClose={() => setShowReplay(false)}
-      />
-    );
-  }
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const hasRomData = userAssessment.maxMcpAngle || userAssessment.maxPipAngle || userAssessment.maxDipAngle;
-
-  return (
-    <div className="max-w-6xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Button
-            variant="outline"
-            onClick={() => setLocation("/assessments")}
-            className="flex items-center space-x-2 bg-white hover:bg-gray-100 border border-gray-300 hover:border-gray-400 text-gray-700 hover:text-gray-900 transition-colors duration-200"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Back to Assessments</span>
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Assessment Results</h1>
-            <p className="text-gray-800">Detailed analysis and motion data</p>
-          </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Assessment Not Found</h2>
+          <p className="text-gray-600 mb-6">The assessment results you're looking for could not be found.</p>
+          <Link href="/">
+            <Button>Return Home</Button>
+          </Link>
         </div>
       </div>
+    );
+  }
 
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* Main Results Panel */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Session Information */}
-          <Card>
+  const isKapandjiAssessment = userAssessment.assessmentName === "Kapandji Score" || 
+                              userAssessment.assessmentName?.includes("Kapandji") ||
+                              userAssessment.assessmentId === 27;
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {showReplay && (
+        <AssessmentReplay
+          assessmentName={userAssessment.assessmentName || "Assessment"}
+          userAssessmentId={params?.userAssessmentId}
+          onClose={() => setShowReplay(false)}
+        />
+      )}
+
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto">
+          {/* Header */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <Link href={`/assessment-list/${params?.code}`}>
+                <Button variant="outline" className="flex items-center gap-2">
+                  <ArrowLeft className="w-4 h-4" />
+                  Back to Assessments
+                </Button>
+              </Link>
+              
+              <div className="flex gap-3">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowReplay(true)}
+                  className="flex items-center gap-2"
+                >
+                  <Play className="w-4 h-4" />
+                  Replay Motion
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  onClick={generateShareLink}
+                  className="flex items-center gap-2"
+                >
+                  <Share className="w-4 h-4" />
+                  Share Results
+                </Button>
+              </div>
+            </div>
+
+            <div className="text-center">
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                {userAssessment.assessmentName || "Assessment Results"}
+              </h1>
+              <p className="text-gray-600">
+                Patient: {user?.code || params?.code} | 
+                Session {userAssessment.sessionNumber || 1} | 
+                Completed: {userAssessment.completedAt ? new Date(userAssessment.completedAt).toLocaleDateString() : 'N/A'}
+              </p>
+            </div>
+          </div>
+
+          {/* Share URL Display */}
+          {shareUrl && (
+            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <div className="text-sm text-green-800">
+                <strong>Share link generated and copied to clipboard:</strong>
+              </div>
+              <div className="text-xs text-green-700 mt-1 break-all">{shareUrl}</div>
+            </div>
+          )}
+
+          {/* Results Content */}
+          <Card className="mb-8">
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Calendar className="w-5 h-5 text-blue-600" />
-                <span>Session Information</span>
-              </CardTitle>
+              <CardTitle className="text-xl font-semibold text-gray-900">Assessment Results</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-800">Date & Time</label>
-                  <div className="text-lg font-medium">
-                    {userAssessment.completedAt ? formatDate(userAssessment.completedAt) : 'Not completed'}
+              <div className="space-y-6">
+
+                {/* Kapandji Specific Scoring */}
+                {isKapandjiAssessment && (
+                  <div className="bg-blue-50 border border-blue-200 p-6 rounded-lg">
+                    <h4 className="font-medium mb-4 text-gray-900">Kapandji Opposition Score</h4>
+                    <div className="space-y-4">
+                      <div className="text-center mb-6">
+                        <div className="text-4xl font-bold text-blue-600 mb-2">
+                          {userAssessment.totalActiveRom || '0'}/10
+                        </div>
+                        <div className="text-lg text-gray-700">Thumb Opposition Score</div>
+                      </div>
+
+                      <div className="bg-white p-4 rounded border">
+                        <h5 className="font-medium mb-3 text-gray-900">Opposition Levels Achieved</h5>
+                        <div className="grid grid-cols-2 gap-3 text-sm">
+                          <div className="space-y-2">
+                            <div className="flex justify-between">
+                              <span>Level 1: Index MCP</span>
+                              <span className={parseInt(userAssessment.totalActiveRom || '0') >= 1 ? 'text-green-600' : 'text-red-600'}>
+                                {parseInt(userAssessment.totalActiveRom || '0') >= 1 ? '✓' : '✗'}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Level 2: Middle MCP</span>
+                              <span className={parseInt(userAssessment.totalActiveRom || '0') >= 2 ? 'text-green-600' : 'text-red-600'}>
+                                {parseInt(userAssessment.totalActiveRom || '0') >= 2 ? '✓' : '✗'}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Level 3: Ring MCP</span>
+                              <span className={parseInt(userAssessment.totalActiveRom || '0') >= 3 ? 'text-green-600' : 'text-red-600'}>
+                                {parseInt(userAssessment.totalActiveRom || '0') >= 3 ? '✓' : '✗'}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Level 4: Pinky MCP</span>
+                              <span className={parseInt(userAssessment.totalActiveRom || '0') >= 4 ? 'text-green-600' : 'text-red-600'}>
+                                {parseInt(userAssessment.totalActiveRom || '0') >= 4 ? '✓' : '✗'}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Level 5: Pinky PIP</span>
+                              <span className={parseInt(userAssessment.totalActiveRom || '0') >= 5 ? 'text-green-600' : 'text-red-600'}>
+                                {parseInt(userAssessment.totalActiveRom || '0') >= 5 ? '✓' : '✗'}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <div className="flex justify-between">
+                              <span>Level 6: Pinky DIP</span>
+                              <span className={parseInt(userAssessment.totalActiveRom || '0') >= 6 ? 'text-green-600' : 'text-red-600'}>
+                                {parseInt(userAssessment.totalActiveRom || '0') >= 6 ? '✓' : '✗'}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Level 7: Pinky Tip</span>
+                              <span className={parseInt(userAssessment.totalActiveRom || '0') >= 7 ? 'text-green-600' : 'text-red-600'}>
+                                {parseInt(userAssessment.totalActiveRom || '0') >= 7 ? '✓' : '✗'}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Level 8: Palm Center</span>
+                              <span className={parseInt(userAssessment.totalActiveRom || '0') >= 8 ? 'text-green-600' : 'text-red-600'}>
+                                {parseInt(userAssessment.totalActiveRom || '0') >= 8 ? '✓' : '✗'}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Level 9: Distal Palm</span>
+                              <span className={parseInt(userAssessment.totalActiveRom || '0') >= 9 ? 'text-green-600' : 'text-red-600'}>
+                                {parseInt(userAssessment.totalActiveRom || '0') >= 9 ? '✓' : '✗'}
+                              </span>
+                            </div>
+                            <div className="flex justify-between font-medium">
+                              <span>Level 10: Beyond Palm</span>
+                              <span className={parseInt(userAssessment.totalActiveRom || '0') >= 10 ? 'text-green-600 font-bold' : 'text-red-600'}>
+                                {parseInt(userAssessment.totalActiveRom || '0') >= 10 ? '✓' : '✗'}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="bg-gray-50 p-4 rounded border">
+                        <h5 className="font-medium mb-2 text-gray-900">Clinical Interpretation</h5>
+                        <p className="text-sm text-gray-700">
+                          {parseInt(userAssessment.totalActiveRom || '0') >= 8 ? 
+                            'Excellent thumb opposition - functional range achieved' : 
+                            parseInt(userAssessment.totalActiveRom || '0') >= 5 ? 
+                              'Good thumb opposition - adequate for most activities' : 
+                              'Limited thumb opposition - may benefit from therapy'}
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-800">Session Number</label>
-                  <div className="text-lg font-medium">Session #{userAssessment.sessionNumber || 1}</div>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-800">Quality Score</label>
-                  <div className="text-lg font-medium">{userAssessment.qualityScore || 0}%</div>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-800">Hand Assessed</label>
-                  <div className="text-lg font-medium">
-                    {userAssessment.handType || 'Not Detected'}
+                )}
+
+                {/* TAM Results for non-Kapandji assessments */}
+                {!isKapandjiAssessment && userAssessment.totalActiveRom && (
+                  <div className="bg-white border border-gray-200 p-4 rounded-lg">
+                    <h4 className="font-medium mb-3 text-gray-900">Total Active Motion (TAM) Summary</h4>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center p-3 bg-blue-50 rounded border">
+                        <span className="font-medium text-blue-900">Total Active ROM</span>
+                        <span className="font-bold text-xl text-blue-900">{parseFloat(userAssessment.totalActiveRom).toFixed(0)}°</span>
+                      </div>
+                      <p className="mt-2">
+                        <strong>Assessment:</strong> {parseFloat(userAssessment.totalActiveRom) >= 220 ? 
+                          'Excellent range of motion' : 
+                          parseFloat(userAssessment.totalActiveRom) >= 180 ? 
+                            'Good range of motion' : 
+                            'Limited range of motion - consider follow-up'}
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-800">Injury Type</label>
-                  <div className="text-lg font-medium">
-                    {resultData?.user?.injuryType || 'Not Specified'}
-                  </div>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-800">Status</label>
-                  <div className={`text-lg font-medium ${userAssessment.isCompleted ? 'text-green-600' : 'text-orange-600'}`}>
-                    {userAssessment.isCompleted ? 'Completed' : 'In Progress'}
-                  </div>
-                </div>
+                )}
+
               </div>
             </CardContent>
           </Card>
 
-          {/* Results - Kapandji vs ROM */}
-          {hasRomData && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <BarChart3 className="w-5 h-5 text-green-600" />
-                  <span>
-                    {userAssessment.assessmentName === "Kapandji Score" ? "Thumb Opposition Analysis" : "Range of Motion Analysis"}
-                  </span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-
-                  {/* Kapandji Specific Scoring */}
-                  {(userAssessment.assessmentName === "Kapandji Score" || 
-                    userAssessment.assessmentName?.includes("Kapandji") ||
-                    userAssessment.assessmentId === 27) && (
-                    <div className="bg-blue-50 border border-blue-200 p-6 rounded-lg">
-                      <h4 className="font-medium mb-4 text-gray-900">Kapandji Opposition Score</h4>
-                      <div className="space-y-4">
-                        <div className="text-center mb-6">
-                          <div className="text-4xl font-bold text-blue-600 mb-2">
-                            {(() => {
-                              // Calculate Kapandji score from motion data
-                              if (userAssessment.repetitionData && Array.isArray(userAssessment.repetitionData)) {
-                                for (const rep of userAssessment.repetitionData) {
-                                  if (rep.motionData && Array.isArray(rep.motionData)) {
-                                    const motionFrames = rep.motionData.map((frame: any) => ({
-                                      landmarks: frame.landmarks
-                                    }));
-                                    console.log('Calculating Kapandji with frames:', motionFrames.length);
-                                    const kapandjiResult = calculateMaxKapandjiScore(motionFrames);
-                                    console.log('Kapandji result:', kapandjiResult);
-                                    return kapandjiResult.maxScore;
-                                  }
-                                }
-                              }
-                              return '0';
-                            })()}/10
-                          </div>
-                          <div className="text-sm text-gray-700">
-                            {(() => {
-                              const score = (() => {
-                                if (userAssessment.repetitionData && Array.isArray(userAssessment.repetitionData)) {
-                                  for (const rep of userAssessment.repetitionData) {
-                                    if (rep.motionData && Array.isArray(rep.motionData)) {
-                                      const motionFrames = rep.motionData.map((frame: any) => ({
-                                        landmarks: frame.landmarks
-                                      }));
-                                      const kapandjiResult = calculateMaxKapandjiScore(motionFrames);
-                                      return kapandjiResult.maxScore;
-                                    }
-                                  }
-                                }
-                                return 0;
-                              })();
-                              
-                              return score >= 10 ? 'Excellent Opposition' :
-                                     score >= 8 ? 'Good Opposition' :
-                                     score >= 6 ? 'Moderate Opposition' :
-                                     score >= 4 ? 'Limited Opposition' :
-                                     'Severely Limited Opposition';
-                            })()}
-                          </div>
-                        </div>
-                        
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <h5 className="font-medium text-gray-900">Opposition Levels Achieved:</h5>
-                            <div className="space-y-1 text-sm">
-                              <div className={`p-2 rounded ${userAssessment.indexFingerRom === '1' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
-                                Level 1: Index MCP {userAssessment.indexFingerRom === '1' ? '✓' : '✗'}
-                              </div>
-                              <div className={`p-2 rounded ${userAssessment.middleFingerRom === '2' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
-                                Level 2: Middle MCP {userAssessment.middleFingerRom === '2' ? '✓' : '✗'}
-                              </div>
-                              <div className={`p-2 rounded ${userAssessment.ringFingerRom === '3' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
-                                Level 3: Ring MCP {userAssessment.ringFingerRom === '3' ? '✓' : '✗'}
-                              </div>
-                              <div className={`p-2 rounded ${userAssessment.pinkyFingerRom === '4' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
-                                Level 4: Pinky MCP {userAssessment.pinkyFingerRom === '4' ? '✓' : '✗'}
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <h5 className="font-medium text-gray-900">Advanced Levels:</h5>
-                            <div className="space-y-1 text-sm">
-                              <div className={`p-2 rounded ${parseInt(userAssessment.totalActiveRom || '0') >= 6 ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
-                                Level 6: Pinky PIP {parseInt(userAssessment.totalActiveRom || '0') >= 6 ? '✓' : '✗'}
-                              </div>
-                              <div className={`p-2 rounded ${parseInt(userAssessment.totalActiveRom || '0') >= 8 ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
-                                Level 8: Pinky Tip {parseInt(userAssessment.totalActiveRom || '0') >= 8 ? '✓' : '✗'}
-                              </div>
-                              <div className={`p-2 rounded ${parseInt(userAssessment.totalActiveRom || '0') >= 9 ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
-                                Level 9: Palm Center {parseInt(userAssessment.totalActiveRom || '0') >= 9 ? '✓' : '✗'}
-                              </div>
-                              <div className={`p-2 rounded ${parseInt(userAssessment.totalActiveRom || '0') >= 10 ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
-                                Level 10: Beyond Palm {parseInt(userAssessment.totalActiveRom || '0') >= 10 ? '✓' : '✗'}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Comprehensive ROM Analysis - All Digits - Only for non-Kapandji assessments */}
-                  {userAssessment.assessmentName !== "Kapandji Score" && (userAssessment.indexFingerRom || userAssessment.middleFingerRom || userAssessment.ringFingerRom || userAssessment.pinkyFingerRom) && (
-                    <div className="bg-gray-100 border border-gray-200 p-4 rounded-lg">
-                      <h4 className="font-medium mb-3 text-gray-900">Comprehensive ROM Analysis - All Digits</h4>
-                      <div className="space-y-4">
-                        {userAssessment.indexFingerRom && (
-                          <div className="bg-white p-4 rounded border">
-                            <div className="flex justify-between items-center mb-3">
-                              <span className="font-medium text-gray-900">Index Finger</span>
-                              <span className="font-bold text-lg text-gray-900">{parseFloat(userAssessment.indexFingerRom).toFixed(0)}° TAM</span>
-                            </div>
-                            <div className="grid grid-cols-3 gap-3 text-sm">
-                              <div className={`p-2 rounded ${
-                                userAssessment.maxMcpAngle && parseFloat(userAssessment.maxMcpAngle) < 70 ? 'bg-red-50 border border-red-200' : 'bg-gray-100'
-                              }`}>
-                                <div className="text-xs text-gray-800">MCP Joint</div>
-                                <div className={`font-medium ${
-                                  userAssessment.maxMcpAngle && parseFloat(userAssessment.maxMcpAngle) < 70 ? 'text-red-600' : 'text-blue-600'
-                                }`}>
-                                  {userAssessment.maxMcpAngle ? parseFloat(userAssessment.maxMcpAngle).toFixed(0) : '0'}°
-                                </div>
-                                <div className="text-xs text-gray-700">Normal: 70-90°</div>
-                              </div>
-                              <div className={`p-2 rounded ${
-                                userAssessment.maxPipAngle && parseFloat(userAssessment.maxPipAngle) < 90 ? 'bg-red-50 border border-red-200' : 'bg-gray-100'
-                              }`}>
-                                <div className="text-xs text-gray-800">PIP Joint</div>
-                                <div className={`font-medium ${
-                                  userAssessment.maxPipAngle && parseFloat(userAssessment.maxPipAngle) < 90 ? 'text-red-600' : 'text-green-600'
-                                }`}>
-                                  {userAssessment.maxPipAngle ? parseFloat(userAssessment.maxPipAngle).toFixed(0) : '0'}°
-                                </div>
-                                <div className="text-xs text-gray-700">Normal: 90-110°</div>
-                              </div>
-                              <div className={`p-2 rounded ${
-                                userAssessment.maxDipAngle && parseFloat(userAssessment.maxDipAngle) < 70 ? 'bg-red-50 border border-red-200' : 'bg-gray-100'
-                              }`}>
-                                <div className="text-xs text-gray-800">DIP Joint</div>
-                                <div className={`font-medium ${
-                                  userAssessment.maxDipAngle && parseFloat(userAssessment.maxDipAngle) < 70 ? 'text-red-600' : 'text-purple-600'
-                                }`}>
-                                  {userAssessment.maxDipAngle ? parseFloat(userAssessment.maxDipAngle).toFixed(0) : '0'}°
-                                </div>
-                                <div className="text-xs text-gray-700">Normal: 70-90°</div>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {userAssessment.middleFingerRom && (
-                          <div className="bg-white p-4 rounded border">
-                            <div className="flex justify-between items-center mb-3">
-                              <span className="font-medium text-gray-900">Middle Finger</span>
-                              <span className="font-bold text-lg text-gray-900">{parseFloat(userAssessment.middleFingerRom).toFixed(0)}° TAM</span>
-                            </div>
-                            <div className="grid grid-cols-3 gap-3 text-sm">
-                              <div className={`p-2 rounded ${
-                                userAssessment.middleFingerMcp && parseFloat(userAssessment.middleFingerMcp) < 70 ? 'bg-red-50 border border-red-200' : 'bg-gray-100'
-                              }`}>
-                                <div className="text-xs text-gray-800">MCP Joint</div>
-                                <div className={`font-medium ${
-                                  userAssessment.middleFingerMcp && parseFloat(userAssessment.middleFingerMcp) < 70 ? 'text-red-600' : 'text-blue-600'
-                                }`}>
-                                  {userAssessment.middleFingerMcp ? parseFloat(userAssessment.middleFingerMcp).toFixed(0) : '0'}°
-                                </div>
-                                <div className="text-xs text-gray-700">Normal: 70-90°</div>
-                              </div>
-                              <div className={`p-2 rounded ${
-                                userAssessment.middleFingerPip && parseFloat(userAssessment.middleFingerPip) < 90 ? 'bg-red-50 border border-red-200' : 'bg-gray-100'
-                              }`}>
-                                <div className="text-xs text-gray-800">PIP Joint</div>
-                                <div className={`font-medium ${
-                                  userAssessment.middleFingerPip && parseFloat(userAssessment.middleFingerPip) < 90 ? 'text-red-600' : 'text-green-600'
-                                }`}>
-                                  {userAssessment.middleFingerPip ? parseFloat(userAssessment.middleFingerPip).toFixed(0) : '0'}°
-                                </div>
-                                <div className="text-xs text-gray-700">Normal: 90-110°</div>
-                              </div>
-                              <div className={`p-2 rounded ${
-                                userAssessment.middleFingerDip && parseFloat(userAssessment.middleFingerDip) < 70 ? 'bg-red-50 border border-red-200' : 'bg-gray-100'
-                              }`}>
-                                <div className="text-xs text-gray-800">DIP Joint</div>
-                                <div className={`font-medium ${
-                                  userAssessment.middleFingerDip && parseFloat(userAssessment.middleFingerDip) < 70 ? 'text-red-600' : 'text-purple-600'
-                                }`}>
-                                  {userAssessment.middleFingerDip ? parseFloat(userAssessment.middleFingerDip).toFixed(0) : '0'}°
-                                </div>
-                                <div className="text-xs text-gray-700">Normal: 70-90°</div>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {userAssessment.ringFingerRom && (
-                          <div className="bg-white p-4 rounded border">
-                            <div className="flex justify-between items-center mb-3">
-                              <span className="font-medium text-gray-900">Ring Finger</span>
-                              <span className="font-bold text-lg text-gray-900">{parseFloat(userAssessment.ringFingerRom).toFixed(0)}° TAM</span>
-                            </div>
-                            <div className="grid grid-cols-3 gap-3 text-sm">
-                              <div className={`p-2 rounded ${
-                                userAssessment.ringFingerMcp && parseFloat(userAssessment.ringFingerMcp) < 70 ? 'bg-red-50 border border-red-200' : 'bg-gray-100'
-                              }`}>
-                                <div className="text-xs text-gray-800">MCP Joint</div>
-                                <div className={`font-medium ${
-                                  userAssessment.ringFingerMcp && parseFloat(userAssessment.ringFingerMcp) < 70 ? 'text-red-600' : 'text-blue-600'
-                                }`}>
-                                  {userAssessment.ringFingerMcp ? parseFloat(userAssessment.ringFingerMcp).toFixed(0) : '0'}°
-                                </div>
-                                <div className="text-xs text-gray-700">Normal: 70-90°</div>
-                              </div>
-                              <div className={`p-2 rounded ${
-                                userAssessment.ringFingerPip && parseFloat(userAssessment.ringFingerPip) < 90 ? 'bg-red-50 border border-red-200' : 'bg-gray-100'
-                              }`}>
-                                <div className="text-xs text-gray-800">PIP Joint</div>
-                                <div className={`font-medium ${
-                                  userAssessment.ringFingerPip && parseFloat(userAssessment.ringFingerPip) < 90 ? 'text-red-600' : 'text-green-600'
-                                }`}>
-                                  {userAssessment.ringFingerPip ? parseFloat(userAssessment.ringFingerPip).toFixed(0) : '0'}°
-                                </div>
-                                <div className="text-xs text-gray-700">Normal: 90-110°</div>
-                              </div>
-                              <div className={`p-2 rounded ${
-                                userAssessment.ringFingerDip && parseFloat(userAssessment.ringFingerDip) < 70 ? 'bg-red-50 border border-red-200' : 'bg-gray-100'
-                              }`}>
-                                <div className="text-xs text-gray-800">DIP Joint</div>
-                                <div className={`font-medium ${
-                                  userAssessment.ringFingerDip && parseFloat(userAssessment.ringFingerDip) < 70 ? 'text-red-600' : 'text-purple-600'
-                                }`}>
-                                  {userAssessment.ringFingerDip ? parseFloat(userAssessment.ringFingerDip).toFixed(0) : '0'}°
-                                </div>
-                                <div className="text-xs text-gray-700">Normal: 70-90°</div>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {userAssessment.pinkyFingerRom && (
-                          <div className="bg-white p-4 rounded border">
-                            <div className="flex justify-between items-center mb-3">
-                              <span className="font-medium text-gray-900">Pinky Finger</span>
-                              <span className="font-bold text-lg text-gray-900">{parseFloat(userAssessment.pinkyFingerRom).toFixed(0)}° TAM</span>
-                            </div>
-                            <div className="grid grid-cols-3 gap-3 text-sm">
-                              <div className={`p-2 rounded ${
-                                userAssessment.pinkyFingerMcp && parseFloat(userAssessment.pinkyFingerMcp) < 70 ? 'bg-red-50 border border-red-200' : 'bg-gray-100'
-                              }`}>
-                                <div className="text-xs text-gray-800">MCP Joint</div>
-                                <div className={`font-medium ${
-                                  userAssessment.pinkyFingerMcp && parseFloat(userAssessment.pinkyFingerMcp) < 70 ? 'text-red-600' : 'text-blue-600'
-                                }`}>
-                                  {userAssessment.pinkyFingerMcp ? parseFloat(userAssessment.pinkyFingerMcp).toFixed(0) : '0'}°
-                                </div>
-                                <div className="text-xs text-gray-700">Normal: 70-90°</div>
-                              </div>
-                              <div className={`p-2 rounded ${
-                                userAssessment.pinkyFingerPip && parseFloat(userAssessment.pinkyFingerPip) < 90 ? 'bg-red-50 border border-red-200' : 'bg-gray-100'
-                              }`}>
-                                <div className="text-xs text-gray-800">PIP Joint</div>
-                                <div className={`font-medium ${
-                                  userAssessment.pinkyFingerPip && parseFloat(userAssessment.pinkyFingerPip) < 90 ? 'text-red-600' : 'text-green-600'
-                                }`}>
-                                  {userAssessment.pinkyFingerPip ? parseFloat(userAssessment.pinkyFingerPip).toFixed(0) : '0'}°
-                                </div>
-                                <div className="text-xs text-gray-700">Normal: 90-110°</div>
-                              </div>
-                              <div className={`p-2 rounded ${
-                                userAssessment.pinkyFingerDip && parseFloat(userAssessment.pinkyFingerDip) < 70 ? 'bg-red-50 border border-red-200' : 'bg-gray-100'
-                              }`}>
-                                <div className="text-xs text-gray-800">DIP Joint</div>
-                                <div className={`font-medium ${
-                                  userAssessment.pinkyFingerDip && parseFloat(userAssessment.pinkyFingerDip) < 70 ? 'text-red-600' : 'text-purple-600'
-                                }`}>
-                                  {userAssessment.pinkyFingerDip ? parseFloat(userAssessment.pinkyFingerDip).toFixed(0) : '0'}°
-                                </div>
-                                <div className="text-xs text-gray-700">Normal: 70-90°</div>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="bg-gray-100 p-4 rounded-lg">
-                    <h4 className="font-medium text-gray-900 mb-2">Clinical Interpretation</h4>
-                    <div className="text-sm text-gray-700">
-                      <p>
-                        Total Active Range of Motion (TAM) = MCP + PIP + DIP joint angles. 
-                        Normal values for index finger: MCP (0-90°), PIP (0-100°), DIP (0-90°).
-                      </p>
-                      {userAssessment.totalActiveRom && (
-                        <p className="mt-2">
-                          <strong>Assessment:</strong> {parseFloat(userAssessment.totalActiveRom) >= 220 ? 
-                            'Excellent range of motion' : 
-                            parseFloat(userAssessment.totalActiveRom) >= 180 ? 
-                              'Good range of motion' : 
-                              'Limited range of motion - consider follow-up'}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                  )}
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Motion Data Summary */}
-          {userAssessment.repetitionData && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Clock className="w-5 h-5 text-purple-600" />
-                  <span>Motion Data Summary</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {Array.isArray(userAssessment.repetitionData) ? (
-                  <div className="space-y-3">
-                    {userAssessment.repetitionData.map((rep: any, index: number) => (
-                      <div key={index} className="bg-gray-100 p-3 rounded-lg">
-                        <div className="grid md:grid-cols-4 gap-4 text-sm">
-                          <div>
-                            <span className="font-medium">Repetition:</span> {rep.repetition || index + 1}
-                          </div>
-                          <div>
-                            <span className="font-medium">Duration:</span> {rep.duration || 0}s
-                          </div>
-                          <div>
-                            <span className="font-medium">Landmarks:</span> {rep.landmarksDetected || 0}
-                          </div>
-                          <div>
-                            <span className="font-medium">Motion Frames:</span> {rep.motionData?.length || 0}
-                          </div>
-                        </div>
-                        {rep.romData && (
-                          <div className="mt-2 text-xs text-gray-800">
-                            ROM: MCP {rep.romData.mcpAngle?.toFixed(1)}°, 
-                            PIP {rep.romData.pipAngle?.toFixed(1)}°, 
-                            DIP {rep.romData.dipAngle?.toFixed(1)}°
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-gray-700">No repetition data available</div>
-                )}
-              </CardContent>
-            </Card>
-          )}
-        </div>
-
-        {/* Actions Panel */}
-        <div className="space-y-6">
+          {/* Motion Quality and Technical Details */}
           <Card>
             <CardHeader>
-              <CardTitle>Actions</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button
-                onClick={() => setShowReplay(true)}
-                className="w-full flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-700"
-              >
-                <Play className="w-4 h-4" />
-                <span>View Motion Replay</span>
-              </Button>
-              
-              <Button
-                variant="outline"
-                onClick={() => shareAssessmentMutation.mutate()}
-                disabled={shareAssessmentMutation.isPending}
-                className="w-full flex items-center justify-center space-x-2"
-              >
-                <Share2 className="w-4 h-4" />
-                <span>
-                  {shareAssessmentMutation.isPending ? "Creating Link..." : "Share Motion Replay"}
-                </span>
-              </Button>
-
-              {shareUrl && (
-                <div className="mt-3 p-3 bg-green-50 rounded-lg border border-green-200">
-                  <div className="text-sm font-medium text-green-800 mb-2">Shareable Link Created</div>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="text"
-                      value={shareUrl}
-                      readOnly
-                      className="flex-1 text-xs p-2 bg-white border rounded"
-                    />
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={copyToClipboard}
-                      className="flex items-center space-x-1"
-                    >
-                      {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                      <span>{copied ? "Copied" : "Copy"}</span>
-                    </Button>
-                  </div>
-                </div>
-              )}
-              
-              <Button
-                variant="outline"
-                onClick={() => {
-                  const data = {
-                    assessment: userAssessment,
-                    exportedAt: new Date().toISOString()
-                  };
-                  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url;
-                  a.download = `assessment_results_${userAssessment.id}.json`;
-                  document.body.appendChild(a);
-                  a.click();
-                  document.body.removeChild(a);
-                  URL.revokeObjectURL(url);
-                }}
-                className="w-full flex items-center justify-center space-x-2"
-              >
-                <Download className="w-4 h-4" />
-                <span>Export Data</span>
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Clinical Notes */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Clinical Notes</CardTitle>
+              <CardTitle className="text-lg font-semibold text-gray-900">Assessment Details</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-sm text-gray-700 space-y-2">
-                <p><strong>TAM Assessment:</strong> Total Active Motion measurement for trigger finger evaluation.</p>
-                <p><strong>Session Tracking:</strong> Multiple sessions allow progress monitoring over time.</p>
-                <p><strong>Quality Score:</strong> Based on hand detection accuracy and landmark stability.</p>
-                <p><strong>Motion Replay:</strong> Privacy-focused visualization showing hand skeleton movements only.</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h4 className="font-medium mb-3 text-gray-900">Session Information</h4>
+                  <div className="space-y-2 text-sm">
+                    <p><strong>Assessment Type:</strong> {userAssessment.assessmentName || 'Range of Motion'}</p>
+                    <p><strong>Session Number:</strong> {userAssessment.sessionNumber || 1}</p>
+                    <p><strong>Duration:</strong> {userAssessment.duration ? `${userAssessment.duration}s` : 'N/A'}</p>
+                    <p><strong>Quality Score:</strong> {userAssessment.qualityScore || 'N/A'}</p>
+                  </div>
+                </div>
+                
+                <div>
+                  <h4 className="font-medium mb-3 text-gray-900">Privacy & Data</h4>
+                  <div className="space-y-2 text-sm text-gray-600">
+                    <p><strong>Data Processing:</strong> All motion analysis performed locally on your device.</p>
+                    <p><strong>Privacy:</strong> No video recordings stored - only anonymous motion landmarks.</p>
+                    <p><strong>Quality Score:</strong> Based on hand detection accuracy and landmark stability.</p>
+                    <p><strong>Motion Replay:</strong> Privacy-focused visualization showing hand skeleton movements only.</p>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
