@@ -94,24 +94,16 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
     }
   }, [replayData, selectedDigit]);
 
-  // Calculate maximum ROM from all frames for comparison
+  // Update current ROM when frame or digit selection changes
   useEffect(() => {
-    if (replayData.length > 0) {
-      let maxMcp = 0, maxPip = 0, maxDip = 0, maxTotal = 0;
-      
-      replayData.forEach(frame => {
-        if (frame.landmarks && frame.landmarks.length >= 21) {
-          const rom = calculateCurrentROM(frame.landmarks);
-          maxMcp = Math.max(maxMcp, rom.mcpAngle);
-          maxPip = Math.max(maxPip, rom.pipAngle);
-          maxDip = Math.max(maxDip, rom.dipAngle);
-          maxTotal = Math.max(maxTotal, rom.totalActiveRom);
-        }
-      });
-      
-      setMaxROM({ mcpAngle: maxMcp, pipAngle: maxPip, dipAngle: maxDip, totalActiveRom: maxTotal });
+    if (replayData.length > 0 && currentFrame < replayData.length) {
+      const frame = replayData[currentFrame];
+      if (frame.landmarks && frame.landmarks.length >= 21) {
+        const rom = calculateFingerROM(frame.landmarks, selectedDigit);
+        setCurrentROM(rom);
+      }
     }
-  }, [replayData]);
+  }, [currentFrame, replayData, selectedDigit]);
 
   // Draw hand landmarks and connections on canvas
   const drawHandLandmarks = (ctx: CanvasRenderingContext2D, landmarks: Array<{x: number, y: number, z: number}>, canvasWidth: number, canvasHeight: number) => {
@@ -327,20 +319,31 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
 
     // Draw live ROM data overlay
     if (frame.landmarks && frame.landmarks.length >= 21) {
-      const romData = calculateCurrentROM(frame.landmarks);
+      const romData = calculateFingerROM(frame.landmarks, selectedDigit);
       
       // Semi-transparent background for ROM overlay
       ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-      ctx.fillRect(canvas.width - 220, 10, 200, 120);
+      ctx.fillRect(canvas.width - 240, 10, 220, 120);
       
-      // ROM title
+      // ROM title with selected digit
       ctx.fillStyle = '#00ff00';
       ctx.font = 'bold 14px Arial';
-      ctx.fillText('Live Joint Angles', canvas.width - 210, 30);
+      ctx.fillText(`${selectedDigit.charAt(0) + selectedDigit.slice(1).toLowerCase()} Finger`, canvas.width - 230, 30);
       
-      // Draw index finger diagram indicator
-      ctx.strokeStyle = '#3b82f6';
-      ctx.lineWidth = 2;
+      // Draw finger diagram indicator based on selected digit
+      const getFingerLandmarks = (digit: string) => {
+        switch (digit) {
+          case 'INDEX': return [5, 6, 7, 8];
+          case 'MIDDLE': return [9, 10, 11, 12];
+          case 'RING': return [13, 14, 15, 16];
+          case 'PINKY': return [17, 18, 19, 20];
+          default: return [5, 6, 7, 8];
+        }
+      };
+      
+      const fingerLandmarks = getFingerLandmarks(selectedDigit);
+      ctx.strokeStyle = '#ffff00'; // Yellow to match highlighted connections
+      ctx.lineWidth = 3;
       ctx.beginPath();
       ctx.moveTo(canvas.width - 50, 40);
       ctx.lineTo(canvas.width - 30, 40);
@@ -355,15 +358,15 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
       
       // MCP Joint (blue to match highlighted landmarks)
       ctx.fillStyle = '#3b82f6';
-      ctx.fillText(`MCP: ${Math.round(romData.mcpAngle)}°`, canvas.width - 210, 50);
+      ctx.fillText(`MCP: ${Math.round(romData.mcpAngle)}°`, canvas.width - 230, 50);
       
       // PIP Joint (green)
       ctx.fillStyle = '#10b981';
-      ctx.fillText(`PIP: ${Math.round(romData.pipAngle)}°`, canvas.width - 210, 70);
+      ctx.fillText(`PIP: ${Math.round(romData.pipAngle)}°`, canvas.width - 230, 70);
       
       // DIP Joint (purple)
       ctx.fillStyle = '#8b5cf6';
-      ctx.fillText(`DIP: ${Math.round(romData.dipAngle)}°`, canvas.width - 210, 90);
+      ctx.fillText(`DIP: ${Math.round(romData.dipAngle)}°`, canvas.width - 230, 90);
       
       // Total ROM (white, emphasized)
       ctx.fillStyle = '#ffffff';
@@ -613,7 +616,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
               <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
                 <h4 className="font-medium mb-3 flex items-center">
                   <span className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
-                  Live Joint Angles
+                  Live Joint Angles - {selectedDigit.charAt(0) + selectedDigit.slice(1).toLowerCase()} Finger
                 </h4>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                   <div className="bg-white p-3 rounded border">
