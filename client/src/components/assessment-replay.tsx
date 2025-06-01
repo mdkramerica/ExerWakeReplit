@@ -524,32 +524,68 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
                   Live Joint Angles
                 </h4>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                  <div className="bg-white p-3 rounded border">
+                  <div className={`p-3 rounded border ${
+                    currentROM.mcpAngle < 70 ? 'bg-red-50 border-red-200' : 'bg-white'
+                  }`}>
                     <span className="text-gray-600 block">MCP Joint:</span>
-                    <div className="font-bold text-lg text-blue-600">{Math.round(currentROM.mcpAngle)}°</div>
+                    <div className={`font-bold text-lg ${
+                      currentROM.mcpAngle < 70 ? 'text-red-600' : 'text-blue-600'
+                    }`}>
+                      {Math.round(currentROM.mcpAngle)}°
+                    </div>
                     {maxROM && (
                       <div className="text-xs text-gray-500">Max: {Math.round(maxROM.mcpAngle)}°</div>
                     )}
+                    {currentROM.mcpAngle < 70 && (
+                      <div className="text-xs text-red-600 font-medium">Below Normal</div>
+                    )}
                   </div>
-                  <div className="bg-white p-3 rounded border">
+                  <div className={`p-3 rounded border ${
+                    currentROM.pipAngle < 90 ? 'bg-red-50 border-red-200' : 'bg-white'
+                  }`}>
                     <span className="text-gray-600 block">PIP Joint:</span>
-                    <div className="font-bold text-lg text-green-600">{Math.round(currentROM.pipAngle)}°</div>
+                    <div className={`font-bold text-lg ${
+                      currentROM.pipAngle < 90 ? 'text-red-600' : 'text-green-600'
+                    }`}>
+                      {Math.round(currentROM.pipAngle)}°
+                    </div>
                     {maxROM && (
                       <div className="text-xs text-gray-500">Max: {Math.round(maxROM.pipAngle)}°</div>
                     )}
+                    {currentROM.pipAngle < 90 && (
+                      <div className="text-xs text-red-600 font-medium">Below Normal</div>
+                    )}
                   </div>
-                  <div className="bg-white p-3 rounded border">
+                  <div className={`p-3 rounded border ${
+                    currentROM.dipAngle < 70 ? 'bg-red-50 border-red-200' : 'bg-white'
+                  }`}>
                     <span className="text-gray-600 block">DIP Joint:</span>
-                    <div className="font-bold text-lg text-purple-600">{Math.round(currentROM.dipAngle)}°</div>
+                    <div className={`font-bold text-lg ${
+                      currentROM.dipAngle < 70 ? 'text-red-600' : 'text-purple-600'
+                    }`}>
+                      {Math.round(currentROM.dipAngle)}°
+                    </div>
                     {maxROM && (
                       <div className="text-xs text-gray-500">Max: {Math.round(maxROM.dipAngle)}°</div>
                     )}
+                    {currentROM.dipAngle < 70 && (
+                      <div className="text-xs text-red-600 font-medium">Below Normal</div>
+                    )}
                   </div>
-                  <div className="bg-white p-3 rounded border">
+                  <div className={`p-3 rounded border ${
+                    currentROM.totalActiveRom < 230 ? 'bg-red-50 border-red-200' : 'bg-white'
+                  }`}>
                     <span className="text-gray-600 block">Total ROM:</span>
-                    <div className="font-bold text-lg text-red-600">{Math.round(currentROM.totalActiveRom)}°</div>
+                    <div className={`font-bold text-lg ${
+                      currentROM.totalActiveRom < 230 ? 'text-red-600' : 'text-gray-900'
+                    }`}>
+                      {Math.round(currentROM.totalActiveRom)}°
+                    </div>
                     {maxROM && (
                       <div className="text-xs text-gray-500">Max: {Math.round(maxROM.totalActiveRom)}°</div>
+                    )}
+                    {currentROM.totalActiveRom < 230 && (
+                      <div className="text-xs text-red-600 font-medium">Below Normal</div>
                     )}
                   </div>
                 </div>
@@ -569,17 +605,38 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
                   <div className="bg-white p-3 rounded border">
                     <div className="text-sm font-medium mb-2">Joint Contribution Analysis:</div>
                     <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span>MCP Joint (0° = straight):</span>
-                        <span className="font-medium">{Math.round(maxROM.mcpAngle)}° ({Math.round((maxROM.mcpAngle / maxROM.totalActiveRom) * 100)}%)</span>
+                      <div className={`flex justify-between p-2 rounded ${
+                        maxROM.mcpAngle < 70 ? 'bg-red-50 border border-red-200' : ''
+                      }`}>
+                        <span>MCP Joint (normal: 70-90°):</span>
+                        <span className={`font-medium ${
+                          maxROM.mcpAngle < 70 ? 'text-red-600' : 'text-gray-900'
+                        }`}>
+                          {Math.round(maxROM.mcpAngle)}° ({Math.round((maxROM.mcpAngle / maxROM.totalActiveRom) * 100)}%)
+                          {maxROM.mcpAngle < 70 && <span className="ml-2 text-xs text-red-600">⚠ Low</span>}
+                        </span>
                       </div>
-                      <div className="flex justify-between">
-                        <span>PIP Joint (normal max ~100°):</span>
-                        <span className="font-medium">{Math.round(maxROM.pipAngle)}° ({Math.round((maxROM.pipAngle / maxROM.totalActiveRom) * 100)}%)</span>
+                      <div className={`flex justify-between p-2 rounded ${
+                        maxROM.pipAngle < 90 ? 'bg-red-50 border border-red-200' : ''
+                      }`}>
+                        <span>PIP Joint (normal: 90-110°):</span>
+                        <span className={`font-medium ${
+                          maxROM.pipAngle < 90 ? 'text-red-600' : 'text-gray-900'
+                        }`}>
+                          {Math.round(maxROM.pipAngle)}° ({Math.round((maxROM.pipAngle / maxROM.totalActiveRom) * 100)}%)
+                          {maxROM.pipAngle < 90 && <span className="ml-2 text-xs text-red-600">⚠ Low</span>}
+                        </span>
                       </div>
-                      <div className="flex justify-between">
-                        <span>DIP Joint (normal max ~80°):</span>
-                        <span className="font-medium">{Math.round(maxROM.dipAngle)}° ({Math.round((maxROM.dipAngle / maxROM.totalActiveRom) * 100)}%)</span>
+                      <div className={`flex justify-between p-2 rounded ${
+                        maxROM.dipAngle < 70 ? 'bg-red-50 border border-red-200' : ''
+                      }`}>
+                        <span>DIP Joint (normal: 70-90°):</span>
+                        <span className={`font-medium ${
+                          maxROM.dipAngle < 70 ? 'text-red-600' : 'text-gray-900'
+                        }`}>
+                          {Math.round(maxROM.dipAngle)}° ({Math.round((maxROM.dipAngle / maxROM.totalActiveRom) * 100)}%)
+                          {maxROM.dipAngle < 70 && <span className="ml-2 text-xs text-red-600">⚠ Low</span>}
+                        </span>
                       </div>
                     </div>
                   </div>
