@@ -102,13 +102,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Combine assessments with user progress and sort by orderIndex
       const assessmentsWithProgress = allAssessments.map(assessment => {
-        const userAssessment = userAssessments.find(ua => ua.assessmentId === assessment.id);
+        // Find all user assessments for this assessment
+        const allUserAssessments = userAssessments.filter(ua => ua.assessmentId === assessment.id);
+        
+        // Check if any session is completed
+        const hasCompletedSession = allUserAssessments.some(ua => ua.isCompleted);
+        
+        // Get the most recent completed session or the most recent session
+        const mostRecentCompleted = allUserAssessments
+          .filter(ua => ua.isCompleted)
+          .sort((a, b) => new Date(b.completedAt!).getTime() - new Date(a.completedAt!).getTime())[0];
+        
+        const mostRecentSession = allUserAssessments
+          .sort((a, b) => (b.completedAt ? new Date(b.completedAt).getTime() : 0) - (a.completedAt ? new Date(a.completedAt).getTime() : 0))[0];
+        
+        const representativeSession = mostRecentCompleted || mostRecentSession;
+        
         return {
           ...assessment,
-          isCompleted: userAssessment?.isCompleted || false,
-          completedAt: userAssessment?.completedAt,
-          qualityScore: userAssessment?.qualityScore,
-          userAssessmentId: userAssessment?.id
+          isCompleted: hasCompletedSession,
+          completedAt: representativeSession?.completedAt,
+          qualityScore: representativeSession?.qualityScore,
+          userAssessmentId: representativeSession?.id
         };
       }).sort((a, b) => a.orderIndex - b.orderIndex);
       
