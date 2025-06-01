@@ -24,6 +24,7 @@ export interface IStorage {
   
   // Assessment methods
   getAssessments(): Promise<Assessment[]>;
+  getAssessmentsForInjury(injuryType: string): Promise<Assessment[]>;
   getAssessment(id: number): Promise<Assessment | undefined>;
   createAssessment(assessment: InsertAssessment): Promise<Assessment>;
   
@@ -68,6 +69,28 @@ export class DatabaseStorage implements IStorage {
 
   async getAssessments(): Promise<Assessment[]> {
     return await db.select().from(assessments).where(eq(assessments.isActive, true));
+  }
+
+  async getAssessmentsForInjury(injuryType: string): Promise<Assessment[]> {
+    const allAssessments = await db.select().from(assessments).where(eq(assessments.isActive, true));
+    
+    // Define which assessments are needed for each injury type
+    const injuryAssessmentMap: Record<string, string[]> = {
+      "Trigger Finger": ["TAM (Total Active Motion)"],
+      "Carpal Tunnel": ["TAM (Total Active Motion)", "Kapandji Score", "Wrist Flexion/Extension", "Forearm Pronation/Supination", "Wrist Radial/Ulnar Deviation"],
+      "Distal Radius Fracture": ["TAM (Total Active Motion)", "Kapandji Score", "Wrist Flexion/Extension", "Forearm Pronation/Supination", "Wrist Radial/Ulnar Deviation"],
+      "CMC Arthroplasty": ["TAM (Total Active Motion)", "Kapandji Score", "Wrist Flexion/Extension", "Forearm Pronation/Supination", "Wrist Radial/Ulnar Deviation"],
+      "Metacarpal ORIF": ["TAM (Total Active Motion)"],
+      "Phalanx Fracture": ["TAM (Total Active Motion)"],
+      "Radial Head Replacement": ["TAM (Total Active Motion)", "Kapandji Score", "Wrist Flexion/Extension", "Forearm Pronation/Supination", "Wrist Radial/Ulnar Deviation"],
+      "Terrible Triad Injury": ["TAM (Total Active Motion)", "Kapandji Score", "Wrist Flexion/Extension", "Forearm Pronation/Supination", "Wrist Radial/Ulnar Deviation"],
+      "Dupuytren's Contracture": ["TAM (Total Active Motion)"],
+      "Flexor Tendon Injury": ["TAM (Total Active Motion)"],
+      "Extensor Tendon Injury": ["TAM (Total Active Motion)"]
+    };
+
+    const requiredAssessments = injuryAssessmentMap[injuryType] || ["TAM (Total Active Motion)"];
+    return allAssessments.filter(assessment => requiredAssessments.includes(assessment.name));
   }
 
   async getAssessment(id: number): Promise<Assessment | undefined> {
@@ -257,6 +280,30 @@ export class MemStorage implements IStorage {
       .sort((a, b) => a.orderIndex - b.orderIndex);
   }
 
+  async getAssessmentsForInjury(injuryType: string): Promise<Assessment[]> {
+    const allAssessments = Array.from(this.assessments.values())
+      .filter(assessment => assessment.isActive)
+      .sort((a, b) => a.orderIndex - b.orderIndex);
+    
+    // Define which assessments are needed for each injury type
+    const injuryAssessmentMap: Record<string, string[]> = {
+      "Trigger Finger": ["TAM (Total Active Motion)"],
+      "Carpal Tunnel": ["TAM (Total Active Motion)", "Kapandji Score", "Wrist Flexion/Extension", "Forearm Pronation/Supination", "Wrist Radial/Ulnar Deviation"],
+      "Distal Radius Fracture": ["TAM (Total Active Motion)", "Kapandji Score", "Wrist Flexion/Extension", "Forearm Pronation/Supination", "Wrist Radial/Ulnar Deviation"],
+      "CMC Arthroplasty": ["TAM (Total Active Motion)", "Kapandji Score", "Wrist Flexion/Extension", "Forearm Pronation/Supination", "Wrist Radial/Ulnar Deviation"],
+      "Metacarpal ORIF": ["TAM (Total Active Motion)"],
+      "Phalanx Fracture": ["TAM (Total Active Motion)"],
+      "Radial Head Replacement": ["TAM (Total Active Motion)", "Kapandji Score", "Wrist Flexion/Extension", "Forearm Pronation/Supination", "Wrist Radial/Ulnar Deviation"],
+      "Terrible Triad Injury": ["TAM (Total Active Motion)", "Kapandji Score", "Wrist Flexion/Extension", "Forearm Pronation/Supination", "Wrist Radial/Ulnar Deviation"],
+      "Dupuytren's Contracture": ["TAM (Total Active Motion)"],
+      "Flexor Tendon Injury": ["TAM (Total Active Motion)"],
+      "Extensor Tendon Injury": ["TAM (Total Active Motion)"]
+    };
+
+    const requiredAssessments = injuryAssessmentMap[injuryType] || ["TAM (Total Active Motion)"];
+    return allAssessments.filter(assessment => requiredAssessments.includes(assessment.name));
+  }
+
   async getAssessment(id: number): Promise<Assessment | undefined> {
     return this.assessments.get(id);
   }
@@ -316,12 +363,19 @@ async function initializeDatabase() {
     const existingAssessments = await db.select().from(assessments);
 
     if (existingInjuryTypes.length === 0) {
-      // Initialize default injury types
+      // Initialize medical injury types based on clinical requirements
       const defaultInjuryTypes = [
-        { name: "Wrist Fracture", description: "Recovery from wrist bone fractures and related mobility issues", icon: "fas fa-hand-paper" },
-        { name: "Carpal Tunnel", description: "Post-surgical recovery from carpal tunnel release procedure", icon: "fas fa-hand-scissors" },
-        { name: "Tendon Injury", description: "Recovery from hand or wrist tendon repair surgery", icon: "fas fa-hand-rock" },
-        { name: "Other Injury", description: "Other hand or wrist conditions requiring assessment", icon: "fas fa-hand-spock" }
+        { name: "Trigger Finger", description: "Stenosing tenosynovitis affecting finger flexion", icon: "fas fa-hand-point-up" },
+        { name: "Carpal Tunnel", description: "Median nerve compression requiring comprehensive assessment", icon: "fas fa-hand-scissors" },
+        { name: "Distal Radius Fracture", description: "Wrist fracture requiring full range of motion evaluation", icon: "fas fa-hand-paper" },
+        { name: "CMC Arthroplasty", description: "Thumb basal joint replacement recovery assessment", icon: "fas fa-thumbs-up" },
+        { name: "Metacarpal ORIF", description: "Hand bone fracture repair recovery", icon: "fas fa-hand-rock" },
+        { name: "Phalanx Fracture", description: "Finger bone fracture recovery assessment", icon: "fas fa-hand-point-right" },
+        { name: "Radial Head Replacement", description: "Elbow joint replacement affecting hand function", icon: "fas fa-hand-spock" },
+        { name: "Terrible Triad Injury", description: "Complex elbow injury requiring comprehensive evaluation", icon: "fas fa-hand-lizard" },
+        { name: "Dupuytren's Contracture", description: "Palmar fascia contracture affecting finger extension", icon: "fas fa-hand-peace" },
+        { name: "Flexor Tendon Injury", description: "Finger flexion tendon repair recovery", icon: "fas fa-hand-grab" },
+        { name: "Extensor Tendon Injury", description: "Finger extension tendon repair recovery", icon: "fas fa-hand-stop" }
       ];
 
       await db.insert(injuryTypes).values(defaultInjuryTypes);
@@ -329,55 +383,55 @@ async function initializeDatabase() {
     }
 
     if (existingAssessments.length === 0) {
-      // Initialize default assessments
+      // Initialize clinical assessments based on medical requirements
       const defaultAssessments = [
         {
-          name: "Wrist Flexion",
-          description: "Measure forward bending range of motion",
-          videoUrl: "/videos/wrist-flexion.mp4",
-          duration: 10,
+          name: "TAM (Total Active Motion)",
+          description: "Comprehensive finger flexion and extension measurement",
+          videoUrl: "/videos/tam-assessment.mp4",
+          duration: 15,
           repetitions: 3,
-          instructions: "Slowly bend your wrist forward as far as comfortable, then return to neutral position",
+          instructions: "Make a complete fist, then fully extend all fingers. Repeat slowly and deliberately.",
           isActive: true,
           orderIndex: 1
         },
         {
-          name: "Wrist Extension",
-          description: "Measure backward bending range of motion",
-          videoUrl: "/videos/wrist-extension.mp4",
-          duration: 10,
+          name: "Kapandji Score",
+          description: "Thumb opposition assessment using standardized scoring",
+          videoUrl: "/videos/kapandji-assessment.mp4",
+          duration: 12,
           repetitions: 3,
-          instructions: "Slowly bend your wrist backward as far as comfortable, then return to neutral position",
+          instructions: "Touch your thumb to each finger tip, then to the base of each finger, progressing down the hand.",
           isActive: true,
           orderIndex: 2
         },
         {
-          name: "Finger Flexion",
-          description: "Measure finger closing range of motion",
-          videoUrl: "/videos/finger-flexion.mp4",
+          name: "Wrist Flexion/Extension",
+          description: "Measure wrist forward and backward bending range of motion",
+          videoUrl: "/videos/wrist-fe-assessment.mp4",
           duration: 10,
           repetitions: 3,
-          instructions: "Slowly close your fingers into a fist, then open them completely",
+          instructions: "Bend your wrist forward as far as comfortable, then backward. Keep forearm stable.",
           isActive: true,
           orderIndex: 3
         },
         {
-          name: "Finger Extension",
-          description: "Measure finger opening range of motion",
-          videoUrl: "/videos/finger-extension.mp4",
+          name: "Forearm Pronation/Supination",
+          description: "Measure forearm rotation with palm up and palm down movements",
+          videoUrl: "/videos/forearm-ps-assessment.mp4",
           duration: 10,
           repetitions: 3,
-          instructions: "Slowly extend your fingers as far as comfortable, spreading them apart",
+          instructions: "Rotate your forearm to turn palm up, then palm down. Keep elbow at your side.",
           isActive: true,
           orderIndex: 4
         },
         {
-          name: "Thumb Opposition",
-          description: "Measure thumb to finger touch capability",
-          videoUrl: "/videos/thumb-opposition.mp4",
-          duration: 15,
+          name: "Wrist Radial/Ulnar Deviation",
+          description: "Measure side-to-side wrist movement toward thumb and pinky",
+          videoUrl: "/videos/wrist-ru-assessment.mp4",
+          duration: 10,
           repetitions: 3,
-          instructions: "Touch your thumb to each fingertip in sequence",
+          instructions: "Move your wrist toward your thumb side, then toward your pinky side. Keep hand flat.",
           isActive: true,
           orderIndex: 5
         }

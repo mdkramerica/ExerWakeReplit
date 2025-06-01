@@ -87,8 +87,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/users/:userId/assessments", async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
       const userAssessments = await storage.getUserAssessments(userId);
-      const allAssessments = await storage.getAssessments();
+      
+      // Get assessments based on user's injury type
+      const allAssessments = user.injuryType 
+        ? await storage.getAssessmentsForInjury(user.injuryType)
+        : await storage.getAssessments();
       
       // Combine assessments with user progress
       const assessmentsWithProgress = allAssessments.map(assessment => {
