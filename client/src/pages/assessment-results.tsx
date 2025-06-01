@@ -189,8 +189,11 @@ export default function AssessmentResults() {
               <CardContent>
                 <div className="space-y-6">
 
+                  {/* Debug: Log assessment data */}
+                  {console.log('Assessment data:', userAssessment)}
+                  
                   {/* Kapandji Specific Scoring */}
-                  {userAssessment.assessmentName === "Kapandji Score" && (
+                  {(userAssessment.assessmentName === "Kapandji Score" || userAssessment.assessmentName?.includes("Kapandji")) && (
                     <div className="bg-blue-50 border border-blue-200 p-6 rounded-lg">
                       <h4 className="font-medium mb-4 text-gray-900">Kapandji Opposition Score</h4>
                       <div className="space-y-4">
