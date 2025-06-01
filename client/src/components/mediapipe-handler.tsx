@@ -137,11 +137,7 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
         } catch (importError) {
           console.error('MediaPipe demo initialization failed:', importError);
           console.log('MediaPipe Hands class not available after all attempts');
-          
-          // Show user-friendly message for production deployment issues
-          console.warn('Hand tracking unavailable in this environment. This may be due to browser security policies or network restrictions.');
-          
-          // Return false to indicate initialization failed - component will handle gracefully
+          // Instead of throwing, return false to indicate initialization failed
           return false;
         }
 
