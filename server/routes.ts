@@ -489,6 +489,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         assessmentName: assessment?.name || 'Unknown Assessment'
       };
       
+      console.log('Assessment lookup:', {
+        userAssessmentId: userAssessment.assessmentId,
+        foundAssessment: assessment,
+        assessmentName: assessment?.name
+      });
+      
       res.json({ userAssessment: userAssessmentWithName, user });
     } catch (error) {
       res.status(400).json({ message: "Failed to retrieve assessment details" });

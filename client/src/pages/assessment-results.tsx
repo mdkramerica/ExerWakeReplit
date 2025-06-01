@@ -7,6 +7,7 @@ import { ArrowLeft, Calendar, Clock, BarChart3, Play, Download, Share2, Copy, Ch
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import AssessmentReplay from "@/components/assessment-replay";
+import { calculateMaxKapandjiScore } from "@shared/kapandji-calculator";
 
 export default function AssessmentResults() {
   const { userAssessmentId } = useParams();
@@ -189,9 +190,6 @@ export default function AssessmentResults() {
               <CardContent>
                 <div className="space-y-6">
 
-                  {/* Debug: Log assessment data */}
-                  {console.log('Assessment data:', userAssessment)}
-                  
                   {/* Kapandji Specific Scoring */}
                   {(userAssessment.assessmentName === "Kapandji Score" || userAssessment.assessmentName?.includes("Kapandji")) && (
                     <div className="bg-blue-50 border border-blue-200 p-6 rounded-lg">
@@ -199,7 +197,18 @@ export default function AssessmentResults() {
                       <div className="space-y-4">
                         <div className="text-center mb-6">
                           <div className="text-4xl font-bold text-blue-600 mb-2">
-                            {userAssessment.totalActiveRom || '0'}/10
+                            {(() => {
+                              // Calculate Kapandji score from motion data
+                              if (motionData && motionData.length > 0) {
+                                const { calculateMaxKapandjiScore } = require('@shared/kapandji-calculator');
+                                const motionFrames = motionData.map(frame => ({
+                                  landmarks: frame.landmarks
+                                }));
+                                const kapandjiResult = calculateMaxKapandjiScore(motionFrames);
+                                return kapandjiResult.maxScore;
+                              }
+                              return '0';
+                            })()}/10
                           </div>
                           <div className="text-sm text-gray-700">
                             {parseInt(userAssessment.totalActiveRom || '0') >= 10 ? 'Excellent Opposition' :
