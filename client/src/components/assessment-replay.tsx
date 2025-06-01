@@ -668,86 +668,90 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
               onMouseUp={handleCanvasMouseUp}
             />
             
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <Button
-                  onClick={handlePlay}
-                  className="medical-button"
-                >
-                  {isPlaying ? <Pause className="w-4 h-4 mr-2" /> : <Play className="w-4 h-4 mr-2" />}
-                  {isPlaying ? 'Pause' : 'Play'}
-                </Button>
-                
-                <div className="flex items-center space-x-2 border-l pl-4">
+            {/* Control Panel - Responsive Design */}
+            <div className="bg-white border border-gray-300 p-4 rounded-lg space-y-4">
+              {/* Main Controls Row */}
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                {/* Play Controls */}
+                <div className="flex flex-wrap items-center gap-3">
                   <Button
-                    onClick={() => {
-                      setCurrentFrame(maxTAMFrame);
-                      setIsPlaying(false);
-                    }}
-                    variant="outline"
-                    size="sm"
-                    title="Jump to Maximum TAM frame"
+                    onClick={handlePlay}
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2 rounded-md transition-colors"
                   >
-                    <span className="text-xs font-medium">Max TAM</span>
+                    {isPlaying ? <Pause className="w-4 h-4 mr-2" /> : <Play className="w-4 h-4 mr-2" />}
+                    {isPlaying ? 'Pause' : 'Play'}
                   </Button>
                   
+                  <div className="flex items-center gap-2 border-l border-gray-300 pl-3">
+                    <Button
+                      onClick={() => {
+                        setCurrentFrame(maxTAMFrame);
+                        setIsPlaying(false);
+                      }}
+                      className="bg-green-600 hover:bg-green-700 text-white text-xs font-medium px-3 py-2 rounded-md transition-colors"
+                      title="Jump to Maximum TAM frame"
+                    >
+                      Max TAM
+                    </Button>
+                    
+                    <Button
+                      onClick={() => {
+                        setCurrentFrame(minTAMFrame);
+                        setIsPlaying(false);
+                      }}
+                      className="bg-orange-600 hover:bg-orange-700 text-white text-xs font-medium px-3 py-2 rounded-md transition-colors"
+                      title="Jump to Minimum TAM frame"
+                    >
+                      Min TAM
+                    </Button>
+                  </div>
+                  
                   <Button
-                    onClick={() => {
-                      setCurrentFrame(minTAMFrame);
-                      setIsPlaying(false);
-                    }}
-                    variant="outline"
-                    size="sm"
-                    title="Jump to Minimum TAM frame"
+                    onClick={handleReset}
+                    className="bg-gray-600 hover:bg-gray-700 text-white font-medium px-4 py-2 rounded-md transition-colors"
                   >
-                    <span className="text-xs font-medium">Min TAM</span>
+                    <RotateCcw className="w-4 h-4 mr-2" />
+                    Reset
+                  </Button>
+
+                  <Button
+                    onClick={handleDownload}
+                    className="bg-purple-600 hover:bg-purple-700 text-white font-medium px-4 py-2 rounded-md transition-colors"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Export Data
                   </Button>
                 </div>
-                
-                <Button
-                  onClick={handleReset}
-                  variant="outline"
-                >
-                  <RotateCcw className="w-4 h-4 mr-2" />
-                  Reset
-                </Button>
 
-                <Button
-                  onClick={handleDownload}
-                  variant="outline"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Export Data
-                </Button>
-              </div>
-
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <label className="text-sm text-gray-800 font-medium">Digit:</label>
-                  <select
-                    value={selectedDigit}
-                    onChange={(e) => setSelectedDigit(e.target.value as 'INDEX' | 'MIDDLE' | 'RING' | 'PINKY')}
-                    className="border rounded px-2 py-1 bg-white"
-                  >
-                    <option value="INDEX">Index Finger</option>
-                    <option value="MIDDLE">Middle Finger</option>
-                    <option value="RING">Ring Finger</option>
-                    <option value="PINKY">Pinky Finger</option>
-                  </select>
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <label className="text-sm text-gray-800 font-medium">Speed:</label>
-                  <select
-                    value={playbackSpeed}
-                    onChange={(e) => setPlaybackSpeed(Number(e.target.value))}
-                    className="border rounded px-2 py-1 bg-white"
-                  >
-                    <option value={0.5}>0.5x</option>
-                    <option value={1}>1x</option>
-                    <option value={1.5}>1.5x</option>
-                    <option value={2}>2x</option>
-                  </select>
+                {/* Settings Controls */}
+                <div className="flex flex-wrap items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm font-semibold text-gray-900">Digit:</label>
+                    <select
+                      value={selectedDigit}
+                      onChange={(e) => setSelectedDigit(e.target.value as 'INDEX' | 'MIDDLE' | 'RING' | 'PINKY')}
+                      className="border-2 border-gray-300 rounded-md px-3 py-2 bg-white font-medium text-gray-900 focus:border-blue-500 focus:outline-none"
+                    >
+                      <option value="INDEX">Index Finger</option>
+                      <option value="MIDDLE">Middle Finger</option>
+                      <option value="RING">Ring Finger</option>
+                      <option value="PINKY">Pinky Finger</option>
+                    </select>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm font-semibold text-gray-900">Speed:</label>
+                    <select
+                      value={playbackSpeed}
+                      onChange={(e) => setPlaybackSpeed(Number(e.target.value))}
+                      className="border-2 border-gray-300 rounded-md px-3 py-2 bg-white font-medium text-gray-900 focus:border-blue-500 focus:outline-none"
+                    >
+                      <option value={0.5}>0.5x</option>
+                      <option value={1}>1x</option>
+                      <option value={1.5}>1.5x</option>
+                      <option value={2}>2x</option>
+                    </select>
+                  </div>
                 </div>
               </div>
             </div>
