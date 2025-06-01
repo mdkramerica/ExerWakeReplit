@@ -19,9 +19,15 @@ export default function JointTest() {
       setLandmarks(data.landmarks);
       
       try {
+        // Create unmirrored landmarks for joint analysis
+        const unmirroredLandmarks = data.landmarks.map((landmark: any) => ({
+          ...landmark,
+          x: 1 - landmark.x  // Unmirror x-coordinate
+        }));
+        
         const romData = calculateCurrentROM(data.landmarks);
         setCurrentROM(romData);
-        drawHandWithJoints(data.landmarks, romData);
+        drawHandWithJoints(unmirroredLandmarks, romData);
       } catch (error) {
         console.error('ROM calculation error:', error);
       }
@@ -42,7 +48,7 @@ export default function JointTest() {
     // Draw all landmarks as small circles
     ctx.fillStyle = '#6b7280';
     handLandmarks.forEach((landmark, index) => {
-      const x = (1 - landmark.x) * canvas.width;
+      const x = landmark.x * canvas.width;
       const y = landmark.y * canvas.height;
       
       ctx.beginPath();
@@ -66,12 +72,12 @@ export default function JointTest() {
     if (handLandmarks[5] && handLandmarks[6]) {
       ctx.strokeStyle = '#ef4444';
       ctx.beginPath();
-      ctx.moveTo((1 - handLandmarks[5].x) * canvas.width, handLandmarks[5].y * canvas.height);
-      ctx.lineTo((1 - handLandmarks[6].x) * canvas.width, handLandmarks[6].y * canvas.height);
+      ctx.moveTo(handLandmarks[5].x * canvas.width, handLandmarks[5].y * canvas.height);
+      ctx.lineTo(handLandmarks[6].x * canvas.width, handLandmarks[6].y * canvas.height);
       ctx.stroke();
       
-      // Label MCP angle (calculated from 0-5-6) - unmirror coordinates
-      const midX = (1 - (handLandmarks[5].x + handLandmarks[6].x) / 2) * canvas.width;
+      // Label MCP angle (calculated from 0-5-6)
+      const midX = (handLandmarks[5].x + handLandmarks[6].x) / 2 * canvas.width;
       const midY = (handLandmarks[5].y + handLandmarks[6].y) / 2 * canvas.height;
       ctx.fillStyle = '#ef4444';
       ctx.font = '12px Arial';
@@ -82,12 +88,12 @@ export default function JointTest() {
     if (handLandmarks[6] && handLandmarks[7]) {
       ctx.strokeStyle = '#10b981';
       ctx.beginPath();
-      ctx.moveTo((1 - handLandmarks[6].x) * canvas.width, handLandmarks[6].y * canvas.height);
-      ctx.lineTo((1 - handLandmarks[7].x) * canvas.width, handLandmarks[7].y * canvas.height);
+      ctx.moveTo(handLandmarks[6].x * canvas.width, handLandmarks[6].y * canvas.height);
+      ctx.lineTo(handLandmarks[7].x * canvas.width, handLandmarks[7].y * canvas.height);
       ctx.stroke();
       
-      // Label PIP angle (calculated from 5-6-7) - unmirror coordinates
-      const midX = (1 - (handLandmarks[6].x + handLandmarks[7].x) / 2) * canvas.width;
+      // Label PIP angle (calculated from 5-6-7)
+      const midX = (handLandmarks[6].x + handLandmarks[7].x) / 2 * canvas.width;
       const midY = (handLandmarks[6].y + handLandmarks[7].y) / 2 * canvas.height;
       ctx.fillStyle = '#10b981';
       ctx.font = '12px Arial';
@@ -98,22 +104,22 @@ export default function JointTest() {
     if (handLandmarks[7] && handLandmarks[8]) {
       ctx.strokeStyle = '#3b82f6';
       ctx.beginPath();
-      ctx.moveTo((1 - handLandmarks[7].x) * canvas.width, handLandmarks[7].y * canvas.height);
-      ctx.lineTo((1 - handLandmarks[8].x) * canvas.width, handLandmarks[8].y * canvas.height);
+      ctx.moveTo(handLandmarks[7].x * canvas.width, handLandmarks[7].y * canvas.height);
+      ctx.lineTo(handLandmarks[8].x * canvas.width, handLandmarks[8].y * canvas.height);
       ctx.stroke();
       
-      // Label DIP angle (calculated from 6-7-8) - unmirror coordinates
-      const midX = (1 - (handLandmarks[7].x + handLandmarks[8].x) / 2) * canvas.width;
+      // Label DIP angle (calculated from 6-7-8)
+      const midX = (handLandmarks[7].x + handLandmarks[8].x) / 2 * canvas.width;
       const midY = (handLandmarks[7].y + handLandmarks[8].y) / 2 * canvas.height;
       ctx.fillStyle = '#3b82f6';
       ctx.font = '12px Arial';
       ctx.fillText(`DIP: ${romData.dipAngle.toFixed(1)}°`, midX + 10, midY);
     }
 
-    // Highlight the anatomical landmarks - unmirror coordinates
+    // Highlight the anatomical landmarks
     indexFingerPoints.forEach((pointIndex, i) => {
       if (handLandmarks[pointIndex]) {
-        const x = (1 - handLandmarks[pointIndex].x) * canvas.width;
+        const x = handLandmarks[pointIndex].x * canvas.width;
         const y = handLandmarks[pointIndex].y * canvas.height;
         
         // Different colors for different anatomical points
@@ -141,17 +147,17 @@ export default function JointTest() {
     if (!landmarks[p1] || !landmarks[p2] || !landmarks[p3]) return;
     
     const center = {
-      x: (1 - landmarks[p2].x) * ctx.canvas.width,
+      x: landmarks[p2].x * ctx.canvas.width,
       y: landmarks[p2].y * ctx.canvas.height
     };
     
     const point1 = {
-      x: (1 - landmarks[p1].x) * ctx.canvas.width,
+      x: landmarks[p1].x * ctx.canvas.width,
       y: landmarks[p1].y * ctx.canvas.height
     };
     
     const point3 = {
-      x: (1 - landmarks[p3].x) * ctx.canvas.width,
+      x: landmarks[p3].x * ctx.canvas.width,
       y: landmarks[p3].y * ctx.canvas.height
     };
     
