@@ -49,6 +49,24 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
   const actualMotionData = motionData?.motionData || recordingData;
   const replayData: ReplayData[] = actualMotionData.length > 0 ? actualMotionData : [];
 
+  // Initialize frame with maximum TAM when replay data changes
+  useEffect(() => {
+    if (replayData.length > 0) {
+      // Calculate ROM for all frames and find the one with maximum TAM
+      const romFrames = replayData.map(frame => calculateCurrentROM(frame.landmarks));
+      const maxRomFrame = romFrames.reduce((max, current) => 
+        current.totalActiveRom > max.totalActiveRom ? current : max
+      );
+      setMaxROM(maxRomFrame);
+      
+      // Find the frame index with maximum TAM and set it as initial frame
+      const maxTamFrameIndex = romFrames.findIndex(rom => 
+        rom.totalActiveRom === maxRomFrame.totalActiveRom
+      );
+      setCurrentFrame(maxTamFrameIndex >= 0 ? maxTamFrameIndex : 0);
+    }
+  }, [replayData]);
+
   // Calculate maximum ROM from all frames for comparison
   useEffect(() => {
     if (replayData.length > 0) {
@@ -384,8 +402,8 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
     setCurrentFrame(prev => {
       const next = prev + playbackSpeed;
       if (next >= replayData.length) {
-        setIsPlaying(false);
-        return replayData.length - 1;
+        // Loop back to beginning instead of stopping
+        return 0;
       }
       return Math.floor(next);
     });
