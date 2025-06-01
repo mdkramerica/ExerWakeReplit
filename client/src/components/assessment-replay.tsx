@@ -648,7 +648,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
   }, [isDragging]);
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6 bg-white p-6 min-h-screen">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between text-gray-900">
