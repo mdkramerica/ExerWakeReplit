@@ -146,27 +146,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const assessmentId = parseInt(req.params.assessmentId);
       const { romData, repetitionData, qualityScore } = req.body;
       
-      let userAssessment = await storage.getUserAssessment(userId, assessmentId);
+      // Calculate ROM values from repetition data for trigger finger assessments
+      let maxMcpAngle: number | null = null;
+      let maxPipAngle: number | null = null;
+      let maxDipAngle: number | null = null;
+      let totalActiveRom: number | null = null;
       
-      if (!userAssessment) {
-        userAssessment = await storage.createUserAssessment({
-          userId,
-          assessmentId,
-          isCompleted: true,
-          completedAt: new Date(),
-          romData,
-          repetitionData,
-          qualityScore
-        });
-      } else {
-        userAssessment = await storage.updateUserAssessment(userAssessment.id, {
-          isCompleted: true,
-          completedAt: new Date(),
-          romData,
-          repetitionData,
-          qualityScore
+      if (repetitionData && Array.isArray(repetitionData)) {
+        repetitionData.forEach((rep: any) => {
+          if (rep.romData) {
+            maxMcpAngle = Math.max(maxMcpAngle || 0, rep.romData.mcpAngle || 0);
+            maxPipAngle = Math.max(maxPipAngle || 0, rep.romData.pipAngle || 0);
+            maxDipAngle = Math.max(maxDipAngle || 0, rep.romData.dipAngle || 0);
+            totalActiveRom = Math.max(totalActiveRom || 0, rep.romData.totalActiveRom || 0);
+          }
         });
       }
+      
+      // Find existing user assessments to determine session number
+      const existingAssessments = await storage.getUserAssessments(userId);
+      const sessionCount = existingAssessments.filter(ua => ua.assessmentId === assessmentId).length;
+      const sessionNumber = sessionCount + 1;
+      
+      // Create new assessment (don't update existing ones - allow multiple sessions)
+      const userAssessment = await storage.createUserAssessment({
+        userId,
+        assessmentId,
+        sessionNumber,
+        isCompleted: true,
+        completedAt: new Date(),
+        romData,
+        repetitionData,
+        qualityScore,
+        maxMcpAngle: maxMcpAngle !== null ? maxMcpAngle.toString() : null,
+        maxPipAngle: maxPipAngle !== null ? maxPipAngle.toString() : null,
+        maxDipAngle: maxDipAngle !== null ? maxDipAngle.toString() : null,
+        totalActiveRom: totalActiveRom !== null ? totalActiveRom.toString() : null
+      });
       
       res.json({ userAssessment });
     } catch (error) {
@@ -229,6 +245,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ motionData });
     } catch (error) {
       res.status(400).json({ message: "Failed to retrieve motion data" });
+    }
+  });
+
+  // Get assessment history for a user
+  app.get("/api/users/:userId/assessment-history", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const userAssessments = await storage.getUserAssessments(userId);
+      const assessments = await storage.getAssessments();
+      
+      // Group by assessment and include session details
+      const history = userAssessments.map(ua => {
+        const assessment = assessments.find(a => a.id === ua.assessmentId);
+        return {
+          ...ua,
+          assessmentName: assessment?.name || 'Unknown',
+          assessmentDescription: assessment?.description || '',
+        };
+      }).sort((a, b) => new Date(b.completedAt || 0).getTime() - new Date(a.completedAt || 0).getTime());
+      
+      res.json({ history });
+    } catch (error) {
+      res.status(400).json({ message: "Failed to retrieve assessment history" });
+    }
+  });
+
+  // Get detailed results for a specific user assessment
+  app.get("/api/user-assessments/:userAssessmentId/details", async (req, res) => {
+    try {
+      const userAssessmentId = parseInt(req.params.userAssessmentId);
+      
+      // Find the user assessment
+      let userAssessment = null;
+      for (let userId = 1; userId <= 100; userId++) {
+        try {
+          const userAssessments = await storage.getUserAssessments(userId);
+          const found = userAssessments.find(ua => ua.id === userAssessmentId);
+          if (found) {
+            userAssessment = found;
+            break;
+          }
+        } catch (e) {
+          continue;
+        }
+      }
+      
+      if (!userAssessment) {
+        return res.status(404).json({ message: "Assessment not found" });
+      }
+      
+      res.json({ userAssessment });
+    } catch (error) {
+      res.status(400).json({ message: "Failed to retrieve assessment details" });
     }
   });
 

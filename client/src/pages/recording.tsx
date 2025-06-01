@@ -101,6 +101,8 @@ export default function Recording() {
     setRecordingTimer(0);
     setRecordingMotionData([]); // Clear previous motion data
     recordingMotionDataRef.current = []; // Clear ref data too
+    // Reset ROM values for new recording
+    setMaxROM({ mcpAngle: 0, pipAngle: 0, dipAngle: 0, totalActiveRom: 0 });
     console.log(`Recording state set: isRecording=true, startTime=${recordingStartTimeRef.current}`);
   };
 
@@ -304,6 +306,39 @@ export default function Recording() {
                     </div>
                   </div>
                 </div>
+
+                {/* Real-time ROM Display on Video for Trigger Finger */}
+                {currentUser?.injuryType === 'Trigger Finger' && handDetected && (
+                  <div className="absolute bottom-4 left-4 bg-black bg-opacity-70 rounded-lg p-3">
+                    <div className="text-white text-sm">
+                      <div className="font-medium mb-2">Range of Motion (Live)</div>
+                      <div className="space-y-1">
+                        <div className="flex justify-between">
+                          <span>MCP:</span>
+                          <span className="font-mono">{currentROM.mcpAngle.toFixed(1)}°</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>PIP:</span>
+                          <span className="font-mono">{currentROM.pipAngle.toFixed(1)}°</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>DIP:</span>
+                          <span className="font-mono">{currentROM.dipAngle.toFixed(1)}°</span>
+                        </div>
+                        <div className="flex justify-between border-t border-gray-400 pt-1">
+                          <span className="font-medium">Total:</span>
+                          <span className="font-mono font-bold">{currentROM.totalActiveRom.toFixed(1)}°</span>
+                        </div>
+                        {isRecording && (
+                          <div className="mt-2 pt-2 border-t border-green-400">
+                            <div className="text-green-400 text-xs mb-1">Session Max:</div>
+                            <div className="text-green-400 font-mono text-lg">{maxROM.totalActiveRom.toFixed(1)}°</div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
               
               {/* Recording Controls */}

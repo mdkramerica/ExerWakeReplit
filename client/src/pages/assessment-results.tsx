@@ -1,0 +1,293 @@
+import { useState, useEffect } from "react";
+import { useLocation, useParams } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowLeft, Calendar, Clock, BarChart3, Play, Download } from "lucide-react";
+import AssessmentReplay from "@/components/assessment-replay";
+
+export default function AssessmentResults() {
+  const { userAssessmentId } = useParams();
+  const [, setLocation] = useLocation();
+  const [showReplay, setShowReplay] = useState(false);
+
+  const { data: resultData, isLoading } = useQuery({
+    queryKey: [`/api/user-assessments/${userAssessmentId}/details`],
+    enabled: !!userAssessmentId,
+  });
+
+  const userAssessment = resultData?.userAssessment;
+
+  if (isLoading) {
+    return (
+      <div className="max-w-4xl mx-auto">
+        <Card className="medical-card">
+          <CardContent>
+            <div className="text-center py-8">Loading assessment results...</div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!userAssessment) {
+    return (
+      <div className="max-w-4xl mx-auto">
+        <Card className="medical-card">
+          <CardContent>
+            <div className="text-center py-8">Assessment results not found.</div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (showReplay) {
+    return (
+      <AssessmentReplay
+        assessmentName="Assessment Replay"
+        userAssessmentId={userAssessmentId}
+        onClose={() => setShowReplay(false)}
+      />
+    );
+  }
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const hasRomData = userAssessment.maxMcpAngle || userAssessment.maxPipAngle || userAssessment.maxDipAngle;
+
+  return (
+    <div className="max-w-6xl mx-auto space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <Button
+            variant="outline"
+            onClick={() => setLocation("/assessments")}
+            className="flex items-center space-x-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back to Assessments</span>
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Assessment Results</h1>
+            <p className="text-gray-600">Detailed analysis and motion data</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid lg:grid-cols-3 gap-6">
+        {/* Main Results Panel */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Session Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Calendar className="w-5 h-5 text-blue-600" />
+                <span>Session Information</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Date & Time</label>
+                  <div className="text-lg font-medium">
+                    {userAssessment.completedAt ? formatDate(userAssessment.completedAt) : 'Not completed'}
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Session Number</label>
+                  <div className="text-lg font-medium">Session #{userAssessment.sessionNumber || 1}</div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Quality Score</label>
+                  <div className="text-lg font-medium">{userAssessment.qualityScore || 0}%</div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Status</label>
+                  <div className={`text-lg font-medium ${userAssessment.isCompleted ? 'text-green-600' : 'text-orange-600'}`}>
+                    {userAssessment.isCompleted ? 'Completed' : 'In Progress'}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Range of Motion Results */}
+          {hasRomData && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <BarChart3 className="w-5 h-5 text-green-600" />
+                  <span>Range of Motion Analysis</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="grid md:grid-cols-4 gap-4">
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <div className="text-sm font-medium text-blue-700">MCP Joint</div>
+                      <div className="text-2xl font-bold text-blue-900">
+                        {userAssessment.maxMcpAngle ? parseFloat(userAssessment.maxMcpAngle).toFixed(1) : '0.0'}°
+                      </div>
+                      <div className="text-xs text-blue-600">Metacarpophalangeal</div>
+                    </div>
+                    <div className="bg-green-50 p-4 rounded-lg">
+                      <div className="text-sm font-medium text-green-700">PIP Joint</div>
+                      <div className="text-2xl font-bold text-green-900">
+                        {userAssessment.maxPipAngle ? parseFloat(userAssessment.maxPipAngle).toFixed(1) : '0.0'}°
+                      </div>
+                      <div className="text-xs text-green-600">Proximal Interphalangeal</div>
+                    </div>
+                    <div className="bg-purple-50 p-4 rounded-lg">
+                      <div className="text-sm font-medium text-purple-700">DIP Joint</div>
+                      <div className="text-2xl font-bold text-purple-900">
+                        {userAssessment.maxDipAngle ? parseFloat(userAssessment.maxDipAngle).toFixed(1) : '0.0'}°
+                      </div>
+                      <div className="text-xs text-purple-600">Distal Interphalangeal</div>
+                    </div>
+                    <div className="bg-orange-50 p-4 rounded-lg">
+                      <div className="text-sm font-medium text-orange-700">Total Active ROM</div>
+                      <div className="text-2xl font-bold text-orange-900">
+                        {userAssessment.totalActiveRom ? parseFloat(userAssessment.totalActiveRom).toFixed(1) : '0.0'}°
+                      </div>
+                      <div className="text-xs text-orange-600">Combined Range</div>
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h4 className="font-medium text-gray-900 mb-2">Clinical Interpretation</h4>
+                    <div className="text-sm text-gray-700">
+                      <p>
+                        Total Active Range of Motion (TAM) = MCP + PIP + DIP joint angles. 
+                        Normal values for index finger: MCP (0-90°), PIP (0-100°), DIP (0-90°).
+                      </p>
+                      {userAssessment.totalActiveRom && (
+                        <p className="mt-2">
+                          <strong>Assessment:</strong> {parseFloat(userAssessment.totalActiveRom) >= 220 ? 
+                            'Excellent range of motion' : 
+                            parseFloat(userAssessment.totalActiveRom) >= 180 ? 
+                              'Good range of motion' : 
+                              'Limited range of motion - consider follow-up'}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Motion Data Summary */}
+          {userAssessment.repetitionData && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Clock className="w-5 h-5 text-purple-600" />
+                  <span>Motion Data Summary</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {Array.isArray(userAssessment.repetitionData) ? (
+                  <div className="space-y-3">
+                    {userAssessment.repetitionData.map((rep: any, index: number) => (
+                      <div key={index} className="bg-gray-50 p-3 rounded-lg">
+                        <div className="grid md:grid-cols-4 gap-4 text-sm">
+                          <div>
+                            <span className="font-medium">Repetition:</span> {rep.repetition || index + 1}
+                          </div>
+                          <div>
+                            <span className="font-medium">Duration:</span> {rep.duration || 0}s
+                          </div>
+                          <div>
+                            <span className="font-medium">Landmarks:</span> {rep.landmarksDetected || 0}
+                          </div>
+                          <div>
+                            <span className="font-medium">Motion Frames:</span> {rep.motionData?.length || 0}
+                          </div>
+                        </div>
+                        {rep.romData && (
+                          <div className="mt-2 text-xs text-gray-600">
+                            ROM: MCP {rep.romData.mcpAngle?.toFixed(1)}°, 
+                            PIP {rep.romData.pipAngle?.toFixed(1)}°, 
+                            DIP {rep.romData.dipAngle?.toFixed(1)}°
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-gray-500">No repetition data available</div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {/* Actions Panel */}
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Actions</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Button
+                onClick={() => setShowReplay(true)}
+                className="w-full flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-700"
+              >
+                <Play className="w-4 h-4" />
+                <span>View Motion Replay</span>
+              </Button>
+              
+              <Button
+                variant="outline"
+                onClick={() => {
+                  const data = {
+                    assessment: userAssessment,
+                    exportedAt: new Date().toISOString()
+                  };
+                  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `assessment_results_${userAssessment.id}.json`;
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                  URL.revokeObjectURL(url);
+                }}
+                className="w-full flex items-center justify-center space-x-2"
+              >
+                <Download className="w-4 h-4" />
+                <span>Export Data</span>
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Clinical Notes */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Clinical Notes</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-sm text-gray-700 space-y-2">
+                <p><strong>TAM Assessment:</strong> Total Active Motion measurement for trigger finger evaluation.</p>
+                <p><strong>Session Tracking:</strong> Multiple sessions allow progress monitoring over time.</p>
+                <p><strong>Quality Score:</strong> Based on hand detection accuracy and landmark stability.</p>
+                <p><strong>Motion Replay:</strong> Privacy-focused visualization showing hand skeleton movements only.</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}
