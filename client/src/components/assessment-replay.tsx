@@ -41,6 +41,8 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
   const [selectedDigit, setSelectedDigit] = useState<'INDEX' | 'MIDDLE' | 'RING' | 'PINKY'>('INDEX');
   const [allDigitsROM, setAllDigitsROM] = useState<{[key: string]: JointAngles} | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [maxTAMFrame, setMaxTAMFrame] = useState<number>(0);
+  const [minTAMFrame, setMinTAMFrame] = useState<number>(0);
   
   // Fetch real motion data if userAssessmentId is provided
   const { data: motionData, isLoading } = useQuery({
@@ -86,11 +88,25 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
       setAllDigitsROM(maxROMByDigit);
       setMaxROM(maxROMByDigit[selectedDigit]);
       
-      // Find the frame index with maximum TAM for selected digit and set it as initial frame
+      // Find the frame indices with maximum and minimum TAM for selected digit
       const selectedDigitFrames = allFramesAllDigits.map(frame => frame[selectedDigit]);
+      
+      // Find max TAM frame
       const maxTamFrameIndex = selectedDigitFrames.findIndex(rom => 
         rom.totalActiveRom === maxROMByDigit[selectedDigit].totalActiveRom
       );
+      
+      // Find min TAM frame
+      const minROM = selectedDigitFrames.reduce((min, current) => 
+        current.totalActiveRom < min.totalActiveRom ? current : min, 
+        selectedDigitFrames[0]
+      );
+      const minTamFrameIndex = selectedDigitFrames.findIndex(rom => 
+        rom.totalActiveRom === minROM.totalActiveRom
+      );
+      
+      setMaxTAMFrame(maxTamFrameIndex >= 0 ? maxTamFrameIndex : 0);
+      setMinTAMFrame(minTamFrameIndex >= 0 ? minTamFrameIndex : 0);
       setCurrentFrame(maxTamFrameIndex >= 0 ? maxTamFrameIndex : 0);
     }
   }, [replayData, selectedDigit]);
@@ -661,6 +677,32 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
                   {isPlaying ? <Pause className="w-4 h-4 mr-2" /> : <Play className="w-4 h-4 mr-2" />}
                   {isPlaying ? 'Pause' : 'Play'}
                 </Button>
+                
+                <div className="flex items-center space-x-2 border-l pl-4">
+                  <Button
+                    onClick={() => {
+                      setCurrentFrame(maxTAMFrame);
+                      setIsPlaying(false);
+                    }}
+                    variant="outline"
+                    size="sm"
+                    title="Jump to Maximum TAM frame"
+                  >
+                    <span className="text-xs font-medium">Max TAM</span>
+                  </Button>
+                  
+                  <Button
+                    onClick={() => {
+                      setCurrentFrame(minTAMFrame);
+                      setIsPlaying(false);
+                    }}
+                    variant="outline"
+                    size="sm"
+                    title="Jump to Minimum TAM frame"
+                  >
+                    <span className="text-xs font-medium">Min TAM</span>
+                  </Button>
+                </div>
                 
                 <Button
                   onClick={handleReset}
