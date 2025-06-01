@@ -69,9 +69,12 @@ export default function AssessmentList() {
   const allCompleted = assessments.length > 0 && assessments.every(a => a.isCompleted);
 
   if (showReplay) {
+    // Check if it's a user assessment ID (numeric) or assessment name
+    const isUserAssessmentId = !isNaN(parseInt(showReplay));
     return (
       <AssessmentReplay
-        assessmentName={showReplay}
+        assessmentName={isUserAssessmentId ? "Motion Replay" : showReplay}
+        userAssessmentId={isUserAssessmentId ? showReplay : undefined}
         onClose={() => setShowReplay(null)}
       />
     );

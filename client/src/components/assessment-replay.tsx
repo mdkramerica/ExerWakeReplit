@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Play, Pause, RotateCcw, Download } from "lucide-react";
@@ -28,27 +29,55 @@ const HAND_CONNECTIONS = [
   [0, 17] // palm connection
 ];
 
-export default function AssessmentReplay({ assessmentName, recordingData = [], onClose }: AssessmentReplayProps) {
+export default function AssessmentReplay({ assessmentName, userAssessmentId, recordingData = [], onClose }: AssessmentReplayProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentFrame, setCurrentFrame] = useState(0);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const animationRef = useRef<number | null>(null);
   
-  // Generate sample replay data if none provided (for demonstration)
-  const sampleData: ReplayData[] = recordingData.length > 0 ? recordingData : 
-    Array.from({ length: 180 }, (_, i) => {
-      const time = i / 30; // 30 FPS simulation
-      const waveX = Math.sin(time * 0.5) * 0.1 + 0.5;
-      const waveY = Math.cos(time * 0.3) * 0.1 + 0.4;
+  // Fetch real motion data if userAssessmentId is provided
+  const { data: motionData, isLoading } = useQuery({
+    queryKey: [`/api/user-assessments/${userAssessmentId}/motion-data`],
+    enabled: !!userAssessmentId,
+  });
+
+  // Use actual recorded motion data or provided recording data
+  const actualMotionData = motionData?.motionData || recordingData;
+  const replayData: ReplayData[] = actualMotionData.length > 0 ? actualMotionData : [];
+
+  // Draw hand landmarks and connections on canvas
+  const drawHandLandmarks = (ctx: CanvasRenderingContext2D, landmarks: Array<{x: number, y: number, z: number}>, canvasWidth: number, canvasHeight: number) => {
+    if (!landmarks || landmarks.length === 0) return;
+
+    // Draw landmark points
+    ctx.fillStyle = '#00ff00';
+    landmarks.forEach((landmark, index) => {
+      const x = landmark.x * canvasWidth;
+      const y = landmark.y * canvasHeight;
       
-      return {
-        timestamp: Date.now() + i * 33,
-        landmarks: generateHandLandmarks(waveX, waveY, time),
-        handedness: "Right",
-        quality: 85 + Math.random() * 10
-      };
+      ctx.beginPath();
+      ctx.arc(x, y, 4, 0, 2 * Math.PI);
+      ctx.fill();
     });
+
+    // Draw hand connections
+    ctx.strokeStyle = '#00ff00';
+    ctx.lineWidth = 2;
+    HAND_CONNECTIONS.forEach(([start, end]) => {
+      if (landmarks[start] && landmarks[end]) {
+        const startX = landmarks[start].x * canvasWidth;
+        const startY = landmarks[start].y * canvasHeight;
+        const endX = landmarks[end].x * canvasWidth;
+        const endY = landmarks[end].y * canvasHeight;
+        
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+      }
+    });
+  };
 
   function generateHandLandmarks(centerX: number, centerY: number, time: number): Array<{x: number, y: number, z: number}> {
     const landmarks = [];
