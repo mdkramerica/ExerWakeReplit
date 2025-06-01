@@ -33,160 +33,105 @@
   --exer-dark-blue: 37 99 235; /* #2563EB - blue for buttons */
 }
 
-/* COMPREHENSIVE TEXT VISIBILITY FIX - Override ALL light text across the app */
-.text-gray-100,
-.text-gray-200,
-.text-gray-300,
-.text-gray-400,
-.text-gray-500,
-.text-gray-600,
-.text-slate-100,
-.text-slate-200,
-.text-slate-300,
-.text-slate-400,
-.text-slate-500,
-.text-slate-600,
-.text-zinc-300,
-.text-zinc-400,
-.text-zinc-500,
-.text-neutral-300,
-.text-neutral-400,
-.text-neutral-500 {
-  color: rgb(17 24 39) !important; /* Force dark gray-900 */
-  font-weight: 600 !important;
-}
-
-.text-muted-foreground,
-.text-muted {
-  color: rgb(17 24 39) !important; /* Force dark gray-900 */
-  font-weight: 600 !important;
-}
-
-/* Targeted fix for text elements */
-p, span, div, label, h1, h2, h3, h4, h5, h6, a, li, td, th, 
-small, em, strong, b, i, u, code, pre, blockquote, cite, time {
-  color: rgb(17 24 39) !important;
-}
-
-/* Special targeting for common problematic patterns */
-[class*="text-gray-"],
-[class*="text-slate-"],
-[class*="text-zinc-"],
-[class*="text-neutral-"] {
-  color: rgb(17 24 39) !important;
-  font-weight: 600 !important;
-}
-
-/* Fix yellow background issues - targeted approach */
-/* Override any yellow/amber background classes specifically */
-.bg-yellow-50,
-.bg-yellow-100,
-.bg-yellow-200,
-.bg-yellow-300,
-.bg-yellow-400,
-.bg-amber-50,
-.bg-amber-100,
-.bg-amber-200,
-.bg-amber-300,
-.bg-amber-400,
-[class*="bg-yellow"],
-[class*="bg-amber"] {
-  background-color: rgb(255 255 255) !important;
-}
-
-/* Ensure cards have proper white backgrounds */
-.card,
-[class*="card"],
-.medical-card,
-.assessment-card {
-  background-color: rgb(255 255 255) !important;
-}
-
-/* Additional comprehensive yellow background removal */
-div[class*="bg-yellow"],
-div[class*="bg-amber"],
-section[class*="bg-yellow"],
-section[class*="bg-amber"],
-.bg-warning,
-.warning,
-[style*="background-color: yellow"],
-[style*="background: yellow"],
-[style*="background-color: #ffff"],
-[style*="background-color: #fef3c7"],
-[style*="background-color: #fde68a"] {
-  background-color: rgb(255 255 255) !important;
-  background: rgb(255 255 255) !important;
-}
-
-/* Universal yellow background override - most aggressive approach */
+/* Clean Color System Reset */
+/* Base text colors - dark and readable */
 * {
-  background-color: inherit !important;
+  color: #1f2937; /* gray-800 */
 }
 
-/* Ensure all primary containers have explicit white backgrounds */
-html, body {
-  background-color: rgb(255 255 255) !important;
+h1, h2, h3, h4, h5, h6 {
+  color: #111827; /* gray-900 */
+  font-weight: 600;
 }
 
-#root, 
-.container,
-.page-container,
-main,
-section,
-article {
-  background-color: rgb(255 255 255) !important;
+/* Clean background system */
+body {
+  background-color: #f9fafb; /* Very light gray background */
+  color: #1f2937;
 }
 
-/* Cards and components with intentional backgrounds */
-.bg-red-500,
-.bg-green-50,
-.bg-blue-50,
-.bg-purple-50,
-.bg-orange-50,
-.bg-red-50,
-.bg-gray-50,
-.bg-slate-50 {
-  background-color: revert !important;
+/* Card styling with clean white backgrounds */
+.card, [data-slot="card"] {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.border-red-600,
-.border-green-200,
-.border-blue-200,
-.border-purple-200,
-.border-orange-200 {
-  background-color: revert !important;
+/* Medical application specific styling */
+.medical-card {
+  background-color: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }
 
-/* Ensure all small text is readable */
-.text-xs,
-.text-sm,
-.text-base {
-  color: rgb(17 24 39) !important;
-  font-weight: 600 !important;
+/* Assessment cards */
+.assessment-card {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.2s ease;
 }
 
-/* Button text override */
-button,
-.btn,
-[role="button"] {
-  color: rgb(17 24 39) !important;
-  font-weight: 600 !important;
+.assessment-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: #3b82f6;
 }
 
-/* Card and content text */
-.card,
-.content,
-[class*="card-"] {
-  color: rgb(17 24 39) !important;
+.assessment-card.completed {
+  border-color: #10b981;
+  background-color: #f0fdf4;
 }
 
-/* Instructions and description text */
-.instructions,
-.description,
-[class*="instruction"],
-[class*="description"] {
-  color: rgb(17 24 39) !important;
-  font-weight: 600 !important;
+/* Button styling based on Exer.ai design */
+.medical-button {
+  background-color: #3b82f6;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.medical-button:hover {
+  background-color: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.medical-button:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Text size and weight system */
+.text-xs, .text-sm {
+  color: #6b7280; /* gray-500 */
+}
+
+.text-base, .text-lg {
+  color: #374151; /* gray-700 */
+}
+
+/* Labels and form text */
+label {
+  color: #374151;
+  font-weight: 500;
+}
+
+/* Input styling */
+input, textarea, select {
+  background-color: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  color: #1f2937;
 }
 
 .dark {
@@ -303,66 +248,47 @@ button,
   @apply ring-2 ring-offset-2 ring-primary outline-none;
 }
 
-/* Medical form styling */
+/* Clean input styling */
 .medical-input {
-  @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors;
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background-color: #ffffff;
+  color: #1f2937;
+  font-size: 16px;
+  transition: all 0.2s ease;
 }
 
-.medical-button,
-button.medical-button,
-.medical-button[class],
-button[class*="medical-button"] {
-  @apply py-3 px-6 rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-colors duration-200;
-  background-color: #2563EB !important;
-  color: white !important;
-  border: none !important;
-  box-shadow: none !important;
+.medical-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.medical-button:hover:not(:disabled),
-button.medical-button:hover:not(:disabled),
-.medical-button[class]:hover:not(:disabled),
-button[class*="medical-button"]:hover:not(:disabled) {
-  background-color: #1E40AF !important;
-  color: white !important;
-  opacity: 1 !important;
+/* Status indicators for assessment results */
+.status-excellent {
+  background-color: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
 }
 
-.medical-button:disabled,
-button.medical-button:disabled,
-.medical-button[class]:disabled,
-button[class*="medical-button"]:disabled {
-  @apply cursor-not-allowed;
-  background-color: #94A3B8 !important;
-  color: white !important;
-  opacity: 0.7 !important;
+.status-good {
+  background-color: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
 }
 
-/* Override shadcn Button component */
-[data-slot="button"].medical-button,
-.medical-button[data-slot="button"] {
-  background-color: #2563EB !important;
-  color: white !important;
-  border: none !important;
+.status-needs-attention {
+  background-color: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
 }
 
-/* Fix button disappearing issue - ensure all button states are visible */
-button, 
-button[class*="flex"],
-button[class*="items-center"],
-.btn,
-[role="button"] {
-  visibility: visible !important;
-  opacity: 1 !important;
-}
-
-button:hover,
-button[class*="flex"]:hover,
-button[class*="items-center"]:hover,
-.btn:hover,
-[role="button"]:hover {
-  visibility: visible !important;
-  opacity: 1 !important;
+.status-poor {
+  background-color: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
 }
 
 /* Timeline scrubber styling */
@@ -414,37 +340,13 @@ button[class*="items-center"]:hover,
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-/* Specific fix for buttons with text content */
-button span,
-button[class*="flex"] span,
-button[class*="items-center"] span {
-  visibility: visible !important;
-  opacity: 1 !important;
+/* Clean button text styling */
+button {
+  font-weight: 500;
 }
 
-button:hover span,
-button[class*="flex"]:hover span,
-button[class*="items-center"]:hover span {
-  visibility: visible !important;
-  opacity: 1 !important;
+button span {
+  color: inherit;
 }
 
-.medical-card {
-  @apply bg-white rounded-xl shadow-lg p-8 border border-gray-200;
-}
-
-.assessment-card {
-  @apply border rounded-xl p-6 hover:shadow-md transition-shadow;
-}
-
-.assessment-card.active {
-  @apply border-2 border-exer-purple bg-purple-50;
-}
-
-.assessment-card.completed {
-  @apply border-green-200 bg-green-50;
-}
-
-.assessment-card.locked {
-  @apply opacity-60;
-}
+/* Remove old styling - now handled above with clean CSS */
