@@ -77,6 +77,86 @@ small, em, strong, b, i, u, code, pre, blockquote, cite, time {
   font-weight: 600 !important;
 }
 
+/* Fix yellow background issues - targeted approach */
+/* Override any yellow/amber background classes specifically */
+.bg-yellow-50,
+.bg-yellow-100,
+.bg-yellow-200,
+.bg-yellow-300,
+.bg-yellow-400,
+.bg-amber-50,
+.bg-amber-100,
+.bg-amber-200,
+.bg-amber-300,
+.bg-amber-400,
+[class*="bg-yellow"],
+[class*="bg-amber"] {
+  background-color: rgb(255 255 255) !important;
+}
+
+/* Ensure cards have proper white backgrounds */
+.card,
+[class*="card"],
+.medical-card,
+.assessment-card {
+  background-color: rgb(255 255 255) !important;
+}
+
+/* Additional comprehensive yellow background removal */
+div[class*="bg-yellow"],
+div[class*="bg-amber"],
+section[class*="bg-yellow"],
+section[class*="bg-amber"],
+.bg-warning,
+.warning,
+[style*="background-color: yellow"],
+[style*="background: yellow"],
+[style*="background-color: #ffff"],
+[style*="background-color: #fef3c7"],
+[style*="background-color: #fde68a"] {
+  background-color: rgb(255 255 255) !important;
+  background: rgb(255 255 255) !important;
+}
+
+/* Universal yellow background override - most aggressive approach */
+* {
+  background-color: inherit !important;
+}
+
+/* Ensure all primary containers have explicit white backgrounds */
+html, body {
+  background-color: rgb(255 255 255) !important;
+}
+
+#root, 
+.container,
+.page-container,
+main,
+section,
+article {
+  background-color: rgb(255 255 255) !important;
+}
+
+/* Cards and components with intentional backgrounds */
+.bg-red-500,
+.bg-green-50,
+.bg-blue-50,
+.bg-purple-50,
+.bg-orange-50,
+.bg-red-50,
+.bg-gray-50,
+.bg-slate-50 {
+  background-color: revert !important;
+}
+
+.border-red-600,
+.border-green-200,
+.border-blue-200,
+.border-purple-200,
+.border-orange-200 {
+  background-color: revert !important;
+}
+
 /* Ensure all small text is readable */
 .text-xs,
 .text-sm,
