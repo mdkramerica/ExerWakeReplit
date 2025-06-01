@@ -140,17 +140,25 @@
   @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors;
 }
 
-.medical-button {
+.medical-button,
+button.medical-button,
+.medical-button[class] {
   @apply py-3 px-6 rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-colors duration-200;
   background-color: hsl(var(--medical-blue)) !important;
   color: white !important;
+  border: none !important;
 }
 
-.medical-button:hover:not(:disabled) {
+.medical-button:hover:not(:disabled),
+button.medical-button:hover:not(:disabled),
+.medical-button[class]:hover:not(:disabled) {
   background-color: hsl(var(--medical-deep)) !important;
+  color: white !important;
 }
 
-.medical-button:disabled {
+.medical-button:disabled,
+button.medical-button:disabled,
+.medical-button[class]:disabled {
   @apply opacity-50 cursor-not-allowed;
   background-color: hsl(var(--medical-blue)) !important;
   color: white !important;
