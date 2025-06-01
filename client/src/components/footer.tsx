@@ -17,15 +17,15 @@ export default function Footer() {
           </div>
           <div className="flex items-center space-x-4 text-sm text-gray-600">
             <div className="flex items-center">
-              <Shield className="w-4 h-4 text-medical-success mr-1" />
+              <Shield className="w-4 h-4 text-green-600 mr-1" />
               <span>Secure</span>
             </div>
             <div className="flex items-center">
-              <Lock className="w-4 h-4 text-medical-success mr-1" />
+              <Lock className="w-4 h-4 text-green-600 mr-1" />
               <span>Encrypted</span>
             </div>
             <div className="flex items-center">
-              <ShieldX className="w-4 h-4 text-medical-success mr-1" />
+              <ShieldX className="w-4 h-4 text-green-600 mr-1" />
               <span>HIPAA</span>
             </div>
           </div>

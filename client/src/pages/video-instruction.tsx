@@ -126,7 +126,7 @@ export default function VideoInstruction() {
                   Ready to Record
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
-                <p className="text-xs text-medical-gray mt-2">
+                <p className="text-xs text-gray-600 mt-2">
                   Make sure you understand the movement before proceeding
                 </p>
               </div>

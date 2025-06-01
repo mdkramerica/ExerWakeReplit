@@ -289,13 +289,13 @@ export default function Recording() {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-semibold text-gray-900 mb-2">Recording Assessment</h2>
-                <p className="text-medical-gray">
+                <p className="text-gray-600">
                   Position your hand in the camera view and perform the {assessment.name.toLowerCase()} movement.
                 </p>
               </div>
               <div className="text-right">
-                <div className="text-sm text-medical-gray">Repetition</div>
-                <div className="text-2xl font-semibold text-medical-blue">
+                <div className="text-sm text-gray-600">Repetition</div>
+                <div className="text-2xl font-semibold text-blue-600">
                   {currentRepetition}/{assessment.repetitions}
                 </div>
               </div>
@@ -323,7 +323,7 @@ export default function Recording() {
                 {/* Hand detection feedback */}
                 <div className="absolute top-4 right-4 bg-black bg-opacity-50 rounded-lg p-2">
                   <div className="flex items-center space-x-2 text-white text-sm">
-                    <Hand className={`w-4 h-4 ${handDetected ? 'text-medical-success' : 'text-red-500'}`} />
+                    <Hand className={`w-4 h-4 ${handDetected ? 'text-green-500' : 'text-red-500'}`} />
                     <span>{handDetected ? 'Hand Detected' : 'No Hand'}</span>
                   </div>
                 </div>
