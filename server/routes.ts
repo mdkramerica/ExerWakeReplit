@@ -199,7 +199,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Try to find the user assessment by iterating through all users
       let userAssessment = null;
-      for (let userId = 1; userId <= 10; userId++) {
+      for (let userId = 1; userId <= 100; userId++) { // Increased search range
         try {
           const userAssessments = await storage.getUserAssessments(userId);
           const found = userAssessments.find(ua => ua.id === userAssessmentId);
