@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Shield, ShieldX, Lock, Info, ArrowRight } from "lucide-react";
+import MotionDemo from "@/components/motion-demo";
 
 export default function Landing() {
   const [code, setCode] = useState("");
@@ -60,15 +61,11 @@ export default function Landing() {
       <Card className="medical-card">
         <CardContent className="pt-6">
           <div className="text-center mb-6">
-            <img 
-              src="https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300" 
-              alt="Medical professional with tablet" 
-              className="rounded-lg mx-auto mb-6 w-full h-48 object-cover"
-            />
+            <MotionDemo className="rounded-lg mx-auto mb-6 w-full h-48" />
             
-            <h2 className="text-2xl font-semibold text-gray-900 mb-2">Welcome to Your Assessment</h2>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-2">Advanced Motion Analysis Platform</h2>
             <p className="text-medical-gray mb-8">
-              Enter your unique 6-digit code to begin your hand and wrist range of motion assessment.
+              Experience precision hand tracking with 21-joint detection. Enter your 6-digit code to begin your clinical assessment.
             </p>
           </div>
           
