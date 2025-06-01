@@ -117,23 +117,30 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
     ctx.fillStyle = '#000000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Draw video frame if available
+    // Always try to draw the video frame first
     try {
-      if (video.readyState === video.HAVE_ENOUGH_DATA && video.videoWidth > 0) {
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      if (video.readyState >= 2 && video.videoWidth > 0 && video.videoHeight > 0) {
+        // Draw video frame (mirrored for natural interaction)
+        ctx.save();
+        ctx.scale(-1, 1);
+        ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
+        ctx.restore();
       } else {
-        // Show loading state
+        // Show status message
         ctx.fillStyle = '#ffffff';
         ctx.font = '16px Arial';
         ctx.textAlign = 'center';
-        ctx.fillText('Initializing camera...', canvas.width / 2, canvas.height / 2);
+        ctx.fillText(`Camera status: ${video.readyState}`, canvas.width / 2, canvas.height / 2);
       }
     } catch (error) {
       console.warn('Video drawing error:', error);
+      // Draw a simple placeholder
+      ctx.fillStyle = '#333333';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = '#ffffff';
       ctx.font = '16px Arial';
       ctx.textAlign = 'center';
-      ctx.fillText('Camera loading...', canvas.width / 2, canvas.height / 2);
+      ctx.fillText('Camera initializing...', canvas.width / 2, canvas.height / 2);
     }
 
     let handDetected = false;
