@@ -15,33 +15,46 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
   // Initialize MediaPipe hands for the demo
   const initializeHands = useCallback(async () => {
     try {
-      // Try multiple loading approaches like in the working component
+      // Dynamic import with multiple fallback strategies
       let HandsClass;
-      try {
-        const mediapipeModule = await import('@mediapipe/hands');
-        HandsClass = mediapipeModule.Hands;
-      } catch (e) {
-        // Fallback: try accessing from global scope
-        HandsClass = (window as any).Hands || (window as any).mediapipe?.Hands;
-      }
       
-      if (!HandsClass) {
-        console.warn('MediaPipe Hands class not available, loading from CDN...');
-        // Load MediaPipe script dynamically
-        await new Promise((resolve, reject) => {
-          const script = document.createElement('script');
-          script.src = 'https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js';
-          script.onload = resolve;
-          script.onerror = reject;
-          document.head.appendChild(script);
-        });
+      try {
+        // First, try direct import
+        const { Hands } = await import('@mediapipe/hands');
+        HandsClass = Hands;
+        console.log('MediaPipe Hands loaded via import');
+      } catch (importError) {
+        console.log('Import failed, trying global access...');
+        
+        // Second, try global scope
         HandsClass = (window as any).Hands;
+        
+        if (!HandsClass) {
+          console.log('Global access failed, loading CDN script...');
+          
+          // Third, load from CDN
+          await new Promise<void>((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js';
+            script.onload = () => {
+              console.log('MediaPipe CDN script loaded');
+              resolve();
+            };
+            script.onerror = () => reject(new Error('CDN load failed'));
+            document.head.appendChild(script);
+          });
+          
+          // Wait a bit for script to initialize
+          await new Promise(resolve => setTimeout(resolve, 100));
+          HandsClass = (window as any).Hands;
+        }
       }
 
       if (!HandsClass) {
-        throw new Error('Unable to load MediaPipe Hands');
+        throw new Error('MediaPipe Hands class not available after all attempts');
       }
 
+      console.log('Creating MediaPipe Hands instance...');
       handsRef.current = new HandsClass({
         locateFile: (file: string) => {
           return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
