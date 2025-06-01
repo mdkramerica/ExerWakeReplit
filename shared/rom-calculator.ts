@@ -36,7 +36,7 @@ const FINGER_LANDMARKS = {
 };
 
 // Calculate flexion angle between three points
-// Returns 0° for straight finger, positive for flexion, negative for hyperextension
+// Returns 0° for straight finger, positive for flexion
 function calculateFlexionAngle(p1: HandLandmark, p2: HandLandmark, p3: HandLandmark): number {
   // Vector from p2 to p1 (proximal segment)
   const v1 = {
@@ -70,9 +70,13 @@ function calculateFlexionAngle(p1: HandLandmark, p2: HandLandmark, p3: HandLandm
   
   // Calculate angle in radians then convert to degrees
   const angleRad = Math.acos(clampedCos);
-  const flexionAngle = (angleRad * 180) / Math.PI;
+  const totalAngle = (angleRad * 180) / Math.PI;
   
-  return flexionAngle;
+  // Convert to flexion angle: 180° = straight (0° flexion), smaller angles = more flexion
+  const flexionAngle = 180 - totalAngle;
+  
+  // Ensure non-negative values (straight finger = 0°, flexed finger = positive)
+  return Math.max(0, flexionAngle);
 }
 
 // Calculate joint angles for a specific finger
