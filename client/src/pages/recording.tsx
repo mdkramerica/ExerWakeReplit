@@ -339,30 +339,30 @@ export default function Recording() {
 
                 {/* Real-time ROM Display on Video for Trigger Finger */}
                 {currentUser?.injuryType === 'Trigger Finger' && handDetected && (
-                  <div className="absolute bottom-4 left-4 bg-black bg-opacity-70 rounded-lg p-3">
-                    <div className="text-white text-sm">
-                      <div className="font-medium mb-2">Range of Motion (Live)</div>
-                      <div className="space-y-1">
-                        <div className="flex justify-between">
-                          <span>MCP:</span>
-                          <span className="font-mono">{currentROM.mcpAngle.toFixed(1)}°</span>
+                  <div className="absolute bottom-4 left-4 bg-white border border-gray-300 rounded-lg p-4 shadow-lg min-w-[200px]">
+                    <div className="text-gray-900">
+                      <div className="font-bold mb-3 text-base text-blue-600">Range of Motion (Live)</div>
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="font-semibold text-gray-800">MCP:</span>
+                          <span className="font-mono font-bold text-lg text-gray-900">{currentROM.mcpAngle.toFixed(1)}°</span>
                         </div>
-                        <div className="flex justify-between">
-                          <span>PIP:</span>
-                          <span className="font-mono">{currentROM.pipAngle.toFixed(1)}°</span>
+                        <div className="flex justify-between items-center">
+                          <span className="font-semibold text-gray-800">PIP:</span>
+                          <span className="font-mono font-bold text-lg text-gray-900">{currentROM.pipAngle.toFixed(1)}°</span>
                         </div>
-                        <div className="flex justify-between">
-                          <span>DIP:</span>
-                          <span className="font-mono">{currentROM.dipAngle.toFixed(1)}°</span>
+                        <div className="flex justify-between items-center">
+                          <span className="font-semibold text-gray-800">DIP:</span>
+                          <span className="font-mono font-bold text-lg text-gray-900">{currentROM.dipAngle.toFixed(1)}°</span>
                         </div>
-                        <div className="flex justify-between border-t border-gray-400 pt-1">
-                          <span className="font-medium">Total:</span>
-                          <span className="font-mono font-bold">{currentROM.totalActiveRom.toFixed(1)}°</span>
+                        <div className="flex justify-between items-center border-t-2 border-blue-200 pt-2 mt-2">
+                          <span className="font-bold text-gray-900">Total:</span>
+                          <span className="font-mono font-bold text-xl text-blue-600">{currentROM.totalActiveRom.toFixed(1)}°</span>
                         </div>
                         {isRecording && (
-                          <div className="mt-2 pt-2 border-t border-green-400">
-                            <div className="text-green-400 text-xs mb-1">Session Max:</div>
-                            <div className="text-green-400 font-mono text-lg">{maxROM.totalActiveRom.toFixed(1)}°</div>
+                          <div className="mt-3 pt-3 border-t-2 border-green-200 bg-green-50 rounded p-2">
+                            <div className="text-green-700 font-semibold text-sm mb-1">Session Max:</div>
+                            <div className="text-green-800 font-mono font-bold text-xl">{maxROM.totalActiveRom.toFixed(1)}°</div>
                           </div>
                         )}
                       </div>
