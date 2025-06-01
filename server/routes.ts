@@ -211,23 +211,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
             pinkyFingerRom = allFingersROM.pinky?.totalActiveRom || null;
             
             // Store individual joint angles for detailed breakdown
-            const middleFingerMcp = allFingersROM.middle?.mcpAngle || null;
-            const middleFingerPip = allFingersROM.middle?.pipAngle || null;
-            const middleFingerDip = allFingersROM.middle?.dipAngle || null;
+            middleFingerMcp = allFingersROM.middle?.mcpAngle || null;
+            middleFingerPip = allFingersROM.middle?.pipAngle || null;
+            middleFingerDip = allFingersROM.middle?.dipAngle || null;
             
-            const ringFingerMcp = allFingersROM.ring?.mcpAngle || null;
-            const ringFingerPip = allFingersROM.ring?.pipAngle || null;
-            const ringFingerDip = allFingersROM.ring?.dipAngle || null;
+            ringFingerMcp = allFingersROM.ring?.mcpAngle || null;
+            ringFingerPip = allFingersROM.ring?.pipAngle || null;
+            ringFingerDip = allFingersROM.ring?.dipAngle || null;
             
-            const pinkyFingerMcp = allFingersROM.pinky?.mcpAngle || null;
-            const pinkyFingerPip = allFingersROM.pinky?.pipAngle || null;
-            const pinkyFingerDip = allFingersROM.pinky?.dipAngle || null;
+            pinkyFingerMcp = allFingersROM.pinky?.mcpAngle || null;
+            pinkyFingerPip = allFingersROM.pinky?.pipAngle || null;
+            pinkyFingerDip = allFingersROM.pinky?.dipAngle || null;
             
             console.log('Multi-finger ROM calculated:', {
               index: indexFingerRom,
               middle: middleFingerRom,
               ring: ringFingerRom,
               pinky: pinkyFingerRom
+            });
+            
+            console.log('Individual joint angles calculated:', {
+              middle: { mcp: middleFingerMcp, pip: middleFingerPip, dip: middleFingerDip },
+              ring: { mcp: ringFingerMcp, pip: ringFingerPip, dip: ringFingerDip },
+              pinky: { mcp: pinkyFingerMcp, pip: pinkyFingerPip, dip: pinkyFingerDip }
             });
           } catch (error) {
             console.log('ROM calculation for all fingers failed:', error);
