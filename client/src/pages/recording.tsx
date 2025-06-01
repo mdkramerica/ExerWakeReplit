@@ -90,10 +90,12 @@ export default function Recording() {
   }, [isRecording, assessment?.duration]);
 
   const startRecording = () => {
+    const startTime = Date.now();
+    setRecordingStartTime(startTime); // Set start time first
     setIsRecording(true);
     setRecordingTimer(0);
     setRecordingMotionData([]); // Clear previous motion data
-    setRecordingStartTime(Date.now()); // Track when recording actually started
+    console.log(`Recording started at ${startTime}`);
   };
 
   const stopRecording = () => {
@@ -117,10 +119,11 @@ export default function Recording() {
       motionData: [...recordingMotionData] // Store copy of recorded motion data
     };
 
-    setRecordedData(prev => [...prev, repetitionData]);
+    const newRecordedData = [...recordedData, repetitionData];
+    setRecordedData(newRecordedData);
 
-    // Assessment complete after 1 repetition
-    completeAssessment();
+    // Assessment complete after 1 repetition - pass data directly
+    completeAssessment(newRecordedData);
   };
 
   const calculateQualityScore = () => {
@@ -134,17 +137,19 @@ export default function Recording() {
     return Math.min(score, 100);
   };
 
-  const completeAssessment = () => {
+  const completeAssessment = (finalRecordedData = recordedData) => {
     const romData = {
       assessmentId: id,
       repetitionsCompleted: currentRepetition,
-      totalDuration: recordedData.reduce((sum, rep) => sum + rep.duration, 0),
-      averageQuality: recordedData.reduce((sum, rep) => sum + rep.qualityScore, 0) / recordedData.length
+      totalDuration: finalRecordedData.reduce((sum, rep) => sum + rep.duration, 0),
+      averageQuality: finalRecordedData.length > 0 ? finalRecordedData.reduce((sum, rep) => sum + rep.qualityScore, 0) / finalRecordedData.length : 0
     };
+
+    console.log(`Completing assessment with ${finalRecordedData.length} repetitions:`, finalRecordedData);
 
     completeAssessmentMutation.mutate({
       romData,
-      repetitionData: recordedData,
+      repetitionData: finalRecordedData,
       qualityScore: romData.averageQuality
     });
   };
