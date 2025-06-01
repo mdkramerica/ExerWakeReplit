@@ -209,39 +209,130 @@ export default function AssessmentResults() {
                     </div>
                   </div>
 
-                  {/* Individual Finger Analysis */}
+                  {/* Comprehensive ROM Analysis - All Digits */}
                   {(userAssessment.indexFingerRom || userAssessment.middleFingerRom || userAssessment.ringFingerRom || userAssessment.pinkyFingerRom) && (
                     <div>
-                      <h4 className="font-medium text-gray-900 mb-3">Individual Finger Analysis</h4>
-                      <div className="grid md:grid-cols-4 gap-4">
-                        <div className="bg-blue-50 p-4 rounded-lg">
-                          <div className="text-sm font-medium text-blue-700">Index Finger</div>
-                          <div className="text-2xl font-bold text-blue-900">
-                            {userAssessment.indexFingerRom ? parseFloat(userAssessment.indexFingerRom).toFixed(1) : '0.0'}°
+                      <h4 className="font-medium text-gray-900 mb-4">Comprehensive ROM Analysis - All Digits</h4>
+                      <div className="space-y-4">
+                        {/* Index Finger */}
+                        <div className="border border-blue-200 rounded-lg p-4">
+                          <div className="flex justify-between items-center mb-3">
+                            <h5 className="font-medium text-gray-900">Index Finger</h5>
+                            <span className="text-lg font-bold text-gray-700">
+                              {userAssessment.indexFingerRom ? parseFloat(userAssessment.indexFingerRom).toFixed(0) : '0'}° TAM
+                            </span>
                           </div>
-                          <div className="text-xs text-blue-600">Total Active Motion</div>
-                        </div>
-                        <div className="bg-green-50 p-4 rounded-lg">
-                          <div className="text-sm font-medium text-green-700">Middle Finger</div>
-                          <div className="text-2xl font-bold text-green-900">
-                            {userAssessment.middleFingerRom ? parseFloat(userAssessment.middleFingerRom).toFixed(1) : '0.0'}°
+                          <div className="grid grid-cols-3 gap-4">
+                            <div>
+                              <div className="text-sm text-blue-600 font-medium">MCP Joint</div>
+                              <div className="text-xl font-bold text-blue-700">
+                                {userAssessment.maxMcpAngle ? parseFloat(userAssessment.maxMcpAngle).toFixed(0) : '0'}°
+                              </div>
+                              <div className="text-xs text-gray-500">Normal: 70-90°</div>
+                            </div>
+                            <div>
+                              <div className="text-sm text-green-600 font-medium">PIP Joint</div>
+                              <div className="text-xl font-bold text-green-700">
+                                {userAssessment.maxPipAngle ? parseFloat(userAssessment.maxPipAngle).toFixed(0) : '0'}°
+                              </div>
+                              <div className="text-xs text-gray-500">Normal: 90-110°</div>
+                            </div>
+                            <div>
+                              <div className="text-sm text-purple-600 font-medium">DIP Joint</div>
+                              <div className="text-xl font-bold text-purple-700">
+                                {userAssessment.maxDipAngle ? parseFloat(userAssessment.maxDipAngle).toFixed(0) : '0'}°
+                              </div>
+                              <div className="text-xs text-gray-500">Normal: 70-90°</div>
+                            </div>
                           </div>
-                          <div className="text-xs text-green-600">Total Active Motion</div>
                         </div>
-                        <div className="bg-purple-50 p-4 rounded-lg">
-                          <div className="text-sm font-medium text-purple-700">Ring Finger</div>
-                          <div className="text-2xl font-bold text-purple-900">
-                            {userAssessment.ringFingerRom ? parseFloat(userAssessment.ringFingerRom).toFixed(1) : '0.0'}°
+
+                        {/* Middle Finger */}
+                        {userAssessment.middleFingerRom && (
+                          <div className="border border-green-200 rounded-lg p-4">
+                            <div className="flex justify-between items-center mb-3">
+                              <h5 className="font-medium text-gray-900">Middle Finger</h5>
+                              <span className="text-lg font-bold text-gray-700">
+                                {parseFloat(userAssessment.middleFingerRom).toFixed(0)}° TAM
+                              </span>
+                            </div>
+                            <div className="grid grid-cols-3 gap-4">
+                              <div>
+                                <div className="text-sm text-blue-600 font-medium">MCP Joint</div>
+                                <div className="text-xl font-bold text-blue-700">--°</div>
+                                <div className="text-xs text-gray-500">Normal: 70-90°</div>
+                              </div>
+                              <div>
+                                <div className="text-sm text-green-600 font-medium">PIP Joint</div>
+                                <div className="text-xl font-bold text-green-700">--°</div>
+                                <div className="text-xs text-gray-500">Normal: 90-110°</div>
+                              </div>
+                              <div>
+                                <div className="text-sm text-purple-600 font-medium">DIP Joint</div>
+                                <div className="text-xl font-bold text-purple-700">--°</div>
+                                <div className="text-xs text-gray-500">Normal: 70-90°</div>
+                              </div>
+                            </div>
                           </div>
-                          <div className="text-xs text-purple-600">Total Active Motion</div>
-                        </div>
-                        <div className="bg-orange-50 p-4 rounded-lg">
-                          <div className="text-sm font-medium text-orange-700">Pinky Finger</div>
-                          <div className="text-2xl font-bold text-orange-900">
-                            {userAssessment.pinkyFingerRom ? parseFloat(userAssessment.pinkyFingerRom).toFixed(1) : '0.0'}°
+                        )}
+
+                        {/* Ring Finger */}
+                        {userAssessment.ringFingerRom && (
+                          <div className="border border-purple-200 rounded-lg p-4">
+                            <div className="flex justify-between items-center mb-3">
+                              <h5 className="font-medium text-gray-900">Ring Finger</h5>
+                              <span className="text-lg font-bold text-gray-700">
+                                {parseFloat(userAssessment.ringFingerRom).toFixed(0)}° TAM
+                              </span>
+                            </div>
+                            <div className="grid grid-cols-3 gap-4">
+                              <div>
+                                <div className="text-sm text-blue-600 font-medium">MCP Joint</div>
+                                <div className="text-xl font-bold text-blue-700">--°</div>
+                                <div className="text-xs text-gray-500">Normal: 70-90°</div>
+                              </div>
+                              <div>
+                                <div className="text-sm text-green-600 font-medium">PIP Joint</div>
+                                <div className="text-xl font-bold text-green-700">--°</div>
+                                <div className="text-xs text-gray-500">Normal: 90-110°</div>
+                              </div>
+                              <div>
+                                <div className="text-sm text-purple-600 font-medium">DIP Joint</div>
+                                <div className="text-xl font-bold text-purple-700">--°</div>
+                                <div className="text-xs text-gray-500">Normal: 70-90°</div>
+                              </div>
+                            </div>
                           </div>
-                          <div className="text-xs text-orange-600">Total Active Motion</div>
-                        </div>
+                        )}
+
+                        {/* Pinky Finger */}
+                        {userAssessment.pinkyFingerRom && (
+                          <div className="border border-orange-200 rounded-lg p-4">
+                            <div className="flex justify-between items-center mb-3">
+                              <h5 className="font-medium text-gray-900">Pinky Finger</h5>
+                              <span className="text-lg font-bold text-gray-700">
+                                {parseFloat(userAssessment.pinkyFingerRom).toFixed(0)}° TAM
+                              </span>
+                            </div>
+                            <div className="grid grid-cols-3 gap-4">
+                              <div>
+                                <div className="text-sm text-blue-600 font-medium">MCP Joint</div>
+                                <div className="text-xl font-bold text-blue-700">--°</div>
+                                <div className="text-xs text-gray-500">Normal: 70-90°</div>
+                              </div>
+                              <div>
+                                <div className="text-sm text-green-600 font-medium">PIP Joint</div>
+                                <div className="text-xl font-bold text-green-700">--°</div>
+                                <div className="text-xs text-gray-500">Normal: 90-110°</div>
+                              </div>
+                              <div>
+                                <div className="text-sm text-purple-600 font-medium">DIP Joint</div>
+                                <div className="text-xl font-bold text-purple-700">--°</div>
+                                <div className="text-xs text-gray-500">Normal: 70-90°</div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
