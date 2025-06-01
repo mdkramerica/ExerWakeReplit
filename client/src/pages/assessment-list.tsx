@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, ArrowRight, Check, Lock, Play, Eye, Clock, History, Calendar, BarChart3 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Lock, Play, Eye, Clock, History, Calendar, BarChart3, RefreshCw } from "lucide-react";
 import ProgressBar from "@/components/progress-bar";
 import AssessmentReplay from "@/components/assessment-replay";
 import type { AssessmentWithProgress } from "@/types/assessment";
@@ -22,12 +22,12 @@ export default function AssessmentList() {
     }
   }, [setLocation]);
 
-  const { data: assessmentsData, isLoading } = useQuery({
+  const { data: assessmentsData, isLoading, refetch: refetchAssessments } = useQuery({
     queryKey: [`/api/users/${currentUser?.id}/assessments`],
     enabled: !!currentUser,
   });
 
-  const { data: progressData } = useQuery({
+  const { data: progressData, refetch: refetchProgress } = useQuery({
     queryKey: [`/api/users/${currentUser?.id}/progress`],
     enabled: !!currentUser,
   });
@@ -53,6 +53,11 @@ export default function AssessmentList() {
     } else {
       setLocation("/");
     }
+  };
+
+  const handleRefresh = () => {
+    refetchAssessments();
+    refetchProgress();
   };
 
   if (isLoading) {
@@ -101,9 +106,21 @@ export default function AssessmentList() {
                 </p>
               </div>
               <div className="text-right">
-                <div className="text-sm text-gray-800">Progress</div>
-                <div className="text-2xl font-semibold text-blue-600">
-                  {progress.completed}/{progress.total}
+                <div className="flex items-center space-x-2">
+                  <Button
+                    onClick={handleRefresh}
+                    variant="outline"
+                    size="sm"
+                    className="text-gray-600 hover:text-gray-800"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                  </Button>
+                  <div>
+                    <div className="text-sm text-gray-800">Progress</div>
+                    <div className="text-2xl font-semibold text-blue-600">
+                      {progress.completed}/{progress.total}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
