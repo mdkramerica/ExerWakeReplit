@@ -438,7 +438,9 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
     ctx.font = '14px Arial';
     ctx.fillText(`Frame: ${frameIndex + 1}/${replayData.length}`, 10, 25);
     ctx.fillText(`Quality: ${Math.round(frame.quality)}%`, 10, 45);
-    ctx.fillText(`Hand: ${frame.handedness}`, 10, 65);
+    // Display corrected hand detection (the stored handedness might be incorrect due to mirroring)
+    const correctedHand = frame.handedness === "Right" ? "Left" : frame.handedness === "Left" ? "Right" : frame.handedness;
+    ctx.fillText(`Hand: ${correctedHand}`, 10, 65);
 
     // Draw finger measurement legend (moved up to avoid timeline scrubber)
     const legendHeight = 70;
