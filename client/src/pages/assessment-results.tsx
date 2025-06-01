@@ -211,7 +211,9 @@ export default function AssessmentResults() {
                                     const motionFrames = rep.motionData.map((frame: any) => ({
                                       landmarks: frame.landmarks
                                     }));
+                                    console.log('Calculating Kapandji with frames:', motionFrames.length);
                                     const kapandjiResult = calculateMaxKapandjiScore(motionFrames);
+                                    console.log('Kapandji result:', kapandjiResult);
                                     return kapandjiResult.maxScore;
                                   }
                                 }
