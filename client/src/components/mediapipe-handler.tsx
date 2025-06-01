@@ -1,7 +1,7 @@
 import { useEffect, useRef, useCallback } from "react";
 import exerLogoPath from "@assets/exer-logo.png";
 
-interface MediaPipeHandlerProps {
+interface ExerAIHandlerProps {
   onUpdate: (data: {
     handDetected: boolean;
     landmarksCount: number;
@@ -13,7 +13,7 @@ interface MediaPipeHandlerProps {
   assessmentType: string;
 }
 
-// MediaPipe hand landmark connections for drawing hand skeleton
+// Exer AI hand landmark connections for drawing hand skeleton
 const HAND_CONNECTIONS = [
   [0, 1], [1, 2], [2, 3], [3, 4], // thumb
   [0, 5], [5, 6], [6, 7], [7, 8], // index finger
@@ -23,7 +23,7 @@ const HAND_CONNECTIONS = [
   [0, 17] // palm connection
 ];
 
-export default function MediaPipeHandler({ onUpdate, isRecording, assessmentType }: MediaPipeHandlerProps) {
+export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }: ExerAIHandlerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const animationRef = useRef<number | null>(null);
@@ -35,12 +35,12 @@ export default function MediaPipeHandler({ onUpdate, isRecording, assessmentType
 
   // Log recording state changes
   if (prevIsRecording.current !== isRecording) {
-    console.log(`MediaPipe recording state changed: ${prevIsRecording.current} -> ${isRecording}`);
+    console.log(`Exer AI recording state changed: ${prevIsRecording.current} -> ${isRecording}`);
     prevIsRecording.current = isRecording;
   }
 
-  // Initialize MediaPipe tracking systems
-  const initializeMediaPipe = useCallback(async () => {
+  // Initialize Exer AI tracking systems
+  const initializeExerAI = useCallback(async () => {
     try {
       if (isArmAssessment) {
         // Initialize pose tracking for full arm assessments
@@ -84,12 +84,12 @@ export default function MediaPipeHandler({ onUpdate, isRecording, assessmentType
 
       return true;
     } catch (error) {
-      console.error('MediaPipe initialization failed:', error);
+      console.error('Exer AI initialization failed:', error);
       return false;
     }
   }, [isArmAssessment]);
 
-  // Process MediaPipe hand tracking results
+  // Process Exer AI hand tracking results
   const onHandResults = useCallback((results: any) => {
     const canvas = canvasRef.current;
     const video = videoRef.current;
@@ -159,7 +159,7 @@ export default function MediaPipeHandler({ onUpdate, isRecording, assessmentType
       };
       
       if (isRecording) {
-        console.log(`MediaPipe sending ${landmarks.length} landmarks to recording system`, landmarks.slice(0, 2));
+        console.log(`Exer AI sending ${landmarks.length} landmarks to recording system`, landmarks.slice(0, 2));
       }
       
       onUpdate(updateData);
@@ -185,7 +185,7 @@ export default function MediaPipeHandler({ onUpdate, isRecording, assessmentType
     }
   }, [onUpdate]);
 
-  // Process MediaPipe pose tracking results for arm assessments
+  // Process Exer AI pose tracking results for arm assessments
   const onPoseResults = useCallback((results: any) => {
     const canvas = canvasRef.current;
     const video = videoRef.current;
