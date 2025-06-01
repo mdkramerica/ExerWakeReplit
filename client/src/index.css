@@ -2,48 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
-/* CRITICAL: Force override any cached yellow backgrounds */
-@media screen {
-  * {
-    background-color: initial !important;
-  }
-  
-  html, body, #root {
-    background-color: #f9fafb !important;
-  }
-  
-  /* Force white backgrounds on all card-like elements */
-  div[class*="border"],
-  div[class*="rounded"],
-  div[class*="shadow"],
-  section,
-  article,
-  .card {
-    background-color: #ffffff !important;
-  }
-  
-  /* Ensure text is always visible */
-  * {
-    color: inherit !important;
-  }
-  
-  div, span, p, h1, h2, h3, h4, h5, h6 {
-    color: #1f2937 !important;
-  }
-  
-  .text-2xl, .text-lg, .text-sm, .text-xs {
-    color: #1f2937 !important;
-  }
-  
-  /* Specific fixes for measurement displays */
-  div[class*="text-2xl"] {
-    color: #1f2937 !important;
-    font-weight: 800 !important;
-  }
-  
-  div[class*="text-white"] {
-    color: #ffffff !important;
-  }
+/* Targeted yellow background removal */
+.bg-yellow-50,
+.bg-yellow-100,
+.bg-yellow-200,
+.bg-yellow-300,
+.bg-yellow-400,
+.bg-amber-50,
+.bg-amber-100,
+.bg-amber-200,
+.bg-amber-300,
+.bg-amber-400 {
+  background-color: #ffffff !important;
 }
 
 :root {
