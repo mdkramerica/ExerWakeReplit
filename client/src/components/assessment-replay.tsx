@@ -840,81 +840,55 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
 
             {/* Comprehensive Multi-Digit ROM Analysis */}
             {allDigitsROM && (
-              <div>
-                <h4 className="font-medium text-gray-900 mb-4">Comprehensive ROM Analysis - All Digits</h4>
+              <div className="bg-gray-100 border border-gray-200 p-4 rounded-lg">
+                <h4 className="font-medium mb-3 text-gray-900">Comprehensive ROM Analysis - All Digits</h4>
                 <div className="space-y-4">
-                  {Object.entries(allDigitsROM).map(([digit, rom]) => {
-                    const digitName = digit.charAt(0) + digit.slice(1).toLowerCase();
-                    const borderColor = {
-                      'Index': 'border-blue-200',
-                      'Middle': 'border-green-200', 
-                      'Ring': 'border-purple-200',
-                      'Pinky': 'border-orange-200'
-                    }[digitName] || 'border-blue-200';
-                    
-                    return (
-                      <div key={digit} className={`border ${borderColor} rounded-lg p-4 ${
-                        digit === selectedDigit ? 'ring-2 ring-blue-500' : ''
-                      }`}>
-                        <div className="flex justify-between items-center mb-3">
-                          <h5 className="font-medium text-gray-900">{digitName} Finger</h5>
-                          <span className="text-lg font-bold text-gray-700">
-                            {Math.round(rom.totalActiveRom)}° TAM
-                          </span>
+                  {Object.entries(allDigitsROM).map(([digit, rom]) => (
+                    <div key={digit} className={`bg-white p-4 rounded border ${
+                      digit === selectedDigit ? 'ring-2 ring-blue-500' : ''
+                    }`}>
+                      <div className="flex justify-between items-center mb-3">
+                        <span className="font-medium text-gray-900">{digit.charAt(0) + digit.slice(1).toLowerCase()} Finger</span>
+                        <span className="font-bold text-lg text-gray-900">{Math.round(rom.totalActiveRom)}° TAM</span>
+                      </div>
+                      
+                      <div className="grid grid-cols-3 gap-3 text-sm">
+                        <div className={`p-2 rounded ${
+                          rom.mcpAngle < 70 ? 'bg-red-50 border border-red-200' : 'bg-gray-100'
+                        }`}>
+                          <div className="text-xs text-gray-800">MCP Joint</div>
+                          <div className={`font-medium ${
+                            rom.mcpAngle < 70 ? 'text-red-600' : 'text-blue-600'
+                          }`}>
+                            {Math.round(rom.mcpAngle)}°
+                          </div>
+                          <div className="text-xs text-gray-700">Normal: 70-90°</div>
                         </div>
-                        <div className="grid grid-cols-3 gap-4">
-                          <div className={`p-4 rounded-lg border-2 ${
-                            rom.mcpAngle < 70
-                              ? 'bg-red-500 border-red-600 shadow-lg' : 'bg-blue-50 border-blue-200'
+                        <div className={`p-2 rounded ${
+                          rom.pipAngle < 90 ? 'bg-red-50 border border-red-200' : 'bg-gray-100'
+                        }`}>
+                          <div className="text-xs text-gray-800">PIP Joint</div>
+                          <div className={`font-medium ${
+                            rom.pipAngle < 90 ? 'text-red-600' : 'text-green-600'
                           }`}>
-                            <div className={`text-sm font-bold ${
-                              rom.mcpAngle < 70
-                                ? 'text-white' : 'text-gray-800'
-                            }`}>MCP Joint</div>
-                            <div className={`text-2xl font-black ${
-                              rom.mcpAngle < 70
-                                ? 'text-white' : 'text-blue-700'
-                            }`}>
-                              {Math.round(rom.mcpAngle)}°
-                            </div>
-                            <div className="text-xs text-gray-700">Normal: 70-90°</div>
+                            {Math.round(rom.pipAngle)}°
                           </div>
-                          <div className={`p-4 rounded-lg border-2 ${
-                            rom.pipAngle < 90
-                              ? 'bg-red-500 border-red-600 shadow-lg' : 'bg-green-50 border-green-200'
+                          <div className="text-xs text-gray-700">Normal: 90-110°</div>
+                        </div>
+                        <div className={`p-2 rounded ${
+                          rom.dipAngle < 70 ? 'bg-red-50 border border-red-200' : 'bg-gray-100'
+                        }`}>
+                          <div className="text-xs text-gray-800">DIP Joint</div>
+                          <div className={`font-medium ${
+                            rom.dipAngle < 70 ? 'text-red-600' : 'text-purple-600'
                           }`}>
-                            <div className={`text-sm font-bold ${
-                              rom.pipAngle < 90
-                                ? 'text-white' : 'text-gray-800'
-                            }`}>PIP Joint</div>
-                            <div className={`text-2xl font-black ${
-                              rom.pipAngle < 90
-                                ? 'text-white' : 'text-green-700'
-                            }`}>
-                              {Math.round(rom.pipAngle)}°
-                            </div>
-                            <div className="text-xs text-gray-700">Normal: 90-110°</div>
+                            {Math.round(rom.dipAngle)}°
                           </div>
-                          <div className={`p-4 rounded-lg border-2 ${
-                            rom.dipAngle < 70
-                              ? 'bg-red-500 border-red-600 shadow-lg' : 'bg-purple-50 border-purple-200'
-                          }`}>
-                            <div className={`text-sm font-bold ${
-                              rom.dipAngle < 70
-                                ? 'text-white' : 'text-gray-800'
-                            }`}>DIP Joint</div>
-                            <div className={`text-2xl font-black ${
-                              rom.dipAngle < 70
-                                ? 'text-white' : 'text-purple-700'
-                            }`}>
-                              {Math.round(rom.dipAngle)}°
-                            </div>
-                            <div className="text-xs text-gray-700">Normal: 70-90°</div>
-                          </div>
+                          <div className="text-xs text-gray-700">Normal: 70-90°</div>
                         </div>
                       </div>
-                    );
-                  })}
+                    </div>
+                  ))}
                 </div>
               </div>
             )}

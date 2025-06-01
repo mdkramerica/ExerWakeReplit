@@ -190,124 +190,88 @@ export default function AssessmentResults() {
 
                   {/* Comprehensive ROM Analysis - All Digits */}
                   {(userAssessment.indexFingerRom || userAssessment.middleFingerRom || userAssessment.ringFingerRom || userAssessment.pinkyFingerRom) && (
-                    <div>
-                      <h4 className="font-medium text-gray-900 mb-4">Comprehensive ROM Analysis - All Digits</h4>
+                    <div className="bg-gray-100 border border-gray-200 p-4 rounded-lg">
+                      <h4 className="font-medium mb-3 text-gray-900">Comprehensive ROM Analysis - All Digits</h4>
                       <div className="space-y-4">
-                        {/* Index Finger */}
                         {userAssessment.indexFingerRom && (
-                        <div className="border border-blue-200 rounded-lg p-4">
-                          <div className="flex justify-between items-center mb-3">
-                            <h5 className="font-medium text-gray-900">Index Finger</h5>
-                            <span className="text-lg font-bold text-gray-700">
-                              {userAssessment.indexFingerRom ? parseFloat(userAssessment.indexFingerRom).toFixed(0) : '0'}° TAM
-                            </span>
-                          </div>
-                          <div className="grid grid-cols-3 gap-4">
-                            <div className={`p-4 rounded-lg border-2 ${
-                              userAssessment.maxMcpAngle && parseFloat(userAssessment.maxMcpAngle) < 70
-                                ? 'bg-red-500 border-red-600 shadow-lg' : 'bg-blue-50 border-blue-200'
-                            }`}>
-                              <div className={`text-sm font-bold ${
-                                userAssessment.maxMcpAngle && parseFloat(userAssessment.maxMcpAngle) < 70
-                                  ? 'text-white' : 'text-gray-800'
-                              }`}>MCP Joint</div>
-                              <div className={`text-2xl font-black ${
-                                userAssessment.maxMcpAngle && parseFloat(userAssessment.maxMcpAngle) < 70
-                                  ? 'text-white' : 'text-blue-700'
-                              }`}>
-                                {userAssessment.maxMcpAngle ? parseFloat(userAssessment.maxMcpAngle).toFixed(0) : '0'}°
-                              </div>
-                              <div className="text-xs text-gray-700">Normal: 70-90°</div>
+                          <div className="bg-white p-4 rounded border">
+                            <div className="flex justify-between items-center mb-3">
+                              <span className="font-medium text-gray-900">Index Finger</span>
+                              <span className="font-bold text-lg text-gray-900">{parseFloat(userAssessment.indexFingerRom).toFixed(0)}° TAM</span>
                             </div>
-                            <div className={`p-4 rounded-lg border-2 ${
-                              userAssessment.maxPipAngle && parseFloat(userAssessment.maxPipAngle) < 90
-                                ? 'bg-red-500 border-red-600 shadow-lg' : 'bg-green-50 border-green-200'
-                            }`}>
-                              <div className={`text-sm font-bold ${
-                                userAssessment.maxPipAngle && parseFloat(userAssessment.maxPipAngle) < 90
-                                  ? 'text-white' : 'text-gray-800'
-                              }`}>PIP Joint</div>
-                              <div className={`text-2xl font-black ${
-                                userAssessment.maxPipAngle && parseFloat(userAssessment.maxPipAngle) < 90
-                                  ? 'text-white' : 'text-green-700'
+                            <div className="grid grid-cols-3 gap-3 text-sm">
+                              <div className={`p-2 rounded ${
+                                userAssessment.maxMcpAngle && parseFloat(userAssessment.maxMcpAngle) < 70 ? 'bg-red-50 border border-red-200' : 'bg-gray-100'
                               }`}>
-                                {userAssessment.maxPipAngle ? parseFloat(userAssessment.maxPipAngle).toFixed(0) : '0'}°
+                                <div className="text-xs text-gray-800">MCP Joint</div>
+                                <div className={`font-medium ${
+                                  userAssessment.maxMcpAngle && parseFloat(userAssessment.maxMcpAngle) < 70 ? 'text-red-600' : 'text-blue-600'
+                                }`}>
+                                  {userAssessment.maxMcpAngle ? parseFloat(userAssessment.maxMcpAngle).toFixed(0) : '0'}°
+                                </div>
+                                <div className="text-xs text-gray-700">Normal: 70-90°</div>
                               </div>
-                              <div className="text-xs text-gray-700">Normal: 90-110°</div>
-                            </div>
-                            <div className={`p-4 rounded-lg border-2 ${
-                              userAssessment.maxDipAngle && parseFloat(userAssessment.maxDipAngle) < 70
-                                ? 'bg-red-500 border-red-600 shadow-lg' : 'bg-purple-50 border-purple-200'
-                            }`}>
-                              <div className={`text-sm font-bold ${
-                                userAssessment.maxDipAngle && parseFloat(userAssessment.maxDipAngle) < 70
-                                  ? 'text-white' : 'text-gray-800'
-                              }`}>DIP Joint</div>
-                              <div className={`text-2xl font-black ${
-                                userAssessment.maxDipAngle && parseFloat(userAssessment.maxDipAngle) < 70
-                                  ? 'text-white' : 'text-purple-700'
+                              <div className={`p-2 rounded ${
+                                userAssessment.maxPipAngle && parseFloat(userAssessment.maxPipAngle) < 90 ? 'bg-red-50 border border-red-200' : 'bg-gray-100'
                               }`}>
-                                {userAssessment.maxDipAngle ? parseFloat(userAssessment.maxDipAngle).toFixed(0) : '0'}°
+                                <div className="text-xs text-gray-800">PIP Joint</div>
+                                <div className={`font-medium ${
+                                  userAssessment.maxPipAngle && parseFloat(userAssessment.maxPipAngle) < 90 ? 'text-red-600' : 'text-green-600'
+                                }`}>
+                                  {userAssessment.maxPipAngle ? parseFloat(userAssessment.maxPipAngle).toFixed(0) : '0'}°
+                                </div>
+                                <div className="text-xs text-gray-700">Normal: 90-110°</div>
                               </div>
-                              <div className="text-xs text-gray-700">Normal: 70-90°</div>
+                              <div className={`p-2 rounded ${
+                                userAssessment.maxDipAngle && parseFloat(userAssessment.maxDipAngle) < 70 ? 'bg-red-50 border border-red-200' : 'bg-gray-100'
+                              }`}>
+                                <div className="text-xs text-gray-800">DIP Joint</div>
+                                <div className={`font-medium ${
+                                  userAssessment.maxDipAngle && parseFloat(userAssessment.maxDipAngle) < 70 ? 'text-red-600' : 'text-purple-600'
+                                }`}>
+                                  {userAssessment.maxDipAngle ? parseFloat(userAssessment.maxDipAngle).toFixed(0) : '0'}°
+                                </div>
+                                <div className="text-xs text-gray-700">Normal: 70-90°</div>
+                              </div>
                             </div>
                           </div>
-                        </div>
                         )}
 
-                        {/* Middle Finger */}
                         {userAssessment.middleFingerRom && (
-                          <div className="border border-green-200 rounded-lg p-4">
+                          <div className="bg-white p-4 rounded border">
                             <div className="flex justify-between items-center mb-3">
-                              <h5 className="font-medium text-gray-900">Middle Finger</h5>
-                              <span className="text-lg font-bold text-gray-700">
-                                {parseFloat(userAssessment.middleFingerRom).toFixed(0)}° TAM
-                              </span>
+                              <span className="font-medium text-gray-900">Middle Finger</span>
+                              <span className="font-bold text-lg text-gray-900">{parseFloat(userAssessment.middleFingerRom).toFixed(0)}° TAM</span>
                             </div>
-                            <div className="grid grid-cols-3 gap-4">
-                              <div className={`p-4 rounded-lg border-2 ${
-                                userAssessment.middleFingerMcp && parseFloat(userAssessment.middleFingerMcp) < 70
-                                  ? 'bg-red-500 border-red-600 shadow-lg' : 'bg-blue-50 border-blue-200'
+                            <div className="grid grid-cols-3 gap-3 text-sm">
+                              <div className={`p-2 rounded ${
+                                userAssessment.middleFingerMcp && parseFloat(userAssessment.middleFingerMcp) < 70 ? 'bg-red-50 border border-red-200' : 'bg-gray-100'
                               }`}>
-                                <div className={`text-sm font-bold ${
-                                  userAssessment.middleFingerMcp && parseFloat(userAssessment.middleFingerMcp) < 70
-                                    ? 'text-white' : 'text-gray-800'
-                                }`}>MCP Joint</div>
-                                <div className={`text-2xl font-black ${
-                                  userAssessment.middleFingerMcp && parseFloat(userAssessment.middleFingerMcp) < 70
-                                    ? 'text-white' : 'text-blue-700'
+                                <div className="text-xs text-gray-800">MCP Joint</div>
+                                <div className={`font-medium ${
+                                  userAssessment.middleFingerMcp && parseFloat(userAssessment.middleFingerMcp) < 70 ? 'text-red-600' : 'text-blue-600'
                                 }`}>
                                   {userAssessment.middleFingerMcp ? parseFloat(userAssessment.middleFingerMcp).toFixed(0) : '0'}°
                                 </div>
                                 <div className="text-xs text-gray-700">Normal: 70-90°</div>
                               </div>
-                              <div className={`p-4 rounded-lg border-2 ${
-                                userAssessment.middleFingerPip && parseFloat(userAssessment.middleFingerPip) < 90
-                                  ? 'bg-red-500 border-red-600 shadow-lg' : 'bg-green-50 border-green-200'
+                              <div className={`p-2 rounded ${
+                                userAssessment.middleFingerPip && parseFloat(userAssessment.middleFingerPip) < 90 ? 'bg-red-50 border border-red-200' : 'bg-gray-100'
                               }`}>
-                                <div className={`text-sm font-bold ${
-                                  userAssessment.middleFingerPip && parseFloat(userAssessment.middleFingerPip) < 90
-                                    ? 'text-white' : 'text-gray-800'
-                                }`}>PIP Joint</div>
-                                <div className={`text-2xl font-black ${
-                                  userAssessment.middleFingerPip && parseFloat(userAssessment.middleFingerPip) < 90
-                                    ? 'text-white' : 'text-green-700'
+                                <div className="text-xs text-gray-800">PIP Joint</div>
+                                <div className={`font-medium ${
+                                  userAssessment.middleFingerPip && parseFloat(userAssessment.middleFingerPip) < 90 ? 'text-red-600' : 'text-green-600'
                                 }`}>
                                   {userAssessment.middleFingerPip ? parseFloat(userAssessment.middleFingerPip).toFixed(0) : '0'}°
                                 </div>
                                 <div className="text-xs text-gray-700">Normal: 90-110°</div>
                               </div>
-                              <div className={`p-4 rounded-lg border-2 ${
-                                userAssessment.middleFingerDip && parseFloat(userAssessment.middleFingerDip) < 70
-                                  ? 'bg-red-500 border-red-600 shadow-lg' : 'bg-purple-50 border-purple-200'
+                              <div className={`p-2 rounded ${
+                                userAssessment.middleFingerDip && parseFloat(userAssessment.middleFingerDip) < 70 ? 'bg-red-50 border border-red-200' : 'bg-gray-100'
                               }`}>
-                                <div className={`text-sm font-bold ${
-                                  userAssessment.middleFingerDip && parseFloat(userAssessment.middleFingerDip) < 70
-                                    ? 'text-white' : 'text-gray-800'
-                                }`}>DIP Joint</div>
-                                <div className={`text-2xl font-black ${
-                                  userAssessment.middleFingerDip && parseFloat(userAssessment.middleFingerDip) < 70
-                                    ? 'text-white' : 'text-purple-700'
+                                <div className="text-xs text-gray-800">DIP Joint</div>
+                                <div className={`font-medium ${
+                                  userAssessment.middleFingerDip && parseFloat(userAssessment.middleFingerDip) < 70 ? 'text-red-600' : 'text-purple-600'
                                 }`}>
                                   {userAssessment.middleFingerDip ? parseFloat(userAssessment.middleFingerDip).toFixed(0) : '0'}°
                                 </div>
@@ -317,59 +281,41 @@ export default function AssessmentResults() {
                           </div>
                         )}
 
-                        {/* Ring Finger */}
                         {userAssessment.ringFingerRom && (
-                          <div className="border border-purple-200 rounded-lg p-4">
+                          <div className="bg-white p-4 rounded border">
                             <div className="flex justify-between items-center mb-3">
-                              <h5 className="font-medium text-gray-900">Ring Finger</h5>
-                              <span className="text-lg font-bold text-gray-700">
-                                {parseFloat(userAssessment.ringFingerRom).toFixed(0)}° TAM
-                              </span>
+                              <span className="font-medium text-gray-900">Ring Finger</span>
+                              <span className="font-bold text-lg text-gray-900">{parseFloat(userAssessment.ringFingerRom).toFixed(0)}° TAM</span>
                             </div>
-                            <div className="grid grid-cols-3 gap-4">
-                              <div className={`p-4 rounded-lg border-2 ${
-                                userAssessment.ringFingerMcp && parseFloat(userAssessment.ringFingerMcp) < 70
-                                  ? 'bg-red-500 border-red-600 shadow-lg' : 'bg-blue-50 border-blue-200'
+                            <div className="grid grid-cols-3 gap-3 text-sm">
+                              <div className={`p-2 rounded ${
+                                userAssessment.ringFingerMcp && parseFloat(userAssessment.ringFingerMcp) < 70 ? 'bg-red-50 border border-red-200' : 'bg-gray-100'
                               }`}>
-                                <div className={`text-sm font-bold ${
-                                  userAssessment.ringFingerMcp && parseFloat(userAssessment.ringFingerMcp) < 70
-                                    ? 'text-white' : 'text-gray-800'
-                                }`}>MCP Joint</div>
-                                <div className={`text-2xl font-black ${
-                                  userAssessment.ringFingerMcp && parseFloat(userAssessment.ringFingerMcp) < 70
-                                    ? 'text-white' : 'text-blue-700'
+                                <div className="text-xs text-gray-800">MCP Joint</div>
+                                <div className={`font-medium ${
+                                  userAssessment.ringFingerMcp && parseFloat(userAssessment.ringFingerMcp) < 70 ? 'text-red-600' : 'text-blue-600'
                                 }`}>
                                   {userAssessment.ringFingerMcp ? parseFloat(userAssessment.ringFingerMcp).toFixed(0) : '0'}°
                                 </div>
                                 <div className="text-xs text-gray-700">Normal: 70-90°</div>
                               </div>
-                              <div className={`p-4 rounded-lg border-2 ${
-                                userAssessment.ringFingerPip && parseFloat(userAssessment.ringFingerPip) < 90
-                                  ? 'bg-red-500 border-red-600 shadow-lg' : 'bg-green-50 border-green-200'
+                              <div className={`p-2 rounded ${
+                                userAssessment.ringFingerPip && parseFloat(userAssessment.ringFingerPip) < 90 ? 'bg-red-50 border border-red-200' : 'bg-gray-100'
                               }`}>
-                                <div className={`text-sm font-bold ${
-                                  userAssessment.ringFingerPip && parseFloat(userAssessment.ringFingerPip) < 90
-                                    ? 'text-white' : 'text-gray-800'
-                                }`}>PIP Joint</div>
-                                <div className={`text-2xl font-black ${
-                                  userAssessment.ringFingerPip && parseFloat(userAssessment.ringFingerPip) < 90
-                                    ? 'text-white' : 'text-green-700'
+                                <div className="text-xs text-gray-800">PIP Joint</div>
+                                <div className={`font-medium ${
+                                  userAssessment.ringFingerPip && parseFloat(userAssessment.ringFingerPip) < 90 ? 'text-red-600' : 'text-green-600'
                                 }`}>
                                   {userAssessment.ringFingerPip ? parseFloat(userAssessment.ringFingerPip).toFixed(0) : '0'}°
                                 </div>
                                 <div className="text-xs text-gray-700">Normal: 90-110°</div>
                               </div>
-                              <div className={`p-4 rounded-lg border-2 ${
-                                userAssessment.ringFingerDip && parseFloat(userAssessment.ringFingerDip) < 70
-                                  ? 'bg-red-500 border-red-600 shadow-lg' : 'bg-purple-50 border-purple-200'
+                              <div className={`p-2 rounded ${
+                                userAssessment.ringFingerDip && parseFloat(userAssessment.ringFingerDip) < 70 ? 'bg-red-50 border border-red-200' : 'bg-gray-100'
                               }`}>
-                                <div className={`text-sm font-bold ${
-                                  userAssessment.ringFingerDip && parseFloat(userAssessment.ringFingerDip) < 70
-                                    ? 'text-white' : 'text-gray-800'
-                                }`}>DIP Joint</div>
-                                <div className={`text-2xl font-black ${
-                                  userAssessment.ringFingerDip && parseFloat(userAssessment.ringFingerDip) < 70
-                                    ? 'text-white' : 'text-purple-700'
+                                <div className="text-xs text-gray-800">DIP Joint</div>
+                                <div className={`font-medium ${
+                                  userAssessment.ringFingerDip && parseFloat(userAssessment.ringFingerDip) < 70 ? 'text-red-600' : 'text-purple-600'
                                 }`}>
                                   {userAssessment.ringFingerDip ? parseFloat(userAssessment.ringFingerDip).toFixed(0) : '0'}°
                                 </div>
@@ -379,59 +325,41 @@ export default function AssessmentResults() {
                           </div>
                         )}
 
-                        {/* Pinky Finger */}
                         {userAssessment.pinkyFingerRom && (
-                          <div className="border border-orange-200 rounded-lg p-4">
+                          <div className="bg-white p-4 rounded border">
                             <div className="flex justify-between items-center mb-3">
-                              <h5 className="font-medium text-gray-900">Pinky Finger</h5>
-                              <span className="text-lg font-bold text-gray-700">
-                                {parseFloat(userAssessment.pinkyFingerRom).toFixed(0)}° TAM
-                              </span>
+                              <span className="font-medium text-gray-900">Pinky Finger</span>
+                              <span className="font-bold text-lg text-gray-900">{parseFloat(userAssessment.pinkyFingerRom).toFixed(0)}° TAM</span>
                             </div>
-                            <div className="grid grid-cols-3 gap-4">
-                              <div className={`p-4 rounded-lg border-2 ${
-                                userAssessment.pinkyFingerMcp && parseFloat(userAssessment.pinkyFingerMcp) < 70
-                                  ? 'bg-red-500 border-red-600 shadow-lg' : 'bg-blue-50 border-blue-200'
+                            <div className="grid grid-cols-3 gap-3 text-sm">
+                              <div className={`p-2 rounded ${
+                                userAssessment.pinkyFingerMcp && parseFloat(userAssessment.pinkyFingerMcp) < 70 ? 'bg-red-50 border border-red-200' : 'bg-gray-100'
                               }`}>
-                                <div className={`text-sm font-bold ${
-                                  userAssessment.pinkyFingerMcp && parseFloat(userAssessment.pinkyFingerMcp) < 70
-                                    ? 'text-white' : 'text-gray-800'
-                                }`}>MCP Joint</div>
-                                <div className={`text-2xl font-black ${
-                                  userAssessment.pinkyFingerMcp && parseFloat(userAssessment.pinkyFingerMcp) < 70
-                                    ? 'text-white' : 'text-blue-700'
+                                <div className="text-xs text-gray-800">MCP Joint</div>
+                                <div className={`font-medium ${
+                                  userAssessment.pinkyFingerMcp && parseFloat(userAssessment.pinkyFingerMcp) < 70 ? 'text-red-600' : 'text-blue-600'
                                 }`}>
                                   {userAssessment.pinkyFingerMcp ? parseFloat(userAssessment.pinkyFingerMcp).toFixed(0) : '0'}°
                                 </div>
                                 <div className="text-xs text-gray-700">Normal: 70-90°</div>
                               </div>
-                              <div className={`p-4 rounded-lg border-2 ${
-                                userAssessment.pinkyFingerPip && parseFloat(userAssessment.pinkyFingerPip) < 90
-                                  ? 'bg-red-500 border-red-600 shadow-lg' : 'bg-green-50 border-green-200'
+                              <div className={`p-2 rounded ${
+                                userAssessment.pinkyFingerPip && parseFloat(userAssessment.pinkyFingerPip) < 90 ? 'bg-red-50 border border-red-200' : 'bg-gray-100'
                               }`}>
-                                <div className={`text-sm font-bold ${
-                                  userAssessment.pinkyFingerPip && parseFloat(userAssessment.pinkyFingerPip) < 90
-                                    ? 'text-white' : 'text-gray-800'
-                                }`}>PIP Joint</div>
-                                <div className={`text-2xl font-black ${
-                                  userAssessment.pinkyFingerPip && parseFloat(userAssessment.pinkyFingerPip) < 90
-                                    ? 'text-white' : 'text-green-700'
+                                <div className="text-xs text-gray-800">PIP Joint</div>
+                                <div className={`font-medium ${
+                                  userAssessment.pinkyFingerPip && parseFloat(userAssessment.pinkyFingerPip) < 90 ? 'text-red-600' : 'text-green-600'
                                 }`}>
                                   {userAssessment.pinkyFingerPip ? parseFloat(userAssessment.pinkyFingerPip).toFixed(0) : '0'}°
                                 </div>
                                 <div className="text-xs text-gray-700">Normal: 90-110°</div>
                               </div>
-                              <div className={`p-4 rounded-lg border-2 ${
-                                userAssessment.pinkyFingerDip && parseFloat(userAssessment.pinkyFingerDip) < 70
-                                  ? 'bg-red-500 border-red-600 shadow-lg' : 'bg-purple-50 border-purple-200'
+                              <div className={`p-2 rounded ${
+                                userAssessment.pinkyFingerDip && parseFloat(userAssessment.pinkyFingerDip) < 70 ? 'bg-red-50 border border-red-200' : 'bg-gray-100'
                               }`}>
-                                <div className={`text-sm font-bold ${
-                                  userAssessment.pinkyFingerDip && parseFloat(userAssessment.pinkyFingerDip) < 70
-                                    ? 'text-white' : 'text-gray-800'
-                                }`}>DIP Joint</div>
-                                <div className={`text-2xl font-black ${
-                                  userAssessment.pinkyFingerDip && parseFloat(userAssessment.pinkyFingerDip) < 70
-                                    ? 'text-white' : 'text-purple-700'
+                                <div className="text-xs text-gray-800">DIP Joint</div>
+                                <div className={`font-medium ${
+                                  userAssessment.pinkyFingerDip && parseFloat(userAssessment.pinkyFingerDip) < 70 ? 'text-red-600' : 'text-purple-600'
                                 }`}>
                                   {userAssessment.pinkyFingerDip ? parseFloat(userAssessment.pinkyFingerDip).toFixed(0) : '0'}°
                                 </div>
