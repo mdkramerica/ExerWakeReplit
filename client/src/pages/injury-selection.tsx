@@ -105,14 +105,18 @@ export default function InjurySelection() {
                 }`}
               >
                 <div className="flex items-start space-x-4">
-                  <div className={`w-16 h-16 rounded-lg flex items-center justify-center transition-colors ${
+                  <div className={`w-16 h-16 rounded-lg flex items-center justify-center transition-all duration-200 ${
                     selectedInjury === injury.name
-                      ? "bg-medical-blue text-white"
-                      : "bg-gray-100 group-hover:bg-medical-blue group-hover:text-white"
+                      ? "bg-medical-blue"
+                      : "bg-gray-100 group-hover:bg-medical-blue"
                   }`}>
                     {(() => {
                       const IconComponent = getInjuryIcon(injury.name);
-                      return <IconComponent className="w-10 h-10" />;
+                      return <IconComponent className={`w-10 h-10 transition-colors duration-200 ${
+                        selectedInjury === injury.name
+                          ? "text-white"
+                          : "text-gray-600 group-hover:text-white"
+                      }`} />;
                     })()}
                   </div>
                   <div className="flex-1">
