@@ -96,6 +96,8 @@ export default function Recording() {
   };
 
   const handleRepetitionComplete = () => {
+    console.log(`Repetition ${currentRepetition} completed with ${recordingMotionData.length} motion frames`);
+    
     const repetitionData = {
       repetition: currentRepetition,
       duration: recordingTimer,
@@ -106,6 +108,9 @@ export default function Recording() {
     };
 
     setRecordedData(prev => [...prev, repetitionData]);
+    
+    // Clear motion data for next repetition
+    setRecordingMotionData([]);
 
     if (currentRepetition < (assessment?.repetitions || 3)) {
       setCurrentRepetition(prev => prev + 1);
@@ -156,20 +161,20 @@ export default function Recording() {
     setHandPosition(data.handPosition);
     
     // Store current landmarks for recording
-    if (data.landmarks) {
+    if (data.landmarks && data.landmarks.length > 0) {
       setCurrentLandmarks(data.landmarks);
       
       // If recording, capture motion data with timestamp
-      if (isRecording) {
+      if (isRecording && data.handDetected) {
         const motionFrame = {
           timestamp: Date.now(),
           landmarks: data.landmarks.map((landmark: any) => ({
-            x: landmark.x,
-            y: landmark.y,
+            x: landmark.x || 0,
+            y: landmark.y || 0,
             z: landmark.z || 0
           })),
-          handedness: "Right", // Could be detected from MediaPipe
-          quality: data.trackingQuality === "Excellent" ? 0.9 : 0.7
+          handedness: "Right",
+          quality: data.trackingQuality === "Excellent" ? 90 : data.trackingQuality === "Good" ? 70 : 50
         };
         setRecordingMotionData(prev => [...prev, motionFrame]);
       }
