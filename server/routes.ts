@@ -180,8 +180,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Calculate max ROM for all fingers if motion data exists
         if (allMotionFrames.length > 0) {
           try {
-            // Import ROM calculation function (will be available at runtime)
-            const { calculateAllFingersMaxROM } = require('../client/src/lib/rom-calculator');
+            // Import ROM calculation function from shared module
+            const { calculateAllFingersMaxROM } = require('../shared/rom-calculator');
             const allFingersROM = calculateAllFingersMaxROM(allMotionFrames);
             
             indexFingerRom = allFingersROM.index?.totalActiveRom || null;
