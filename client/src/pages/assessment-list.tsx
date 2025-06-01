@@ -382,7 +382,7 @@ export default function AssessmentList() {
                           <Eye className="w-4 h-4 text-blue-600" />
                         </button>
                         <button
-                          onClick={() => setShowReplay(record.id.toString())}
+                          onClick={() => setShowReplay(record.assessmentName || record.id.toString())}
                           className="w-8 h-8 rounded-lg bg-green-50 hover:bg-green-100 flex items-center justify-center transition-colors"
                           title="View Motion Replay"
                         >
