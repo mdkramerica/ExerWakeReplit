@@ -62,7 +62,7 @@ export default function JointTest() {
     // Draw index finger bones with different colors
     ctx.lineWidth = 3;
     
-    // MCP joint (5-6) - Red
+    // Proximal phalanx (5-6) - Red
     if (handLandmarks[5] && handLandmarks[6]) {
       ctx.strokeStyle = '#ef4444';
       ctx.beginPath();
@@ -70,7 +70,7 @@ export default function JointTest() {
       ctx.lineTo(handLandmarks[6].x * canvas.width, handLandmarks[6].y * canvas.height);
       ctx.stroke();
       
-      // Label MCP
+      // Label MCP angle (calculated from 0-5-6)
       const midX = (handLandmarks[5].x + handLandmarks[6].x) / 2 * canvas.width;
       const midY = (handLandmarks[5].y + handLandmarks[6].y) / 2 * canvas.height;
       ctx.fillStyle = '#ef4444';
@@ -78,7 +78,7 @@ export default function JointTest() {
       ctx.fillText(`MCP: ${romData.mcpAngle.toFixed(1)}°`, midX + 10, midY);
     }
     
-    // PIP joint (6-7) - Green
+    // Middle phalanx (6-7) - Green
     if (handLandmarks[6] && handLandmarks[7]) {
       ctx.strokeStyle = '#10b981';
       ctx.beginPath();
@@ -86,7 +86,7 @@ export default function JointTest() {
       ctx.lineTo(handLandmarks[7].x * canvas.width, handLandmarks[7].y * canvas.height);
       ctx.stroke();
       
-      // Label PIP
+      // Label PIP angle (calculated from 5-6-7)
       const midX = (handLandmarks[6].x + handLandmarks[7].x) / 2 * canvas.width;
       const midY = (handLandmarks[6].y + handLandmarks[7].y) / 2 * canvas.height;
       ctx.fillStyle = '#10b981';
@@ -94,7 +94,7 @@ export default function JointTest() {
       ctx.fillText(`PIP: ${romData.pipAngle.toFixed(1)}°`, midX + 10, midY);
     }
     
-    // DIP joint (7-8) - Blue
+    // Distal phalanx (7-8) - Blue
     if (handLandmarks[7] && handLandmarks[8]) {
       ctx.strokeStyle = '#3b82f6';
       ctx.beginPath();
@@ -102,7 +102,7 @@ export default function JointTest() {
       ctx.lineTo(handLandmarks[8].x * canvas.width, handLandmarks[8].y * canvas.height);
       ctx.stroke();
       
-      // Label DIP
+      // Label DIP angle (calculated from 6-7-8)
       const midX = (handLandmarks[7].x + handLandmarks[8].x) / 2 * canvas.width;
       const midY = (handLandmarks[7].y + handLandmarks[8].y) / 2 * canvas.height;
       ctx.fillStyle = '#3b82f6';
@@ -110,21 +110,21 @@ export default function JointTest() {
       ctx.fillText(`DIP: ${romData.dipAngle.toFixed(1)}°`, midX + 10, midY);
     }
 
-    // Highlight the joint points themselves
+    // Highlight the anatomical landmarks
     indexFingerPoints.forEach((pointIndex, i) => {
       if (handLandmarks[pointIndex]) {
         const x = handLandmarks[pointIndex].x * canvas.width;
         const y = handLandmarks[pointIndex].y * canvas.height;
         
-        // Different colors for different joints
+        // Different colors for different anatomical points
         const colors = ['#ef4444', '#f97316', '#10b981', '#3b82f6'];
         ctx.fillStyle = colors[i];
         ctx.beginPath();
         ctx.arc(x, y, 6, 0, 2 * Math.PI);
         ctx.fill();
         
-        // Joint labels
-        const labels = ['MCP Base', 'MCP Joint', 'PIP Joint', 'DIP Joint'];
+        // Anatomically correct labels
+        const labels = ['MCP Base (5)', 'MCP Joint (6)', 'PIP Joint (7)', 'Fingertip (8)'];
         ctx.fillStyle = '#ffffff';
         ctx.font = '11px Arial';
         ctx.fillText(labels[i], x + 8, y + 3);
