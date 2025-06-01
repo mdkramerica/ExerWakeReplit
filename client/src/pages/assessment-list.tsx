@@ -345,7 +345,7 @@ export default function AssessmentList() {
                       </div>
                       <div className="flex items-center gap-2">
                         {record.qualityScore && (
-                          <div className="text-xs bg-gray-100 px-2 py-1 rounded">
+                          <div className="text-xs bg-gray-200 px-2 py-1 rounded text-gray-800">
                             Quality: {Math.round(record.qualityScore)}%
                           </div>
                         )}
