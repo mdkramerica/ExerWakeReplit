@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation, useParams } from "wouter";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, Hand, Lightbulb, Square, RotateCcw } from "lucide-react";
@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function Recording() {
   const { id } = useParams();
+  const queryClient = useQueryClient();
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [currentRepetition, setCurrentRepetition] = useState(1);
   const [isRecording, setIsRecording] = useState(false);
@@ -43,6 +44,10 @@ export default function Recording() {
       return response.json();
     },
     onSuccess: () => {
+      // Invalidate both assessment list and progress queries to refresh the UI
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${currentUser.id}/assessments`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${currentUser.id}/progress`] });
+      
       toast({
         title: "Assessment Complete!",
         description: "Your range of motion data has been recorded successfully.",
