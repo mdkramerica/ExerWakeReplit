@@ -9,6 +9,7 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import ProgressBar from "@/components/progress-bar";
 import { getInjuryIcon } from "@/components/medical-icons";
 import distalRadiusFractureImg from "@assets/distal-radius-fracture-18.jpg";
+import triggerFingerImg from "@assets/trigger-finger-5.jpg";
 import type { InjuryType } from "@/types/assessment";
 
 export default function InjurySelection() {
@@ -115,6 +116,12 @@ export default function InjurySelection() {
                       <img 
                         src={distalRadiusFractureImg} 
                         alt="Distal Radius Fracture X-ray"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : injury.name === "Trigger Finger" ? (
+                      <img 
+                        src={triggerFingerImg} 
+                        alt="Trigger Finger MRI"
                         className="w-full h-full object-cover"
                       />
                     ) : (
