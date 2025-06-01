@@ -80,7 +80,7 @@ export default function Landing() {
                 value={code}
                 onChange={handleCodeChange}
                 maxLength={6}
-                className="text-center text-2xl font-mono tracking-widest medical-input"
+                className="text-center text-2xl font-mono tracking-widest bg-white border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="000000"
                 disabled={verifyCodeMutation.isPending}
               />
