@@ -197,14 +197,28 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
       setCurrentROM(romData);
     }
 
-    // Draw hand landmarks (natural position without mirroring)
-    ctx.fillStyle = '#10b981';
+    // Draw hand landmarks with finger highlighting
     frame.landmarks.forEach((landmark, index) => {
-      const x = landmark.x * canvas.width; // Natural position
+      const x = landmark.x * canvas.width;
       const y = landmark.y * canvas.height;
       
+      // Highlight index finger joints (5, 6, 7, 8) since we're measuring its ROM
+      let color = '#10b981'; // Default green
+      let size = 4;
+      
+      if ([5, 6, 7, 8].includes(index)) {
+        // Index finger - primary measurement finger
+        color = '#3b82f6'; // Blue for index finger
+        size = 6;
+      } else if ([0].includes(index)) {
+        // Wrist landmark
+        color = '#ef4444'; // Red for wrist
+        size = 5;
+      }
+      
+      ctx.fillStyle = color;
       ctx.beginPath();
-      ctx.arc(x, y, 4, 0, 2 * Math.PI);
+      ctx.arc(x, y, size, 0, 2 * Math.PI);
       ctx.fill();
 
       // Draw landmark numbers
@@ -232,12 +246,105 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
       }
     });
 
+    // Draw live ROM data overlay
+    if (frame.landmarks && frame.landmarks.length >= 21) {
+      const romData = calculateCurrentROM(frame.landmarks);
+      
+      // Semi-transparent background for ROM overlay
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+      ctx.fillRect(canvas.width - 220, 10, 200, 120);
+      
+      // ROM title
+      ctx.fillStyle = '#00ff00';
+      ctx.font = 'bold 14px Arial';
+      ctx.fillText('Live Joint Angles', canvas.width - 210, 30);
+      
+      // Draw index finger diagram indicator
+      ctx.strokeStyle = '#3b82f6';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(canvas.width - 50, 40);
+      ctx.lineTo(canvas.width - 30, 40);
+      ctx.lineTo(canvas.width - 30, 50);
+      ctx.lineTo(canvas.width - 20, 50);
+      ctx.lineTo(canvas.width - 20, 60);
+      ctx.lineTo(canvas.width - 10, 60);
+      ctx.stroke();
+      
+      // Joint angles with color coding
+      ctx.font = '12px Arial';
+      
+      // MCP Joint (blue to match highlighted landmarks)
+      ctx.fillStyle = '#3b82f6';
+      ctx.fillText(`MCP: ${Math.round(romData.mcpAngle)}°`, canvas.width - 210, 50);
+      
+      // PIP Joint (green)
+      ctx.fillStyle = '#10b981';
+      ctx.fillText(`PIP: ${Math.round(romData.pipAngle)}°`, canvas.width - 210, 70);
+      
+      // DIP Joint (purple)
+      ctx.fillStyle = '#8b5cf6';
+      ctx.fillText(`DIP: ${Math.round(romData.dipAngle)}°`, canvas.width - 210, 90);
+      
+      // Total ROM (white, emphasized)
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 12px Arial';
+      ctx.fillText(`Total: ${Math.round(romData.totalActiveRom)}°`, canvas.width - 210, 110);
+      
+      // Draw angle visualization on the finger joints
+      if (frame.landmarks[5] && frame.landmarks[6] && frame.landmarks[7] && frame.landmarks[8]) {
+        // Draw MCP angle arc
+        const mcpCenter = { x: frame.landmarks[5].x * canvas.width, y: frame.landmarks[5].y * canvas.height };
+        ctx.strokeStyle = '#3b82f6';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([3, 3]);
+        ctx.beginPath();
+        ctx.arc(mcpCenter.x, mcpCenter.y, 15, 0, (romData.mcpAngle / 180) * Math.PI);
+        ctx.stroke();
+        
+        // Draw PIP angle arc
+        const pipCenter = { x: frame.landmarks[6].x * canvas.width, y: frame.landmarks[6].y * canvas.height };
+        ctx.strokeStyle = '#10b981';
+        ctx.beginPath();
+        ctx.arc(pipCenter.x, pipCenter.y, 12, 0, (romData.pipAngle / 180) * Math.PI);
+        ctx.stroke();
+        
+        // Draw DIP angle arc
+        const dipCenter = { x: frame.landmarks[7].x * canvas.width, y: frame.landmarks[7].y * canvas.height };
+        ctx.strokeStyle = '#8b5cf6';
+        ctx.beginPath();
+        ctx.arc(dipCenter.x, dipCenter.y, 10, 0, (romData.dipAngle / 180) * Math.PI);
+        ctx.stroke();
+        
+        ctx.setLineDash([]); // Reset line dash
+      }
+    }
+
     // Draw timestamp and quality info
     ctx.fillStyle = '#ffffff';
     ctx.font = '14px Arial';
     ctx.fillText(`Frame: ${frameIndex + 1}/${replayData.length}`, 10, 25);
     ctx.fillText(`Quality: ${Math.round(frame.quality)}%`, 10, 45);
     ctx.fillText(`Hand: ${frame.handedness}`, 10, 65);
+
+    // Draw finger measurement legend
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.fillRect(10, canvas.height - 80, 180, 70);
+    
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '12px Arial';
+    ctx.fillText('Finger Measurement:', 15, canvas.height - 60);
+    
+    // Color-coded legend
+    ctx.fillStyle = '#3b82f6';
+    ctx.fillRect(15, canvas.height - 45, 10, 10);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText('Index Finger (Measured)', 30, canvas.height - 37);
+    
+    ctx.fillStyle = '#10b981';
+    ctx.fillRect(15, canvas.height - 25, 10, 10);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText('Other Landmarks', 30, canvas.height - 17);
 
     // Draw Exer AI branding
     ctx.fillStyle = '#9ca3af';
