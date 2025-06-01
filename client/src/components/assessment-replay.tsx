@@ -537,18 +537,34 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
                 </Button>
               </div>
 
-              <div className="flex items-center space-x-2">
-                <label className="text-sm text-gray-600">Speed:</label>
-                <select
-                  value={playbackSpeed}
-                  onChange={(e) => setPlaybackSpeed(Number(e.target.value))}
-                  className="border rounded px-2 py-1"
-                >
-                  <option value={0.5}>0.5x</option>
-                  <option value={1}>1x</option>
-                  <option value={1.5}>1.5x</option>
-                  <option value={2}>2x</option>
-                </select>
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <label className="text-sm text-gray-600">Digit:</label>
+                  <select
+                    value={selectedDigit}
+                    onChange={(e) => setSelectedDigit(e.target.value as 'INDEX' | 'MIDDLE' | 'RING' | 'PINKY')}
+                    className="border rounded px-2 py-1 bg-white"
+                  >
+                    <option value="INDEX">Index Finger</option>
+                    <option value="MIDDLE">Middle Finger</option>
+                    <option value="RING">Ring Finger</option>
+                    <option value="PINKY">Pinky Finger</option>
+                  </select>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <label className="text-sm text-gray-600">Speed:</label>
+                  <select
+                    value={playbackSpeed}
+                    onChange={(e) => setPlaybackSpeed(Number(e.target.value))}
+                    className="border rounded px-2 py-1 bg-white"
+                  >
+                    <option value={0.5}>0.5x</option>
+                    <option value={1}>1x</option>
+                    <option value={1.5}>1.5x</option>
+                    <option value={2}>2x</option>
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -632,69 +648,62 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
               </div>
             )}
 
-            {/* ROM Analysis Breakdown */}
-            {maxROM && (
+            {/* Comprehensive Multi-Digit ROM Analysis */}
+            {allDigitsROM && (
               <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg">
-                <h4 className="font-medium mb-3">ROM Analysis Breakdown</h4>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Maximum Flexion Achieved:</span>
-                    <span className="font-semibold text-lg">{Math.round(maxROM.totalActiveRom)}°</span>
-                  </div>
-                  
-                  <div className="bg-white p-3 rounded border">
-                    <div className="text-sm font-medium mb-2">Joint Contribution Analysis:</div>
-                    <div className="space-y-2 text-sm">
-                      <div className={`flex justify-between p-2 rounded ${
-                        maxROM.mcpAngle < 70 ? 'bg-red-50 border border-red-200' : ''
-                      }`}>
-                        <span>MCP Joint (normal: 70-90°):</span>
-                        <span className={`font-medium ${
-                          maxROM.mcpAngle < 70 ? 'text-red-600' : 'text-gray-900'
-                        }`}>
-                          {Math.round(maxROM.mcpAngle)}° ({Math.round((maxROM.mcpAngle / maxROM.totalActiveRom) * 100)}%)
-                          {maxROM.mcpAngle < 70 && <span className="ml-2 text-xs text-red-600">⚠ Low</span>}
-                        </span>
+                <h4 className="font-medium mb-3">Comprehensive ROM Analysis - All Digits</h4>
+                <div className="space-y-4">
+                  {Object.entries(allDigitsROM).map(([digit, rom]) => (
+                    <div key={digit} className={`bg-white p-4 rounded border ${
+                      digit === selectedDigit ? 'ring-2 ring-blue-500' : ''
+                    }`}>
+                      <div className="flex justify-between items-center mb-3">
+                        <span className="font-medium text-gray-900">{digit.charAt(0) + digit.slice(1).toLowerCase()} Finger</span>
+                        <span className="font-semibold text-lg">{Math.round(rom.totalActiveRom)}° TAM</span>
                       </div>
-                      <div className={`flex justify-between p-2 rounded ${
-                        maxROM.pipAngle < 90 ? 'bg-red-50 border border-red-200' : ''
-                      }`}>
-                        <span>PIP Joint (normal: 90-110°):</span>
-                        <span className={`font-medium ${
-                          maxROM.pipAngle < 90 ? 'text-red-600' : 'text-gray-900'
+                      
+                      <div className="grid grid-cols-3 gap-3 text-sm">
+                        <div className={`p-2 rounded ${
+                          rom.mcpAngle < 70 ? 'bg-red-50 border border-red-200' : 'bg-gray-50'
                         }`}>
-                          {Math.round(maxROM.pipAngle)}° ({Math.round((maxROM.pipAngle / maxROM.totalActiveRom) * 100)}%)
-                          {maxROM.pipAngle < 90 && <span className="ml-2 text-xs text-red-600">⚠ Low</span>}
-                        </span>
-                      </div>
-                      <div className={`flex justify-between p-2 rounded ${
-                        maxROM.dipAngle < 70 ? 'bg-red-50 border border-red-200' : ''
-                      }`}>
-                        <span>DIP Joint (normal: 70-90°):</span>
-                        <span className={`font-medium ${
-                          maxROM.dipAngle < 70 ? 'text-red-600' : 'text-gray-900'
+                          <div className="text-xs text-gray-600">MCP Joint</div>
+                          <div className={`font-medium ${
+                            rom.mcpAngle < 70 ? 'text-red-600' : 'text-blue-600'
+                          }`}>
+                            {Math.round(rom.mcpAngle)}°
+                            {rom.mcpAngle < 70 && <span className="ml-1 text-xs">⚠</span>}
+                          </div>
+                          <div className="text-xs text-gray-500">Normal: 70-90°</div>
+                        </div>
+                        
+                        <div className={`p-2 rounded ${
+                          rom.pipAngle < 90 ? 'bg-red-50 border border-red-200' : 'bg-gray-50'
                         }`}>
-                          {Math.round(maxROM.dipAngle)}° ({Math.round((maxROM.dipAngle / maxROM.totalActiveRom) * 100)}%)
-                          {maxROM.dipAngle < 70 && <span className="ml-2 text-xs text-red-600">⚠ Low</span>}
-                        </span>
+                          <div className="text-xs text-gray-600">PIP Joint</div>
+                          <div className={`font-medium ${
+                            rom.pipAngle < 90 ? 'text-red-600' : 'text-green-600'
+                          }`}>
+                            {Math.round(rom.pipAngle)}°
+                            {rom.pipAngle < 90 && <span className="ml-1 text-xs">⚠</span>}
+                          </div>
+                          <div className="text-xs text-gray-500">Normal: 90-110°</div>
+                        </div>
+                        
+                        <div className={`p-2 rounded ${
+                          rom.dipAngle < 70 ? 'bg-red-50 border border-red-200' : 'bg-gray-50'
+                        }`}>
+                          <div className="text-xs text-gray-600">DIP Joint</div>
+                          <div className={`font-medium ${
+                            rom.dipAngle < 70 ? 'text-red-600' : 'text-purple-600'
+                          }`}>
+                            {Math.round(rom.dipAngle)}°
+                            {rom.dipAngle < 70 && <span className="ml-1 text-xs">⚠</span>}
+                          </div>
+                          <div className="text-xs text-gray-500">Normal: 70-90°</div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-3 text-xs">
-                    <div className="bg-blue-100 p-2 rounded text-center">
-                      <div className="font-medium">Normal ROM</div>
-                      <div>260-280°</div>
-                    </div>
-                    <div className="bg-yellow-100 p-2 rounded text-center">
-                      <div className="font-medium">Recorded</div>
-                      <div>{Math.round(maxROM.totalActiveRom)}°</div>
-                    </div>
-                    <div className="bg-green-100 p-2 rounded text-center">
-                      <div className="font-medium">Recovery %</div>
-                      <div>{Math.round((maxROM.totalActiveRom / 270) * 100)}%</div>
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </div>
             )}
