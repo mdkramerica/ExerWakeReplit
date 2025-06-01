@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Play, Pause, RotateCcw, Download } from "lucide-react";
 import { calculateCurrentROM, calculateFingerROM, type JointAngles } from "@/lib/rom-calculator";
+import { calculateKapandjiScore, calculateMaxKapandjiScore, type KapandjiScore } from "@shared/kapandji-calculator";
 import exerLogoPath from "@assets/exer-logo.png";
 
 interface ReplayData {
@@ -40,6 +41,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
   const [maxROM, setMaxROM] = useState<JointAngles | null>(null);
   const [selectedDigit, setSelectedDigit] = useState<'INDEX' | 'MIDDLE' | 'RING' | 'PINKY'>('INDEX');
   const [allDigitsROM, setAllDigitsROM] = useState<{[key: string]: JointAngles} | null>(null);
+  const [kapandjiScore, setKapandjiScore] = useState<KapandjiScore | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [maxTAMFrame, setMaxTAMFrame] = useState<number>(0);
   const [minTAMFrame, setMinTAMFrame] = useState<number>(0);
@@ -54,19 +56,36 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
   const actualMotionData = motionData?.motionData || recordingData;
   const replayData: ReplayData[] = actualMotionData.length > 0 ? actualMotionData : [];
 
+  // Check if this is a Kapandji assessment
+  const isKapandjiAssessment = assessmentName === "Kapandji Score" || 
+                              assessmentName?.includes("Kapandji");
+
   // Initialize frame with maximum TAM when replay data changes
   useEffect(() => {
     if (replayData.length > 0) {
-      // Calculate ROM for all digits and frames
-      const allFramesAllDigits = replayData.map(frame => ({
-        INDEX: calculateFingerROM(frame.landmarks, 'INDEX'),
-        MIDDLE: calculateFingerROM(frame.landmarks, 'MIDDLE'),
-        RING: calculateFingerROM(frame.landmarks, 'RING'),
-        PINKY: calculateFingerROM(frame.landmarks, 'PINKY')
-      }));
-      
-      // Find maximum ROM for each digit across all frames
-      const maxROMByDigit = {
+      if (isKapandjiAssessment) {
+        // Calculate Kapandji scores for all frames
+        const kapandjiFrames = replayData.map(frame => ({
+          landmarks: frame.landmarks
+        }));
+        
+        // Calculate maximum Kapandji score across all frames
+        const maxKapandji = calculateMaxKapandjiScore(kapandjiFrames);
+        setKapandjiScore(maxKapandji);
+        
+        // Set frame to the one with the best score
+        setCurrentFrame(0); // Start from beginning for Kapandji
+      } else {
+        // Calculate ROM for all digits and frames (existing TAM logic)
+        const allFramesAllDigits = replayData.map(frame => ({
+          INDEX: calculateFingerROM(frame.landmarks, 'INDEX'),
+          MIDDLE: calculateFingerROM(frame.landmarks, 'MIDDLE'),
+          RING: calculateFingerROM(frame.landmarks, 'RING'),
+          PINKY: calculateFingerROM(frame.landmarks, 'PINKY')
+        }));
+        
+        // Find maximum ROM for each digit across all frames
+        const maxROMByDigit = {
         INDEX: allFramesAllDigits.reduce((max, current) => 
           current.INDEX.totalActiveRom > max.totalActiveRom ? current.INDEX : max, 
           allFramesAllDigits[0].INDEX
@@ -105,22 +124,30 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
         rom.totalActiveRom === minROM.totalActiveRom
       );
       
-      setMaxTAMFrame(maxTamFrameIndex >= 0 ? maxTamFrameIndex : 0);
-      setMinTAMFrame(minTamFrameIndex >= 0 ? minTamFrameIndex : 0);
-      setCurrentFrame(maxTamFrameIndex >= 0 ? maxTamFrameIndex : 0);
+        setMaxTAMFrame(maxTamFrameIndex >= 0 ? maxTamFrameIndex : 0);
+        setMinTAMFrame(minTamFrameIndex >= 0 ? minTamFrameIndex : 0);
+        setCurrentFrame(maxTamFrameIndex >= 0 ? maxTamFrameIndex : 0);
+      }
     }
-  }, [replayData, selectedDigit]);
+  }, [replayData, selectedDigit, isKapandjiAssessment]);
 
-  // Update current ROM when frame or digit selection changes
+  // Update current ROM/Kapandji when frame or digit selection changes
   useEffect(() => {
     if (replayData.length > 0 && currentFrame < replayData.length) {
       const frame = replayData[currentFrame];
       if (frame.landmarks && frame.landmarks.length >= 21) {
-        const rom = calculateFingerROM(frame.landmarks, selectedDigit);
-        setCurrentROM(rom);
+        if (isKapandjiAssessment) {
+          // Calculate current Kapandji score for this frame
+          const currentKapandji = calculateKapandjiScore(frame.landmarks);
+          setKapandjiScore(currentKapandji);
+        } else {
+          // Calculate ROM for standard assessments
+          const rom = calculateFingerROM(frame.landmarks, selectedDigit);
+          setCurrentROM(rom);
+        }
       }
     }
-  }, [currentFrame, replayData, selectedDigit]);
+  }, [currentFrame, replayData, selectedDigit, isKapandjiAssessment]);
 
   // Draw hand landmarks and connections on canvas
   const drawHandLandmarks = (ctx: CanvasRenderingContext2D, landmarks: Array<{x: number, y: number, z: number}>, canvasWidth: number, canvasHeight: number) => {
