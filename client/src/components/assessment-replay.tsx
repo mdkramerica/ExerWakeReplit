@@ -412,19 +412,19 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
 
     // Draw finger measurement legend
     ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-    ctx.fillRect(10, canvas.height - 80, 180, 70);
+    ctx.fillRect(10, canvas.height - 80, 200, 70);
     
     ctx.fillStyle = '#ffffff';
     ctx.font = '12px Arial';
     ctx.fillText('Finger Measurement:', 15, canvas.height - 60);
     
     // Color-coded legend
-    ctx.fillStyle = '#3b82f6';
+    ctx.fillStyle = '#ffff00'; // Yellow for active finger
     ctx.fillRect(15, canvas.height - 45, 10, 10);
     ctx.fillStyle = '#ffffff';
-    ctx.fillText('Index Finger (Measured)', 30, canvas.height - 37);
+    ctx.fillText(`${selectedDigit.charAt(0) + selectedDigit.slice(1).toLowerCase()} Finger (Active)`, 30, canvas.height - 37);
     
-    ctx.fillStyle = '#10b981';
+    ctx.fillStyle = '#10b981'; // Green for other landmarks
     ctx.fillRect(15, canvas.height - 25, 10, 10);
     ctx.fillStyle = '#ffffff';
     ctx.fillText('Other Landmarks', 30, canvas.height - 17);
