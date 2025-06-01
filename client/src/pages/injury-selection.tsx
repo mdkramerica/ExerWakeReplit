@@ -8,6 +8,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import ProgressBar from "@/components/progress-bar";
 import { getInjuryIcon } from "@/components/medical-icons";
+import distalRadiusFractureImg from "@assets/distal-radius-fracture-18.jpg";
 import type { InjuryType } from "@/types/assessment";
 
 export default function InjurySelection() {
@@ -105,19 +106,27 @@ export default function InjurySelection() {
                 }`}
               >
                 <div className="flex items-start space-x-4">
-                  <div className={`w-16 h-16 rounded-lg flex items-center justify-center transition-all duration-200 ${
+                  <div className={`w-16 h-16 rounded-lg overflow-hidden flex items-center justify-center transition-all duration-200 ${
                     selectedInjury === injury.name
-                      ? "bg-medical-blue"
+                      ? "bg-medical-blue ring-2 ring-blue-300"
                       : "bg-gray-100 group-hover:bg-medical-blue"
                   }`}>
-                    {(() => {
-                      const IconComponent = getInjuryIcon(injury.name);
-                      return <IconComponent className={`w-10 h-10 transition-colors duration-200 ${
-                        selectedInjury === injury.name
-                          ? "text-white"
-                          : "text-gray-600 group-hover:text-white"
-                      }`} />;
-                    })()}
+                    {injury.name === "Distal Radius Fracture" ? (
+                      <img 
+                        src={distalRadiusFractureImg} 
+                        alt="Distal Radius Fracture X-ray"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      (() => {
+                        const IconComponent = getInjuryIcon(injury.name);
+                        return <IconComponent className={`w-10 h-10 transition-colors duration-200 ${
+                          selectedInjury === injury.name
+                            ? "text-white"
+                            : "text-gray-600 group-hover:text-white"
+                        }`} />;
+                      })()
+                    )}
                   </div>
                   <div className="flex-1">
                     <h3 className="font-medium text-gray-900 mb-1">{injury.name}</h3>
