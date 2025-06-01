@@ -114,7 +114,7 @@ export default function AssessmentResults() {
           <Button
             variant="outline"
             onClick={() => setLocation("/assessments")}
-            className="flex items-center space-x-2"
+            className="flex items-center space-x-2 bg-white hover:bg-gray-50 border border-gray-300 hover:border-gray-400 text-gray-700 hover:text-gray-900 transition-colors duration-200"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Back to Assessments</span>
