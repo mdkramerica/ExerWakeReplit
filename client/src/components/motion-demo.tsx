@@ -15,9 +15,34 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
   // Initialize MediaPipe hands for the demo
   const initializeHands = useCallback(async () => {
     try {
-      const { Hands } = await import('@mediapipe/hands');
+      // Try multiple loading approaches like in the working component
+      let HandsClass;
+      try {
+        const mediapipeModule = await import('@mediapipe/hands');
+        HandsClass = mediapipeModule.Hands;
+      } catch (e) {
+        // Fallback: try accessing from global scope
+        HandsClass = (window as any).Hands || (window as any).mediapipe?.Hands;
+      }
+      
+      if (!HandsClass) {
+        console.warn('MediaPipe Hands class not available, loading from CDN...');
+        // Load MediaPipe script dynamically
+        await new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = 'https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js';
+          script.onload = resolve;
+          script.onerror = reject;
+          document.head.appendChild(script);
+        });
+        HandsClass = (window as any).Hands;
+      }
 
-      handsRef.current = new Hands({
+      if (!HandsClass) {
+        throw new Error('Unable to load MediaPipe Hands');
+      }
+
+      handsRef.current = new HandsClass({
         locateFile: (file: string) => {
           return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
         }
@@ -31,6 +56,7 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
       });
 
       handsRef.current.onResults(onResults);
+      console.log('MediaPipe demo initialized successfully');
       setIsInitialized(true);
       return true;
     } catch (error) {
