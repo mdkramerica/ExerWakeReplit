@@ -480,7 +480,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Assessment not found" });
       }
       
-      res.json({ userAssessment, user });
+      // Get the assessment details to include the assessment name
+      const assessment = await storage.getAssessment(userAssessment.assessmentId);
+      
+      // Add assessment name to user assessment for display purposes
+      const userAssessmentWithName = {
+        ...userAssessment,
+        assessmentName: assessment?.name || 'Unknown Assessment'
+      };
+      
+      res.json({ userAssessment: userAssessmentWithName, user });
     } catch (error) {
       res.status(400).json({ message: "Failed to retrieve assessment details" });
     }
