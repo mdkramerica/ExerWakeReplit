@@ -175,21 +175,81 @@ export default function AssessmentResults() {
             </CardContent>
           </Card>
 
-          {/* Range of Motion Results */}
+          {/* Results - Kapandji vs ROM */}
           {hasRomData && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <BarChart3 className="w-5 h-5 text-green-600" />
-                  <span>Range of Motion Analysis</span>
+                  <span>
+                    {userAssessment.assessmentName === "Kapandji Score" ? "Thumb Opposition Analysis" : "Range of Motion Analysis"}
+                  </span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
 
+                  {/* Kapandji Specific Scoring */}
+                  {userAssessment.assessmentName === "Kapandji Score" && (
+                    <div className="bg-blue-50 border border-blue-200 p-6 rounded-lg">
+                      <h4 className="font-medium mb-4 text-gray-900">Kapandji Opposition Score</h4>
+                      <div className="space-y-4">
+                        <div className="text-center mb-6">
+                          <div className="text-4xl font-bold text-blue-600 mb-2">
+                            {userAssessment.totalActiveRom || '0'}/10
+                          </div>
+                          <div className="text-sm text-gray-700">
+                            {parseInt(userAssessment.totalActiveRom || '0') >= 10 ? 'Excellent Opposition' :
+                             parseInt(userAssessment.totalActiveRom || '0') >= 8 ? 'Good Opposition' :
+                             parseInt(userAssessment.totalActiveRom || '0') >= 6 ? 'Moderate Opposition' :
+                             parseInt(userAssessment.totalActiveRom || '0') >= 4 ? 'Limited Opposition' :
+                             'Severely Limited Opposition'}
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <h5 className="font-medium text-gray-900">Opposition Levels Achieved:</h5>
+                            <div className="space-y-1 text-sm">
+                              <div className={`p-2 rounded ${userAssessment.indexFingerRom === '1' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
+                                Level 1: Index MCP {userAssessment.indexFingerRom === '1' ? '✓' : '✗'}
+                              </div>
+                              <div className={`p-2 rounded ${userAssessment.middleFingerRom === '2' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
+                                Level 2: Middle MCP {userAssessment.middleFingerRom === '2' ? '✓' : '✗'}
+                              </div>
+                              <div className={`p-2 rounded ${userAssessment.ringFingerRom === '3' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
+                                Level 3: Ring MCP {userAssessment.ringFingerRom === '3' ? '✓' : '✗'}
+                              </div>
+                              <div className={`p-2 rounded ${userAssessment.pinkyFingerRom === '4' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
+                                Level 4: Pinky MCP {userAssessment.pinkyFingerRom === '4' ? '✓' : '✗'}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <h5 className="font-medium text-gray-900">Advanced Levels:</h5>
+                            <div className="space-y-1 text-sm">
+                              <div className={`p-2 rounded ${parseInt(userAssessment.totalActiveRom || '0') >= 6 ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
+                                Level 6: Pinky PIP {parseInt(userAssessment.totalActiveRom || '0') >= 6 ? '✓' : '✗'}
+                              </div>
+                              <div className={`p-2 rounded ${parseInt(userAssessment.totalActiveRom || '0') >= 8 ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
+                                Level 8: Pinky Tip {parseInt(userAssessment.totalActiveRom || '0') >= 8 ? '✓' : '✗'}
+                              </div>
+                              <div className={`p-2 rounded ${parseInt(userAssessment.totalActiveRom || '0') >= 9 ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
+                                Level 9: Palm Center {parseInt(userAssessment.totalActiveRom || '0') >= 9 ? '✓' : '✗'}
+                              </div>
+                              <div className={`p-2 rounded ${parseInt(userAssessment.totalActiveRom || '0') >= 10 ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
+                                Level 10: Beyond Palm {parseInt(userAssessment.totalActiveRom || '0') >= 10 ? '✓' : '✗'}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
-                  {/* Comprehensive ROM Analysis - All Digits */}
-                  {(userAssessment.indexFingerRom || userAssessment.middleFingerRom || userAssessment.ringFingerRom || userAssessment.pinkyFingerRom) && (
+                  {/* Comprehensive ROM Analysis - All Digits - Only for non-Kapandji assessments */}
+                  {userAssessment.assessmentName !== "Kapandji Score" && (userAssessment.indexFingerRom || userAssessment.middleFingerRom || userAssessment.ringFingerRom || userAssessment.pinkyFingerRom) && (
                     <div className="bg-gray-100 border border-gray-200 p-4 rounded-lg">
                       <h4 className="font-medium mb-3 text-gray-900">Comprehensive ROM Analysis - All Digits</h4>
                       <div className="space-y-4">
