@@ -154,26 +154,26 @@ export default function VideoInstruction() {
                 </div>
               </div>
 
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-6">
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
                 <h3 className="font-semibold text-gray-900 mb-3 flex items-center">
-                  <AlertTriangle className="w-5 h-5 text-amber-600 mr-2" />
+                  <AlertTriangle className="w-5 h-5 text-gray-600 mr-2" />
                   Important Reminders
                 </h3>
                 <ul className="text-sm text-gray-700 space-y-2">
                   <li className="flex items-start">
-                    <CheckCircle className="w-4 h-4 text-amber-600 mr-2 mt-0.5 flex-shrink-0" />
+                    <CheckCircle className="w-4 h-4 text-gray-600 mr-2 mt-0.5 flex-shrink-0" />
                     Ensure good lighting and clear camera view
                   </li>
                   <li className="flex items-start">
-                    <CheckCircle className="w-4 h-4 text-amber-600 mr-2 mt-0.5 flex-shrink-0" />
+                    <CheckCircle className="w-4 h-4 text-gray-600 mr-2 mt-0.5 flex-shrink-0" />
                     Keep your hand in frame throughout the movement
                   </li>
                   <li className="flex items-start">
-                    <CheckCircle className="w-4 h-4 text-amber-600 mr-2 mt-0.5 flex-shrink-0" />
+                    <CheckCircle className="w-4 h-4 text-gray-600 mr-2 mt-0.5 flex-shrink-0" />
                     Move slowly and smoothly as demonstrated
                   </li>
                   <li className="flex items-start">
-                    <CheckCircle className="w-4 h-4 text-amber-600 mr-2 mt-0.5 flex-shrink-0" />
+                    <CheckCircle className="w-4 h-4 text-gray-600 mr-2 mt-0.5 flex-shrink-0" />
                     Stop if you experience pain or discomfort
                   </li>
                 </ul>

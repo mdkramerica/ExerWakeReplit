@@ -91,7 +91,7 @@ export default function ThankYou() {
                 <span className="text-medical-gray">Data Quality:</span>
                 <span className={`font-medium ${
                   averageQuality >= 90 ? 'text-medical-success' :
-                  averageQuality >= 70 ? 'text-yellow-600' : 'text-orange-600'
+                  averageQuality >= 70 ? 'text-blue-600' : 'text-orange-600'
                 }`}>
                   {averageQuality >= 90 ? 'Excellent' :
                    averageQuality >= 70 ? 'Good' : 'Fair'} ({averageQuality}%)

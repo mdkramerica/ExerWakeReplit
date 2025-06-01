@@ -428,7 +428,7 @@ export default function Recording() {
                     <span className="text-medical-gray">Tracking Quality:</span>
                     <span className={`font-medium ${
                       trackingQuality === "Excellent" ? 'text-medical-success' :
-                      trackingQuality === "Good" ? 'text-yellow-600' : 'text-red-500'
+                      trackingQuality === "Good" ? 'text-blue-600' : 'text-red-500'
                     }`}>
                       {trackingQuality}
                     </span>
@@ -492,9 +492,9 @@ export default function Recording() {
               )}
 
               {/* Tips */}
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-6">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
                 <h3 className="font-semibold text-gray-900 mb-3 flex items-center">
-                  <Lightbulb className="w-5 h-5 text-amber-600 mr-2" />
+                  <Lightbulb className="w-5 h-5 text-blue-600 mr-2" />
                   Tips
                 </h3>
                 <ul className="text-sm text-gray-700 space-y-1">
