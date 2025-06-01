@@ -352,60 +352,7 @@ export default function Recording() {
                   </div>
                 </div>
 
-                {/* Live Finger Tracking Display */}
-                {handDetected && (
-                  <div className="absolute bottom-4 left-4 bg-white border-4 border-blue-500 rounded-xl p-3 shadow-2xl min-w-[280px]">
-                    <div className="text-center">
-                      <div className="text-sm font-bold text-blue-600 mb-2">LIVE FINGER TRACKING</div>
-                      
-                      {/* Individual Finger ROM Values */}
-                      <div className="grid grid-cols-4 gap-2 mb-3">
-                        <div className="bg-red-100 rounded p-2">
-                          <div className="text-xs font-bold text-red-700">INDEX</div>
-                          <div className="text-lg font-black text-red-900">{allFingersROM.index.totalActiveRom.toFixed(0)}°</div>
-                        </div>
-                        <div className="bg-green-100 rounded p-2">
-                          <div className="text-xs font-bold text-green-700">MIDDLE</div>
-                          <div className="text-lg font-black text-green-900">{allFingersROM.middle.totalActiveRom.toFixed(0)}°</div>
-                        </div>
-                        <div className="bg-blue-100 rounded p-2">
-                          <div className="text-xs font-bold text-blue-700">RING</div>
-                          <div className="text-lg font-black text-blue-900">{allFingersROM.ring.totalActiveRom.toFixed(0)}°</div>
-                        </div>
-                        <div className="bg-purple-100 rounded p-2">
-                          <div className="text-xs font-bold text-purple-700">PINKY</div>
-                          <div className="text-lg font-black text-purple-900">{allFingersROM.pinky.totalActiveRom.toFixed(0)}°</div>
-                        </div>
-                      </div>
-                      
-                      {/* Total ROM Display */}
-                      <div className="bg-gray-100 rounded p-2 mb-2">
-                        <div className="text-xs font-bold text-gray-600">TOTAL ACTIVE MOTION</div>
-                        <div className="text-2xl font-black text-gray-900">
-                          {(allFingersROM.index.totalActiveRom + allFingersROM.middle.totalActiveRom + 
-                            allFingersROM.ring.totalActiveRom + allFingersROM.pinky.totalActiveRom).toFixed(0)}°
-                        </div>
-                      </div>
-                      
-                      {isRecording && (
-                        <div className="bg-green-500 text-white rounded p-2">
-                          <div className="text-xs font-bold">SESSION MAX</div>
-                          <div className="text-xl font-black">{maxROM.totalActiveRom.toFixed(0)}°</div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-                
-                {/* No Hand Detected Message */}
-                {!handDetected && (
-                  <div className="absolute bottom-4 left-4 bg-red-500 border-4 border-red-600 rounded-xl p-4 shadow-2xl">
-                    <div className="text-center text-white">
-                      <div className="text-sm font-bold mb-1">NO HAND DETECTED</div>
-                      <div className="text-xs">Position hand in view</div>
-                    </div>
-                  </div>
-                )}
+
               </div>
               
               {/* Recording Controls */}
