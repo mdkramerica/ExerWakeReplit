@@ -39,8 +39,10 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
     prevIsRecording.current = isRecording;
   }
 
-  // Initialize Exer AI tracking systems
+  // Initialize MediaPipe tracking systems with enhanced production support
   const initializeExerAI = useCallback(async () => {
+    console.log('Starting MediaPipe initialization...');
+    
     try {
       if (isArmAssessment) {
         // Initialize pose tracking for full arm assessments
@@ -62,103 +64,155 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
         });
 
         poseRef.current.onResults(onPoseResults);
+        console.log('Pose tracking initialized successfully');
       } else {
-        // Initialize hand tracking for hand/wrist assessments
+        // Enhanced hand tracking initialization with multiple fallback strategies
+        console.log('Initializing hand tracking...');
+        
+        let HandsClass = null;
+        let initializationMethod = '';
+
+        // Strategy 1: Try direct ES6 import first
         try {
-          // Graceful fallback for production environments
-          console.log('MediaPipe Hands loaded via import');
+          console.log('Attempting direct import...');
+          const mediapipeModule = await import('@mediapipe/hands');
+          HandsClass = mediapipeModule.Hands;
+          initializationMethod = 'direct import';
+          console.log('✓ Direct import successful');
+        } catch (importError) {
+          console.log('✗ Direct import failed, trying CDN methods...');
           
-          // Robust MediaPipe loading for production environments
-          let HandsClass;
-          try {
-            // First attempt: direct import (works in development)
-            const mediapipeModule = await import('@mediapipe/hands');
-            HandsClass = mediapipeModule.Hands;
-            console.log('MediaPipe loaded via direct import');
-          } catch (importError) {
-            console.warn('Direct import failed, trying CDN fallback:', importError);
-            
-            // Second attempt: Load from CDN (for production)
+          // Strategy 2: Check if already loaded via CDN
+          if (typeof window !== 'undefined' && (window as any).Hands) {
+            HandsClass = (window as any).Hands;
+            initializationMethod = 'existing CDN';
+            console.log('✓ Found existing CDN version');
+          } else {
+            // Strategy 3: Load via CDN with enhanced error handling
             try {
+              console.log('Loading from CDN...');
               await new Promise<void>((resolve, reject) => {
-                // Check if already loaded
-                if ((window as any).Hands) {
-                  HandsClass = (window as any).Hands;
-                  resolve();
-                  return;
-                }
-                
                 const script = document.createElement('script');
                 script.src = 'https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.js';
                 script.crossOrigin = 'anonymous';
                 script.async = true;
                 
+                let resolved = false;
+                
                 script.onload = () => {
-                  // Give it a moment to initialize
-                  setTimeout(() => {
+                  console.log('CDN script loaded, checking for Hands class...');
+                  // Multiple checks with different timing
+                  const checkForHands = (attempt = 1) => {
                     if ((window as any).Hands) {
-                      HandsClass = (window as any).Hands;
-                      console.log('MediaPipe loaded via CDN');
-                      resolve();
+                      if (!resolved) {
+                        resolved = true;
+                        console.log(`✓ CDN Hands class found on attempt ${attempt}`);
+                        resolve();
+                      }
+                    } else if (attempt < 5) {
+                      setTimeout(() => checkForHands(attempt + 1), 50 * attempt);
                     } else {
-                      reject(new Error('MediaPipe Hands not available on window object'));
+                      if (!resolved) {
+                        resolved = true;
+                        reject(new Error('Hands class not available after 5 attempts'));
+                      }
                     }
-                  }, 100);
+                  };
+                  checkForHands();
                 };
                 
                 script.onerror = (error) => {
-                  console.error('CDN script load failed:', error);
-                  reject(new Error('Failed to load MediaPipe from CDN'));
+                  if (!resolved) {
+                    resolved = true;
+                    console.error('CDN script failed to load:', error);
+                    reject(new Error('Failed to load MediaPipe from CDN'));
+                  }
                 };
+                
+                // Timeout fallback
+                setTimeout(() => {
+                  if (!resolved) {
+                    resolved = true;
+                    reject(new Error('CDN load timeout after 10 seconds'));
+                  }
+                }, 10000);
                 
                 document.head.appendChild(script);
               });
+              
+              HandsClass = (window as any).Hands;
+              initializationMethod = 'CDN load';
+              console.log('✓ CDN loading successful');
             } catch (cdnError) {
-              console.error('CDN fallback also failed:', cdnError);
-              throw new Error('MediaPipe unavailable - neither direct import nor CDN worked');
+              console.error('All loading strategies failed:', cdnError);
+              const errorMsg = cdnError instanceof Error ? cdnError.message : 'Unknown CDN error';
+              throw new Error(`MediaPipe unavailable: ${errorMsg}`);
             }
           }
+        }
 
-          if (!HandsClass) {
-            throw new Error('MediaPipe Hands class not available after all attempts');
-          }
+        if (!HandsClass) {
+          throw new Error('No MediaPipe Hands class available after all attempts');
+        }
 
+        console.log(`Creating MediaPipe Hands instance via ${initializationMethod}...`);
+        
+        // Create hands instance with enhanced error handling
+        try {
           handsRef.current = new HandsClass({
             locateFile: (file: string) => {
-              // Use multiple CDN fallbacks for better reliability
+              console.log(`Loading MediaPipe file: ${file}`);
+              // Primary CDN with fallback
               if (file.endsWith('.wasm') || file.endsWith('.data')) {
-                return `https://unpkg.com/@mediapipe/hands@0.4.1675469240/${file}`;
+                return `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/${file}`;
               }
               return `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/${file}`;
             }
           });
           
-          console.log('MediaPipe Hands loaded successfully');
-        } catch (importError) {
-          console.error('MediaPipe demo initialization failed:', importError);
-          console.log('MediaPipe Hands class not available after all attempts');
-          // Instead of throwing, return false to indicate initialization failed
-          return false;
+          console.log('MediaPipe Hands instance created successfully');
+        } catch (instanceError) {
+          console.error('Failed to create Hands instance:', instanceError);
+          const errorMsg = instanceError instanceof Error ? instanceError.message : 'Unknown instance error';
+          throw new Error(`Instance creation failed: ${errorMsg}`);
         }
 
-        handsRef.current.setOptions({
-          maxNumHands: 1,
-          modelComplexity: 1,
-          minDetectionConfidence: 0.5, // Lowered for better detection in production
-          minTrackingConfidence: 0.3,  // Lowered for better tracking in production
-          staticImageMode: false,      // Enable video mode for better performance
-          selfieMode: true            // Enable selfie mode for proper mirroring
-        });
-
-        handsRef.current.onResults(onHandResults);
+        // Configure with production-optimized settings
+        console.log('Configuring MediaPipe options...');
+        try {
+          handsRef.current.setOptions({
+            maxNumHands: 1,
+            modelComplexity: 1,
+            minDetectionConfidence: 0.4,  // Slightly lower for production
+            minTrackingConfidence: 0.3,   // Lower for continuous tracking
+            staticImageMode: false,
+            selfieMode: true
+          });
+          
+          handsRef.current.onResults(onHandResults);
+          console.log('MediaPipe configuration complete');
+        } catch (configError) {
+          console.error('Failed to configure MediaPipe:', configError);
+          const errorMsg = configError instanceof Error ? configError.message : 'Unknown config error';
+          throw new Error(`Configuration failed: ${errorMsg}`);
+        }
       }
 
+      console.log('MediaPipe initialization completed successfully');
       return true;
     } catch (error) {
-      console.error('Exer AI initialization failed:', error);
+      console.error('MediaPipe initialization failed:', error);
+      const errorMsg = error instanceof Error ? error.message : 'Unknown initialization error';
+      // Provide detailed error information
+      onUpdate({
+        handDetected: false,
+        landmarksCount: 0,
+        trackingQuality: "Initialization Failed",
+        handPosition: `Error: ${errorMsg}`
+      });
       return false;
     }
-  }, [isArmAssessment]);
+  }, [isArmAssessment, onUpdate]);
 
   // Process Exer AI hand tracking results
   const onHandResults = useCallback((results: any) => {
@@ -456,58 +510,137 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
 
   useEffect(() => {
     const startSystem = async () => {
+      console.log('Starting camera and tracking system...');
+      
       try {
-        // Start camera first
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { width: 640, height: 480, facingMode: 'user' }
-        });
+        // Enhanced camera initialization with better error handling
+        console.log('Requesting camera access...');
+        const constraints = {
+          video: { 
+            width: { ideal: 640, max: 1280 },
+            height: { ideal: 480, max: 720 },
+            facingMode: 'user',
+            frameRate: { ideal: 30, max: 60 }
+          }
+        };
+        
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        console.log('✓ Camera access granted');
         
         if (videoRef.current) {
-          console.log('Setting video stream and starting playback...');
+          console.log('Setting up video element...');
           videoRef.current.srcObject = stream;
-          videoRef.current.onloadedmetadata = () => {
-            console.log('Video metadata loaded:', {
-              width: videoRef.current?.videoWidth,
-              height: videoRef.current?.videoHeight,
-              readyState: videoRef.current?.readyState
-            });
-          };
-          await videoRef.current.play();
-          console.log('Video playback started');
+          
+          // Enhanced video loading with timeout
+          await new Promise<void>((resolve, reject) => {
+            const video = videoRef.current!;
+            let hasResolved = false;
+            
+            const onMetadataLoaded = () => {
+              if (!hasResolved) {
+                hasResolved = true;
+                console.log('✓ Video metadata loaded:', {
+                  width: video.videoWidth,
+                  height: video.videoHeight,
+                  readyState: video.readyState
+                });
+                resolve();
+              }
+            };
+            
+            const onLoadedData = () => {
+              if (!hasResolved && video.readyState >= 2) {
+                hasResolved = true;
+                console.log('✓ Video data loaded');
+                resolve();
+              }
+            };
+            
+            video.onloadedmetadata = onMetadataLoaded;
+            video.onloadeddata = onLoadedData;
+            
+            // Timeout fallback
+            setTimeout(() => {
+              if (!hasResolved) {
+                hasResolved = true;
+                console.log('⚠ Video loading timeout, proceeding anyway');
+                resolve();
+              }
+            }, 5000);
+          });
+          
+          console.log('Starting video playback...');
+          try {
+            await videoRef.current.play();
+            console.log('✓ Video playback started successfully');
+          } catch (playError) {
+            console.warn('Video play failed, but continuing:', playError);
+          }
         }
 
-        // Try to initialize MediaPipe, but don't block camera startup
+        // Initialize MediaPipe with enhanced retry logic
+        console.log('Initializing MediaPipe tracking...');
         let initialized = false;
-        try {
-          initialized = await initializeExerAI();
-          console.log('MediaPipe initialization result:', initialized);
-        } catch (error) {
-          console.warn('MediaPipe initialization failed:', error);
-        }
+        let initAttempts = 0;
+        const maxAttempts = 3;
         
-        if (initialized) {
-          // Start processing frames with hand tracking
-          processFrame();
-        } else {
-          // Fallback: show camera feed without hand tracking
-          startBasicCameraMode();
-        }
-      } catch (error) {
-        console.error("Error starting hand tracking:", error);
-        let errorMessage = "Camera access error";
-        
-        if (error instanceof Error) {
-          if (error.name === 'NotAllowedError') {
-            errorMessage = "Camera permission denied. Please allow camera access and refresh.";
-          } else if (error.name === 'NotFoundError') {
-            errorMessage = "No camera found. Please connect a camera and refresh.";
-          } else if (error.name === 'NotSupportedError') {
-            errorMessage = "Camera not supported. Please use HTTPS or a compatible browser.";
-          } else if (error.name === 'NotReadableError') {
-            errorMessage = "Camera in use by another application.";
+        while (!initialized && initAttempts < maxAttempts) {
+          initAttempts++;
+          console.log(`MediaPipe initialization attempt ${initAttempts}/${maxAttempts}`);
+          
+          try {
+            initialized = await initializeExerAI();
+            if (initialized) {
+              console.log('✓ MediaPipe initialization successful');
+            } else {
+              console.log(`✗ MediaPipe initialization failed (attempt ${initAttempts})`);
+              if (initAttempts < maxAttempts) {
+                console.log('Retrying in 1 second...');
+                await new Promise(resolve => setTimeout(resolve, 1000));
+              }
+            }
+          } catch (error) {
+            console.error(`MediaPipe initialization error (attempt ${initAttempts}):`, error);
+            if (initAttempts < maxAttempts) {
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            }
           }
         }
         
+        if (initialized) {
+          console.log('🚀 Starting MediaPipe frame processing...');
+          processFrame();
+        } else {
+          console.log('⚠ MediaPipe failed, falling back to camera-only mode');
+          startBasicCameraMode();
+        }
+      } catch (error) {
+        console.error("System startup failed:", error);
+        let errorMessage = "Camera access error";
+        
+        if (error instanceof Error) {
+          switch (error.name) {
+            case 'NotAllowedError':
+              errorMessage = "Camera permission denied. Please allow camera access and refresh.";
+              break;
+            case 'NotFoundError':
+              errorMessage = "No camera found. Please connect a camera and refresh.";
+              break;
+            case 'NotSupportedError':
+              errorMessage = "Camera not supported. Please use HTTPS or a compatible browser.";
+              break;
+            case 'NotReadableError':
+              errorMessage = "Camera in use by another application.";
+              break;
+            case 'OverconstrainedError':
+              errorMessage = "Camera constraints not supported. Using fallback settings.";
+              break;
+            default:
+              errorMessage = `Camera error: ${error.message}`;
+          }
+        }
+        
+        console.error('Final error state:', errorMessage);
         onUpdate({
           handDetected: false,
           landmarksCount: 0,
@@ -520,14 +653,21 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
     startSystem();
 
     return () => {
+      console.log('Cleaning up camera and tracking system...');
+      
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
       }
       
       if (videoRef.current?.srcObject) {
         const stream = videoRef.current.srcObject as MediaStream;
-        stream.getTracks().forEach(track => track.stop());
+        stream.getTracks().forEach(track => {
+          track.stop();
+          console.log(`Stopped ${track.kind} track`);
+        });
       }
+      
+      console.log('Cleanup complete');
     };
   }, []);
 
