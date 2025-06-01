@@ -33,6 +33,8 @@ export interface IStorage {
   getUserAssessment(userId: number, assessmentId: number): Promise<UserAssessment | undefined>;
   createUserAssessment(userAssessment: InsertUserAssessment): Promise<UserAssessment>;
   updateUserAssessment(id: number, updates: Partial<UserAssessment>): Promise<UserAssessment | undefined>;
+  getUserAssessmentByShareToken(shareToken: string): Promise<UserAssessment | undefined>;
+  generateShareToken(userAssessmentId: number): Promise<string>;
   
   // Injury Type methods
   getInjuryTypes(): Promise<InjuryType[]>;
@@ -133,6 +135,19 @@ export class DatabaseStorage implements IStorage {
       .where(eq(userAssessments.id, id))
       .returning();
     return userAssessment || undefined;
+  }
+
+  async getUserAssessmentByShareToken(shareToken: string): Promise<UserAssessment | undefined> {
+    const [userAssessment] = await db.select().from(userAssessments).where(eq(userAssessments.shareToken, shareToken));
+    return userAssessment || undefined;
+  }
+
+  async generateShareToken(userAssessmentId: number): Promise<string> {
+    const shareToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    await db.update(userAssessments)
+      .set({ shareToken })
+      .where(eq(userAssessments.id, userAssessmentId));
+    return shareToken;
   }
 
   async getInjuryTypes(): Promise<InjuryType[]> {
@@ -382,6 +397,24 @@ export class MemStorage implements IStorage {
     const injuryType: InjuryType = { ...insertInjuryType, id };
     this.injuryTypes.set(id, injuryType);
     return injuryType;
+  }
+
+  async getUserAssessmentByShareToken(shareToken: string): Promise<UserAssessment | undefined> {
+    for (const userAssessment of this.userAssessments.values()) {
+      if (userAssessment.shareToken === shareToken) {
+        return userAssessment;
+      }
+    }
+    return undefined;
+  }
+
+  async generateShareToken(userAssessmentId: number): Promise<string> {
+    const shareToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    const userAssessment = this.userAssessments.get(userAssessmentId);
+    if (userAssessment) {
+      this.userAssessments.set(userAssessmentId, { ...userAssessment, shareToken });
+    }
+    return shareToken;
   }
 }
 

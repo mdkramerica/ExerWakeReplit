@@ -36,6 +36,7 @@ export const userAssessments = pgTable("user_assessments", {
   maxPipAngle: numeric("max_pip_angle", { precision: 5, scale: 2 }), // Maximum PIP joint angle  
   maxDipAngle: numeric("max_dip_angle", { precision: 5, scale: 2 }), // Maximum DIP joint angle
   totalActiveRom: numeric("total_active_rom", { precision: 5, scale: 2 }), // Sum of max angles
+  shareToken: text("share_token").unique(), // Unique token for public sharing
 });
 
 export const injuryTypes = pgTable("injury_types", {
