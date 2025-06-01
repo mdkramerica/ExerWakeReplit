@@ -253,7 +253,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
 
     // Draw hand landmarks with finger highlighting
     frame.landmarks.forEach((landmark, index) => {
-      const x = landmark.x * canvas.width;
+      const x = (1 - landmark.x) * canvas.width; // Flip horizontally to remove mirror effect
       const y = landmark.y * canvas.height;
       
       // Get active finger joint landmarks based on selected digit
@@ -336,11 +336,11 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
         
         ctx.beginPath();
         ctx.moveTo(
-          frame.landmarks[start].x * canvas.width,
+          (1 - frame.landmarks[start].x) * canvas.width,
           frame.landmarks[start].y * canvas.height
         );
         ctx.lineTo(
-          frame.landmarks[end].x * canvas.width,
+          (1 - frame.landmarks[end].x) * canvas.width,
           frame.landmarks[end].y * canvas.height
         );
         ctx.stroke();
