@@ -68,30 +68,55 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
           // Graceful fallback for production environments
           console.log('MediaPipe Hands loaded via import');
           
-          // Use dynamic import with error handling
+          // Robust MediaPipe loading for production environments
           let HandsClass;
           try {
+            // First attempt: direct import (works in development)
             const mediapipeModule = await import('@mediapipe/hands');
             HandsClass = mediapipeModule.Hands;
+            console.log('MediaPipe loaded via direct import');
           } catch (importError) {
-            console.warn('Direct import failed, trying alternative approach:', importError);
+            console.warn('Direct import failed, trying CDN fallback:', importError);
             
-            // Try loading from unpkg CDN as fallback
-            await new Promise<void>((resolve, reject) => {
-              const script = document.createElement('script');
-              script.src = 'https://unpkg.com/@mediapipe/hands@0.4.1675469240/hands.js';
-              script.crossOrigin = 'anonymous';
-              script.onload = () => {
+            // Second attempt: Load from CDN (for production)
+            try {
+              await new Promise<void>((resolve, reject) => {
+                // Check if already loaded
                 if ((window as any).Hands) {
                   HandsClass = (window as any).Hands;
                   resolve();
-                } else {
-                  reject(new Error('Hands not available on window'));
+                  return;
                 }
-              };
-              script.onerror = () => reject(new Error('Failed to load from CDN'));
-              document.head.appendChild(script);
-            });
+                
+                const script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.js';
+                script.crossOrigin = 'anonymous';
+                script.async = true;
+                
+                script.onload = () => {
+                  // Give it a moment to initialize
+                  setTimeout(() => {
+                    if ((window as any).Hands) {
+                      HandsClass = (window as any).Hands;
+                      console.log('MediaPipe loaded via CDN');
+                      resolve();
+                    } else {
+                      reject(new Error('MediaPipe Hands not available on window object'));
+                    }
+                  }, 100);
+                };
+                
+                script.onerror = (error) => {
+                  console.error('CDN script load failed:', error);
+                  reject(new Error('Failed to load MediaPipe from CDN'));
+                };
+                
+                document.head.appendChild(script);
+              });
+            } catch (cdnError) {
+              console.error('CDN fallback also failed:', cdnError);
+              throw new Error('MediaPipe unavailable - neither direct import nor CDN worked');
+            }
           }
 
           if (!HandsClass) {
