@@ -1,5 +1,5 @@
-import { useEffect, useRef } from "react";
-import { useMediaPipe } from "@/hooks/use-mediapipe";
+import { useEffect, useRef, useState } from "react";
+import { SimpleHandTracker } from "@/lib/simple-hand-tracker";
 
 interface MediaPipeHandlerProps {
   onUpdate: (data: {
@@ -15,15 +15,11 @@ interface MediaPipeHandlerProps {
 export default function MediaPipeHandler({ onUpdate, isRecording, assessmentType }: MediaPipeHandlerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const trackerRef = useRef<SimpleHandTracker | null>(null);
   
-  const {
-    isInitialized,
-    handDetected,
-    landmarks,
-    initializeMediaPipe,
-    processFrame,
-    cleanup
-  } = useMediaPipe();
+  const [handDetected, setHandDetected] = useState(false);
+  const [landmarks, setLandmarks] = useState<any[]>([]);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
     const startCamera = async () => {
@@ -41,7 +37,11 @@ export default function MediaPipeHandler({ onUpdate, isRecording, assessmentType
           await videoRef.current.play();
         }
 
-        await initializeMediaPipe();
+        // Initialize hand tracker
+        if (!trackerRef.current) {
+          trackerRef.current = new SimpleHandTracker();
+        }
+        setIsInitialized(true);
       } catch (error) {
         console.error("Error accessing camera:", error);
       }
@@ -50,13 +50,15 @@ export default function MediaPipeHandler({ onUpdate, isRecording, assessmentType
     startCamera();
 
     return () => {
-      cleanup();
+      if (trackerRef.current) {
+        trackerRef.current.cleanup();
+      }
       if (videoRef.current?.srcObject) {
         const stream = videoRef.current.srcObject as MediaStream;
         stream.getTracks().forEach(track => track.stop());
       }
     };
-  }, [initializeMediaPipe, cleanup]);
+  }, []);
 
   useEffect(() => {
     if (!isInitialized || !videoRef.current || !canvasRef.current) return;
@@ -82,9 +84,13 @@ export default function MediaPipeHandler({ onUpdate, isRecording, assessmentType
           // Draw video frame
           ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
           
-          // Process with MediaPipe only if video is ready
+          // Process with hand tracker only if video is ready
           try {
-            processFrame(canvas); // Use canvas for frame processing
+            if (trackerRef.current) {
+              const result = trackerRef.current.processFrame(video);
+              setHandDetected(result.handDetected);
+              setLandmarks(result.landmarks);
+            }
           } catch (error) {
             console.warn("Frame processing skipped:", error);
           }
@@ -133,7 +139,7 @@ export default function MediaPipeHandler({ onUpdate, isRecording, assessmentType
         cancelAnimationFrame(animationId);
       }
     };
-  }, [isInitialized, handDetected, landmarks, processFrame, onUpdate]);
+  }, [isInitialized, handDetected, landmarks, onUpdate]);
 
   const drawHandConnections = (ctx: CanvasRenderingContext2D, landmarks: any[], width: number, height: number) => {
     // Hand landmark connections based on MediaPipe hand model
