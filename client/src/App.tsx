@@ -23,6 +23,7 @@ function Router() {
       <Route path="/" component={Landing} />
       <Route path="/injury-selection" component={InjurySelection} />
       <Route path="/assessments" component={AssessmentList} />
+      <Route path="/assessment-list/:code" component={AssessmentList} />
       <Route path="/assessment/:id/video" component={VideoInstruction} />
       <Route path="/assessment/:id/record" component={Recording} />
       <Route path="/assessment-results/:code/:userAssessmentId" component={AssessmentResults} />
