@@ -54,6 +54,7 @@ export const userAssessments = pgTable("user_assessments", {
   pinkyFingerMcp: numeric("pinky_finger_mcp", { precision: 5, scale: 2 }),
   pinkyFingerPip: numeric("pinky_finger_pip", { precision: 5, scale: 2 }),
   pinkyFingerDip: numeric("pinky_finger_dip", { precision: 5, scale: 2 }),
+  handType: text("hand_type"), // "Left" or "Right" hand identifier
   shareToken: text("share_token").unique(), // Unique token for public sharing
 });
 

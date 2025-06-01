@@ -243,11 +243,21 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
     let handDetected = false;
     let landmarks: any[] = [];
 
+    let detectedHandType = "";
+    
     if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
       handDetected = true;
       landmarks = results.multiHandLandmarks[0];
       
-      console.log(`Hand detected with ${landmarks.length} landmarks`);
+      // Determine hand type from MediaPipe results
+      if (results.multiHandedness && results.multiHandedness.length > 0) {
+        const handedness = results.multiHandedness[0];
+        if (handedness.label) {
+          detectedHandType = handedness.label; // "Left" or "Right"
+        }
+      }
+      
+      console.log(`${detectedHandType} hand detected with ${landmarks.length} landmarks`);
 
       // Draw hand landmarks (unmirror to match video)
       ctx.fillStyle = '#00ff00';
@@ -291,7 +301,8 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
         landmarksCount: landmarks.length,
         trackingQuality: "Excellent",
         handPosition: `X: ${Math.round(centerX * 100)}%, Y: ${Math.round(centerY * 100)}%`,
-        landmarks: landmarks
+        landmarks: landmarks,
+        handType: detectedHandType
       };
       
       if (isRecording) {
