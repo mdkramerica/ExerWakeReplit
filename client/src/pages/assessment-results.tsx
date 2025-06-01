@@ -190,10 +190,7 @@ export default function AssessmentResults() {
               <CardContent>
                 <div className="space-y-6">
 
-                  {/* Force Kapandji display for testing */}
-                  {console.log('Rendering Kapandji section for:', userAssessment.assessmentName)}
-                  
-                  {/* Kapandji Specific Scoring - Check multiple ways to identify Kapandji */}
+                  {/* Kapandji Specific Scoring */}
                   {(userAssessment.assessmentName === "Kapandji Score" || 
                     userAssessment.assessmentName?.includes("Kapandji") ||
                     userAssessment.assessmentId === 27) && (
@@ -490,6 +487,7 @@ export default function AssessmentResults() {
                     </div>
                   </div>
                 </div>
+                  )}
               </CardContent>
             </Card>
           )}
