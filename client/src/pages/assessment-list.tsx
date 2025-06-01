@@ -319,11 +319,18 @@ export default function AssessmentList() {
                           </div>
                         )}
                         <button
-                          onClick={() => setShowReplay(record.id.toString())}
+                          onClick={() => setLocation(`/assessment-results/${record.id}`)}
                           className="w-8 h-8 rounded-lg bg-blue-50 hover:bg-blue-100 flex items-center justify-center transition-colors"
-                          title="View Recording"
+                          title="View Assessment Results"
                         >
                           <Eye className="w-4 h-4 text-blue-600" />
+                        </button>
+                        <button
+                          onClick={() => setShowReplay(record.id.toString())}
+                          className="w-8 h-8 rounded-lg bg-green-50 hover:bg-green-100 flex items-center justify-center transition-colors"
+                          title="View Motion Replay"
+                        >
+                          <Play className="w-4 h-4 text-green-600" />
                         </button>
                       </div>
                     </div>
