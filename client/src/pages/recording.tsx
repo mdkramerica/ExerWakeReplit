@@ -23,6 +23,7 @@ export default function Recording() {
   const [recordedData, setRecordedData] = useState<any[]>([]);
   const [currentLandmarks, setCurrentLandmarks] = useState<any[]>([]);
   const [recordingMotionData, setRecordingMotionData] = useState<any[]>([]);
+  const [recordingStartTime, setRecordingStartTime] = useState<number | null>(null);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
@@ -88,10 +89,12 @@ export default function Recording() {
     setIsRecording(true);
     setRecordingTimer(0);
     setRecordingMotionData([]); // Clear previous motion data
+    setRecordingStartTime(Date.now()); // Track when recording actually started
   };
 
   const stopRecording = () => {
     setIsRecording(false);
+    setRecordingStartTime(null);
     handleRepetitionComplete();
   };
 
@@ -147,7 +150,10 @@ export default function Recording() {
   };
 
   const handleMediaPipeUpdate = (data: any) => {
-    console.log(`MediaPipe update: handDetected=${data.handDetected}, landmarks=${data.landmarks ? data.landmarks.length : 'none'}, isRecording=${isRecording}, timer=${recordingTimer}`);
+    const currentTime = Date.now();
+    const recordingElapsed = recordingStartTime ? (currentTime - recordingStartTime) / 1000 : 0;
+    
+    console.log(`MediaPipe update: handDetected=${data.handDetected}, landmarks=${data.landmarks ? data.landmarks.length : 'none'}, isRecording=${isRecording}, elapsed=${recordingElapsed.toFixed(1)}s`);
     
     setHandDetected(data.handDetected);
     setLandmarksCount(data.landmarksCount);
@@ -158,11 +164,11 @@ export default function Recording() {
     if (data.landmarks && data.landmarks.length > 0) {
       setCurrentLandmarks(data.landmarks);
       
-      // Capture motion data if recording is active OR if we have timer data (recording was recently active)
-      if ((isRecording || recordingTimer > 0) && data.handDetected && data.landmarks && data.landmarks.length > 0) {
-        console.log(`Recording motion data: ${data.landmarks.length} landmarks detected, timer: ${recordingTimer}`);
+      // Capture motion data if we're within the recording period (0-10 seconds)
+      if (recordingStartTime && recordingElapsed > 0 && recordingElapsed <= 10 && data.handDetected && data.landmarks && data.landmarks.length > 0) {
+        console.log(`Recording motion data: ${data.landmarks.length} landmarks detected, elapsed: ${recordingElapsed.toFixed(1)}s`);
         const motionFrame = {
-          timestamp: Date.now(),
+          timestamp: currentTime,
           landmarks: data.landmarks.map((landmark: any) => ({
             x: parseFloat(landmark.x) || 0,
             y: parseFloat(landmark.y) || 0,
@@ -173,16 +179,12 @@ export default function Recording() {
         };
         
         setRecordingMotionData(prev => {
-          // Only add if we're actually during the recording period (timer between 1-10 seconds)
-          if (recordingTimer > 0 && recordingTimer <= 10) {
-            const newData = [...prev, motionFrame];
-            console.log(`Total motion frames captured: ${newData.length}`);
-            return newData;
-          }
-          return prev;
+          const newData = [...prev, motionFrame];
+          console.log(`Total motion frames captured: ${newData.length}`);
+          return newData;
         });
-      } else if (isRecording || recordingTimer > 0) {
-        console.log(`Recording period but no valid landmarks: handDetected=${data.handDetected}, landmarks=${data.landmarks ? data.landmarks.length : 'none'}, timer=${recordingTimer}`);
+      } else if (recordingStartTime && recordingElapsed > 0 && recordingElapsed <= 10) {
+        console.log(`Recording period but no valid landmarks: handDetected=${data.handDetected}, landmarks=${data.landmarks ? data.landmarks.length : 'none'}, elapsed=${recordingElapsed.toFixed(1)}s`);
       }
     }
   };
