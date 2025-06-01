@@ -145,7 +145,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const frame = sampleData[frameIndex];
+    const frame = replayData[frameIndex];
     if (!frame) return;
 
     // Clear canvas with dark background
@@ -207,7 +207,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
     // Draw timestamp and quality info
     ctx.fillStyle = '#ffffff';
     ctx.font = '14px Arial';
-    ctx.fillText(`Frame: ${frameIndex + 1}/${sampleData.length}`, 10, 25);
+    ctx.fillText(`Frame: ${frameIndex + 1}/${replayData.length}`, 10, 25);
     ctx.fillText(`Quality: ${Math.round(frame.quality)}%`, 10, 45);
     ctx.fillText(`Hand: ${frame.handedness}`, 10, 65);
 
@@ -222,9 +222,9 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
 
     setCurrentFrame(prev => {
       const next = prev + playbackSpeed;
-      if (next >= sampleData.length) {
+      if (next >= replayData.length) {
         setIsPlaying(false);
-        return sampleData.length - 1;
+        return replayData.length - 1;
       }
       return Math.floor(next);
     });
@@ -262,10 +262,10 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
     // In a real implementation, this would export the motion data
     const motionData = {
       assessment: assessmentName,
-      duration: sampleData.length / 30,
-      frames: sampleData.length,
+      duration: replayData.length / 30,
+      frames: replayData.length,
       exportedAt: new Date().toISOString(),
-      data: sampleData
+      data: replayData
     };
     
     const blob = new Blob([JSON.stringify(motionData, null, 2)], { type: 'application/json' });
@@ -346,11 +346,11 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div>
                   <span className="text-gray-600">Duration:</span>
-                  <div className="font-medium">{(sampleData.length / 30).toFixed(1)}s</div>
+                  <div className="font-medium">{(replayData.length / 30).toFixed(1)}s</div>
                 </div>
                 <div>
                   <span className="text-gray-600">Frames:</span>
-                  <div className="font-medium">{sampleData.length}</div>
+                  <div className="font-medium">{replayData.length}</div>
                 </div>
                 <div>
                   <span className="text-gray-600">Frame Rate:</span>
