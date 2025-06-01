@@ -3,19 +3,19 @@
 @tailwind utilities;
 
 :root {
-  --background: 248 250 252; /* #F8FAFC - light blue-gray */
-  --foreground: 30 41 59; /* #1E293B - dark navy */
-  --muted: 241 245 249; /* #F1F5F9 - light gray */
-  --muted-foreground: 100 116 139; /* #64748B - slate gray */
+  --background: 255 255 255; /* #FFFFFF - clean white background */
+  --foreground: 51 65 85; /* #334155 - dark slate text */
+  --muted: 248 250 252; /* #F8FAFC - very light gray */
+  --muted-foreground: 100 116 139; /* #64748B - medium gray */
   --popover: 255 255 255; /* #FFFFFF */
-  --popover-foreground: 30 41 59; /* #1E293B */
+  --popover-foreground: 51 65 85; /* #334155 */
   --card: 255 255 255; /* #FFFFFF */
-  --card-foreground: 30 41 59; /* #1E293B */
+  --card-foreground: 51 65 85; /* #334155 */
   --border: 226 232 240; /* #E2E8F0 - light border */
   --input: 226 232 240; /* #E2E8F0 */
   --primary: 139 92 246; /* #8B5CF6 - purple accent */
   --primary-foreground: 255 255 255; /* #FFFFFF */
-  --secondary: 241 245 249; /* #F1F5F9 */
+  --secondary: 248 250 252; /* #F8FAFC */
   --secondary-foreground: 71 85 105; /* #475569 */
   --accent: 250 245 255; /* #FAF5FF - purple-50 */
   --accent-foreground: 124 58 237; /* #7C3AED */
@@ -24,10 +24,10 @@
   --ring: 139 92 246; /* #8B5CF6 - purple accent */
   --radius: 0.5rem;
   
-  /* Exer.ai actual colors from screenshot */
-  --exer-purple: 139 92 246; /* #8B5CF6 - purple accent like "Motion" */
+  /* Exer.ai colors matching their actual website */
+  --exer-purple: 139 92 246; /* #8B5CF6 - purple accent for "Motion" */
   --exer-purple-dark: 124 58 237; /* #7C3AED - darker purple */
-  --exer-navy: 30 41 59; /* #1E293B - dark navy text */
+  --exer-navy: 51 65 85; /* #334155 - dark slate text */
   --exer-gray: 100 116 139; /* #64748B - medium gray */
   --exer-light: 248 250 252; /* #F8FAFC - light background */
   --exer-dark-blue: 30 58 138; /* #1E3A8A - dark blue for buttons */
