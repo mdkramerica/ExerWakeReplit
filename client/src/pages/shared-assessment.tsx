@@ -9,7 +9,7 @@ export default function SharedAssessment() {
   const { token } = useParams<{ token: string }>();
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["/api/shared", token],
+    queryKey: [`/api/shared/${token}`],
     enabled: !!token
   });
 
