@@ -88,65 +88,112 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
             initializationMethod = 'existing CDN';
             console.log('✓ Found existing CDN version');
           } else {
-            // Strategy 3: Load via CDN with enhanced error handling
-            try {
-              console.log('Loading from CDN...');
-              await new Promise<void>((resolve, reject) => {
-                const script = document.createElement('script');
-                script.src = 'https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.js';
-                script.crossOrigin = 'anonymous';
-                script.async = true;
+            // Strategy 3: Enhanced CDN loading with multiple endpoints
+            console.log('Loading MediaPipe from CDN with multiple fallbacks...');
+            
+            const cdnUrls = [
+              'https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.js',
+              'https://unpkg.com/@mediapipe/hands@0.4.1675469240/hands.js',
+              'https://cdn.skypack.dev/@mediapipe/hands@0.4.1675469240'
+            ];
+            
+            let loadSuccess = false;
+            
+            for (let i = 0; i < cdnUrls.length && !loadSuccess; i++) {
+              try {
+                console.log(`Attempting CDN ${i + 1}/${cdnUrls.length}: ${cdnUrls[i]}`);
                 
-                let resolved = false;
-                
-                script.onload = () => {
-                  console.log('CDN script loaded, checking for Hands class...');
-                  // Multiple checks with different timing
-                  const checkForHands = (attempt = 1) => {
+                await new Promise<void>((resolve, reject) => {
+                  // Check if script already exists
+                  const existingScript = document.querySelector(`script[src="${cdnUrls[i]}"]`);
+                  if (existingScript) {
+                    console.log('Script already exists, checking availability...');
+                    if ((window as any).Hands) {
+                      resolve();
+                      return;
+                    }
+                  }
+                  
+                  const script = document.createElement('script');
+                  script.src = cdnUrls[i];
+                  script.crossOrigin = 'anonymous';
+                  script.async = true;
+                  
+                  let resolved = false;
+                  
+                  script.onload = () => {
+                    console.log(`CDN script ${i + 1} loaded, checking for Hands class...`);
+                    
+                    // Immediate check
                     if ((window as any).Hands) {
                       if (!resolved) {
                         resolved = true;
-                        console.log(`✓ CDN Hands class found on attempt ${attempt}`);
+                        console.log(`✓ CDN ${i + 1} Hands class immediately available`);
                         resolve();
                       }
-                    } else if (attempt < 5) {
-                      setTimeout(() => checkForHands(attempt + 1), 50 * attempt);
-                    } else {
-                      if (!resolved) {
-                        resolved = true;
-                        reject(new Error('Hands class not available after 5 attempts'));
+                      return;
+                    }
+                    
+                    // Progressive checks with increasing delays
+                    const checkForHands = (attempt = 1) => {
+                      console.log(`Checking for Hands class (attempt ${attempt})...`);
+                      
+                      if ((window as any).Hands) {
+                        if (!resolved) {
+                          resolved = true;
+                          console.log(`✓ CDN ${i + 1} Hands class found on attempt ${attempt}`);
+                          resolve();
+                        }
+                      } else if (attempt < 10) {
+                        setTimeout(() => checkForHands(attempt + 1), 100 * attempt);
+                      } else {
+                        if (!resolved) {
+                          resolved = true;
+                          console.log(`✗ CDN ${i + 1} Hands class not available after 10 attempts`);
+                          reject(new Error(`Hands class not available from CDN ${i + 1}`));
+                        }
                       }
+                    };
+                    
+                    checkForHands();
+                  };
+                  
+                  script.onerror = (error) => {
+                    if (!resolved) {
+                      resolved = true;
+                      console.error(`CDN ${i + 1} script failed to load:`, error);
+                      reject(new Error(`Failed to load from CDN ${i + 1}`));
                     }
                   };
-                  checkForHands();
-                };
+                  
+                  // Timeout for this CDN attempt
+                  setTimeout(() => {
+                    if (!resolved) {
+                      resolved = true;
+                      console.log(`✗ CDN ${i + 1} timeout after 8 seconds`);
+                      reject(new Error(`CDN ${i + 1} load timeout`));
+                    }
+                  }, 8000);
+                  
+                  document.head.appendChild(script);
+                });
                 
-                script.onerror = (error) => {
-                  if (!resolved) {
-                    resolved = true;
-                    console.error('CDN script failed to load:', error);
-                    reject(new Error('Failed to load MediaPipe from CDN'));
-                  }
-                };
+                // If we get here, the promise resolved successfully
+                if ((window as any).Hands) {
+                  HandsClass = (window as any).Hands;
+                  initializationMethod = `CDN ${i + 1}`;
+                  loadSuccess = true;
+                  console.log(`✓ Successfully loaded MediaPipe from CDN ${i + 1}`);
+                }
                 
-                // Timeout fallback
-                setTimeout(() => {
-                  if (!resolved) {
-                    resolved = true;
-                    reject(new Error('CDN load timeout after 10 seconds'));
-                  }
-                }, 10000);
-                
-                document.head.appendChild(script);
-              });
-              
-              HandsClass = (window as any).Hands;
-              initializationMethod = 'CDN load';
-              console.log('✓ CDN loading successful');
-            } catch (cdnError) {
-              console.error('All loading strategies failed:', cdnError);
-              const errorMsg = cdnError instanceof Error ? cdnError.message : 'Unknown CDN error';
-              throw new Error(`MediaPipe unavailable: ${errorMsg}`);
+              } catch (cdnError) {
+                console.log(`CDN ${i + 1} failed:`, cdnError);
+                // Continue to next CDN
+              }
+            }
+            
+            if (!loadSuccess) {
+              throw new Error('All CDN endpoints failed to load MediaPipe');
             }
           }
         }
