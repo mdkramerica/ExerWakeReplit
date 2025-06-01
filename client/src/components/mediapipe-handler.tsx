@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback } from "react";
+import exerLogoPath from "@assets/exer-logo.png";
 
 interface MediaPipeHandlerProps {
   onUpdate: (data: {
@@ -408,8 +409,13 @@ export default function MediaPipeHandler({ onUpdate, isRecording, assessmentType
       <div className="absolute top-2 right-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-sm">
         {isRecording ? "Recording..." : "Preview"}
       </div>
-      <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">
-        Exer AI Hand Tracking
+      <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs flex items-center space-x-1">
+        <img 
+          src={exerLogoPath} 
+          alt="Exer AI" 
+          className="h-3 w-auto brightness-0 invert"
+        />
+        <span>Hand Tracking</span>
       </div>
     </div>
   );
