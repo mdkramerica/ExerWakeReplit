@@ -66,7 +66,7 @@ export default function Recording() {
       
       // Navigate to detailed results page if we have an assessment ID
       if (userAssessmentId) {
-        setLocation(`/results/${userAssessmentId}`);
+        setLocation(`/assessment-results/${userAssessmentId}`);
       } else {
         setLocation("/assessments");
       }
