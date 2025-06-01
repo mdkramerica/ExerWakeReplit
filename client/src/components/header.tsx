@@ -13,13 +13,13 @@ export default function Header() {
               className="h-8 w-auto"
             />
             <div>
-              <h1 className="text-xl font-semibold text-exer-dark">ROM Research Platform</h1>
+              <h1 className="text-xl font-semibold text-exer-navy">ROM Research Platform</h1>
               <p className="text-sm text-exer-gray">Hand & Wrist Recovery Assessment</p>
             </div>
           </div>
           <div className="flex items-center space-x-4">
             <div className="hidden md:flex items-center space-x-2 text-sm text-exer-gray">
-              <Shield className="w-4 h-4 text-exer-teal" />
+              <Shield className="w-4 h-4 text-exer-purple" />
               <span>Secure & Private</span>
             </div>
           </div>

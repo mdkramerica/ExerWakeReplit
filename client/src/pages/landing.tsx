@@ -63,7 +63,7 @@ export default function Landing() {
           <div className="text-center mb-6">
             <MotionDemo className="rounded-lg mx-auto mb-6 w-full h-48" />
             
-            <h2 className="text-2xl font-semibold text-exer-dark mb-2">Advanced Motion Analysis Platform</h2>
+            <h2 className="text-2xl font-semibold text-exer-navy mb-2">Advanced Motion Analysis Platform</h2>
             <p className="text-exer-gray mb-8">
               Experience precision hand tracking with 21-joint detection. Enter your 6-digit code to begin your clinical assessment.
             </p>
@@ -92,7 +92,7 @@ export default function Landing() {
             
             <Button 
               type="submit" 
-              className="w-full bg-exer-teal hover:bg-exer-teal-dark text-white"
+              className="w-full bg-exer-dark-blue hover:bg-blue-800 text-white"
               disabled={verifyCodeMutation.isPending || code.length !== 6}
             >
               {verifyCodeMutation.isPending ? (

@@ -88,7 +88,7 @@ export default function InjurySelection() {
         <CardContent>
           <div className="mb-8">
             <ProgressBar currentStep={1} totalSteps={3} />
-            <h2 className="text-2xl font-semibold text-exer-dark mb-2">Select Your Injury Type</h2>
+            <h2 className="text-2xl font-semibold text-exer-navy mb-2">Select Your Injury Type</h2>
             <p className="text-exer-gray">
               Please select the type of hand or wrist injury you're recovering from. 
               This helps us customize your assessment.

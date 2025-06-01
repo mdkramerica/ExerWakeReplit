@@ -3,34 +3,34 @@
 @tailwind utilities;
 
 :root {
-  --background: 255 255 255; /* #FFFFFF - clean white */
-  --foreground: 31 41 55; /* #1F2937 - dark gray */
-  --muted: 249 250 251; /* #F9FAFB - light gray */
-  --muted-foreground: 107 114 128; /* #6B7280 - medium gray */
+  --background: 248 250 252; /* #F8FAFC - light blue-gray */
+  --foreground: 30 41 59; /* #1E293B - dark navy */
+  --muted: 241 245 249; /* #F1F5F9 - light gray */
+  --muted-foreground: 100 116 139; /* #64748B - slate gray */
   --popover: 255 255 255; /* #FFFFFF */
-  --popover-foreground: 31 41 55; /* #1F2937 */
+  --popover-foreground: 30 41 59; /* #1E293B */
   --card: 255 255 255; /* #FFFFFF */
-  --card-foreground: 31 41 55; /* #1F2937 */
-  --border: 229 231 235; /* #E5E7EB - light border */
-  --input: 229 231 235; /* #E5E7EB */
-  --primary: 20 184 166; /* #14B8A6 - exer teal */
+  --card-foreground: 30 41 59; /* #1E293B */
+  --border: 226 232 240; /* #E2E8F0 - light border */
+  --input: 226 232 240; /* #E2E8F0 */
+  --primary: 139 92 246; /* #8B5CF6 - purple accent */
   --primary-foreground: 255 255 255; /* #FFFFFF */
-  --secondary: 243 244 246; /* #F3F4F6 */
-  --secondary-foreground: 75 85 99; /* #4B5563 */
-  --accent: 240 253 250; /* #F0FDF9 - teal-50 */
-  --accent-foreground: 13 148 136; /* #0D9488 */
+  --secondary: 241 245 249; /* #F1F5F9 */
+  --secondary-foreground: 71 85 105; /* #475569 */
+  --accent: 250 245 255; /* #FAF5FF - purple-50 */
+  --accent-foreground: 124 58 237; /* #7C3AED */
   --destructive: 239 68 68; /* #EF4444 - red-500 */
   --destructive-foreground: 254 242 242; /* #FEF2F2 */
-  --ring: 20 184 166; /* #14B8A6 - exer teal */
+  --ring: 139 92 246; /* #8B5CF6 - purple accent */
   --radius: 0.5rem;
   
-  /* Exer.ai inspired colors */
-  --exer-teal: 20 184 166; /* #14B8A6 - primary teal */
-  --exer-teal-dark: 13 148 136; /* #0D9488 - darker teal */
-  --exer-teal-light: 153 246 228; /* #99F6E4 - light teal */
-  --exer-gray: 107 114 128; /* #6B7280 - medium gray */
-  --exer-dark: 31 41 55; /* #1F2937 - dark text */
-  --exer-light: 249 250 251; /* #F9FAFB - light background */
+  /* Exer.ai actual colors from screenshot */
+  --exer-purple: 139 92 246; /* #8B5CF6 - purple accent like "Motion" */
+  --exer-purple-dark: 124 58 237; /* #7C3AED - darker purple */
+  --exer-navy: 30 41 59; /* #1E293B - dark navy text */
+  --exer-gray: 100 116 139; /* #64748B - medium gray */
+  --exer-light: 248 250 252; /* #F8FAFC - light background */
+  --exer-dark-blue: 30 58 138; /* #1E3A8A - dark blue for buttons */
 }
 
 .dark {
@@ -67,24 +67,28 @@
 }
 
 @layer utilities {
-  .exer-teal {
-    color: hsl(var(--exer-teal));
+  .exer-purple {
+    color: hsl(var(--exer-purple));
   }
   
-  .bg-exer-teal {
-    background-color: hsl(var(--exer-teal));
+  .bg-exer-purple {
+    background-color: hsl(var(--exer-purple));
   }
   
-  .border-exer-teal {
-    border-color: hsl(var(--exer-teal));
+  .border-exer-purple {
+    border-color: hsl(var(--exer-purple));
   }
   
-  .exer-teal-dark {
-    color: hsl(var(--exer-teal-dark));
+  .exer-purple-dark {
+    color: hsl(var(--exer-purple-dark));
   }
   
-  .bg-exer-teal-dark {
-    background-color: hsl(var(--exer-teal-dark));
+  .bg-exer-purple-dark {
+    background-color: hsl(var(--exer-purple-dark));
+  }
+  
+  .exer-navy {
+    color: hsl(var(--exer-navy));
   }
   
   .exer-gray {
@@ -95,8 +99,8 @@
     background-color: hsl(var(--exer-light));
   }
   
-  .exer-dark {
-    color: hsl(var(--exer-dark));
+  .bg-exer-dark-blue {
+    background-color: hsl(var(--exer-dark-blue));
   }
 }
 
@@ -267,7 +271,7 @@ button[class*="items-center"]:hover span {
 }
 
 .assessment-card.active {
-  @apply border-2 border-exer-teal bg-teal-50;
+  @apply border-2 border-exer-purple bg-purple-50;
 }
 
 .assessment-card.completed {
