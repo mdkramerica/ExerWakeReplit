@@ -336,6 +336,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Generate shareable link for user assessment
+  app.post("/api/user-assessments/:id/share", async (req, res) => {
+    try {
+      const userAssessmentId = parseInt(req.params.id);
+      
+      if (isNaN(userAssessmentId)) {
+        return res.status(400).json({ error: "Invalid user assessment ID" });
+      }
+
+      const shareToken = await storage.generateShareToken(userAssessmentId);
+      res.json({ shareToken, shareUrl: `/shared/${shareToken}` });
+    } catch (error) {
+      console.error("Error generating share token:", error);
+      res.status(500).json({ error: "Failed to generate shareable link" });
+    }
+  });
+
+  // Get shared user assessment by token (public route)
+  app.get("/api/shared/:token", async (req, res) => {
+    try {
+      const { token } = req.params;
+      
+      const userAssessment = await storage.getUserAssessmentByShareToken(token);
+      if (!userAssessment) {
+        return res.status(404).json({ error: "Shared assessment not found" });
+      }
+
+      // Get assessment details for display
+      const assessment = await storage.getAssessment(userAssessment.assessmentId);
+      if (!assessment) {
+        return res.status(404).json({ error: "Assessment not found" });
+      }
+
+      res.json({ userAssessment, assessment });
+    } catch (error) {
+      console.error("Error fetching shared assessment:", error);
+      res.status(500).json({ error: "Failed to fetch shared assessment" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

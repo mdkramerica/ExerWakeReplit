@@ -1,15 +1,20 @@
 import { useState, useEffect } from "react";
 import { useLocation, useParams } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Calendar, Clock, BarChart3, Play, Download } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, BarChart3, Play, Download, Share2, Copy, Check } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import AssessmentReplay from "@/components/assessment-replay";
 
 export default function AssessmentResults() {
   const { userAssessmentId } = useParams();
   const [, setLocation] = useLocation();
   const [showReplay, setShowReplay] = useState(false);
+  const [shareUrl, setShareUrl] = useState<string>("");
+  const [copied, setCopied] = useState(false);
+  const { toast } = useToast();
 
   const { data: resultData, isLoading } = useQuery({
     queryKey: [`/api/user-assessments/${userAssessmentId}/details`],
@@ -17,6 +22,42 @@ export default function AssessmentResults() {
   });
 
   const userAssessment = resultData?.userAssessment;
+
+  const shareAssessmentMutation = useMutation({
+    mutationFn: () => apiRequest(`/api/user-assessments/${userAssessmentId}/share`, {
+      method: "POST"
+    }),
+    onSuccess: (data) => {
+      const fullUrl = `${window.location.origin}${data.shareUrl}`;
+      setShareUrl(fullUrl);
+      navigator.clipboard.writeText(fullUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+      toast({
+        title: "Shareable link created",
+        description: "The link has been copied to your clipboard",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to create shareable link",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const copyToClipboard = () => {
+    if (shareUrl) {
+      navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+      toast({
+        title: "Copied to clipboard",
+        description: "Shareable link copied successfully",
+      });
+    }
+  };
 
   if (isLoading) {
     return (
@@ -246,6 +287,41 @@ export default function AssessmentResults() {
                 <Play className="w-4 h-4" />
                 <span>View Motion Replay</span>
               </Button>
+              
+              <Button
+                variant="outline"
+                onClick={() => shareAssessmentMutation.mutate()}
+                disabled={shareAssessmentMutation.isPending}
+                className="w-full flex items-center justify-center space-x-2"
+              >
+                <Share2 className="w-4 h-4" />
+                <span>
+                  {shareAssessmentMutation.isPending ? "Creating Link..." : "Share Motion Replay"}
+                </span>
+              </Button>
+
+              {shareUrl && (
+                <div className="mt-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                  <div className="text-sm font-medium text-green-800 mb-2">Shareable Link Created</div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="text"
+                      value={shareUrl}
+                      readOnly
+                      className="flex-1 text-xs p-2 bg-white border rounded"
+                    />
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={copyToClipboard}
+                      className="flex items-center space-x-1"
+                    >
+                      {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                      <span>{copied ? "Copied" : "Copy"}</span>
+                    </Button>
+                  </div>
+                </div>
+              )}
               
               <Button
                 variant="outline"
