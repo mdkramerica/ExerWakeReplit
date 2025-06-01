@@ -87,6 +87,7 @@ export default function Recording() {
   const startRecording = () => {
     setIsRecording(true);
     setRecordingTimer(0);
+    setRecordingMotionData([]); // Clear previous motion data
   };
 
   const stopRecording = () => {
@@ -100,7 +101,8 @@ export default function Recording() {
       duration: recordingTimer,
       landmarksDetected: landmarksCount,
       qualityScore: calculateQualityScore(),
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      motionData: recordingMotionData // Store actual recorded motion data
     };
 
     setRecordedData(prev => [...prev, repetitionData]);
@@ -152,6 +154,26 @@ export default function Recording() {
     setLandmarksCount(data.landmarksCount);
     setTrackingQuality(data.trackingQuality);
     setHandPosition(data.handPosition);
+    
+    // Store current landmarks for recording
+    if (data.landmarks) {
+      setCurrentLandmarks(data.landmarks);
+      
+      // If recording, capture motion data with timestamp
+      if (isRecording) {
+        const motionFrame = {
+          timestamp: Date.now(),
+          landmarks: data.landmarks.map((landmark: any) => ({
+            x: landmark.x,
+            y: landmark.y,
+            z: landmark.z || 0
+          })),
+          handedness: "Right", // Could be detected from MediaPipe
+          quality: data.trackingQuality === "Excellent" ? 0.9 : 0.7
+        };
+        setRecordingMotionData(prev => [...prev, motionFrame]);
+      }
+    }
   };
 
   const formatTime = (seconds: number) => {

@@ -193,6 +193,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/user-assessments/:userAssessmentId/motion-data", async (req, res) => {
+    try {
+      const userAssessmentId = parseInt(req.params.userAssessmentId);
+      const allUserAssessments = await storage.getUserAssessments(0); // Get all to find by ID
+      const userAssessment = allUserAssessments.find(ua => ua.id === userAssessmentId);
+      
+      if (!userAssessment || !userAssessment.repetitionData) {
+        return res.status(404).json({ message: "Motion data not found" });
+      }
+      
+      // Extract motion data from repetition data
+      const motionData: any[] = [];
+      if (Array.isArray(userAssessment.repetitionData)) {
+        userAssessment.repetitionData.forEach((rep: any) => {
+          if (rep.motionData && Array.isArray(rep.motionData)) {
+            motionData.push(...rep.motionData);
+          }
+        });
+      }
+      
+      res.json({ motionData });
+    } catch (error) {
+      res.status(400).json({ message: "Failed to retrieve motion data" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

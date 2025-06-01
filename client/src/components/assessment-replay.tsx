@@ -13,6 +13,7 @@ interface ReplayData {
 
 interface AssessmentReplayProps {
   assessmentName: string;
+  userAssessmentId?: string;
   recordingData?: ReplayData[];
   onClose: () => void;
 }

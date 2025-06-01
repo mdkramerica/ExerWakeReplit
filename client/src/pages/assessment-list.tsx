@@ -176,7 +176,7 @@ export default function AssessmentList() {
                             <Eye className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => setShowReplay(assessment.name)}
+                            onClick={() => setShowReplay(assessment.userAssessmentId ? assessment.userAssessmentId.toString() : assessment.name)}
                             className="text-medical-gray hover:text-medical-blue p-2"
                             title="View Motion Replay"
                           >
