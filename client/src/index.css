@@ -141,7 +141,11 @@
 }
 
 .medical-button {
-  @apply bg-medical-blue text-white py-3 px-6 rounded-lg font-medium hover:bg-medical-deep focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-colors duration-200;
+  @apply bg-medical-blue text-white py-3 px-6 rounded-lg font-medium hover:bg-medical-deep focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-colors duration-200 !important;
+}
+
+.medical-button:not(:disabled) {
+  @apply bg-medical-blue text-white !important;
 }
 
 .medical-button:disabled {

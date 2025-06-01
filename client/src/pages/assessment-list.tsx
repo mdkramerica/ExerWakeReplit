@@ -165,7 +165,8 @@ export default function AssessmentList() {
                       ) : isNext ? (
                         <Button
                           onClick={() => handleStartAssessment(assessment.id)}
-                          className="bg-medical-blue text-white px-4 py-2 rounded-lg font-medium hover:bg-medical-deep transition-colors"
+                          className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors border-0"
+                          style={{ backgroundColor: '#2563eb', color: 'white' }}
                         >
                           Start
                           <ArrowRight className="w-4 h-4 ml-2" />
