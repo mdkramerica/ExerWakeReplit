@@ -18,9 +18,9 @@ export interface HandLandmark {
 const FINGER_LANDMARKS = {
   // Index finger (most commonly affected by trigger finger)
   INDEX: {
-    MCP: [0, 5, 6], // MCP angle: wrist-MCP base-MCP joint (0-5-6)
-    PIP: [5, 6, 7], // PIP angle: MCP base-MCP joint-PIP joint (5-6-7)  
-    DIP: [6, 7, 8], // DIP angle: MCP joint-PIP joint-fingertip (6-7-8)
+    MCP: [0, 5, 6], // MCP angle: wrist-MCP joint-PIP joint (0-5-6)
+    PIP: [5, 6, 7], // PIP angle: MCP joint-PIP joint-DIP joint (5-6-7)  
+    DIP: [6, 7, 8], // DIP angle: PIP joint-DIP joint-fingertip (6-7-8)
   },
   // Middle finger
   MIDDLE: {
@@ -85,24 +85,24 @@ export function calculateFingerROM(landmarks: HandLandmark[], fingerType: 'INDEX
   const finger = FINGER_LANDMARKS[fingerType];
   
   // Calculate flexion angles using correct landmark triplets
-  // MCP: wrist (0) -> MCP base (5) -> MCP joint (6)
+  // MCP: wrist (0) -> MCP joint (5) -> PIP joint (6)
   const mcpAngle = calculateFlexionAngle(
     landmarks[finger.MCP[0]], // wrist (0)
-    landmarks[finger.MCP[1]], // MCP base (5)
-    landmarks[finger.MCP[2]]  // MCP joint (6)
+    landmarks[finger.MCP[1]], // MCP joint (5)
+    landmarks[finger.MCP[2]]  // PIP joint (6)
   );
   
-  // PIP: MCP base (5) -> MCP joint (6) -> PIP joint (7)
+  // PIP: MCP joint (5) -> PIP joint (6) -> DIP joint (7)
   const pipAngle = calculateFlexionAngle(
-    landmarks[finger.PIP[0]], // MCP base (5)
-    landmarks[finger.PIP[1]], // MCP joint (6)
-    landmarks[finger.PIP[2]]  // PIP joint (7)
+    landmarks[finger.PIP[0]], // MCP joint (5)
+    landmarks[finger.PIP[1]], // PIP joint (6)
+    landmarks[finger.PIP[2]]  // DIP joint (7)
   );
   
-  // DIP: MCP joint (6) -> PIP joint (7) -> fingertip (8)
+  // DIP: PIP joint (6) -> DIP joint (7) -> fingertip (8)
   const dipAngle = calculateFlexionAngle(
-    landmarks[finger.DIP[0]], // MCP joint (6)
-    landmarks[finger.DIP[1]], // PIP joint (7)
+    landmarks[finger.DIP[0]], // PIP joint (6)
+    landmarks[finger.DIP[1]], // DIP joint (7)
     landmarks[finger.DIP[2]]  // fingertip (8)
   );
   

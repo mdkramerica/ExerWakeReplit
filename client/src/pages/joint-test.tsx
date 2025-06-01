@@ -124,7 +124,7 @@ export default function JointTest() {
         ctx.fill();
         
         // Anatomically correct labels
-        const labels = ['MCP Base (5)', 'MCP Joint (6)', 'PIP Joint (7)', 'Fingertip (8)'];
+        const labels = ['MCP Joint (5)', 'PIP Joint (6)', 'DIP Joint (7)', 'Fingertip (8)'];
         ctx.fillStyle = '#ffffff';
         ctx.font = '11px Arial';
         ctx.fillText(labels[i], x + 8, y + 3);
