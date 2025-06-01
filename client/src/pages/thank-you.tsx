@@ -59,14 +59,8 @@ export default function ThankYou() {
     <div className="max-w-md mx-auto">
       <Card className="medical-card">
         <CardContent className="pt-6 text-center">
-          <img 
-            src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300" 
-            alt="Medical success checkmark with hands" 
-            className="rounded-lg mx-auto mb-6 w-full h-48 object-cover"
-          />
-          
-          <div className="w-16 h-16 bg-medical-success rounded-full flex items-center justify-center mx-auto mb-6">
-            <Check className="w-8 h-8 text-white" />
+          <div className="w-24 h-24 bg-medical-success rounded-full flex items-center justify-center mx-auto mb-6">
+            <Check className="w-12 h-12 text-white" />
           </div>
           
           <h2 className="text-2xl font-semibold text-gray-900 mb-4">Assessment Complete!</h2>
