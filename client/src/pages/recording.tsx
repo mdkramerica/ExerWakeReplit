@@ -337,23 +337,47 @@ export default function Recording() {
                   </div>
                 </div>
 
-                {/* Simplified Live ROM Display */}
-                {currentUser?.injuryType === 'Trigger Finger' && handDetected && (
-                  <div className="absolute bottom-4 left-4 bg-gray-900 bg-opacity-90 rounded-lg p-3 min-w-[180px]">
-                    <div className="text-white">
-                      <div className="text-sm font-medium mb-2 text-center text-blue-300">Live ROM</div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-white mb-1">
-                          {currentROM.totalActiveRom.toFixed(0)}°
-                        </div>
-                        <div className="text-xs text-gray-300">Total Active Motion</div>
+                {/* Prominent Live ROM Display */}
+                {handDetected && (
+                  <div className="absolute bottom-4 left-4 bg-white border-4 border-blue-500 rounded-xl p-4 shadow-2xl min-w-[220px]">
+                    <div className="text-center">
+                      <div className="text-sm font-bold text-blue-600 mb-1">LIVE ROM</div>
+                      <div className="text-4xl font-black text-gray-900 mb-1">
+                        {currentROM.totalActiveRom.toFixed(0)}°
                       </div>
+                      <div className="text-xs font-semibold text-gray-600 mb-2">Total Active Motion</div>
+                      
+                      <div className="grid grid-cols-3 gap-2 mb-2">
+                        <div className="bg-blue-100 rounded p-1">
+                          <div className="text-xs font-bold text-blue-700">MCP</div>
+                          <div className="text-sm font-black text-blue-900">{currentROM.mcpAngle.toFixed(0)}°</div>
+                        </div>
+                        <div className="bg-green-100 rounded p-1">
+                          <div className="text-xs font-bold text-green-700">PIP</div>
+                          <div className="text-sm font-black text-green-900">{currentROM.pipAngle.toFixed(0)}°</div>
+                        </div>
+                        <div className="bg-purple-100 rounded p-1">
+                          <div className="text-xs font-bold text-purple-700">DIP</div>
+                          <div className="text-sm font-black text-purple-900">{currentROM.dipAngle.toFixed(0)}°</div>
+                        </div>
+                      </div>
+                      
                       {isRecording && (
-                        <div className="mt-2 pt-2 border-t border-gray-600 text-center">
-                          <div className="text-xs text-green-400">Session Max</div>
-                          <div className="text-lg font-bold text-green-400">{maxROM.totalActiveRom.toFixed(0)}°</div>
+                        <div className="bg-green-500 text-white rounded p-2">
+                          <div className="text-xs font-bold">SESSION MAX</div>
+                          <div className="text-xl font-black">{maxROM.totalActiveRom.toFixed(0)}°</div>
                         </div>
                       )}
+                    </div>
+                  </div>
+                )}
+                
+                {/* No Hand Detected Message */}
+                {!handDetected && (
+                  <div className="absolute bottom-4 left-4 bg-red-500 border-4 border-red-600 rounded-xl p-4 shadow-2xl">
+                    <div className="text-center text-white">
+                      <div className="text-sm font-bold mb-1">NO HAND DETECTED</div>
+                      <div className="text-xs">Position hand in view</div>
                     </div>
                   </div>
                 )}
