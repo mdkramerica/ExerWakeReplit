@@ -23,6 +23,7 @@ export default function Recording() {
   const [recordedData, setRecordedData] = useState<any[]>([]);
   const [currentLandmarks, setCurrentLandmarks] = useState<any[]>([]);
   const [recordingMotionData, setRecordingMotionData] = useState<any[]>([]);
+  const recordingMotionDataRef = useRef<any[]>([]);
   const recordingStartTimeRef = useRef<number | null>(null);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -96,6 +97,7 @@ export default function Recording() {
     setIsRecording(true);
     setRecordingTimer(0);
     setRecordingMotionData([]); // Clear previous motion data
+    recordingMotionDataRef.current = []; // Clear ref data too
     console.log(`Recording state set: isRecording=true, startTime=${recordingStartTimeRef.current}`);
   };
 
@@ -109,7 +111,7 @@ export default function Recording() {
   };
 
   const handleRepetitionComplete = () => {
-    console.log(`Repetition ${currentRepetition} completed with ${recordingMotionData.length} motion frames`);
+    console.log(`Repetition ${currentRepetition} completed with ${recordingMotionData.length} motion frames (state) and ${recordingMotionDataRef.current.length} motion frames (ref)`);
     
     const repetitionData = {
       repetition: currentRepetition,
@@ -117,7 +119,7 @@ export default function Recording() {
       landmarksDetected: landmarksCount,
       qualityScore: calculateQualityScore(),
       timestamp: new Date().toISOString(),
-      motionData: [...recordingMotionData] // Store copy of recorded motion data
+      motionData: [...recordingMotionDataRef.current] // Use ref data for immediate access
     };
 
     const newRecordedData = [...recordedData, repetitionData];
@@ -196,6 +198,9 @@ export default function Recording() {
           console.log(`Total motion frames captured: ${newData.length}`);
           return newData;
         });
+        
+        // Also update ref for immediate access
+        recordingMotionDataRef.current.push(motionFrame);
       } else if (recordingStartTimeRef.current && recordingElapsed > 0 && recordingElapsed <= 10) {
         console.log(`Recording period but no valid landmarks: handDetected=${data.handDetected}, landmarks=${data.landmarks ? data.landmarks.length : 'none'}, elapsed=${recordingElapsed.toFixed(1)}s`);
       }
