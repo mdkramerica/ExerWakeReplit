@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Targeted yellow background removal */
+/* Targeted yellow background removal - preserve all other styling */
 .bg-yellow-50,
 .bg-yellow-100,
 .bg-yellow-200,
@@ -15,6 +15,8 @@
 .bg-amber-400 {
   background-color: #ffffff !important;
 }
+
+/* Remove all our problematic overrides that break text visibility */
 
 :root {
   --background: 255 255 255; /* #FFFFFF - clean white background */
@@ -250,28 +252,7 @@ input:focus, textarea:focus, select:focus {
   --ring: 59 130 246; /* #3B82F6 */
 }
 
-/* Preserve measurement text colors */
-.text-blue-700,
-.text-green-700,
-.text-purple-700,
-.text-orange-700,
-.text-red-700 {
-  color: revert !important;
-}
 
-.text-white {
-  color: rgb(255 255 255) !important;
-}
-
-/* Preserve background colors for assessment cards */
-.bg-red-500,
-.bg-green-50,
-.bg-blue-50,
-.bg-purple-50,
-.bg-orange-50,
-.bg-gray-50 {
-  background-color: revert !important;
-}
 
 /* Custom utility classes */
 @layer utilities {
