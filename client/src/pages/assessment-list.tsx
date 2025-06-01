@@ -42,9 +42,9 @@ export default function AssessmentList() {
     setLocation(`/assessment/${assessmentId}/video`);
   };
 
-  const handleViewAssessment = (assessmentId: number) => {
-    // Could show detailed results or allow retake
-    setLocation(`/assessment/${assessmentId}/video`);
+  const handleViewAssessment = (userAssessmentId: number) => {
+    // Navigate to detailed assessment results page
+    setLocation(`/assessment-results/${userAssessmentId}`);
   };
 
   const handleBack = () => {
@@ -178,7 +178,7 @@ export default function AssessmentList() {
                       {isCompleted ? (
                         <div className="flex space-x-2">
                           <button
-                            onClick={() => handleViewAssessment(assessment.id)}
+                            onClick={() => handleViewAssessment(assessment.userAssessmentId)}
                             className="text-medical-gray hover:text-medical-blue p-2"
                             title="View Results"
                           >
