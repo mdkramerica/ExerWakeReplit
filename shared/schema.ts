@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, numeric } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -26,11 +26,16 @@ export const userAssessments = pgTable("user_assessments", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
   assessmentId: integer("assessment_id").notNull(),
+  sessionNumber: integer("session_number").default(1), // Track multiple sessions
   isCompleted: boolean("is_completed").default(false),
   completedAt: timestamp("completed_at"),
-  romData: jsonb("rom_data"), // MediaPipe hand landmark data
+  romData: jsonb("rom_data"), // ROM calculations: MCP, PIP, DIP angles
   repetitionData: jsonb("repetition_data"), // Array of repetition recordings
   qualityScore: integer("quality_score"), // 1-100
+  maxMcpAngle: numeric("max_mcp_angle", { precision: 5, scale: 2 }), // Maximum MCP joint angle
+  maxPipAngle: numeric("max_pip_angle", { precision: 5, scale: 2 }), // Maximum PIP joint angle  
+  maxDipAngle: numeric("max_dip_angle", { precision: 5, scale: 2 }), // Maximum DIP joint angle
+  totalActiveRom: numeric("total_active_rom", { precision: 5, scale: 2 }), // Sum of max angles
 });
 
 export const injuryTypes = pgTable("injury_types", {
