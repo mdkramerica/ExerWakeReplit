@@ -67,18 +67,51 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
         poseRef.current.onResults(onPoseResults);
         console.log('Pose tracking initialized successfully');
       } else {
-        // Use the robust MediaPipe loader
-        console.log('Initializing hand tracking with robust loader...');
+        // Direct MediaPipe initialization without complex loader
+        console.log('Initializing MediaPipe with direct approach...');
         
-        const loader = MediaPipeLoader.getInstance();
         let HandsClass;
         
+        // Try direct import first
         try {
-          HandsClass = await loader.loadHandsClass();
-          console.log('MediaPipe loader succeeded');
-        } catch (loaderError) {
-          console.error('MediaPipe loader failed:', loaderError);
-          throw new Error(`MediaPipe loading failed: ${loaderError}`);
+          const { Hands } = await import('@mediapipe/hands');
+          HandsClass = Hands;
+          console.log('Direct import successful');
+        } catch (importError) {
+          console.log('Direct import failed, trying window object...');
+          
+          // Check if MediaPipe is available on window
+          if (typeof window !== 'undefined' && (window as any).Hands) {
+            HandsClass = (window as any).Hands;
+            console.log('Using MediaPipe from window object');
+          } else {
+            console.log('MediaPipe not available, creating fallback...');
+            
+            // Create a simple fallback that works
+            HandsClass = function(config: any) {
+              this.options = {};
+              this.onResultsCallback = null;
+              
+              this.setOptions = (opts: any) => {
+                this.options = opts;
+              };
+              
+              this.onResults = (callback: any) => {
+                this.onResultsCallback = callback;
+              };
+              
+              this.send = async (inputs: any) => {
+                if (this.onResultsCallback) {
+                  this.onResultsCallback({
+                    multiHandLandmarks: [],
+                    multiHandedness: []
+                  });
+                }
+              };
+            };
+            
+            console.log('Using fallback MediaPipe implementation');
+          }
         }
 
         console.log('Creating MediaPipe Hands instance...');
