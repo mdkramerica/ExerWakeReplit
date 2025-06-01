@@ -41,6 +41,10 @@ export default function JointTest() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    // Set canvas dimensions to match video feed (640x480)
+    canvas.width = 640;
+    canvas.height = 480;
+
     // Clear canvas
     ctx.fillStyle = '#1f2937';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -222,7 +226,9 @@ export default function JointTest() {
               <canvas
                 ref={canvasRef}
                 className="w-full bg-gray-900 rounded-xl"
-                style={{ maxHeight: '360px' }}
+                width={640}
+                height={480}
+                style={{ aspectRatio: '4/3' }}
               />
             </div>
           </div>
