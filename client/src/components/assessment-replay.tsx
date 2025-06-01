@@ -847,7 +847,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
                     }`}>
                       <div className="flex justify-between items-center mb-3">
                         <span className="font-medium text-gray-900">{digit.charAt(0) + digit.slice(1).toLowerCase()} Finger</span>
-                        <span className="font-semibold text-lg">{Math.round(rom.totalActiveRom)}° TAM</span>
+                        <span className="font-bold text-lg text-gray-900">{Math.round(rom.totalActiveRom)}° TAM</span>
                       </div>
                       
                       <div className="grid grid-cols-3 gap-3 text-sm">
