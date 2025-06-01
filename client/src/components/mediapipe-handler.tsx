@@ -30,7 +30,14 @@ export default function MediaPipeHandler({ onUpdate, isRecording, assessmentType
   const handsRef = useRef<any>(null);
   const poseRef = useRef<any>(null);
   const lastFrameTime = useRef<number>(0);
+  const prevIsRecording = useRef(isRecording);
   const isArmAssessment = assessmentType.includes('shoulder') || assessmentType.includes('elbow') || assessmentType.includes('arm');
+
+  // Log recording state changes
+  if (prevIsRecording.current !== isRecording) {
+    console.log(`MediaPipe recording state changed: ${prevIsRecording.current} -> ${isRecording}`);
+    prevIsRecording.current = isRecording;
+  }
 
   // Initialize MediaPipe tracking systems
   const initializeMediaPipe = useCallback(async () => {
