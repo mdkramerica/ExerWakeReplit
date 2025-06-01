@@ -442,10 +442,45 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
     ctx.fillStyle = '#ffffff';
     ctx.fillText('Other Landmarks', 30, canvas.height - 17);
 
-    // Draw Exer AI branding
+    // Draw timeline scrubber overlay at bottom of canvas
+    const timelineHeight = 30;
+    const timelineY = canvas.height - timelineHeight;
+    const timelineMargin = 40;
+    const timelineWidth = canvas.width - (timelineMargin * 2);
+    
+    // Timeline background
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.fillRect(timelineMargin, timelineY, timelineWidth, timelineHeight);
+    
+    // Timeline track
+    ctx.fillStyle = '#374151';
+    ctx.fillRect(timelineMargin + 5, timelineY + 10, timelineWidth - 10, 10);
+    
+    // Timeline progress
+    const progress = replayData.length > 0 ? currentFrame / (replayData.length - 1) : 0;
+    ctx.fillStyle = '#3b82f6';
+    ctx.fillRect(timelineMargin + 5, timelineY + 10, (timelineWidth - 10) * progress, 10);
+    
+    // Timeline scrubber handle
+    const handleX = timelineMargin + 5 + (timelineWidth - 10) * progress;
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(handleX, timelineY + 15, 6, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.strokeStyle = '#3b82f6';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    
+    // Timeline markers and time display
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '10px Arial';
+    ctx.fillText(`${currentFrame + 1}/${replayData.length}`, timelineMargin + 5, timelineY + 8);
+    ctx.fillText(`${((currentFrame / 30)).toFixed(1)}s`, canvas.width - timelineMargin - 35, timelineY + 8);
+    
+    // Draw Exer AI branding (moved up to avoid timeline)
     ctx.fillStyle = '#9ca3af';
     ctx.font = '12px Arial';
-    ctx.fillText('Exer AI Motion Replay', canvas.width - 150, canvas.height - 10);
+    ctx.fillText('Exer AI Motion Replay', canvas.width - 150, timelineY - 5);
   };
 
   const playAnimation = useCallback(() => {
@@ -506,6 +541,57 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
     URL.revokeObjectURL(url);
   };
 
+  // Canvas timeline scrubber interaction
+  const handleCanvasClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas || replayData.length === 0) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    // Timeline dimensions (same as in drawFrame function)
+    const timelineHeight = 30;
+    const timelineY = canvas.height - timelineHeight;
+    const timelineMargin = 40;
+    const timelineWidth = canvas.width - (timelineMargin * 2);
+
+    // Check if click is within timeline area
+    if (y >= timelineY && y <= timelineY + timelineHeight && 
+        x >= timelineMargin && x <= timelineMargin + timelineWidth) {
+      
+      // Calculate new frame position
+      const clickPosition = (x - timelineMargin - 5) / (timelineWidth - 10);
+      const newFrame = Math.max(0, Math.min(replayData.length - 1, Math.floor(clickPosition * (replayData.length - 1))));
+      
+      setCurrentFrame(newFrame);
+      setIsPlaying(false); // Pause playback when manually scrubbing
+    }
+  };
+
+  const handleCanvasMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas || replayData.length === 0) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    // Timeline dimensions
+    const timelineHeight = 30;
+    const timelineY = canvas.height - timelineHeight;
+    const timelineMargin = 40;
+    const timelineWidth = canvas.width - (timelineMargin * 2);
+
+    // Change cursor style when hovering over timeline
+    if (y >= timelineY && y <= timelineY + timelineHeight && 
+        x >= timelineMargin && x <= timelineMargin + timelineWidth) {
+      canvas.style.cursor = 'pointer';
+    } else {
+      canvas.style.cursor = 'default';
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <Card>
@@ -524,6 +610,8 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
               width={640}
               height={480}
               className="w-full border-2 border-gray-300 rounded-lg bg-gray-900"
+              onClick={handleCanvasClick}
+              onMouseMove={handleCanvasMouseMove}
             />
             
             <div className="flex items-center justify-between">
