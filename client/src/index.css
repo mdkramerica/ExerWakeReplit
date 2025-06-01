@@ -36,7 +36,7 @@
 /* Clean Color System Reset */
 /* Base text colors - dark and readable */
 * {
-  color: #1f2937; /* gray-800 */
+  color: #1f2937; /* gray-800 - darker for better readability */
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -111,19 +111,53 @@ body {
   box-shadow: none;
 }
 
-/* Text size and weight system */
+/* Text size and weight system - darker for better contrast */
 .text-xs, .text-sm {
-  color: #6b7280; /* gray-500 */
+  color: #374151; /* gray-700 - much darker for readability */
 }
 
 .text-base, .text-lg {
-  color: #374151; /* gray-700 */
+  color: #1f2937; /* gray-800 - even darker for main text */
 }
 
 /* Labels and form text */
 label {
-  color: #374151;
+  color: #1f2937; /* gray-800 for strong contrast */
   font-weight: 500;
+}
+
+/* Button hover fix - prevent text from disappearing */
+button {
+  color: #1f2937;
+}
+
+button:hover {
+  color: #1f2937;
+}
+
+/* Specific fixes for button variants */
+button[class*="bg-blue"], 
+.bg-blue-600,
+.bg-blue-500 {
+  color: #ffffff !important;
+}
+
+button[class*="bg-blue"]:hover, 
+.bg-blue-600:hover,
+.bg-blue-500:hover {
+  color: #ffffff !important;
+}
+
+/* Fix for ghost/outline buttons */
+button[class*="variant-ghost"],
+button[class*="variant-outline"] {
+  color: #1f2937 !important;
+}
+
+button[class*="variant-ghost"]:hover,
+button[class*="variant-outline"]:hover {
+  color: #1f2937 !important;
+  background-color: #f3f4f6 !important;
 }
 
 /* Input styling */
@@ -340,13 +374,46 @@ input, textarea, select {
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-/* Clean button text styling */
+/* Clean button text styling with proper contrast */
 button {
   font-weight: 500;
 }
 
 button span {
   color: inherit;
+}
+
+/* Comprehensive button text visibility fixes */
+button[class*="text-gray"],
+button[class*="text-slate"] {
+  color: #1f2937 !important;
+}
+
+button[class*="text-gray"]:hover,
+button[class*="text-slate"]:hover {
+  color: #1f2937 !important;
+}
+
+/* Ensure all button states maintain proper text color */
+.btn, [role="button"] {
+  color: #1f2937;
+}
+
+.btn:hover, [role="button"]:hover {
+  color: #1f2937;
+}
+
+/* Fix specific shadcn button variants */
+[data-variant="ghost"],
+[data-variant="outline"],
+[data-variant="secondary"] {
+  color: #1f2937 !important;
+}
+
+[data-variant="ghost"]:hover,
+[data-variant="outline"]:hover,
+[data-variant="secondary"]:hover {
+  color: #1f2937 !important;
 }
 
 /* Remove old styling - now handled above with clean CSS */
