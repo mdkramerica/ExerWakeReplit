@@ -144,7 +144,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = parseInt(req.params.userId);
       const assessmentId = parseInt(req.params.assessmentId);
-      const { romData, repetitionData, qualityScore } = req.body;
+      const { romData, repetitionData, qualityScore, handType } = req.body;
       
       // Calculate ROM values from repetition data for trigger finger assessments
       let maxMcpAngle: number | null = null;
@@ -279,7 +279,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         pinkyFingerMcp: pinkyFingerMcp !== null ? pinkyFingerMcp.toString() : null,
         pinkyFingerPip: pinkyFingerPip !== null ? pinkyFingerPip.toString() : null,
-        pinkyFingerDip: pinkyFingerDip !== null ? pinkyFingerDip.toString() : null
+        pinkyFingerDip: pinkyFingerDip !== null ? pinkyFingerDip.toString() : null,
+        handType: handType || null
       });
       
       res.json({ userAssessment });

@@ -22,6 +22,7 @@ export default function Recording() {
   const [landmarksCount, setLandmarksCount] = useState(0);
   const [trackingQuality, setTrackingQuality] = useState("Poor");
   const [handPosition, setHandPosition] = useState("Not Detected");
+  const [detectedHandType, setDetectedHandType] = useState<string>("");
   const [recordedData, setRecordedData] = useState<any[]>([]);
   const [currentLandmarks, setCurrentLandmarks] = useState<any[]>([]);
   const [recordingMotionData, setRecordingMotionData] = useState<any[]>([]);
@@ -186,7 +187,8 @@ export default function Recording() {
     completeAssessmentMutation.mutate({
       romData,
       repetitionData: finalRecordedData,
-      qualityScore: romData.averageQuality
+      qualityScore: romData.averageQuality,
+      handType: detectedHandType
     });
   };
 
@@ -208,6 +210,11 @@ export default function Recording() {
     setLandmarksCount(data.landmarksCount);
     setTrackingQuality(data.trackingQuality);
     setHandPosition(data.handPosition);
+    
+    // Update detected hand type
+    if (data.handType) {
+      setDetectedHandType(data.handType);
+    }
     
     // Store current landmarks for recording
     if (data.landmarks && data.landmarks.length > 0) {
@@ -400,18 +407,15 @@ export default function Recording() {
                 </div>
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>
-                    <div className="text-gray-600">Landmarks</div>
-                    <div className={`font-bold ${landmarksCount === 21 ? 'text-green-600' : 'text-red-500'}`}>
-                      {landmarksCount}/21
+                    <div className="text-gray-600">Hand Detected</div>
+                    <div className={`font-bold ${detectedHandType ? 'text-green-600' : 'text-gray-500'}`}>
+                      {detectedHandType || 'None'}
                     </div>
                   </div>
                   <div>
-                    <div className="text-gray-600">Quality</div>
-                    <div className={`font-bold ${
-                      trackingQuality === "Excellent" ? 'text-green-600' :
-                      trackingQuality === "Good" ? 'text-blue-600' : 'text-red-500'
-                    }`}>
-                      {trackingQuality}
+                    <div className="text-gray-600">Landmarks</div>
+                    <div className={`font-bold ${landmarksCount === 21 ? 'text-green-600' : 'text-red-500'}`}>
+                      {landmarksCount}/21
                     </div>
                   </div>
                 </div>

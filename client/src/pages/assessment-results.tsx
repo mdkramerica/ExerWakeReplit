@@ -154,6 +154,12 @@ export default function AssessmentResults() {
                   <div className="text-lg font-medium">{userAssessment.qualityScore || 0}%</div>
                 </div>
                 <div>
+                  <label className="text-sm font-medium text-gray-800">Hand Assessed</label>
+                  <div className="text-lg font-medium">
+                    {userAssessment.handType || 'Not Detected'}
+                  </div>
+                </div>
+                <div>
                   <label className="text-sm font-medium text-gray-800">Status</label>
                   <div className={`text-lg font-medium ${userAssessment.isCompleted ? 'text-green-600' : 'text-orange-600'}`}>
                     {userAssessment.isCompleted ? 'Completed' : 'In Progress'}
