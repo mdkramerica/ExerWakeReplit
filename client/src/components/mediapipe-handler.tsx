@@ -68,7 +68,12 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
 
         handsRef.current = new Hands({
           locateFile: (file: string) => {
-            return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+            // Try multiple CDN sources for better reliability
+            const cdnSources = [
+              `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`,
+              `https://unpkg.com/@mediapipe/hands/${file}`
+            ];
+            return cdnSources[0];
           }
         });
 
@@ -386,8 +391,17 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
         });
         
         if (videoRef.current) {
+          console.log('Setting video stream and starting playback...');
           videoRef.current.srcObject = stream;
+          videoRef.current.onloadedmetadata = () => {
+            console.log('Video metadata loaded:', {
+              width: videoRef.current?.videoWidth,
+              height: videoRef.current?.videoHeight,
+              readyState: videoRef.current?.readyState
+            });
+          };
           await videoRef.current.play();
+          console.log('Video playback started');
         }
 
         // Initialize Exer AI
