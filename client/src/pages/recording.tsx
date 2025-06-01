@@ -192,17 +192,26 @@ export default function Recording() {
       
       // Calculate real-time ROM for trigger finger assessment
       if (currentUser?.injuryType === 'Trigger Finger' && data.landmarks.length >= 21) {
-        const romData = calculateCurrentROM(data.landmarks);
-        setCurrentROM(romData);
-        
-        // Update max ROM values during recording
-        if (isRecording) {
-          setMaxROM(prev => ({
-            mcpAngle: Math.max(prev.mcpAngle, romData.mcpAngle),
-            pipAngle: Math.max(prev.pipAngle, romData.pipAngle),
-            dipAngle: Math.max(prev.dipAngle, romData.dipAngle),
-            totalActiveRom: Math.max(prev.totalActiveRom, romData.totalActiveRom)
-          }));
+        try {
+          const romData = calculateCurrentROM(data.landmarks);
+          console.log('ROM calculated:', romData);
+          setCurrentROM(romData);
+          
+          // Update max ROM values during recording
+          if (isRecording) {
+            setMaxROM(prev => {
+              const updated = {
+                mcpAngle: Math.max(prev.mcpAngle, romData.mcpAngle),
+                pipAngle: Math.max(prev.pipAngle, romData.pipAngle),
+                dipAngle: Math.max(prev.dipAngle, romData.dipAngle),
+                totalActiveRom: Math.max(prev.totalActiveRom, romData.totalActiveRom)
+              };
+              console.log('Max ROM updated:', updated);
+              return updated;
+            });
+          }
+        } catch (error) {
+          console.error('ROM calculation error:', error);
         }
       }
       
