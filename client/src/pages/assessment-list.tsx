@@ -253,29 +253,65 @@ export default function AssessmentList() {
                         {/* Individual Finger ROM Breakdown */}
                         {(record.indexFingerRom || record.middleFingerRom || record.ringFingerRom || record.pinkyFingerRom) ? (
                           <div className="mt-3 pt-3 border-t border-gray-100">
-                            <div className="text-xs font-medium text-gray-700 mb-2">Maximum ROM by Finger</div>
+                            <div className="text-xs font-medium text-gray-700 mb-2">Total ROM by Finger</div>
                             <div className="grid grid-cols-4 gap-2 text-xs">
-                              <div className="bg-blue-50 px-2 py-1 rounded">
-                                <div className="font-medium text-blue-700">Index</div>
-                                <div className="text-blue-900">
+                              <div className={`px-2 py-1 rounded ${
+                                record.indexFingerRom && (parseFloat(record.indexFingerRom) < 240 || parseFloat(record.indexFingerRom) > 280)
+                                  ? 'bg-red-50' : 'bg-blue-50'
+                              }`}>
+                                <div className={`font-medium ${
+                                  record.indexFingerRom && (parseFloat(record.indexFingerRom) < 240 || parseFloat(record.indexFingerRom) > 280)
+                                    ? 'text-red-700' : 'text-blue-700'
+                                }`}>Index</div>
+                                <div className={`${
+                                  record.indexFingerRom && (parseFloat(record.indexFingerRom) < 240 || parseFloat(record.indexFingerRom) > 280)
+                                    ? 'text-red-900' : 'text-blue-900'
+                                }`}>
                                   {record.indexFingerRom ? parseFloat(record.indexFingerRom).toFixed(1) : '0.0'}°
                                 </div>
                               </div>
-                              <div className="bg-green-50 px-2 py-1 rounded">
-                                <div className="font-medium text-green-700">Middle</div>
-                                <div className="text-green-900">
+                              <div className={`px-2 py-1 rounded ${
+                                record.middleFingerRom && (parseFloat(record.middleFingerRom) < 240 || parseFloat(record.middleFingerRom) > 280)
+                                  ? 'bg-red-50' : 'bg-green-50'
+                              }`}>
+                                <div className={`font-medium ${
+                                  record.middleFingerRom && (parseFloat(record.middleFingerRom) < 240 || parseFloat(record.middleFingerRom) > 280)
+                                    ? 'text-red-700' : 'text-green-700'
+                                }`}>Middle</div>
+                                <div className={`${
+                                  record.middleFingerRom && (parseFloat(record.middleFingerRom) < 240 || parseFloat(record.middleFingerRom) > 280)
+                                    ? 'text-red-900' : 'text-green-900'
+                                }`}>
                                   {record.middleFingerRom ? parseFloat(record.middleFingerRom).toFixed(1) : '0.0'}°
                                 </div>
                               </div>
-                              <div className="bg-orange-50 px-2 py-1 rounded">
-                                <div className="font-medium text-orange-700">Ring</div>
-                                <div className="text-orange-900">
+                              <div className={`px-2 py-1 rounded ${
+                                record.ringFingerRom && (parseFloat(record.ringFingerRom) < 240 || parseFloat(record.ringFingerRom) > 280)
+                                  ? 'bg-red-50' : 'bg-orange-50'
+                              }`}>
+                                <div className={`font-medium ${
+                                  record.ringFingerRom && (parseFloat(record.ringFingerRom) < 240 || parseFloat(record.ringFingerRom) > 280)
+                                    ? 'text-red-700' : 'text-orange-700'
+                                }`}>Ring</div>
+                                <div className={`${
+                                  record.ringFingerRom && (parseFloat(record.ringFingerRom) < 240 || parseFloat(record.ringFingerRom) > 280)
+                                    ? 'text-red-900' : 'text-orange-900'
+                                }`}>
                                   {record.ringFingerRom ? parseFloat(record.ringFingerRom).toFixed(1) : '0.0'}°
                                 </div>
                               </div>
-                              <div className="bg-purple-50 px-2 py-1 rounded">
-                                <div className="font-medium text-purple-700">Pinky</div>
-                                <div className="text-purple-900">
+                              <div className={`px-2 py-1 rounded ${
+                                record.pinkyFingerRom && (parseFloat(record.pinkyFingerRom) < 220 || parseFloat(record.pinkyFingerRom) > 260)
+                                  ? 'bg-red-50' : 'bg-purple-50'
+                              }`}>
+                                <div className={`font-medium ${
+                                  record.pinkyFingerRom && (parseFloat(record.pinkyFingerRom) < 220 || parseFloat(record.pinkyFingerRom) > 260)
+                                    ? 'text-red-700' : 'text-purple-700'
+                                }`}>Pinky</div>
+                                <div className={`${
+                                  record.pinkyFingerRom && (parseFloat(record.pinkyFingerRom) < 220 || parseFloat(record.pinkyFingerRom) > 260)
+                                    ? 'text-red-900' : 'text-purple-900'
+                                }`}>
                                   {record.pinkyFingerRom ? parseFloat(record.pinkyFingerRom).toFixed(1) : '0.0'}°
                                 </div>
                               </div>
