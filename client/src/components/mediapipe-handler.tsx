@@ -387,11 +387,25 @@ export default function MediaPipeHandler({ onUpdate, isRecording, assessmentType
         }
       } catch (error) {
         console.error("Error starting hand tracking:", error);
+        let errorMessage = "Camera access error";
+        
+        if (error instanceof Error) {
+          if (error.name === 'NotAllowedError') {
+            errorMessage = "Camera permission denied. Please allow camera access and refresh.";
+          } else if (error.name === 'NotFoundError') {
+            errorMessage = "No camera found. Please connect a camera and refresh.";
+          } else if (error.name === 'NotSupportedError') {
+            errorMessage = "Camera not supported. Please use HTTPS or a compatible browser.";
+          } else if (error.name === 'NotReadableError') {
+            errorMessage = "Camera in use by another application.";
+          }
+        }
+        
         onUpdate({
           handDetected: false,
           landmarksCount: 0,
           trackingQuality: "Error",
-          handPosition: "Camera access denied"
+          handPosition: errorMessage
         });
       }
     };
