@@ -194,6 +194,7 @@ export default function AssessmentResults() {
                       <h4 className="font-medium text-gray-900 mb-4">Comprehensive ROM Analysis - All Digits</h4>
                       <div className="space-y-4">
                         {/* Index Finger */}
+                        {userAssessment.indexFingerRom && (
                         <div className="border border-blue-200 rounded-lg p-4">
                           <div className="flex justify-between items-center mb-3">
                             <h5 className="font-medium text-gray-900">Index Finger</h5>
@@ -252,6 +253,7 @@ export default function AssessmentResults() {
                             </div>
                           </div>
                         </div>
+                        )}
 
                         {/* Middle Finger */}
                         {userAssessment.middleFingerRom && (
