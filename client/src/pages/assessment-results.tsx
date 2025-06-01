@@ -24,9 +24,10 @@ export default function AssessmentResults() {
   const userAssessment = resultData?.userAssessment;
 
   const shareAssessmentMutation = useMutation({
-    mutationFn: () => apiRequest(`/api/user-assessments/${userAssessmentId}/share`, {
-      method: "POST"
-    }),
+    mutationFn: async () => {
+      const response = await apiRequest("POST", `/api/user-assessments/${userAssessmentId}/share`, {});
+      return response.json();
+    },
     onSuccess: (data) => {
       const fullUrl = `${window.location.origin}${data.shareUrl}`;
       setShareUrl(fullUrl);
