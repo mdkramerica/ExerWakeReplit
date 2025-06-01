@@ -375,7 +375,7 @@ export default function AssessmentList() {
                           </div>
                         )}
                         <button
-                          onClick={() => setLocation(`/assessment-results/${record.id}`)}
+                          onClick={() => setLocation(`/assessment-results/${currentUser?.code}/${record.id}`)}
                           className="w-8 h-8 rounded-lg bg-blue-50 hover:bg-blue-100 flex items-center justify-center transition-colors"
                           title="View Assessment Results"
                         >
