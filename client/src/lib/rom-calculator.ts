@@ -74,7 +74,8 @@ function calculateFlexionAngle(p1: HandLandmark, p2: HandLandmark, p3: HandLandm
   const angleRad = Math.acos(Math.max(-1, Math.min(1, cosAngle)));
   const angleDeg = angleRad * (180 / Math.PI);
   
-  // Convert to flexion angle: 180° = straight (0° flexion), <180° = flexion, >180° = hyperextension
+  // Convert to flexion angle: 180° = straight (0° flexion)
+  // Less than 180° = flexion (positive), greater than 180° = extension (negative)
   const flexionAngle = 180 - angleDeg;
   
   return flexionAngle;
