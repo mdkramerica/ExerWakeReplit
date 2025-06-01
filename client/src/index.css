@@ -146,48 +146,29 @@ p, span, div, label {
   box-shadow: none;
 }
 
-/* Button text visibility fixes */
-button {
-  color: rgb(31 41 55);
+/* Button styling fixes */
+.medical-button,
+button[class*="bg-blue"],
+.bg-blue-600,
+.bg-blue-500 {
+  background-color: rgb(59 130 246) !important;
+  color: rgb(255 255 255) !important;
+  border: none !important;
 }
 
-button * {
-  color: inherit;
-}
-
-button:hover {
-  color: rgb(31 41 55);
-}
-
-button:hover * {
-  color: inherit;
-}
-
-/* Specific button variant overrides */
-button[class*="bg-blue"] {
+.medical-button:hover,
+button[class*="bg-blue"]:hover,
+.bg-blue-600:hover,
+.bg-blue-500:hover {
+  background-color: rgb(37 99 235) !important;
   color: rgb(255 255 255) !important;
 }
 
-button[class*="bg-blue"] * {
-  color: rgb(255 255 255) !important;
-}
-
-button[class*="bg-blue"]:hover {
-  color: rgb(255 255 255) !important;
-}
-
-button[class*="bg-blue"]:hover * {
-  color: rgb(255 255 255) !important;
-}
-
+/* Outline button fixes */
 button[class*="variant-outline"] {
   color: rgb(31 41 55) !important;
   background-color: rgb(255 255 255) !important;
   border: 1px solid rgb(209 213 219) !important;
-}
-
-button[class*="variant-outline"] * {
-  color: rgb(31 41 55) !important;
 }
 
 button[class*="variant-outline"]:hover {
@@ -195,8 +176,13 @@ button[class*="variant-outline"]:hover {
   background-color: rgb(249 250 251) !important;
 }
 
-button[class*="variant-outline"]:hover * {
-  color: rgb(31 41 55) !important;
+/* Default button text */
+button {
+  color: rgb(31 41 55);
+}
+
+button * {
+  color: inherit;
 }
 
 /* Form inputs */
