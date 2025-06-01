@@ -423,24 +423,27 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
     ctx.fillText(`Quality: ${Math.round(frame.quality)}%`, 10, 45);
     ctx.fillText(`Hand: ${frame.handedness}`, 10, 65);
 
-    // Draw finger measurement legend
+    // Draw finger measurement legend (moved up to avoid timeline scrubber)
+    const legendHeight = 70;
+    const legendY = canvas.height - 120; // Moved up 40px to clear timeline
+    
     ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-    ctx.fillRect(10, canvas.height - 80, 200, 70);
+    ctx.fillRect(10, legendY, 200, legendHeight);
     
     ctx.fillStyle = '#ffffff';
     ctx.font = '12px Arial';
-    ctx.fillText('Finger Measurement:', 15, canvas.height - 60);
+    ctx.fillText('Finger Measurement:', 15, legendY + 20);
     
     // Color-coded legend
     ctx.fillStyle = '#ffff00'; // Yellow for active finger
-    ctx.fillRect(15, canvas.height - 45, 10, 10);
+    ctx.fillRect(15, legendY + 35, 10, 10);
     ctx.fillStyle = '#ffffff';
-    ctx.fillText(`${selectedDigit.charAt(0) + selectedDigit.slice(1).toLowerCase()} Finger (Active)`, 30, canvas.height - 37);
+    ctx.fillText(`${selectedDigit.charAt(0) + selectedDigit.slice(1).toLowerCase()} Finger (Active)`, 30, legendY + 43);
     
     ctx.fillStyle = '#10b981'; // Green for other landmarks
-    ctx.fillRect(15, canvas.height - 25, 10, 10);
+    ctx.fillRect(15, legendY + 55, 10, 10);
     ctx.fillStyle = '#ffffff';
-    ctx.fillText('Other Landmarks', 30, canvas.height - 17);
+    ctx.fillText('Other Landmarks', 30, legendY + 63);
 
     // Draw timeline scrubber overlay at bottom of canvas
     const timelineHeight = 30;
