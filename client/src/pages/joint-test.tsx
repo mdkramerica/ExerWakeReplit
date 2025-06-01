@@ -155,11 +155,11 @@ export default function JointTest() {
       ctx.fillText(`DIP: ${romData.dipAngle.toFixed(1)}°`, dipLabelX + 10, dipLabelY);
     }
     
-    // Draw anatomical point labels
+    // Draw anatomical point labels with correct unmirrored positioning
     const labels = ['MCP Joint (5)', 'PIP Joint (6)', 'DIP Joint (7)', 'Fingertip (8)'];
     indexFingerPoints.forEach((pointIndex, i) => {
       if (handLandmarks[pointIndex]) {
-        const x = canvas.width - handLandmarks[pointIndex].x * canvas.width;
+        const x = (1 - handLandmarks[pointIndex].x) * canvas.width;
         const y = handLandmarks[pointIndex].y * canvas.height;
         
         ctx.fillStyle = '#ffffff';
