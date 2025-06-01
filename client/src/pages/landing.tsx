@@ -95,7 +95,8 @@ export default function Landing() {
             
             <Button 
               type="submit" 
-              className="w-full medical-button"
+              className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ backgroundColor: '#2563eb', color: 'white' }}
               disabled={verifyCodeMutation.isPending || code.length !== 6}
             >
               {verifyCodeMutation.isPending ? (
