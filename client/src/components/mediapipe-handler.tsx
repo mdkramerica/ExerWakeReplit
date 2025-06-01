@@ -1,5 +1,6 @@
 import { useEffect, useRef, useCallback } from "react";
 import exerLogoPath from "@assets/exer-logo.png";
+import { MediaPipeLoader } from "@/lib/mediapipe-loader";
 
 interface ExerAIHandlerProps {
   onUpdate: (data: {
@@ -66,143 +67,21 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
         poseRef.current.onResults(onPoseResults);
         console.log('Pose tracking initialized successfully');
       } else {
-        // Enhanced hand tracking initialization with multiple fallback strategies
-        console.log('Initializing hand tracking...');
+        // Use the robust MediaPipe loader
+        console.log('Initializing hand tracking with robust loader...');
         
-        let HandsClass = null;
-        let initializationMethod = '';
-
-        // Strategy 1: Try direct ES6 import first
+        const loader = MediaPipeLoader.getInstance();
+        let HandsClass;
+        
         try {
-          console.log('Attempting direct import...');
-          const mediapipeModule = await import('@mediapipe/hands');
-          HandsClass = mediapipeModule.Hands;
-          initializationMethod = 'direct import';
-          console.log('✓ Direct import successful');
-        } catch (importError) {
-          console.log('✗ Direct import failed, trying CDN methods...');
-          
-          // Strategy 2: Check if already loaded via CDN
-          if (typeof window !== 'undefined' && (window as any).Hands) {
-            HandsClass = (window as any).Hands;
-            initializationMethod = 'existing CDN';
-            console.log('✓ Found existing CDN version');
-          } else {
-            // Strategy 3: Enhanced CDN loading with multiple endpoints
-            console.log('Loading MediaPipe from CDN with multiple fallbacks...');
-            
-            const cdnUrls = [
-              'https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.js',
-              'https://unpkg.com/@mediapipe/hands@0.4.1675469240/hands.js',
-              'https://cdn.skypack.dev/@mediapipe/hands@0.4.1675469240'
-            ];
-            
-            let loadSuccess = false;
-            
-            for (let i = 0; i < cdnUrls.length && !loadSuccess; i++) {
-              try {
-                console.log(`Attempting CDN ${i + 1}/${cdnUrls.length}: ${cdnUrls[i]}`);
-                
-                await new Promise<void>((resolve, reject) => {
-                  // Check if script already exists
-                  const existingScript = document.querySelector(`script[src="${cdnUrls[i]}"]`);
-                  if (existingScript) {
-                    console.log('Script already exists, checking availability...');
-                    if ((window as any).Hands) {
-                      resolve();
-                      return;
-                    }
-                  }
-                  
-                  const script = document.createElement('script');
-                  script.src = cdnUrls[i];
-                  script.crossOrigin = 'anonymous';
-                  script.async = true;
-                  
-                  let resolved = false;
-                  
-                  script.onload = () => {
-                    console.log(`CDN script ${i + 1} loaded, checking for Hands class...`);
-                    
-                    // Immediate check
-                    if ((window as any).Hands) {
-                      if (!resolved) {
-                        resolved = true;
-                        console.log(`✓ CDN ${i + 1} Hands class immediately available`);
-                        resolve();
-                      }
-                      return;
-                    }
-                    
-                    // Progressive checks with increasing delays
-                    const checkForHands = (attempt = 1) => {
-                      console.log(`Checking for Hands class (attempt ${attempt})...`);
-                      
-                      if ((window as any).Hands) {
-                        if (!resolved) {
-                          resolved = true;
-                          console.log(`✓ CDN ${i + 1} Hands class found on attempt ${attempt}`);
-                          resolve();
-                        }
-                      } else if (attempt < 10) {
-                        setTimeout(() => checkForHands(attempt + 1), 100 * attempt);
-                      } else {
-                        if (!resolved) {
-                          resolved = true;
-                          console.log(`✗ CDN ${i + 1} Hands class not available after 10 attempts`);
-                          reject(new Error(`Hands class not available from CDN ${i + 1}`));
-                        }
-                      }
-                    };
-                    
-                    checkForHands();
-                  };
-                  
-                  script.onerror = (error) => {
-                    if (!resolved) {
-                      resolved = true;
-                      console.error(`CDN ${i + 1} script failed to load:`, error);
-                      reject(new Error(`Failed to load from CDN ${i + 1}`));
-                    }
-                  };
-                  
-                  // Timeout for this CDN attempt
-                  setTimeout(() => {
-                    if (!resolved) {
-                      resolved = true;
-                      console.log(`✗ CDN ${i + 1} timeout after 8 seconds`);
-                      reject(new Error(`CDN ${i + 1} load timeout`));
-                    }
-                  }, 8000);
-                  
-                  document.head.appendChild(script);
-                });
-                
-                // If we get here, the promise resolved successfully
-                if ((window as any).Hands) {
-                  HandsClass = (window as any).Hands;
-                  initializationMethod = `CDN ${i + 1}`;
-                  loadSuccess = true;
-                  console.log(`✓ Successfully loaded MediaPipe from CDN ${i + 1}`);
-                }
-                
-              } catch (cdnError) {
-                console.log(`CDN ${i + 1} failed:`, cdnError);
-                // Continue to next CDN
-              }
-            }
-            
-            if (!loadSuccess) {
-              throw new Error('All CDN endpoints failed to load MediaPipe');
-            }
-          }
+          HandsClass = await loader.loadHandsClass();
+          console.log('MediaPipe loader succeeded');
+        } catch (loaderError) {
+          console.error('MediaPipe loader failed:', loaderError);
+          throw new Error(`MediaPipe loading failed: ${loaderError}`);
         }
 
-        if (!HandsClass) {
-          throw new Error('No MediaPipe Hands class available after all attempts');
-        }
-
-        console.log(`Creating MediaPipe Hands instance via ${initializationMethod}...`);
+        console.log('Creating MediaPipe Hands instance...');
         
         // Create hands instance with enhanced error handling
         try {
