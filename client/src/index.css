@@ -416,4 +416,52 @@ button[class*="text-slate"]:hover {
   color: #1f2937 !important;
 }
 
+/* AGGRESSIVE button text visibility fixes */
+button * {
+  color: inherit !important;
+}
+
+button:hover * {
+  color: inherit !important;
+}
+
+/* Target all possible button classes that could be causing disappearing text */
+.inline-flex,
+.items-center,
+.justify-center,
+.gap-2,
+.rounded-md,
+.text-sm,
+.font-medium,
+.ring-offset-background,
+.transition-colors,
+.focus-visible\:outline-none,
+.focus-visible\:ring-2,
+.focus-visible\:ring-ring,
+.focus-visible\:ring-offset-2,
+.disabled\:pointer-events-none,
+.disabled\:opacity-50 {
+  color: #1f2937 !important;
+}
+
+/* Specific fix for the Share Motion Replay button */
+button[class*="variant-outline"] {
+  color: #1f2937 !important;
+  border: 1px solid #d1d5db !important;
+}
+
+button[class*="variant-outline"]:hover {
+  color: #1f2937 !important;
+  background-color: #f9fafb !important;
+}
+
+/* Universal button text fix - most aggressive approach */
+button, button span, button div, button p, button * {
+  color: #1f2937 !important;
+}
+
+button:hover, button:hover span, button:hover div, button:hover p, button:hover * {
+  color: #1f2937 !important;
+}
+
 /* Remove old styling - now handled above with clean CSS */
