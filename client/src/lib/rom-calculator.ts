@@ -18,9 +18,9 @@ export interface HandLandmark {
 const FINGER_LANDMARKS = {
   // Index finger (most commonly affected by trigger finger)
   INDEX: {
-    MCP: [5, 6], // MCP joint between landmarks 5-6
-    PIP: [6, 7], // PIP joint between landmarks 6-7  
-    DIP: [7, 8], // DIP joint between landmarks 7-8
+    MCP: [0, 5, 6], // MCP angle: wrist-MCP base-MCP joint (0-5-6)
+    PIP: [5, 6, 7], // PIP angle: MCP base-MCP joint-PIP joint (5-6-7)  
+    DIP: [6, 7, 8], // DIP angle: MCP joint-PIP joint-fingertip (6-7-8)
   },
   // Middle finger
   MIDDLE: {
@@ -42,16 +42,17 @@ const FINGER_LANDMARKS = {
   }
 };
 
-// Calculate angle between three points
-function calculateAngle(p1: HandLandmark, p2: HandLandmark, p3: HandLandmark): number {
-  // Vector from p2 to p1
+// Calculate flexion angle between three points
+// Returns 0° for straight finger, positive for flexion, negative for hyperextension
+function calculateFlexionAngle(p1: HandLandmark, p2: HandLandmark, p3: HandLandmark): number {
+  // Vector from p2 to p1 (proximal segment)
   const v1 = {
     x: p1.x - p2.x,
     y: p1.y - p2.y,
     z: p1.z - p2.z
   };
   
-  // Vector from p2 to p3
+  // Vector from p2 to p3 (distal segment)
   const v2 = {
     x: p3.x - p2.x,
     y: p3.y - p2.y,
@@ -70,38 +71,40 @@ function calculateAngle(p1: HandLandmark, p2: HandLandmark, p3: HandLandmark): n
   
   // Calculate angle in radians, then convert to degrees
   const cosAngle = dotProduct / (mag1 * mag2);
-  const angle = Math.acos(Math.max(-1, Math.min(1, cosAngle))) * (180 / Math.PI);
+  const angleRad = Math.acos(Math.max(-1, Math.min(1, cosAngle)));
+  const angleDeg = angleRad * (180 / Math.PI);
   
-  return angle;
+  // Convert to flexion angle: 180° = straight (0° flexion), <180° = flexion, >180° = hyperextension
+  const flexionAngle = 180 - angleDeg;
+  
+  return flexionAngle;
 }
 
 // Calculate joint angles for a specific finger
 export function calculateFingerROM(landmarks: HandLandmark[], fingerType: 'INDEX' | 'MIDDLE' | 'RING' | 'PINKY'): JointAngles {
   const finger = FINGER_LANDMARKS[fingerType];
   
-  // Get landmarks for each joint
-  const mcpLandmarks = [
-    landmarks[0], // Wrist as reference
-    landmarks[finger.MCP[0]], 
-    landmarks[finger.MCP[1]]
-  ];
+  // Calculate flexion angles using correct landmark triplets
+  // MCP: wrist (0) -> MCP base (5) -> MCP joint (6)
+  const mcpAngle = calculateFlexionAngle(
+    landmarks[finger.MCP[0]], // wrist (0)
+    landmarks[finger.MCP[1]], // MCP base (5)
+    landmarks[finger.MCP[2]]  // MCP joint (6)
+  );
   
-  const pipLandmarks = [
-    landmarks[finger.MCP[0]], 
-    landmarks[finger.PIP[0]], 
-    landmarks[finger.PIP[1]]
-  ];
+  // PIP: MCP base (5) -> MCP joint (6) -> PIP joint (7)
+  const pipAngle = calculateFlexionAngle(
+    landmarks[finger.PIP[0]], // MCP base (5)
+    landmarks[finger.PIP[1]], // MCP joint (6)
+    landmarks[finger.PIP[2]]  // PIP joint (7)
+  );
   
-  const dipLandmarks = [
-    landmarks[finger.PIP[0]], 
-    landmarks[finger.DIP[0]], 
-    landmarks[finger.DIP[1]]
-  ];
-  
-  // Calculate angles
-  const mcpAngle = calculateAngle(mcpLandmarks[0], mcpLandmarks[1], mcpLandmarks[2]);
-  const pipAngle = calculateAngle(pipLandmarks[0], pipLandmarks[1], pipLandmarks[2]);
-  const dipAngle = calculateAngle(dipLandmarks[0], dipLandmarks[1], dipLandmarks[2]);
+  // DIP: MCP joint (6) -> PIP joint (7) -> fingertip (8)
+  const dipAngle = calculateFlexionAngle(
+    landmarks[finger.DIP[0]], // MCP joint (6)
+    landmarks[finger.DIP[1]], // PIP joint (7)
+    landmarks[finger.DIP[2]]  // fingertip (8)
+  );
   
   // Total active range of motion
   const totalActiveRom = mcpAngle + pipAngle + dipAngle;
