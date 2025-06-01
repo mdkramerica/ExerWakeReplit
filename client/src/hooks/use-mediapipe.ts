@@ -1,55 +1,46 @@
 import { useState, useCallback, useRef } from "react";
-import { MediaPipeManager, type HandLandmark } from "@/lib/mediapipe";
+import { SimpleHandTracker, type SimpleHandLandmark } from "@/lib/simple-hand-tracker";
 
 export const useMediaPipe = () => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [handDetected, setHandDetected] = useState(false);
-  const [landmarks, setLandmarks] = useState<HandLandmark[]>([]);
+  const [landmarks, setLandmarks] = useState<SimpleHandLandmark[]>([]);
   const [error, setError] = useState<string | null>(null);
   
-  const mediaPipeRef = useRef<MediaPipeManager | null>(null);
+  const trackerRef = useRef<SimpleHandTracker | null>(null);
 
   const initializeMediaPipe = useCallback(async () => {
     try {
-      if (!mediaPipeRef.current) {
-        mediaPipeRef.current = new (await import("@/lib/mediapipe")).MediaPipeManager();
+      if (!trackerRef.current) {
+        trackerRef.current = new SimpleHandTracker();
       }
-
-      await mediaPipeRef.current.initialize();
-      
-      mediaPipeRef.current.setOnResults((results: any) => {
-        if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-          setHandDetected(true);
-          setLandmarks(results.multiHandLandmarks[0]);
-        } else {
-          setHandDetected(false);
-          setLandmarks([]);
-        }
-      });
 
       setIsInitialized(true);
       setError(null);
+      console.log("Hand tracker initialized successfully");
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to initialize MediaPipe";
+      const errorMessage = err instanceof Error ? err.message : "Failed to initialize hand tracker";
       setError(errorMessage);
-      console.error("MediaPipe initialization error:", err);
+      console.error("Hand tracker initialization error:", err);
     }
   }, []);
 
-  const processFrame = useCallback(async (canvas: HTMLCanvasElement) => {
-    if (!mediaPipeRef.current || !isInitialized) return;
+  const processFrame = useCallback(async (video: HTMLVideoElement) => {
+    if (!trackerRef.current || !isInitialized) return;
 
     try {
-      await mediaPipeRef.current.processFrame(canvas);
+      const result = trackerRef.current.processFrame(video);
+      setHandDetected(result.handDetected);
+      setLandmarks(result.landmarks);
     } catch (err) {
       console.error("Error processing frame:", err);
     }
   }, [isInitialized]);
 
   const cleanup = useCallback(() => {
-    if (mediaPipeRef.current) {
-      mediaPipeRef.current.cleanup();
-      mediaPipeRef.current = null;
+    if (trackerRef.current) {
+      trackerRef.current.cleanup();
+      trackerRef.current = null;
     }
     setIsInitialized(false);
     setHandDetected(false);

@@ -61,21 +61,33 @@ export default function MediaPipeHandler({ onUpdate, isRecording, assessmentType
   useEffect(() => {
     if (!isInitialized || !videoRef.current || !canvasRef.current) return;
 
+    let animationId: number;
+
     const processVideo = () => {
-      if (videoRef.current && canvasRef.current) {
+      if (videoRef.current && canvasRef.current && videoRef.current.readyState >= 2) {
         const canvas = canvasRef.current;
         const ctx = canvas.getContext('2d');
         const video = videoRef.current;
 
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
+        // Set canvas dimensions to match video
+        if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+          canvas.width = video.videoWidth || 640;
+          canvas.height = video.videoHeight || 480;
+        }
 
-        if (ctx) {
+        if (ctx && video.videoWidth > 0 && video.videoHeight > 0) {
+          // Clear canvas
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          
           // Draw video frame
           ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
           
-          // Process with MediaPipe
-          processFrame(canvas);
+          // Process with MediaPipe only if video is ready
+          try {
+            processFrame(canvas); // Use canvas for frame processing
+          } catch (error) {
+            console.warn("Frame processing skipped:", error);
+          }
 
           // Calculate tracking metrics
           const landmarksCount = landmarks.length;
@@ -83,7 +95,7 @@ export default function MediaPipeHandler({ onUpdate, isRecording, assessmentType
                          landmarksCount >= 15 ? "Good" : 
                          landmarksCount >= 10 ? "Fair" : "Poor";
           
-          const position = handDetected ? "Centered" : "Not Detected";
+          const position = handDetected ? "Detected" : "No Hand Detected";
 
           // Update parent component
           onUpdate({
@@ -96,24 +108,31 @@ export default function MediaPipeHandler({ onUpdate, isRecording, assessmentType
           // Draw landmarks if detected
           if (landmarks.length > 0) {
             ctx.fillStyle = '#00FF00';
+            ctx.strokeStyle = '#00FF00';
+            ctx.lineWidth = 2;
+            
             landmarks.forEach(landmark => {
               ctx.beginPath();
-              ctx.arc(landmark.x * canvas.width, landmark.y * canvas.height, 3, 0, 2 * Math.PI);
+              ctx.arc(landmark.x * canvas.width, landmark.y * canvas.height, 4, 0, 2 * Math.PI);
               ctx.fill();
             });
 
             // Draw hand connections
-            ctx.strokeStyle = '#00FF00';
-            ctx.lineWidth = 2;
             drawHandConnections(ctx, landmarks, canvas.width, canvas.height);
           }
         }
       }
 
-      requestAnimationFrame(processVideo);
+      animationId = requestAnimationFrame(processVideo);
     };
 
     processVideo();
+
+    return () => {
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+      }
+    };
   }, [isInitialized, handDetected, landmarks, processFrame, onUpdate]);
 
   const drawHandConnections = (ctx: CanvasRenderingContext2D, landmarks: any[], width: number, height: number) => {
