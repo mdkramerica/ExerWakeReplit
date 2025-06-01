@@ -133,9 +133,14 @@ export default function Recording() {
       ? calculateMaxROM(recordingMotionDataRef.current) 
       : maxROM;
 
+    // Calculate actual duration from motion data timestamps
+    const actualDuration = recordingMotionDataRef.current.length > 0 
+      ? Math.round((recordingMotionDataRef.current[recordingMotionDataRef.current.length - 1].timestamp - recordingMotionDataRef.current[0].timestamp) / 1000)
+      : assessment?.duration || 10;
+
     const repetitionData = {
       repetition: currentRepetition,
-      duration: recordingTimer,
+      duration: actualDuration,
       landmarksDetected: landmarksCount,
       qualityScore: calculateQualityScore(),
       timestamp: new Date().toISOString(),
