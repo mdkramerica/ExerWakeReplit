@@ -104,21 +104,13 @@ export default function Recording() {
       landmarksDetected: landmarksCount,
       qualityScore: calculateQualityScore(),
       timestamp: new Date().toISOString(),
-      motionData: recordingMotionData // Store actual recorded motion data
+      motionData: [...recordingMotionData] // Store copy of recorded motion data
     };
 
     setRecordedData(prev => [...prev, repetitionData]);
-    
-    // Clear motion data for next repetition
-    setRecordingMotionData([]);
 
-    if (currentRepetition < (assessment?.repetitions || 3)) {
-      setCurrentRepetition(prev => prev + 1);
-      setRecordingTimer(0);
-    } else {
-      // All repetitions complete
-      completeAssessment();
-    }
+    // Assessment complete after 1 repetition
+    completeAssessment();
   };
 
   const calculateQualityScore = () => {
@@ -165,23 +157,26 @@ export default function Recording() {
       setCurrentLandmarks(data.landmarks);
       
       // If recording, capture motion data with timestamp
-      if (isRecording && data.handDetected) {
-        console.log(`Recording motion data: ${data.landmarks.length} landmarks`);
+      if (isRecording && data.handDetected && data.landmarks && data.landmarks.length > 0) {
+        console.log(`Recording motion data: ${data.landmarks.length} landmarks detected`);
         const motionFrame = {
           timestamp: Date.now(),
           landmarks: data.landmarks.map((landmark: any) => ({
-            x: landmark.x || 0,
-            y: landmark.y || 0,
-            z: landmark.z || 0
+            x: parseFloat(landmark.x) || 0,
+            y: parseFloat(landmark.y) || 0,
+            z: parseFloat(landmark.z) || 0
           })),
           handedness: "Right",
           quality: data.trackingQuality === "Excellent" ? 90 : data.trackingQuality === "Good" ? 70 : 50
         };
+        
         setRecordingMotionData(prev => {
           const newData = [...prev, motionFrame];
           console.log(`Total motion frames captured: ${newData.length}`);
           return newData;
         });
+      } else if (isRecording) {
+        console.log(`Recording active but no valid landmarks: handDetected=${data.handDetected}, landmarks=${data.landmarks ? data.landmarks.length : 'none'}`);
       }
     }
   };
@@ -355,7 +350,7 @@ export default function Recording() {
                   ></div>
                 </div>
                 <div className="text-xs text-medical-gray mt-1">
-                  Recording repetition {currentRepetition} of {assessment.repetitions}
+                  Recording assessment (10 seconds)
                 </div>
               </div>
             </div>
