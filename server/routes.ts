@@ -182,14 +182,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
           try {
             // Import ROM calculation function from shared module
             const { calculateAllFingersMaxROM } = require('../shared/rom-calculator');
-            const allFingersROM = calculateAllFingersMaxROM(allMotionFrames);
+            
+            // Ensure motion frames have the correct structure
+            const formattedFrames = allMotionFrames.map(frame => ({
+              landmarks: frame.landmarks || frame
+            }));
+            
+            console.log(`Calculating ROM for ${formattedFrames.length} motion frames`);
+            const allFingersROM = calculateAllFingersMaxROM(formattedFrames);
             
             indexFingerRom = allFingersROM.index?.totalActiveRom || null;
             middleFingerRom = allFingersROM.middle?.totalActiveRom || null;
             ringFingerRom = allFingersROM.ring?.totalActiveRom || null;
             pinkyFingerRom = allFingersROM.pinky?.totalActiveRom || null;
+            
+            console.log('Multi-finger ROM calculated:', {
+              index: indexFingerRom,
+              middle: middleFingerRom,
+              ring: ringFingerRom,
+              pinky: pinkyFingerRom
+            });
           } catch (error) {
-            console.log('ROM calculation for all fingers failed, using index finger only');
+            console.log('ROM calculation for all fingers failed:', error);
+            console.log('Using index finger only');
           }
         }
       }
