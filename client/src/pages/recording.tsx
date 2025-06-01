@@ -337,35 +337,23 @@ export default function Recording() {
                   </div>
                 </div>
 
-                {/* Real-time ROM Display on Video for Trigger Finger */}
+                {/* Simplified Live ROM Display */}
                 {currentUser?.injuryType === 'Trigger Finger' && handDetected && (
-                  <div className="absolute bottom-4 left-4 bg-white border border-gray-300 rounded-lg p-4 shadow-lg min-w-[200px]">
-                    <div className="text-gray-900">
-                      <div className="font-bold mb-3 text-base text-blue-600">Range of Motion (Live)</div>
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                          <span className="font-semibold text-gray-800">MCP:</span>
-                          <span className="font-mono font-bold text-lg text-gray-900">{currentROM.mcpAngle.toFixed(1)}°</span>
+                  <div className="absolute bottom-4 left-4 bg-gray-900 bg-opacity-90 rounded-lg p-3 min-w-[180px]">
+                    <div className="text-white">
+                      <div className="text-sm font-medium mb-2 text-center text-blue-300">Live ROM</div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-white mb-1">
+                          {currentROM.totalActiveRom.toFixed(0)}°
                         </div>
-                        <div className="flex justify-between items-center">
-                          <span className="font-semibold text-gray-800">PIP:</span>
-                          <span className="font-mono font-bold text-lg text-gray-900">{currentROM.pipAngle.toFixed(1)}°</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="font-semibold text-gray-800">DIP:</span>
-                          <span className="font-mono font-bold text-lg text-gray-900">{currentROM.dipAngle.toFixed(1)}°</span>
-                        </div>
-                        <div className="flex justify-between items-center border-t-2 border-blue-200 pt-2 mt-2">
-                          <span className="font-bold text-gray-900">Total:</span>
-                          <span className="font-mono font-bold text-xl text-blue-600">{currentROM.totalActiveRom.toFixed(1)}°</span>
-                        </div>
-                        {isRecording && (
-                          <div className="mt-3 pt-3 border-t-2 border-green-200 bg-green-50 rounded p-2">
-                            <div className="text-green-700 font-semibold text-sm mb-1">Session Max:</div>
-                            <div className="text-green-800 font-mono font-bold text-xl">{maxROM.totalActiveRom.toFixed(1)}°</div>
-                          </div>
-                        )}
+                        <div className="text-xs text-gray-300">Total Active Motion</div>
                       </div>
+                      {isRecording && (
+                        <div className="mt-2 pt-2 border-t border-gray-600 text-center">
+                          <div className="text-xs text-green-400">Session Max</div>
+                          <div className="text-lg font-bold text-green-400">{maxROM.totalActiveRom.toFixed(0)}°</div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -401,90 +389,66 @@ export default function Recording() {
             </div>
 
             {/* Side Panel */}
-            <div className="space-y-6">
-              {/* Current Assessment Info */}
-              <div className="bg-blue-50 rounded-lg p-6">
-                <h3 className="font-semibold text-gray-900 mb-3">Current Assessment</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="font-medium">{assessment.name}</div>
-                  <div className="text-medical-gray">{assessment.instructions}</div>
-                </div>
+            <div className="space-y-4">
+              {/* Assessment Info */}
+              <div className="bg-white border border-gray-200 rounded-lg p-4">
+                <h3 className="font-bold text-gray-900 text-lg mb-2">{assessment.name}</h3>
+                <p className="text-gray-700 text-sm leading-relaxed">{assessment.instructions}</p>
               </div>
 
-              {/* Hand Landmarks Status */}
-              <div className="bg-gray-100 rounded-lg p-6">
-                <h3 className="font-semibold text-gray-900 mb-3 flex items-center">
-                  <Hand className="w-5 h-5 text-medical-blue mr-2" />
-                  Hand Tracking
-                </h3>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-medical-gray">Landmarks Detected:</span>
-                    <span className={`font-medium ${landmarksCount === 21 ? 'text-medical-success' : 'text-red-500'}`}>
+              {/* Hand Status - Simplified */}
+              <div className="bg-white border border-gray-200 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-semibold text-gray-900">Hand Tracking</h4>
+                  <div className={`w-3 h-3 rounded-full ${handDetected ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                </div>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <div className="text-gray-600">Landmarks</div>
+                    <div className={`font-bold ${landmarksCount === 21 ? 'text-green-600' : 'text-red-500'}`}>
                       {landmarksCount}/21
-                    </span>
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-medical-gray">Tracking Quality:</span>
-                    <span className={`font-medium ${
-                      trackingQuality === "Excellent" ? 'text-medical-success' :
+                  <div>
+                    <div className="text-gray-600">Quality</div>
+                    <div className={`font-bold ${
+                      trackingQuality === "Excellent" ? 'text-green-600' :
                       trackingQuality === "Good" ? 'text-blue-600' : 'text-red-500'
                     }`}>
                       {trackingQuality}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-medical-gray">Hand Position:</span>
-                    <span className={`font-medium ${handPosition === "Centered" ? 'text-medical-success' : 'text-orange-500'}`}>
-                      {handPosition}
-                    </span>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Real-time ROM Display for Trigger Finger */}
+              {/* ROM Display - Detailed */}
               {currentUser?.injuryType === 'Trigger Finger' && (
-                <div className="bg-blue-50 rounded-lg p-6 border border-blue-200">
-                  <h3 className="font-semibold text-blue-900 mb-3">Range of Motion (Live)</h3>
-                  <div className="space-y-3 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-blue-700">MCP Joint:</span>
-                      <span className="font-medium text-blue-900">{currentROM.mcpAngle.toFixed(1)}°</span>
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <h4 className="font-semibold text-gray-900 mb-3">Range of Motion (Live)</h4>
+                  <div className="grid grid-cols-2 gap-3 text-sm mb-3">
+                    <div className="text-center p-2 bg-blue-50 rounded">
+                      <div className="text-blue-600 font-medium">MCP</div>
+                      <div className="text-lg font-bold text-blue-900">{currentROM.mcpAngle.toFixed(0)}°</div>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-blue-700">PIP Joint:</span>
-                      <span className="font-medium text-blue-900">{currentROM.pipAngle.toFixed(1)}°</span>
+                    <div className="text-center p-2 bg-green-50 rounded">
+                      <div className="text-green-600 font-medium">PIP</div>
+                      <div className="text-lg font-bold text-green-900">{currentROM.pipAngle.toFixed(0)}°</div>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-blue-700">DIP Joint:</span>
-                      <span className="font-medium text-blue-900">{currentROM.dipAngle.toFixed(1)}°</span>
+                    <div className="text-center p-2 bg-purple-50 rounded">
+                      <div className="text-purple-600 font-medium">DIP</div>
+                      <div className="text-lg font-bold text-purple-900">{currentROM.dipAngle.toFixed(0)}°</div>
                     </div>
-                    <div className="flex justify-between pt-2 border-t border-blue-300">
-                      <span className="font-medium text-blue-700">Total Active ROM:</span>
-                      <span className="font-bold text-blue-900">{currentROM.totalActiveRom.toFixed(1)}°</span>
+                    <div className="text-center p-2 bg-gray-100 rounded">
+                      <div className="text-gray-600 font-medium">Total</div>
+                      <div className="text-lg font-bold text-gray-900">{currentROM.totalActiveRom.toFixed(0)}°</div>
                     </div>
                   </div>
 
                   {isRecording && (
-                    <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded">
-                      <h4 className="font-medium text-green-900 mb-2">Maximum Values (This Session)</h4>
-                      <div className="space-y-1 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-green-700">Max MCP:</span>
-                          <span className="font-medium text-green-900">{maxROM.mcpAngle.toFixed(1)}°</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-green-700">Max PIP:</span>
-                          <span className="font-medium text-green-900">{maxROM.pipAngle.toFixed(1)}°</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-green-700">Max DIP:</span>
-                          <span className="font-medium text-green-900">{maxROM.dipAngle.toFixed(1)}°</span>
-                        </div>
-                        <div className="flex justify-between pt-1 border-t border-green-300">
-                          <span className="font-medium text-green-700">Max Total:</span>
-                          <span className="font-bold text-green-900">{maxROM.totalActiveRom.toFixed(1)}°</span>
-                        </div>
+                    <div className="border-t border-gray-200 pt-3">
+                      <div className="text-center p-3 bg-green-100 rounded">
+                        <div className="text-green-700 font-medium text-sm">Session Maximum</div>
+                        <div className="text-2xl font-bold text-green-800">{maxROM.totalActiveRom.toFixed(0)}°</div>
                       </div>
                     </div>
                   )}
