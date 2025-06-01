@@ -91,11 +91,12 @@ export default function Recording() {
 
   const startRecording = () => {
     const startTime = Date.now();
+    console.log(`startRecording called - setting start time to ${startTime}`);
     recordingStartTimeRef.current = startTime; // Set start time first using ref
     setIsRecording(true);
     setRecordingTimer(0);
     setRecordingMotionData([]); // Clear previous motion data
-    console.log(`Recording started at ${startTime}`);
+    console.log(`Recording state set: isRecording=true, startTime=${recordingStartTimeRef.current}`);
   };
 
   const stopRecording = () => {
