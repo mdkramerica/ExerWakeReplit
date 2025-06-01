@@ -412,7 +412,7 @@ export default function Recording() {
               </div>
 
               {/* Hand Landmarks Status */}
-              <div className="bg-gray-50 rounded-lg p-6">
+              <div className="bg-gray-100 rounded-lg p-6">
                 <h3 className="font-semibold text-gray-900 mb-3 flex items-center">
                   <Hand className="w-5 h-5 text-medical-blue mr-2" />
                   Hand Tracking

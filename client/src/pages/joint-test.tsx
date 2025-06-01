@@ -288,7 +288,7 @@ export default function JointTest() {
           </div>
 
           {/* Debug Information */}
-          <div className="mt-6 bg-gray-50 p-4 rounded-lg">
+          <div className="mt-6 bg-gray-100 p-4 rounded-lg">
             <h4 className="font-medium text-gray-900 mb-2">Debug Information</h4>
             <div className="grid md:grid-cols-2 gap-4 text-sm">
               <div>

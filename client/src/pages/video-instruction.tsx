@@ -154,7 +154,7 @@ export default function VideoInstruction() {
                 </div>
               </div>
 
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+              <div className="bg-gray-100 border border-gray-200 rounded-lg p-6">
                 <h3 className="font-semibold text-gray-900 mb-3 flex items-center">
                   <AlertTriangle className="w-5 h-5 text-gray-600 mr-2" />
                   Important Reminders
@@ -180,7 +180,7 @@ export default function VideoInstruction() {
               </div>
 
               {assessment.instructions && (
-                <div className="bg-gray-50 rounded-lg p-6">
+                <div className="bg-gray-100 rounded-lg p-6">
                   <h3 className="font-semibold text-gray-900 mb-3">Instructions</h3>
                   <p className="text-sm text-gray-700">{assessment.instructions}</p>
                 </div>

@@ -114,7 +114,7 @@ export default function AssessmentResults() {
           <Button
             variant="outline"
             onClick={() => setLocation("/assessments")}
-            className="flex items-center space-x-2 bg-white hover:bg-gray-50 border border-gray-300 hover:border-gray-400 text-gray-700 hover:text-gray-900 transition-colors duration-200"
+            className="flex items-center space-x-2 bg-white hover:bg-gray-100 border border-gray-300 hover:border-gray-400 text-gray-700 hover:text-gray-900 transition-colors duration-200"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Back to Assessments</span>
@@ -394,7 +394,7 @@ export default function AssessmentResults() {
                     </div>
                   )}
 
-                  <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="bg-gray-100 p-4 rounded-lg">
                     <h4 className="font-medium text-gray-900 mb-2">Clinical Interpretation</h4>
                     <div className="text-sm text-gray-700">
                       <p>
@@ -430,7 +430,7 @@ export default function AssessmentResults() {
                 {Array.isArray(userAssessment.repetitionData) ? (
                   <div className="space-y-3">
                     {userAssessment.repetitionData.map((rep: any, index: number) => (
-                      <div key={index} className="bg-gray-50 p-3 rounded-lg">
+                      <div key={index} className="bg-gray-100 p-3 rounded-lg">
                         <div className="grid md:grid-cols-4 gap-4 text-sm">
                           <div>
                             <span className="font-medium">Repetition:</span> {rep.repetition || index + 1}

@@ -723,7 +723,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
 
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
-                  <label className="text-sm text-gray-600">Digit:</label>
+                  <label className="text-sm text-gray-800 font-medium">Digit:</label>
                   <select
                     value={selectedDigit}
                     onChange={(e) => setSelectedDigit(e.target.value as 'INDEX' | 'MIDDLE' | 'RING' | 'PINKY')}
@@ -737,7 +737,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
                 </div>
                 
                 <div className="flex items-center space-x-2">
-                  <label className="text-sm text-gray-600">Speed:</label>
+                  <label className="text-sm text-gray-800 font-medium">Speed:</label>
                   <select
                     value={playbackSpeed}
                     onChange={(e) => setPlaybackSpeed(Number(e.target.value))}
@@ -754,7 +754,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
 
             {/* Timeline Scrubber */}
             <div className="bg-white border border-gray-200 p-4 rounded-lg">
-              <div className="flex items-center justify-between mb-2 text-sm text-gray-600">
+              <div className="flex items-center justify-between mb-2 text-sm text-gray-800">
                 <span>Frame: {currentFrame + 1} / {replayData.length}</span>
                 <span>Time: {((currentFrame / 30)).toFixed(1)}s / {(replayData.length / 30).toFixed(1)}s</span>
               </div>
@@ -777,7 +777,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
                 />
                 
                 {/* Timeline markers */}
-                <div className="flex justify-between mt-1 text-xs text-gray-600">
+                <div className="flex justify-between mt-1 text-xs text-gray-800">
                   <span>0s</span>
                   <span>{(replayData.length / 30 / 4).toFixed(1)}s</span>
                   <span>{(replayData.length / 30 / 2).toFixed(1)}s</span>
@@ -786,7 +786,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
                 </div>
               </div>
               
-              <div className="flex justify-between items-center mt-3 text-xs text-gray-700">
+              <div className="flex justify-between items-center mt-3 text-xs text-gray-800">
                 <span>Drag to navigate • Click anywhere on timeline to jump</span>
                 <span>30 FPS</span>
               </div>
@@ -795,7 +795,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
             {/* Live ROM Data Display */}
             {currentROM && (
               <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
-                <h4 className="font-medium mb-3 flex items-center">
+                <h4 className="font-medium mb-3 flex items-center text-gray-900">
                   <span className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
                   Live Joint Angles - {selectedDigit.charAt(0) + selectedDigit.slice(1).toLowerCase()} Finger
                 </h4>
@@ -834,8 +834,8 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
 
             {/* Comprehensive Multi-Digit ROM Analysis */}
             {allDigitsROM && (
-              <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg">
-                <h4 className="font-medium mb-3">Comprehensive ROM Analysis - All Digits</h4>
+              <div className="bg-gray-100 border border-gray-200 p-4 rounded-lg">
+                <h4 className="font-medium mb-3 text-gray-900">Comprehensive ROM Analysis - All Digits</h4>
                 <div className="space-y-4">
                   {Object.entries(allDigitsROM).map(([digit, rom]) => (
                     <div key={digit} className={`bg-white p-4 rounded border ${
@@ -848,7 +848,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
                       
                       <div className="grid grid-cols-3 gap-3 text-sm">
                         <div className={`p-2 rounded ${
-                          rom.mcpAngle < 70 ? 'bg-red-50 border border-red-200' : 'bg-gray-50'
+                          rom.mcpAngle < 70 ? 'bg-red-50 border border-red-200' : 'bg-gray-100'
                         }`}>
                           <div className="text-xs text-gray-600">MCP Joint</div>
                           <div className={`font-medium ${
@@ -861,7 +861,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
                         </div>
                         
                         <div className={`p-2 rounded ${
-                          rom.pipAngle < 90 ? 'bg-red-50 border border-red-200' : 'bg-gray-50'
+                          rom.pipAngle < 90 ? 'bg-red-50 border border-red-200' : 'bg-gray-100'
                         }`}>
                           <div className="text-xs text-gray-600">PIP Joint</div>
                           <div className={`font-medium ${
@@ -874,7 +874,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
                         </div>
                         
                         <div className={`p-2 rounded ${
-                          rom.dipAngle < 70 ? 'bg-red-50 border border-red-200' : 'bg-gray-50'
+                          rom.dipAngle < 70 ? 'bg-red-50 border border-red-200' : 'bg-gray-100'
                         }`}>
                           <div className="text-xs text-gray-600">DIP Joint</div>
                           <div className={`font-medium ${
@@ -892,23 +892,23 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
               </div>
             )}
 
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h4 className="font-medium mb-2">Recording Summary</h4>
+            <div className="bg-gray-100 p-4 rounded-lg">
+              <h4 className="font-medium mb-2 text-gray-900">Recording Summary</h4>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div>
-                  <span className="text-gray-600">Duration:</span>
-                  <div className="font-medium">{(replayData.length / 30).toFixed(1)}s</div>
+                  <span className="text-gray-800">Duration:</span>
+                  <div className="font-medium text-gray-900">{(replayData.length / 30).toFixed(1)}s</div>
                 </div>
                 <div>
-                  <span className="text-gray-600">Frames:</span>
-                  <div className="font-medium">{replayData.length}</div>
+                  <span className="text-gray-800">Frames:</span>
+                  <div className="font-medium text-gray-900">{replayData.length}</div>
                 </div>
                 <div>
-                  <span className="text-gray-600">Frame Rate:</span>
-                  <div className="font-medium">30 FPS</div>
+                  <span className="text-gray-800">Frame Rate:</span>
+                  <div className="font-medium text-gray-900">30 FPS</div>
                 </div>
                 <div>
-                  <span className="text-gray-600">Hand Detected:</span>
+                  <span className="text-gray-800">Hand Detected:</span>
                   <div className="font-medium text-green-600">100%</div>
                 </div>
               </div>
