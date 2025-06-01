@@ -434,8 +434,9 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
       />
       <canvas
         ref={canvasRef}
-        className="w-full max-w-md mx-auto border-2 border-medical-primary rounded-lg"
-        style={{ aspectRatio: '4/3' }}
+        className="w-full h-full border-2 border-medical-primary rounded-lg"
+        width={640}
+        height={480}
       />
       <div className="absolute top-2 right-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-sm">
         {isRecording ? "Recording..." : "Preview"}
