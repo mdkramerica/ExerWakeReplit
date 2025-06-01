@@ -194,8 +194,10 @@ export default function AssessmentResults() {
                   {console.log('Frontend received userAssessment:', userAssessment)}
                   {console.log('Assessment name check:', userAssessment.assessmentName)}
                   
-                  {/* Kapandji Specific Scoring */}
-                  {(userAssessment.assessmentName === "Kapandji Score" || userAssessment.assessmentName?.includes("Kapandji")) && (
+                  {/* Kapandji Specific Scoring - Check multiple ways to identify Kapandji */}
+                  {(userAssessment.assessmentName === "Kapandji Score" || 
+                    userAssessment.assessmentName?.includes("Kapandji") ||
+                    userAssessment.assessmentId === 27) && (
                     <div className="bg-blue-50 border border-blue-200 p-6 rounded-lg">
                       <h4 className="font-medium mb-4 text-gray-900">Kapandji Opposition Score</h4>
                       <div className="space-y-4">
