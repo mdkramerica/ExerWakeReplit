@@ -95,13 +95,13 @@ export default function AssessmentList() {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-semibold text-gray-900 mb-2">Your Assessments</h2>
-                <p className="text-medical-gray">
+                <p className="text-gray-600">
                   Complete each assessment by watching the instruction video and recording your range of motion.
                 </p>
               </div>
               <div className="text-right">
-                <div className="text-sm text-medical-gray">Progress</div>
-                <div className="text-2xl font-semibold text-medical-blue">
+                <div className="text-sm text-gray-600">Progress</div>
+                <div className="text-2xl font-semibold text-blue-600">
                   {progress.completed}/{progress.total}
                 </div>
               </div>
@@ -142,19 +142,19 @@ export default function AssessmentList() {
                         <h3 className={`font-medium ${isLocked ? "text-gray-600" : "text-gray-900"}`}>
                           {assessment.name}
                         </h3>
-                        <p className={`text-sm ${isLocked ? "text-gray-400" : "text-medical-gray"}`}>
+                        <p className={`text-sm ${isLocked ? "text-gray-400" : "text-gray-600"}`}>
                           {assessment.description}
                         </p>
                         <div className="flex items-center mt-1 text-xs">
                           {isCompleted && assessment.completedAt ? (
-                            <div className="flex items-center text-medical-success">
+                            <div className="flex items-center text-green-600">
                               <Clock className="w-3 h-3 mr-1" />
                               <span>
                                 Completed {new Date(assessment.completedAt).toLocaleString()}
                               </span>
                             </div>
                           ) : isNext ? (
-                            <div className="flex items-center text-medical-blue">
+                            <div className="flex items-center text-blue-600">
                               <Clock className="w-3 h-3 mr-1" />
                               <span>Est. 3-5 minutes</span>
                             </div>
@@ -179,14 +179,14 @@ export default function AssessmentList() {
                         <div className="flex space-x-2">
                           <button
                             onClick={() => handleViewAssessment(assessment.userAssessmentId)}
-                            className="text-medical-gray hover:text-medical-blue p-2"
+                            className="text-gray-600 hover:text-blue-600 p-2"
                             title="View Results"
                           >
                             <Eye className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => setShowReplay(assessment.userAssessmentId ? assessment.userAssessmentId.toString() : assessment.name)}
-                            className="text-medical-gray hover:text-medical-blue p-2"
+                            className="text-gray-600 hover:text-blue-600 p-2"
                             title="View Motion Replay"
                           >
                             <Play className="w-4 h-4" />
@@ -218,7 +218,7 @@ export default function AssessmentList() {
                 </div>
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900">Patient History</h3>
-                  <p className="text-sm text-medical-gray">All recorded assessments in chronological order</p>
+                  <p className="text-sm text-gray-600">All recorded assessments in chronological order</p>
                 </div>
               </div>
 
