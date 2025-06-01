@@ -160,6 +160,12 @@ export default function AssessmentResults() {
                   </div>
                 </div>
                 <div>
+                  <label className="text-sm font-medium text-gray-800">Injury Type</label>
+                  <div className="text-lg font-medium">
+                    {resultData?.user?.injuryType || 'Not Specified'}
+                  </div>
+                </div>
+                <div>
                   <label className="text-sm font-medium text-gray-800">Status</label>
                   <div className={`text-lg font-medium ${userAssessment.isCompleted ? 'text-green-600' : 'text-orange-600'}`}>
                     {userAssessment.isCompleted ? 'Completed' : 'In Progress'}

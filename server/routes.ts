@@ -414,14 +414,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userAssessmentId = parseInt(req.params.userAssessmentId);
       
-      // Find the user assessment
+      // Find the user assessment and user data
       let userAssessment = null;
+      let user = null;
       for (let userId = 1; userId <= 100; userId++) {
         try {
           const userAssessments = await storage.getUserAssessments(userId);
           const found = userAssessments.find(ua => ua.id === userAssessmentId);
           if (found) {
             userAssessment = found;
+            user = await storage.getUser(userId);
             break;
           }
         } catch (e) {
@@ -433,7 +435,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Assessment not found" });
       }
       
-      res.json({ userAssessment });
+      res.json({ userAssessment, user });
     } catch (error) {
       res.status(400).json({ message: "Failed to retrieve assessment details" });
     }
