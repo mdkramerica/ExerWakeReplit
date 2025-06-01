@@ -208,50 +208,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Calculate max ROM for all fingers if motion data exists
         if (allMotionFrames.length > 0) {
           try {
-            // Import ROM calculation function from shared module using dynamic import
-            const romCalculatorModule = await import('../shared/rom-calculator.js');
-            const { calculateAllFingersMaxROM } = romCalculatorModule;
+            // Get the assessment to determine which calculation to use
+            const assessment = await storage.getAssessment(assessmentId);
             
-            // Ensure motion frames have the correct structure
-            const formattedFrames = allMotionFrames.map(frame => ({
-              landmarks: frame.landmarks || frame
-            }));
-            
-            console.log(`Calculating ROM for ${formattedFrames.length} motion frames`);
-            const allFingersROM = calculateAllFingersMaxROM(formattedFrames);
-            
-            console.log('Raw allFingersROM object:', JSON.stringify(allFingersROM, null, 2));
-            
-            indexFingerRom = allFingersROM.index?.totalActiveRom || null;
-            middleFingerRom = allFingersROM.middle?.totalActiveRom || null;
-            ringFingerRom = allFingersROM.ring?.totalActiveRom || null;
-            pinkyFingerRom = allFingersROM.pinky?.totalActiveRom || null;
-            
-            // Store individual joint angles for detailed breakdown
-            middleFingerMcp = allFingersROM.middle?.mcpAngle || null;
-            middleFingerPip = allFingersROM.middle?.pipAngle || null;
-            middleFingerDip = allFingersROM.middle?.dipAngle || null;
-            
-            ringFingerMcp = allFingersROM.ring?.mcpAngle || null;
-            ringFingerPip = allFingersROM.ring?.pipAngle || null;
-            ringFingerDip = allFingersROM.ring?.dipAngle || null;
-            
-            pinkyFingerMcp = allFingersROM.pinky?.mcpAngle || null;
-            pinkyFingerPip = allFingersROM.pinky?.pipAngle || null;
-            pinkyFingerDip = allFingersROM.pinky?.dipAngle || null;
-            
-            console.log('Multi-finger ROM calculated:', {
-              index: indexFingerRom,
-              middle: middleFingerRom,
-              ring: ringFingerRom,
-              pinky: pinkyFingerRom
-            });
-            
-            console.log('Individual joint angles calculated:', {
-              middle: { mcp: middleFingerMcp, pip: middleFingerPip, dip: middleFingerDip },
-              ring: { mcp: ringFingerMcp, pip: ringFingerPip, dip: ringFingerDip },
-              pinky: { mcp: pinkyFingerMcp, pip: pinkyFingerPip, dip: pinkyFingerDip }
-            });
+            if (assessment?.name === "Kapandji Score") {
+              // Use Kapandji-specific scoring for thumb opposition
+              const kapandjiModule = await import('../shared/kapandji-calculator.js');
+              const { calculateMaxKapandjiScore } = kapandjiModule;
+              
+              const formattedFrames = allMotionFrames.map(frame => ({
+                landmarks: frame.landmarks || frame
+              }));
+              
+              console.log(`Calculating Kapandji score for ${formattedFrames.length} motion frames`);
+              const kapandjiResult = calculateMaxKapandjiScore(formattedFrames);
+              
+              console.log('Kapandji score result:', JSON.stringify(kapandjiResult, null, 2));
+              
+              // Store Kapandji score in totalActiveRom field for simplicity
+              totalActiveRom = kapandjiResult.maxScore;
+              
+              // Store details in individual finger fields for display
+              indexFingerRom = kapandjiResult.details.indexMcp ? 1 : 0;
+              middleFingerRom = kapandjiResult.details.middleMcp ? 2 : 0;
+              ringFingerRom = kapandjiResult.details.ringMcp ? 3 : 0;
+              pinkyFingerRom = kapandjiResult.details.pinkyMcp ? 4 : 0;
+              
+              console.log('Kapandji assessment completed with score:', totalActiveRom);
+              
+            } else {
+              // Use standard ROM calculation for other assessments
+              const romCalculatorModule = await import('../shared/rom-calculator.js');
+              const { calculateAllFingersMaxROM } = romCalculatorModule;
+              
+              // Ensure motion frames have the correct structure
+              const formattedFrames = allMotionFrames.map(frame => ({
+                landmarks: frame.landmarks || frame
+              }));
+              
+              console.log(`Calculating ROM for ${formattedFrames.length} motion frames`);
+              const allFingersROM = calculateAllFingersMaxROM(formattedFrames);
+              
+              console.log('Raw allFingersROM object:', JSON.stringify(allFingersROM, null, 2));
+              
+              indexFingerRom = allFingersROM.index?.totalActiveRom || null;
+              middleFingerRom = allFingersROM.middle?.totalActiveRom || null;
+              ringFingerRom = allFingersROM.ring?.totalActiveRom || null;
+              pinkyFingerRom = allFingersROM.pinky?.totalActiveRom || null;
+              
+              // Store individual joint angles for detailed breakdown
+              middleFingerMcp = allFingersROM.middle?.mcpAngle || null;
+              middleFingerPip = allFingersROM.middle?.pipAngle || null;
+              middleFingerDip = allFingersROM.middle?.dipAngle || null;
+              
+              ringFingerMcp = allFingersROM.ring?.mcpAngle || null;
+              ringFingerPip = allFingersROM.ring?.pipAngle || null;
+              ringFingerDip = allFingersROM.ring?.dipAngle || null;
+              
+              pinkyFingerMcp = allFingersROM.pinky?.mcpAngle || null;
+              pinkyFingerPip = allFingersROM.pinky?.pipAngle || null;
+              pinkyFingerDip = allFingersROM.pinky?.dipAngle || null;
+              
+              console.log('Multi-finger ROM calculated:', {
+                index: indexFingerRom,
+                middle: middleFingerRom,
+                ring: ringFingerRom,
+                pinky: pinkyFingerRom
+              });
+              
+              console.log('Individual joint angles calculated:', {
+                middle: { mcp: middleFingerMcp, pip: middleFingerPip, dip: middleFingerDip },
+                ring: { mcp: ringFingerMcp, pip: ringFingerPip, dip: ringFingerDip },
+                pinky: { mcp: pinkyFingerMcp, pip: pinkyFingerPip, dip: pinkyFingerDip }
+              });
+            }
           } catch (error) {
             console.log('ROM calculation for all fingers failed:', error);
             console.log('Using index finger only');

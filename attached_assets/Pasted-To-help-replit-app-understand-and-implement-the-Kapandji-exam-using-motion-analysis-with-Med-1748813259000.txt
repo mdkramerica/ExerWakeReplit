@@ -1,0 +1,110 @@
+To help `replit.app` understand and implement the **Kapandji exam** using **motion analysis with MediaPipe**, we need to break it down into:
+
+1. **What the Kapandji Test is (clinically)**
+2. **How it can be captured in video**
+3. **How to use MediaPipe to track it**
+4. **How to assign a score programmatically**
+
+---
+
+### 🔍 1. **Kapandji Test Overview**
+
+The Kapandji test assesses **thumb opposition**, or how far the thumb can move across the palm toward the small finger. It is scored **0–10** based on how far the thumb reaches across specific anatomical landmarks.
+
+**Scoring landmarks (0 = no movement, 10 = max movement):**
+
+* 0: No opposition
+* 1: Opposes the 2nd MCP
+* 2: Opposes the 3rd MCP
+* 3: Opposes the 4th MCP
+* 4: Opposes the 5th MCP
+* 5: Touches the 5th MCP
+* 6–9: Touches PIP, DIP, nail base, nail tip of 5th digit
+* 10: Touches volar side of palm beyond 5th digit
+
+---
+
+### 📹 2. **Video Setup Instructions**
+
+Tell the user:
+
+* Face the camera palm-up ("supination").
+* Keep fingers extended and still, only move the thumb.
+* Slowly move the thumb to touch each target landmark.
+* Hold each contact point for 1 second.
+
+---
+
+### 🎯 3. **MediaPipe Landmarks to Track**
+
+Use [MediaPipe Hands](https://developers.google.com/mediapipe/solutions/vision/hand_landmarker) to get 21 3D landmarks for the hand. Focus on:
+
+* **Thumb tip**: `landmark[4]`
+* **Finger MCPs, PIPs, DIPs, tips**:
+
+  * Index MCP: `landmark[5]`
+  * Middle MCP: `landmark[9]`
+  * Ring MCP: `landmark[13]`
+  * Pinky MCP: `landmark[17]`
+  * Pinky PIP: `landmark[18]`
+  * Pinky DIP: `landmark[19]`
+  * Pinky Tip: `landmark[20]`
+* **Palm center (approx.)**: Average of landmarks `0`, `1`, `5`, `9`, `13`, `17`
+
+---
+
+### 🧠 4. **How to Code the Scoring Logic**
+
+```python
+# Pseudocode for scoring Kapandji
+def kapandji_score(hand_landmarks):
+    thumb_tip = hand_landmarks[4]
+    
+    # Stepwise scoring based on proximity to anatomical targets
+    targets = [
+        (hand_landmarks[5], 1),   # Index MCP
+        (hand_landmarks[9], 2),   # Middle MCP
+        (hand_landmarks[13], 3),  # Ring MCP
+        (hand_landmarks[17], 4),  # Pinky MCP
+        (hand_landmarks[17], 5),  # Pinky MCP again
+        (hand_landmarks[18], 6),  # Pinky PIP
+        (hand_landmarks[19], 7),  # Pinky DIP
+        (hand_landmarks[20], 8),  # Pinky tip
+        (average_landmarks([0,1,5,9,13,17], hand_landmarks), 9),  # Palm center
+        ("beyond", 10)            # Beyond pinky tip
+    ]
+
+    for target, score in targets:
+        if score == 10:
+            # Check if thumb tip x is beyond pinky tip x (assuming right hand)
+            if thumb_tip.x > hand_landmarks[20].x:
+                return 10
+        else:
+            if euclidean_distance(thumb_tip, target) < THRESHOLD:
+                return score
+
+    return 0
+
+def euclidean_distance(a, b):
+    return ((a.x - b.x)**2 + (a.y - b.y)**2 + (a.z - b.z)**2) ** 0.5
+
+def average_landmarks(indices, landmarks):
+    x = sum(landmarks[i].x for i in indices) / len(indices)
+    y = sum(landmarks[i].y for i in indices) / len(indices)
+    z = sum(landmarks[i].z for i in indices) / len(indices)
+    return type(landmarks[0])(x=x, y=y, z=z)  # assuming landmark objects
+```
+
+---
+
+### 🛠️ Replit App Build Checklist
+
+✅ Use MediaPipe Hands to stream live video and capture hand landmarks
+✅ Track only the dominant hand (or ask user to use right/left)
+✅ Create a scoring module that checks thumb proximity to specific joints
+✅ Display live score and visual marker (e.g., dot where thumb is, highlight target)
+✅ Export a JSON or CSV report with timestamp + score if needed
+
+---
+
+Would you like me to build out the full `main.py` for Replit (e.g. Streamlit or Flask + MediaPipe)?

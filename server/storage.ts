@@ -462,9 +462,9 @@ async function initializeDatabase() {
           name: "Kapandji Score",
           description: "Thumb opposition assessment using standardized scoring",
           videoUrl: "/videos/kapandji-assessment.mp4",
-          duration: 10,
+          duration: 15,
           repetitions: 1,
-          instructions: "Touch your thumb to each finger tip, then to the base of each finger, progressing down the hand.",
+          instructions: "Face camera palm-up. Keep fingers extended and still. Slowly move your thumb to touch: 1) Each fingertip (index, middle, ring, pinky), 2) Each finger base, 3) Palm center, 4) Beyond pinky side. Hold each position for 1 second.",
           isActive: true,
           orderIndex: 2
         },
