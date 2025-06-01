@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Play, Pause, RotateCcw, Download } from "lucide-react";
+import { calculateCurrentROM, type JointAngles } from "@/lib/rom-calculator";
 import exerLogoPath from "@assets/exer-logo.png";
 
 interface ReplayData {
