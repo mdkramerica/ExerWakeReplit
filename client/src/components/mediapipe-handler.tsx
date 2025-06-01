@@ -370,19 +370,19 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
           await videoRef.current.play();
         }
 
-        // Initialize MediaPipe
-        const initialized = await initializeMediaPipe();
+        // Initialize Exer AI
+        const initialized = await initializeExerAI();
         
         if (initialized) {
           // Start processing frames
           processFrame();
         } else {
-          // Fallback to basic hand detection if MediaPipe fails
+          // Fallback to basic hand detection if Exer AI fails
           onUpdate({
             handDetected: false,
             landmarksCount: 0,
             trackingQuality: "Error",
-            handPosition: "MediaPipe initialization failed"
+            handPosition: "Exer AI initialization failed"
           });
         }
       } catch (error) {
