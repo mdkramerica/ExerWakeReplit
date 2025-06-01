@@ -55,27 +55,32 @@ export default function MediaPipeHandler({ onUpdate, isRecording, assessmentType
     const avgBrightness = totalBrightness / (data.length / 4);
     const motionRatio = motionPixels / (data.length / 16);
 
-    // Determine if hand is likely present
-    const handDetected = motionRatio > 0.1 && avgBrightness > 60;
+    // More sensitive hand detection - detect any movement in the frame
+    const handDetected = motionRatio > 0.05 || avgBrightness > 40;
 
-    // Generate mock landmarks for visualization if hand detected
-    const landmarks = handDetected ? generateMockLandmarks(canvas.width, canvas.height) : [];
+    // Always generate some landmarks for testing - remove this later
+    const landmarks = generateMockLandmarks(canvas.width, canvas.height);
 
-    // Draw visual feedback
-    if (handDetected) {
-      // Draw hand region highlight
-      ctx.strokeStyle = '#00ff00';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(canvas.width * 0.2, canvas.height * 0.2, canvas.width * 0.6, canvas.height * 0.6);
-      
-      // Draw landmarks
-      ctx.fillStyle = '#00ff00';
-      landmarks.forEach((landmark: any) => {
-        ctx.beginPath();
-        ctx.arc(landmark.x * canvas.width, landmark.y * canvas.height, 3, 0, 2 * Math.PI);
-        ctx.fill();
-      });
-    }
+    // Always draw visual feedback for testing
+    // Draw hand region highlight
+    ctx.strokeStyle = handDetected ? '#00ff00' : '#ffff00';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(canvas.width * 0.2, canvas.height * 0.2, canvas.width * 0.6, canvas.height * 0.6);
+    
+    // Always draw landmarks for visibility
+    ctx.fillStyle = handDetected ? '#00ff00' : '#ff0000';
+    landmarks.forEach((landmark: any) => {
+      ctx.beginPath();
+      ctx.arc(landmark.x * canvas.width, landmark.y * canvas.height, 5, 0, 2 * Math.PI);
+      ctx.fill();
+    });
+    
+    // Add debug text
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '16px Arial';
+    ctx.fillText(`Motion: ${motionRatio.toFixed(3)}`, 10, 30);
+    ctx.fillText(`Brightness: ${avgBrightness.toFixed(1)}`, 10, 50);
+    ctx.fillText(`Hand: ${handDetected ? 'YES' : 'NO'}`, 10, 70);
 
     return { handDetected, landmarks };
   }, []);
