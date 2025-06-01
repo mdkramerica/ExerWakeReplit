@@ -1,0 +1,222 @@
+import { 
+  users, 
+  assessments, 
+  userAssessments, 
+  injuryTypes,
+  type User, 
+  type InsertUser,
+  type Assessment,
+  type InsertAssessment,
+  type UserAssessment,
+  type InsertUserAssessment,
+  type InjuryType,
+  type InsertInjuryType
+} from "@shared/schema";
+
+export interface IStorage {
+  // User methods
+  getUser(id: number): Promise<User | undefined>;
+  getUserByCode(code: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
+  updateUser(id: number, updates: Partial<User>): Promise<User | undefined>;
+  
+  // Assessment methods
+  getAssessments(): Promise<Assessment[]>;
+  getAssessment(id: number): Promise<Assessment | undefined>;
+  createAssessment(assessment: InsertAssessment): Promise<Assessment>;
+  
+  // User Assessment methods
+  getUserAssessments(userId: number): Promise<UserAssessment[]>;
+  getUserAssessment(userId: number, assessmentId: number): Promise<UserAssessment | undefined>;
+  createUserAssessment(userAssessment: InsertUserAssessment): Promise<UserAssessment>;
+  updateUserAssessment(id: number, updates: Partial<UserAssessment>): Promise<UserAssessment | undefined>;
+  
+  // Injury Type methods
+  getInjuryTypes(): Promise<InjuryType[]>;
+  createInjuryType(injuryType: InsertInjuryType): Promise<InjuryType>;
+}
+
+export class MemStorage implements IStorage {
+  private users: Map<number, User>;
+  private assessments: Map<number, Assessment>;
+  private userAssessments: Map<number, UserAssessment>;
+  private injuryTypes: Map<number, InjuryType>;
+  private currentUserId: number;
+  private currentAssessmentId: number;
+  private currentUserAssessmentId: number;
+  private currentInjuryTypeId: number;
+
+  constructor() {
+    this.users = new Map();
+    this.assessments = new Map();
+    this.userAssessments = new Map();
+    this.injuryTypes = new Map();
+    this.currentUserId = 1;
+    this.currentAssessmentId = 1;
+    this.currentUserAssessmentId = 1;
+    this.currentInjuryTypeId = 1;
+    
+    this.initializeData();
+  }
+
+  private initializeData() {
+    // Initialize default injury types
+    const defaultInjuryTypes = [
+      { name: "Wrist Fracture", description: "Recovery from wrist bone fractures and related mobility issues", icon: "fas fa-hand-paper" },
+      { name: "Carpal Tunnel", description: "Post-surgical recovery from carpal tunnel release procedure", icon: "fas fa-hand-scissors" },
+      { name: "Tendon Injury", description: "Recovery from hand or wrist tendon repair surgery", icon: "fas fa-hand-rock" },
+      { name: "Other Injury", description: "Other hand or wrist conditions requiring assessment", icon: "fas fa-hand-spock" }
+    ];
+
+    defaultInjuryTypes.forEach(injuryType => {
+      this.createInjuryType(injuryType);
+    });
+
+    // Initialize default assessments
+    const defaultAssessments = [
+      {
+        name: "Wrist Flexion",
+        description: "Measure forward bending range of motion",
+        videoUrl: "/videos/wrist-flexion.mp4",
+        duration: 10,
+        repetitions: 3,
+        instructions: "Slowly bend your wrist forward as far as comfortable, then return to neutral position",
+        isActive: true,
+        orderIndex: 1
+      },
+      {
+        name: "Wrist Extension",
+        description: "Measure backward bending range of motion",
+        videoUrl: "/videos/wrist-extension.mp4",
+        duration: 10,
+        repetitions: 3,
+        instructions: "Slowly bend your wrist backward as far as comfortable, then return to neutral position",
+        isActive: true,
+        orderIndex: 2
+      },
+      {
+        name: "Finger Flexion",
+        description: "Measure finger closing range of motion",
+        videoUrl: "/videos/finger-flexion.mp4",
+        duration: 10,
+        repetitions: 3,
+        instructions: "Slowly close your fingers into a fist, then open them completely",
+        isActive: true,
+        orderIndex: 3
+      },
+      {
+        name: "Finger Extension",
+        description: "Measure finger opening range of motion",
+        videoUrl: "/videos/finger-extension.mp4",
+        duration: 10,
+        repetitions: 3,
+        instructions: "Slowly extend your fingers as far as comfortable, spreading them apart",
+        isActive: true,
+        orderIndex: 4
+      },
+      {
+        name: "Thumb Opposition",
+        description: "Measure thumb to finger touch capability",
+        videoUrl: "/videos/thumb-opposition.mp4",
+        duration: 15,
+        repetitions: 3,
+        instructions: "Touch your thumb to each fingertip in sequence",
+        isActive: true,
+        orderIndex: 5
+      }
+    ];
+
+    defaultAssessments.forEach(assessment => {
+      this.createAssessment(assessment);
+    });
+  }
+
+  // User methods
+  async getUser(id: number): Promise<User | undefined> {
+    return this.users.get(id);
+  }
+
+  async getUserByCode(code: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(user => user.code === code);
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const id = this.currentUserId++;
+    const user: User = { 
+      ...insertUser, 
+      id, 
+      createdAt: new Date(),
+      isFirstTime: true
+    };
+    this.users.set(id, user);
+    return user;
+  }
+
+  async updateUser(id: number, updates: Partial<User>): Promise<User | undefined> {
+    const user = this.users.get(id);
+    if (!user) return undefined;
+    
+    const updatedUser = { ...user, ...updates };
+    this.users.set(id, updatedUser);
+    return updatedUser;
+  }
+
+  // Assessment methods
+  async getAssessments(): Promise<Assessment[]> {
+    return Array.from(this.assessments.values())
+      .filter(assessment => assessment.isActive)
+      .sort((a, b) => a.orderIndex - b.orderIndex);
+  }
+
+  async getAssessment(id: number): Promise<Assessment | undefined> {
+    return this.assessments.get(id);
+  }
+
+  async createAssessment(insertAssessment: InsertAssessment): Promise<Assessment> {
+    const id = this.currentAssessmentId++;
+    const assessment: Assessment = { ...insertAssessment, id };
+    this.assessments.set(id, assessment);
+    return assessment;
+  }
+
+  // User Assessment methods
+  async getUserAssessments(userId: number): Promise<UserAssessment[]> {
+    return Array.from(this.userAssessments.values())
+      .filter(ua => ua.userId === userId);
+  }
+
+  async getUserAssessment(userId: number, assessmentId: number): Promise<UserAssessment | undefined> {
+    return Array.from(this.userAssessments.values())
+      .find(ua => ua.userId === userId && ua.assessmentId === assessmentId);
+  }
+
+  async createUserAssessment(insertUserAssessment: InsertUserAssessment): Promise<UserAssessment> {
+    const id = this.currentUserAssessmentId++;
+    const userAssessment: UserAssessment = { ...insertUserAssessment, id };
+    this.userAssessments.set(id, userAssessment);
+    return userAssessment;
+  }
+
+  async updateUserAssessment(id: number, updates: Partial<UserAssessment>): Promise<UserAssessment | undefined> {
+    const userAssessment = this.userAssessments.get(id);
+    if (!userAssessment) return undefined;
+    
+    const updatedUserAssessment = { ...userAssessment, ...updates };
+    this.userAssessments.set(id, updatedUserAssessment);
+    return updatedUserAssessment;
+  }
+
+  // Injury Type methods
+  async getInjuryTypes(): Promise<InjuryType[]> {
+    return Array.from(this.injuryTypes.values());
+  }
+
+  async createInjuryType(insertInjuryType: InsertInjuryType): Promise<InjuryType> {
+    const id = this.currentInjuryTypeId++;
+    const injuryType: InjuryType = { ...insertInjuryType, id };
+    this.injuryTypes.set(id, injuryType);
+    return injuryType;
+  }
+}
+
+export const storage = new MemStorage();

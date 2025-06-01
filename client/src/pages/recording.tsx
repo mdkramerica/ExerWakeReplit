@@ -1,0 +1,328 @@
+import { useState, useEffect } from "react";
+import { useLocation, useParams } from "wouter";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { ArrowLeft, Hand, Lightbulb, Square, RotateCcw } from "lucide-react";
+import ProgressBar from "@/components/progress-bar";
+import MediaPipeHandler from "@/components/mediapipe-handler";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+
+export default function Recording() {
+  const { id } = useParams();
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentRepetition, setCurrentRepetition] = useState(1);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTimer, setRecordingTimer] = useState(0);
+  const [handDetected, setHandDetected] = useState(false);
+  const [landmarksCount, setLandmarksCount] = useState(0);
+  const [trackingQuality, setTrackingQuality] = useState("Poor");
+  const [handPosition, setHandPosition] = useState("Not Detected");
+  const [recordedData, setRecordedData] = useState<any[]>([]);
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const savedUser = sessionStorage.getItem('currentUser');
+    if (savedUser) {
+      setCurrentUser(JSON.parse(savedUser));
+    } else {
+      setLocation("/");
+    }
+  }, [setLocation]);
+
+  const { data: assessmentData } = useQuery({
+    queryKey: [`/api/assessments/${id}`],
+    enabled: !!id,
+  });
+
+  const completeAssessmentMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await apiRequest("POST", `/api/users/${currentUser.id}/assessments/${id}/complete`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Assessment Complete!",
+        description: "Your range of motion data has been recorded successfully.",
+      });
+      setLocation("/assessments");
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to save assessment data. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const assessment = assessmentData?.assessment;
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isRecording) {
+      interval = setInterval(() => {
+        setRecordingTimer(prev => {
+          if (prev >= (assessment?.duration || 10)) {
+            setIsRecording(false);
+            handleRepetitionComplete();
+            return 0;
+          }
+          return prev + 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [isRecording, assessment?.duration]);
+
+  const startRecording = () => {
+    setIsRecording(true);
+    setRecordingTimer(0);
+  };
+
+  const stopRecording = () => {
+    setIsRecording(false);
+    handleRepetitionComplete();
+  };
+
+  const handleRepetitionComplete = () => {
+    const repetitionData = {
+      repetition: currentRepetition,
+      duration: recordingTimer,
+      landmarksDetected: landmarksCount,
+      qualityScore: calculateQualityScore(),
+      timestamp: new Date().toISOString()
+    };
+
+    setRecordedData(prev => [...prev, repetitionData]);
+
+    if (currentRepetition < (assessment?.repetitions || 3)) {
+      setCurrentRepetition(prev => prev + 1);
+      setRecordingTimer(0);
+    } else {
+      // All repetitions complete
+      completeAssessment();
+    }
+  };
+
+  const calculateQualityScore = () => {
+    // Simple quality calculation based on tracking metrics
+    let score = 0;
+    if (landmarksCount === 21) score += 40;
+    if (handDetected) score += 30;
+    if (trackingQuality === "Excellent") score += 30;
+    else if (trackingQuality === "Good") score += 20;
+    else if (trackingQuality === "Fair") score += 10;
+    return Math.min(score, 100);
+  };
+
+  const completeAssessment = () => {
+    const romData = {
+      assessmentId: id,
+      repetitionsCompleted: currentRepetition,
+      totalDuration: recordedData.reduce((sum, rep) => sum + rep.duration, 0),
+      averageQuality: recordedData.reduce((sum, rep) => sum + rep.qualityScore, 0) / recordedData.length
+    };
+
+    completeAssessmentMutation.mutate({
+      romData,
+      repetitionData: recordedData,
+      qualityScore: romData.averageQuality
+    });
+  };
+
+  const retakeRecording = () => {
+    setCurrentRepetition(1);
+    setRecordedData([]);
+    setRecordingTimer(0);
+    setIsRecording(false);
+  };
+
+  const handleMediaPipeUpdate = (data: any) => {
+    setHandDetected(data.handDetected);
+    setLandmarksCount(data.landmarksCount);
+    setTrackingQuality(data.trackingQuality);
+    setHandPosition(data.handPosition);
+  };
+
+  const formatTime = (seconds: number) => {
+    return `00:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  if (!assessment) {
+    return (
+      <div className="max-w-4xl mx-auto">
+        <Card className="medical-card">
+          <CardContent>
+            <div className="text-center py-8">Assessment not found</div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-7xl mx-auto">
+      <Card className="medical-card">
+        <CardContent>
+          <div className="mb-8">
+            <ProgressBar currentStep={3} totalSteps={3} />
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-semibold text-gray-900 mb-2">Recording Assessment</h2>
+                <p className="text-medical-gray">
+                  Position your hand in the camera view and perform the {assessment.name.toLowerCase()} movement.
+                </p>
+              </div>
+              <div className="text-right">
+                <div className="text-sm text-medical-gray">Repetition</div>
+                <div className="text-2xl font-semibold text-medical-blue">
+                  {currentRepetition}/{assessment.repetitions}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid lg:grid-cols-3 gap-8">
+            {/* Camera View */}
+            <div className="lg:col-span-2">
+              <div className="bg-gray-900 rounded-xl aspect-video relative overflow-hidden mb-4">
+                <MediaPipeHandler
+                  onUpdate={handleMediaPipeUpdate}
+                  isRecording={isRecording}
+                  assessmentType={assessment.name}
+                />
+                
+                {/* Recording indicator */}
+                {isRecording && (
+                  <div className="absolute top-4 left-4 flex items-center space-x-2">
+                    <div className="w-3 h-3 bg-red-500 rounded-full recording-indicator"></div>
+                    <span className="text-white text-sm font-medium">Recording</span>
+                  </div>
+                )}
+                
+                {/* Hand detection feedback */}
+                <div className="absolute top-4 right-4 bg-black bg-opacity-50 rounded-lg p-2">
+                  <div className="flex items-center space-x-2 text-white text-sm">
+                    <Hand className={`w-4 h-4 ${handDetected ? 'text-medical-success' : 'text-red-500'}`} />
+                    <span>{handDetected ? 'Hand Detected' : 'No Hand'}</span>
+                  </div>
+                </div>
+                
+                {/* Timer */}
+                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
+                  <div className="bg-black bg-opacity-50 rounded-lg px-4 py-2">
+                    <div className="text-white text-2xl font-mono">
+                      {formatTime(recordingTimer)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Recording Controls */}
+              <div className="flex items-center justify-center space-x-4">
+                {!isRecording ? (
+                  <Button
+                    onClick={startRecording}
+                    disabled={!handDetected}
+                    className="bg-red-500 text-white w-16 h-16 rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
+                  >
+                    <div className="w-4 h-4 bg-white rounded-full"></div>
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={stopRecording}
+                    className="bg-red-500 text-white w-16 h-16 rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
+                  >
+                    <Square className="w-6 h-6" />
+                  </Button>
+                )}
+                <Button
+                  onClick={retakeRecording}
+                  variant="outline"
+                  className="px-6 py-3"
+                >
+                  <RotateCcw className="w-4 h-4 mr-2" />
+                  Retake
+                </Button>
+              </div>
+            </div>
+
+            {/* Side Panel */}
+            <div className="space-y-6">
+              {/* Current Assessment Info */}
+              <div className="bg-blue-50 rounded-lg p-6">
+                <h3 className="font-semibold text-gray-900 mb-3">Current Assessment</h3>
+                <div className="space-y-2 text-sm">
+                  <div className="font-medium">{assessment.name}</div>
+                  <div className="text-medical-gray">{assessment.instructions}</div>
+                </div>
+              </div>
+
+              {/* Hand Landmarks Status */}
+              <div className="bg-gray-50 rounded-lg p-6">
+                <h3 className="font-semibold text-gray-900 mb-3 flex items-center">
+                  <Hand className="w-5 h-5 text-medical-blue mr-2" />
+                  Hand Tracking
+                </h3>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-medical-gray">Landmarks Detected:</span>
+                    <span className={`font-medium ${landmarksCount === 21 ? 'text-medical-success' : 'text-red-500'}`}>
+                      {landmarksCount}/21
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-medical-gray">Tracking Quality:</span>
+                    <span className={`font-medium ${
+                      trackingQuality === "Excellent" ? 'text-medical-success' :
+                      trackingQuality === "Good" ? 'text-yellow-600' : 'text-red-500'
+                    }`}>
+                      {trackingQuality}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-medical-gray">Hand Position:</span>
+                    <span className={`font-medium ${handPosition === "Centered" ? 'text-medical-success' : 'text-orange-500'}`}>
+                      {handPosition}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Tips */}
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-6">
+                <h3 className="font-semibold text-gray-900 mb-3 flex items-center">
+                  <Lightbulb className="w-5 h-5 text-amber-600 mr-2" />
+                  Tips
+                </h3>
+                <ul className="text-sm text-gray-700 space-y-1">
+                  <li>• Keep hand steady and visible</li>
+                  <li>• Move slowly and smoothly</li>
+                  <li>• Complete the full range of motion</li>
+                  <li>• Stop if you feel pain</li>
+                </ul>
+              </div>
+
+              {/* Progress */}
+              <div className="text-center">
+                <div className="text-sm text-medical-gray mb-2">Assessment Progress</div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-medical-blue h-2 rounded-full transition-all"
+                    style={{ width: `${(currentRepetition / assessment.repetitions) * 100}%` }}
+                  ></div>
+                </div>
+                <div className="text-xs text-medical-gray mt-1">
+                  Recording repetition {currentRepetition} of {assessment.repetitions}
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

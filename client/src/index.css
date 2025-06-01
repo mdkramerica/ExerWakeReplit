@@ -1,0 +1,169 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 248 250 252; /* #F8FAFC - medical-light */
+  --foreground: 15 23 42; /* #0F172A - slate-900 */
+  --muted: 241 245 249; /* #F1F5F9 - slate-100 */
+  --muted-foreground: 100 116 139; /* #64748B - medical-gray */
+  --popover: 255 255 255; /* #FFFFFF */
+  --popover-foreground: 15 23 42; /* #0F172A */
+  --card: 255 255 255; /* #FFFFFF */
+  --card-foreground: 15 23 42; /* #0F172A */
+  --border: 226 232 240; /* #E2E8F0 - slate-200 */
+  --input: 226 232 240; /* #E2E8F0 */
+  --primary: 37 99 235; /* #2563EB - medical-blue */
+  --primary-foreground: 248 250 252; /* #F8FAFC */
+  --secondary: 241 245 249; /* #F1F5F9 */
+  --secondary-foreground: 30 64 175; /* #1E40AF - medical-deep */
+  --accent: 239 246 255; /* #EFF6FF - blue-50 */
+  --accent-foreground: 30 64 175; /* #1E40AF */
+  --destructive: 239 68 68; /* #EF4444 - red-500 */
+  --destructive-foreground: 254 242 242; /* #FEF2F2 */
+  --ring: 37 99 235; /* #2563EB */
+  --radius: 0.75rem;
+  
+  /* Custom medical colors */
+  --medical-blue: 37 99 235; /* #2563EB */
+  --medical-deep: 30 64 175; /* #1E40AF */
+  --medical-success: 16 185 129; /* #10B981 */
+  --medical-gray: 100 116 139; /* #64748B */
+  --medical-light: 248 250 252; /* #F8FAFC */
+}
+
+.dark {
+  --background: 15 23 42; /* #0F172A */
+  --foreground: 248 250 252; /* #F8FAFC */
+  --muted: 30 41 59; /* #1E293B */
+  --muted-foreground: 148 163 184; /* #94A3B8 */
+  --popover: 15 23 42; /* #0F172A */
+  --popover-foreground: 248 250 252; /* #F8FAFC */
+  --card: 15 23 42; /* #0F172A */
+  --card-foreground: 248 250 252; /* #F8FAFC */
+  --border: 30 41 59; /* #1E293B */
+  --input: 30 41 59; /* #1E293B */
+  --primary: 37 99 235; /* #2563EB */
+  --primary-foreground: 248 250 252; /* #F8FAFC */
+  --secondary: 30 41 59; /* #1E293B */
+  --secondary-foreground: 148 163 184; /* #94A3B8 */
+  --accent: 30 41 59; /* #1E293B */
+  --accent-foreground: 148 163 184; /* #94A3B8 */
+  --destructive: 220 38 38; /* #DC2626 */
+  --destructive-foreground: 254 242 242; /* #FEF2F2 */
+  --ring: 37 99 235; /* #2563EB */
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    font-family: 'Inter', sans-serif;
+  }
+}
+
+@layer utilities {
+  .medical-blue {
+    color: hsl(var(--medical-blue));
+  }
+  
+  .bg-medical-blue {
+    background-color: hsl(var(--medical-blue));
+  }
+  
+  .border-medical-blue {
+    border-color: hsl(var(--medical-blue));
+  }
+  
+  .medical-deep {
+    color: hsl(var(--medical-deep));
+  }
+  
+  .bg-medical-deep {
+    background-color: hsl(var(--medical-deep));
+  }
+  
+  .medical-success {
+    color: hsl(var(--medical-success));
+  }
+  
+  .bg-medical-success {
+    background-color: hsl(var(--medical-success));
+  }
+  
+  .medical-gray {
+    color: hsl(var(--medical-gray));
+  }
+  
+  .bg-medical-light {
+    background-color: hsl(var(--medical-light));
+  }
+}
+
+/* MediaPipe Canvas Styles */
+.mediapipe-canvas {
+  @apply w-full h-full object-cover;
+}
+
+/* Recording indicator animation */
+@keyframes pulse-red {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.recording-indicator {
+  animation: pulse-red 1s infinite;
+}
+
+/* High contrast accessibility improvements */
+@media (prefers-contrast: high) {
+  :root {
+    --border: 0 0 0; /* Black borders for high contrast */
+    --input: 0 0 0;
+  }
+}
+
+/* Focus improvements for accessibility */
+.focus-visible:focus {
+  @apply ring-2 ring-offset-2 ring-primary outline-none;
+}
+
+/* Medical form styling */
+.medical-input {
+  @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors;
+}
+
+.medical-button {
+  @apply bg-medical-blue text-white py-3 px-6 rounded-lg font-medium hover:bg-medical-deep focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-colors duration-200;
+}
+
+.medical-button:disabled {
+  @apply opacity-50 cursor-not-allowed;
+}
+
+.medical-card {
+  @apply bg-white rounded-xl shadow-lg p-8;
+}
+
+.assessment-card {
+  @apply border rounded-xl p-6 hover:shadow-md transition-shadow;
+}
+
+.assessment-card.active {
+  @apply border-2 border-medical-blue bg-blue-50;
+}
+
+.assessment-card.completed {
+  @apply border-green-200 bg-green-50;
+}
+
+.assessment-card.locked {
+  @apply opacity-60;
+}
