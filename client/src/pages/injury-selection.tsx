@@ -88,8 +88,8 @@ export default function InjurySelection() {
         <CardContent>
           <div className="mb-8">
             <ProgressBar currentStep={1} totalSteps={3} />
-            <h2 className="text-2xl font-semibold text-gray-900 mb-2">Select Your Injury Type</h2>
-            <p className="text-medical-gray">
+            <h2 className="text-2xl font-semibold text-exer-dark mb-2">Select Your Injury Type</h2>
+            <p className="text-exer-gray">
               Please select the type of hand or wrist injury you're recovering from. 
               This helps us customize your assessment.
             </p>
@@ -102,8 +102,8 @@ export default function InjurySelection() {
                 onClick={() => handleInjurySelect(injury.name)}
                 className={`p-6 border-2 rounded-xl transition-all duration-200 text-left group ${
                   selectedInjury === injury.name
-                    ? "border-medical-blue bg-blue-50"
-                    : "border-gray-200 hover:border-medical-blue hover:bg-blue-50"
+                    ? "border-exer-teal bg-teal-50"
+                    : "border-gray-200 hover:border-exer-teal hover:bg-teal-50"
                 }`}
               >
                 <div className="flex items-start space-x-4">
@@ -136,8 +136,8 @@ export default function InjurySelection() {
                     )}
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-medium text-gray-900 mb-1">{injury.name}</h3>
-                    <p className="text-sm text-medical-gray">{injury.description}</p>
+                    <h3 className="font-medium text-exer-dark mb-1">{injury.name}</h3>
+                    <p className="text-sm text-exer-gray">{injury.description}</p>
                   </div>
                 </div>
               </button>
@@ -148,7 +148,7 @@ export default function InjurySelection() {
             <Button
               variant="ghost"
               onClick={handleBack}
-              className="flex items-center px-4 py-2 text-medical-gray hover:text-gray-900"
+              className="flex items-center px-4 py-2 text-exer-gray hover:text-exer-dark"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back
@@ -156,7 +156,7 @@ export default function InjurySelection() {
             <Button
               onClick={handleContinue}
               disabled={!selectedInjury || updateUserMutation.isPending}
-              className="medical-button"
+              className="bg-exer-teal hover:bg-exer-teal-dark text-white"
             >
               {updateUserMutation.isPending ? (
                 "Saving..."
