@@ -209,6 +209,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/users/:userId/history", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const userAssessments = await storage.getUserAssessments(userId);
+      
+      // Get all assessments to join with user assessments
+      const allAssessments = await storage.getAssessments();
+      
+      // Filter only completed assessments and join with assessment details
+      const completedAssessments = userAssessments
+        .filter(ua => ua.isCompleted && ua.completedAt)
+        .map(ua => {
+          const assessment = allAssessments.find(a => a.id === ua.assessmentId);
+          return {
+            id: ua.id,
+            assessmentName: assessment?.name || 'Unknown Assessment',
+            assessmentId: ua.assessmentId,
+            completedAt: ua.completedAt,
+            qualityScore: ua.qualityScore,
+            maxMcpAngle: ua.maxMcpAngle,
+            maxPipAngle: ua.maxPipAngle,
+            maxDipAngle: ua.maxDipAngle,
+            totalActiveRom: ua.totalActiveRom,
+            sessionNumber: ua.sessionNumber || 1,
+            repetitionData: ua.repetitionData
+          };
+        })
+        .sort((a, b) => new Date(b.completedAt!).getTime() - new Date(a.completedAt!).getTime()); // Sort by completion date, newest first
+      
+      res.json({ history: completedAssessments });
+    } catch (error) {
+      res.status(400).json({ message: "Failed to fetch assessment history" });
+    }
+  });
+
   app.get("/api/user-assessments/:userAssessmentId/motion-data", async (req, res) => {
     try {
       const userAssessmentId = parseInt(req.params.userAssessmentId);

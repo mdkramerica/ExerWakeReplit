@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, ArrowRight, Check, Lock, Play, Eye, Clock } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Lock, Play, Eye, Clock, History, Calendar, BarChart3 } from "lucide-react";
 import ProgressBar from "@/components/progress-bar";
 import AssessmentReplay from "@/components/assessment-replay";
 import type { AssessmentWithProgress } from "@/types/assessment";
@@ -29,6 +29,12 @@ export default function AssessmentList() {
 
   const { data: progressData } = useQuery({
     queryKey: [`/api/users/${currentUser?.id}/progress`],
+    enabled: !!currentUser,
+  });
+
+  // Fetch patient history - all completed user assessments
+  const { data: historyData } = useQuery({
+    queryKey: [`/api/users/${currentUser?.id}/history`],
     enabled: !!currentUser,
   });
 
@@ -202,6 +208,73 @@ export default function AssessmentList() {
               );
             })}
           </div>
+
+          {/* Patient History Overview */}
+          {historyData && historyData.history && historyData.history.length > 0 && (
+            <div className="mt-12 mb-8">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center">
+                  <History className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">Patient History</h3>
+                  <p className="text-sm text-medical-gray">All recorded assessments in chronological order</p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {historyData.history.map((record: any, index: number) => (
+                  <div
+                    key={record.id}
+                    className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                          <span className="text-xs font-medium text-green-700">
+                            {historyData.history.length - index}
+                          </span>
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-gray-900">{record.assessmentName}</h4>
+                          <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
+                            <div className="flex items-center gap-1">
+                              <Calendar className="w-3 h-3" />
+                              <span>{new Date(record.completedAt).toLocaleDateString()}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              <span>{new Date(record.completedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                            </div>
+                            {record.totalActiveRom && (
+                              <div className="flex items-center gap-1">
+                                <BarChart3 className="w-3 h-3" />
+                                <span>ROM: {record.totalActiveRom}°</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {record.qualityScore && (
+                          <div className="text-xs bg-gray-100 px-2 py-1 rounded">
+                            Quality: {Math.round(record.qualityScore)}%
+                          </div>
+                        )}
+                        <button
+                          onClick={() => setShowReplay(record.id.toString())}
+                          className="w-8 h-8 rounded-lg bg-blue-50 hover:bg-blue-100 flex items-center justify-center transition-colors"
+                          title="View Recording"
+                        >
+                          <Eye className="w-4 h-4 text-blue-600" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {allCompleted && (
             <div className="text-center mb-8">
