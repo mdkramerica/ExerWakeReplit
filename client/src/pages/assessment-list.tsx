@@ -81,12 +81,26 @@ export default function AssessmentList() {
   const allCompleted = assessments.length > 0 && assessments.every(a => a.isCompleted);
 
   if (showReplay) {
-    // Check if it's a user assessment ID (numeric) or assessment name
-    const isUserAssessmentId = !isNaN(parseInt(showReplay));
+    // Check if it's the new format with ID:NAME or just a value
+    const isNewFormat = showReplay.includes(':');
+    let userAssessmentId: string | undefined;
+    let assessmentName: string;
+    
+    if (isNewFormat) {
+      const [id, name] = showReplay.split(':');
+      userAssessmentId = id;
+      assessmentName = name;
+    } else {
+      // Legacy format - check if it's numeric (user assessment ID) or text (assessment name)
+      const isUserAssessmentId = !isNaN(parseInt(showReplay));
+      userAssessmentId = isUserAssessmentId ? showReplay : undefined;
+      assessmentName = isUserAssessmentId ? "Motion Replay" : showReplay;
+    }
+    
     return (
       <AssessmentReplay
-        assessmentName={isUserAssessmentId ? "Motion Replay" : showReplay}
-        userAssessmentId={isUserAssessmentId ? showReplay : undefined}
+        assessmentName={assessmentName}
+        userAssessmentId={userAssessmentId}
         onClose={() => setShowReplay(null)}
       />
     );
@@ -382,7 +396,7 @@ export default function AssessmentList() {
                           <Eye className="w-4 h-4 text-blue-600" />
                         </button>
                         <button
-                          onClick={() => setShowReplay(record.assessmentName || record.id.toString())}
+                          onClick={() => setShowReplay(`${record.id}:${record.assessmentName || 'Assessment'}`)}
                           className="w-8 h-8 rounded-lg bg-green-50 hover:bg-green-100 flex items-center justify-center transition-colors"
                           title="View Motion Replay"
                         >
