@@ -79,6 +79,7 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
           });
         } catch (importError) {
           console.error('MediaPipe import failed:', importError);
+          console.log('Falling back to basic camera mode...');
           throw new Error('Failed to load MediaPipe Hands module');
         }
 
