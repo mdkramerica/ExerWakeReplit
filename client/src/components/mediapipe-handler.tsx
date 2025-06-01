@@ -26,36 +26,59 @@ export default function MediaPipeHandler({ onUpdate, isRecording, assessmentType
   const videoRef = useRef<HTMLVideoElement>(null);
   const animationRef = useRef<number | null>(null);
   const handsRef = useRef<any>(null);
+  const poseRef = useRef<any>(null);
   const lastFrameTime = useRef<number>(0);
+  const isArmAssessment = assessmentType.includes('shoulder') || assessmentType.includes('elbow') || assessmentType.includes('arm');
 
-  // Initialize MediaPipe Hands
+  // Initialize MediaPipe tracking systems
   const initializeMediaPipe = useCallback(async () => {
     try {
-      // Import MediaPipe hands dynamically
-      const { Hands } = await import('@mediapipe/hands');
-      const { Camera } = await import('@mediapipe/camera_utils');
+      if (isArmAssessment) {
+        // Initialize pose tracking for full arm assessments
+        const { Pose } = await import('@mediapipe/pose');
+        
+        poseRef.current = new Pose({
+          locateFile: (file: string) => {
+            return `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`;
+          }
+        });
 
-      handsRef.current = new Hands({
-        locateFile: (file: string) => {
-          return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
-        }
-      });
+        poseRef.current.setOptions({
+          modelComplexity: 1,
+          smoothLandmarks: true,
+          enableSegmentation: false,
+          smoothSegmentation: false,
+          minDetectionConfidence: 0.5,
+          minTrackingConfidence: 0.5
+        });
 
-      handsRef.current.setOptions({
-        maxNumHands: 1,
-        modelComplexity: 1,
-        minDetectionConfidence: 0.7,
-        minTrackingConfidence: 0.5
-      });
+        poseRef.current.onResults(onPoseResults);
+      } else {
+        // Initialize hand tracking for hand/wrist assessments
+        const { Hands } = await import('@mediapipe/hands');
 
-      handsRef.current.onResults(onHandResults);
+        handsRef.current = new Hands({
+          locateFile: (file: string) => {
+            return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+          }
+        });
+
+        handsRef.current.setOptions({
+          maxNumHands: 1,
+          modelComplexity: 1,
+          minDetectionConfidence: 0.7,
+          minTrackingConfidence: 0.5
+        });
+
+        handsRef.current.onResults(onHandResults);
+      }
 
       return true;
     } catch (error) {
       console.error('MediaPipe initialization failed:', error);
       return false;
     }
-  }, []);
+  }, [isArmAssessment]);
 
   // Process MediaPipe hand tracking results
   const onHandResults = useCallback((results: any) => {
@@ -144,11 +167,151 @@ export default function MediaPipeHandler({ onUpdate, isRecording, assessmentType
     }
   }, [onUpdate]);
 
+  // Process MediaPipe pose tracking results for arm assessments
+  const onPoseResults = useCallback((results: any) => {
+    const canvas = canvasRef.current;
+    const video = videoRef.current;
+    
+    if (!canvas || !video) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Set canvas dimensions
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
+
+    // Draw video frame
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    let poseDetected = false;
+    let landmarks: any[] = [];
+
+    if (results.poseLandmarks) {
+      poseDetected = true;
+      landmarks = results.poseLandmarks;
+
+      // Key arm landmarks (shoulder, elbow, wrist)
+      const armLandmarks = [
+        11, // Left shoulder
+        12, // Right shoulder
+        13, // Left elbow
+        14, // Right elbow
+        15, // Left wrist
+        16, // Right wrist
+        17, // Left pinky
+        18, // Right pinky
+        19, // Left index
+        20, // Right index
+        21, // Left thumb
+        22  // Right thumb
+      ];
+
+      // Draw arm landmarks
+      ctx.fillStyle = '#00ff00';
+      armLandmarks.forEach((index) => {
+        if (landmarks[index]) {
+          const landmark = landmarks[index];
+          const x = landmark.x * canvas.width;
+          const y = landmark.y * canvas.height;
+          
+          ctx.beginPath();
+          ctx.arc(x, y, 6, 0, 2 * Math.PI);
+          ctx.fill();
+
+          // Label key joints
+          ctx.fillStyle = '#ffffff';
+          ctx.font = '10px Arial';
+          const labels = ['', '', '', '', '', '', '', '', '', '', '', 'L-Shoulder', 'R-Shoulder', 'L-Elbow', 'R-Elbow', 'L-Wrist', 'R-Wrist'];
+          if (labels[index]) {
+            ctx.fillText(labels[index], x + 8, y - 8);
+          }
+          ctx.fillStyle = '#00ff00';
+        }
+      });
+
+      // Draw arm connections
+      ctx.strokeStyle = '#00ff00';
+      ctx.lineWidth = 3;
+      
+      // Left arm: shoulder -> elbow -> wrist
+      if (landmarks[11] && landmarks[13] && landmarks[15]) {
+        ctx.beginPath();
+        ctx.moveTo(landmarks[11].x * canvas.width, landmarks[11].y * canvas.height);
+        ctx.lineTo(landmarks[13].x * canvas.width, landmarks[13].y * canvas.height);
+        ctx.lineTo(landmarks[15].x * canvas.width, landmarks[15].y * canvas.height);
+        ctx.stroke();
+      }
+
+      // Right arm: shoulder -> elbow -> wrist
+      if (landmarks[12] && landmarks[14] && landmarks[16]) {
+        ctx.beginPath();
+        ctx.moveTo(landmarks[12].x * canvas.width, landmarks[12].y * canvas.height);
+        ctx.lineTo(landmarks[14].x * canvas.width, landmarks[14].y * canvas.height);
+        ctx.lineTo(landmarks[16].x * canvas.width, landmarks[16].y * canvas.height);
+        ctx.stroke();
+      }
+
+      // Calculate arm angles for assessment
+      const leftElbowAngle = calculateElbowAngle(landmarks[11], landmarks[13], landmarks[15]);
+      const rightElbowAngle = calculateElbowAngle(landmarks[12], landmarks[14], landmarks[16]);
+
+      // Update tracking information
+      onUpdate({
+        handDetected: true,
+        landmarksCount: armLandmarks.filter(i => landmarks[i]).length,
+        trackingQuality: "Excellent",
+        handPosition: `L-Elbow: ${leftElbowAngle}°, R-Elbow: ${rightElbowAngle}°`
+      });
+    } else {
+      // No pose detected
+      onUpdate({
+        handDetected: false,
+        landmarksCount: 0,
+        trackingQuality: "Poor",
+        handPosition: "Position body in view"
+      });
+    }
+
+    // Draw status text
+    ctx.fillStyle = poseDetected ? '#00ff00' : '#ff6666';
+    ctx.font = '16px Arial';
+    ctx.fillText(poseDetected ? `Full Arm Tracking Active` : 'Position upper body in view', 10, 30);
+    
+    if (poseDetected) {
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '12px Arial';
+      ctx.fillText('MediaPipe pose tracking - shoulders, elbows, wrists', 10, 50);
+    }
+  }, [onUpdate]);
+
+  // Calculate elbow angle for range of motion assessment
+  const calculateElbowAngle = (shoulder: any, elbow: any, wrist: any) => {
+    if (!shoulder || !elbow || !wrist) return 0;
+    
+    const vector1 = {
+      x: shoulder.x - elbow.x,
+      y: shoulder.y - elbow.y
+    };
+    
+    const vector2 = {
+      x: wrist.x - elbow.x,
+      y: wrist.y - elbow.y
+    };
+    
+    const dot = vector1.x * vector2.x + vector1.y * vector2.y;
+    const mag1 = Math.sqrt(vector1.x * vector1.x + vector1.y * vector1.y);
+    const mag2 = Math.sqrt(vector2.x * vector2.x + vector2.y * vector2.y);
+    
+    const angle = Math.acos(dot / (mag1 * mag2)) * (180 / Math.PI);
+    return Math.round(angle);
+  };
+
   // Process video frames with MediaPipe
   const processFrame = useCallback(async () => {
     const video = videoRef.current;
     
-    if (!video || !handsRef.current || video.readyState !== video.HAVE_ENOUGH_DATA) {
+    if (!video || video.readyState !== video.HAVE_ENOUGH_DATA) {
       animationRef.current = requestAnimationFrame(processFrame);
       return;
     }
@@ -164,7 +327,11 @@ export default function MediaPipeHandler({ onUpdate, isRecording, assessmentType
     lastFrameTime.current = now;
 
     try {
-      await handsRef.current.send({ image: video });
+      if (isArmAssessment && poseRef.current) {
+        await poseRef.current.send({ image: video });
+      } else if (!isArmAssessment && handsRef.current) {
+        await handsRef.current.send({ image: video });
+      }
     } catch (error) {
       console.warn('Frame processing failed:', error);
     }

@@ -235,6 +235,36 @@ export class MemStorage implements IStorage {
         instructions: "Touch your thumb to each fingertip in sequence",
         isActive: true,
         orderIndex: 5
+      },
+      {
+        name: "Shoulder Flexion",
+        description: "Measure forward shoulder movement",
+        videoUrl: "/videos/shoulder-flexion.mp4",
+        duration: 20,
+        repetitions: 3,
+        instructions: "Raise your arm forward as high as comfortable",
+        isActive: true,
+        orderIndex: 6
+      },
+      {
+        name: "Shoulder Abduction",
+        description: "Measure sideways shoulder movement",
+        videoUrl: "/videos/shoulder-abduction.mp4",
+        duration: 20,
+        repetitions: 3,
+        instructions: "Raise your arm to the side as high as comfortable",
+        isActive: true,
+        orderIndex: 7
+      },
+      {
+        name: "Elbow Flexion/Extension",
+        description: "Measure elbow bending and straightening",
+        videoUrl: "/videos/elbow-flexion.mp4",
+        duration: 15,
+        repetitions: 5,
+        instructions: "Bend and straighten your elbow through full range",
+        isActive: true,
+        orderIndex: 8
       }
     ];
 
