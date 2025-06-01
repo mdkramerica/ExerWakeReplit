@@ -144,8 +144,10 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
         handsRef.current.setOptions({
           maxNumHands: 1,
           modelComplexity: 1,
-          minDetectionConfidence: 0.7,
-          minTrackingConfidence: 0.5
+          minDetectionConfidence: 0.5, // Lowered for better detection in production
+          minTrackingConfidence: 0.3,  // Lowered for better tracking in production
+          staticImageMode: false,      // Enable video mode for better performance
+          selfieMode: true            // Enable selfie mode for proper mirroring
         });
 
         handsRef.current.onResults(onHandResults);
