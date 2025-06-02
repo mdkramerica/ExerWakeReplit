@@ -491,6 +491,92 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
     ctx.fillStyle = '#ffffff';
     ctx.fillText('Other Landmarks', 30, legendY + 63);
 
+    // Draw Kapandji scoring overlay for Kapandji assessments
+    if (isKapandjiAssessment && frame.landmarks && frame.landmarks.length >= 21) {
+      const currentKapandji = calculateKapandjiScore(frame.landmarks);
+      
+      // Draw Kapandji score overlay in top-right corner
+      const scoreBoxWidth = 250;
+      const scoreBoxHeight = 180;
+      const scoreBoxX = canvas.width - scoreBoxWidth - 10;
+      const scoreBoxY = 10;
+      
+      // Background
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+      ctx.fillRect(scoreBoxX, scoreBoxY, scoreBoxWidth, scoreBoxHeight);
+      
+      // Title
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 14px Arial';
+      ctx.fillText('Kapandji Opposition Levels', scoreBoxX + 10, scoreBoxY + 20);
+      
+      // Current score
+      ctx.fillStyle = '#10b981';
+      ctx.font = 'bold 18px Arial';
+      ctx.fillText(`Current Score: ${currentKapandji.maxScore}/10`, scoreBoxX + 10, scoreBoxY + 45);
+      
+      // Individual level indicators
+      ctx.font = '11px Arial';
+      const levels = [
+        { level: 1, name: 'Index MCP', achieved: currentKapandji.details.indexMcp },
+        { level: 2, name: 'Middle MCP', achieved: currentKapandji.details.middleMcp },
+        { level: 3, name: 'Ring MCP', achieved: currentKapandji.details.ringMcp },
+        { level: 4, name: 'Pinky MCP', achieved: currentKapandji.details.pinkyMcp },
+        { level: 5, name: 'Pinky PIP', achieved: currentKapandji.details.pinkyPip },
+        { level: 6, name: 'Pinky DIP', achieved: currentKapandji.details.pinkyDip },
+        { level: 7, name: 'Pinky Tip', achieved: currentKapandji.details.pinkyTip },
+        { level: 8, name: 'Palm Center', achieved: currentKapandji.details.palmCenter },
+        { level: 9, name: 'Beyond Palm', achieved: currentKapandji.details.beyondPalm }
+      ];
+      
+      levels.forEach((level, index) => {
+        const y = scoreBoxY + 65 + (index * 12);
+        
+        // Level indicator circle
+        ctx.beginPath();
+        ctx.arc(scoreBoxX + 15, y - 3, 4, 0, 2 * Math.PI);
+        ctx.fillStyle = level.achieved ? '#10b981' : '#374151';
+        ctx.fill();
+        
+        // Level text
+        ctx.fillStyle = level.achieved ? '#10b981' : '#9ca3af';
+        ctx.fillText(`${level.level}. ${level.name}`, scoreBoxX + 25, y);
+        
+        // Achievement indicator
+        if (level.achieved) {
+          ctx.fillStyle = '#10b981';
+          ctx.font = 'bold 10px Arial';
+          ctx.fillText('✓', scoreBoxX + 220, y);
+          ctx.font = '11px Arial';
+        }
+      });
+      
+      // Visual connection lines to relevant landmarks when achieved
+      ctx.strokeStyle = '#10b981';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([3, 3]);
+      
+      // Highlight thumb tip (landmark 4) when touching targets
+      if (currentKapandji.maxScore > 0 && frame.landmarks[4]) {
+        const thumbTip = frame.landmarks[4];
+        ctx.beginPath();
+        ctx.arc(thumbTip.x * canvas.width, thumbTip.y * canvas.height, 12, 0, 2 * Math.PI);
+        ctx.strokeStyle = '#10b981';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        
+        // Pulsing effect for active achievement
+        const pulseRadius = 15 + Math.sin(Date.now() * 0.01) * 3;
+        ctx.beginPath();
+        ctx.arc(thumbTip.x * canvas.width, thumbTip.y * canvas.height, pulseRadius, 0, 2 * Math.PI);
+        ctx.strokeStyle = 'rgba(16, 185, 129, 0.5)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+      
+      ctx.setLineDash([]); // Reset line dash
+    }
+
     // Draw timeline scrubber overlay at bottom of canvas
     const timelineHeight = 30;
     const timelineY = canvas.height - timelineHeight;
