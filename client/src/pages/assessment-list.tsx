@@ -47,22 +47,34 @@ export default function AssessmentList() {
   const [, navigate] = useLocation();
   const [showReplay, setShowReplay] = useState<string | null>(null);
 
-  // Get user code from URL path
-  const userCode = window.location.pathname.split('/')[2];
+  // Get user code from URL path - handle both /assessments and /assessment-list/:code routes
+  const pathParts = window.location.pathname.split('/');
+  const userCode = pathParts[1] === 'assessment-list' ? pathParts[2] : null;
+
+  // First get user data using the code to get the actual user ID
+  const { data: userData, isLoading: userLoading } = useQuery({
+    queryKey: [`/api/users/by-code/${userCode}`],
+    enabled: !!userCode,
+  });
+
+  const userId = userData?.user?.id;
 
   const { data: assessmentData, isLoading: assessmentsLoading } = useQuery({
-    queryKey: [`/api/users/${userCode ? userCode.replace(/^user-/, '') : ''}/assessments`],
+    queryKey: [`/api/users/${userId}/assessments`],
+    enabled: !!userId,
   });
 
   const { data: progressData, isLoading: progressLoading } = useQuery({
-    queryKey: [`/api/users/${userCode ? userCode.replace(/^user-/, '') : ''}/progress`],
+    queryKey: [`/api/users/${userId}/progress`],
+    enabled: !!userId,
   });
 
   const { data: historyData, isLoading: historyLoading } = useQuery({
-    queryKey: [`/api/users/${userCode ? userCode.replace(/^user-/, '') : ''}/history`],
+    queryKey: [`/api/users/${userId}/history`],
+    enabled: !!userId,
   });
 
-  const isLoading = assessmentsLoading || progressLoading || historyLoading;
+  const isLoading = userLoading || assessmentsLoading || progressLoading || historyLoading;
 
   if (isLoading) {
     return (
@@ -356,7 +368,7 @@ export default function AssessmentList() {
                     
                     <div className="flex items-center gap-2 ml-4">
                       <button
-                        onClick={() => navigate(`/assessment-results/${userCode}/${record.id}`)}
+                        onClick={() => userCode && navigate(`/assessment-results/${userCode}/${record.id}`)}
                         className="w-8 h-8 rounded-lg bg-blue-50 hover:bg-blue-100 flex items-center justify-center transition-colors"
                         title="View Assessment Results"
                       >
