@@ -155,42 +155,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/users/:userId/assessments/:assessmentId/start", async (req, res) => {
     try {
-      const userIdParam = req.params.userId;
+      const userId = parseInt(req.params.userId);
       const assessmentId = parseInt(req.params.assessmentId);
-      
-      // Handle admin mode - create a temporary user assessment for testing
-      if (userIdParam === "admin") {
-        const mockUserAssessment = {
-          id: Math.floor(Math.random() * 10000),
-          userId: 999999, // Special admin user ID
-          assessmentId,
-          isCompleted: false,
-          completedAt: null,
-          romData: null,
-          repetitionData: null,
-          qualityScore: null,
-          sessionNumber: 1,
-          totalActiveRom: null,
-          indexFingerRom: null,
-          middleFingerRom: null,
-          ringFingerRom: null,
-          pinkyFingerRom: null,
-          maxMcpAngle: null,
-          maxPipAngle: null,
-          maxDipAngle: null,
-          injuryType: null,
-          recoveryWeek: null,
-          notes: null,
-          handedness: null,
-          shareToken: null
-        };
-        return res.json({ userAssessment: mockUserAssessment });
-      }
-      
-      const userId = parseInt(userIdParam);
-      if (isNaN(userId)) {
-        return res.status(400).json({ message: "Invalid user ID" });
-      }
       
       // Check if user assessment already exists
       let userAssessment = await storage.getUserAssessment(userId, assessmentId);
@@ -211,25 +177,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/users/:userId/assessments/:assessmentId/complete", async (req, res) => {
     try {
-      const userIdParam = req.params.userId;
+      const userId = parseInt(req.params.userId);
       const assessmentId = parseInt(req.params.assessmentId);
-      
-      // Handle admin mode - just return success without saving
-      if (userIdParam === "admin") {
-        return res.json({ 
-          message: "Assessment completed successfully in admin mode",
-          userAssessment: {
-            id: Math.floor(Math.random() * 10000),
-            isCompleted: true,
-            completedAt: new Date().toISOString()
-          }
-        });
-      }
-      
-      const userId = parseInt(userIdParam);
-      if (isNaN(userId)) {
-        return res.status(400).json({ message: "Invalid user ID" });
-      }
       const { romData, repetitionData, qualityScore, handType } = req.body;
       
       // Calculate ROM values from repetition data for trigger finger assessments
@@ -609,17 +558,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching shared assessment:", error);
       res.status(500).json({ error: "Failed to fetch shared assessment" });
-    }
-  });
-
-  // Admin API endpoints
-  app.get("/api/admin/all-user-assessments", async (req, res) => {
-    try {
-      const allUserAssessments = await storage.getAllUserAssessments();
-      res.json({ history: allUserAssessments });
-    } catch (error) {
-      console.error("Error fetching all user assessments:", error);
-      res.status(500).json({ message: "Failed to fetch user assessments" });
     }
   });
 

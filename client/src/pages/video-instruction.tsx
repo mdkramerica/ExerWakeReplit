@@ -8,40 +8,19 @@ import ProgressBar from "@/components/progress-bar";
 import { apiRequest } from "@/lib/queryClient";
 
 export default function VideoInstruction() {
-  const params = useParams();
+  const { id } = useParams();
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [videoWatched, setVideoWatched] = useState(false);
   const [, setLocation] = useLocation();
-  
-  // Handle both route formats: /assessment/:code/:id and /assessment/:id/video
-  const userCode = params.code;
-  const assessmentId = params.code ? params.id : params.id;
-  const id = assessmentId;
-
-  // Fetch user data if we have a user code
-  const { data: userData, isLoading: userLoading } = useQuery({
-    queryKey: [`/api/users/by-code/${userCode}`],
-    enabled: !!userCode,
-  });
 
   useEffect(() => {
-    if (userCode) {
-      // Route with user code - wait for API data
-      if (userData?.user) {
-        setCurrentUser(userData.user);
-      } else if (!userLoading && userData === undefined) {
-        setLocation("/");
-      }
+    const savedUser = sessionStorage.getItem('currentUser');
+    if (savedUser) {
+      setCurrentUser(JSON.parse(savedUser));
     } else {
-      // Legacy route - use sessionStorage
-      const savedUser = sessionStorage.getItem('currentUser');
-      if (savedUser) {
-        setCurrentUser(JSON.parse(savedUser));
-      } else {
-        setLocation("/");
-      }
+      setLocation("/");
     }
-  }, [setLocation, userCode, userData, userLoading]);
+  }, [setLocation]);
 
   const { data: assessmentData, isLoading } = useQuery({
     queryKey: [`/api/assessments/${id}`],
@@ -50,8 +29,7 @@ export default function VideoInstruction() {
 
   const startAssessmentMutation = useMutation({
     mutationFn: async () => {
-      const userId = currentUser?.id || "admin";
-      const response = await apiRequest("POST", `/api/users/${userId}/assessments/${id}/start`);
+      const response = await apiRequest("POST", `/api/users/${currentUser.id}/assessments/${id}/start`);
       return response.json();
     },
   });
@@ -67,14 +45,10 @@ export default function VideoInstruction() {
   };
 
   const handleBack = () => {
-    if (userCode) {
-      setLocation(`/assessment-list/${userCode}`);
-    } else {
-      setLocation("/assessments");
-    }
+    setLocation("/assessments");
   };
 
-  if (isLoading || userLoading || (userCode && !currentUser)) {
+  if (isLoading) {
     return (
       <div className="max-w-4xl mx-auto">
         <Card className="medical-card">
