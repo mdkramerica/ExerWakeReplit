@@ -239,22 +239,117 @@ export default function AssessmentResults() {
                   </div>
                 )}
 
-                {/* TAM Results for non-Kapandji assessments */}
+                {/* Comprehensive ROM Analysis for TAM assessments */}
                 {!isKapandjiAssessment && userAssessment.totalActiveRom && (
-                  <div className="bg-white border border-gray-200 p-4 rounded-lg">
-                    <h4 className="font-medium mb-3 text-gray-900">Total Active Motion (TAM) Summary</h4>
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center p-3 bg-blue-50 rounded border">
+                  <div className="bg-white border border-gray-200 p-6 rounded-lg">
+                    <h4 className="font-medium mb-6 text-gray-900 text-xl">Comprehensive ROM Analysis - All Digits</h4>
+                    
+                    {/* Index Finger */}
+                    <div className="mb-6 p-4 border border-gray-200 rounded-lg">
+                      <div className="flex justify-between items-center mb-4">
+                        <h5 className="text-lg font-medium text-gray-900">Index Finger</h5>
+                        <span className="text-lg font-bold text-gray-900">
+                          {userAssessment.indexFingerRom ? `${parseFloat(userAssessment.indexFingerRom).toFixed(0)}° TAM` : 'N/A'}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-4">
+                        <div className="text-center p-3 bg-gray-50 rounded">
+                          <div className="text-sm text-gray-600">MCP Joint</div>
+                          <div className={`text-lg font-bold ${userAssessment.maxMcpAngle && (parseFloat(userAssessment.maxMcpAngle) < 70 || parseFloat(userAssessment.maxMcpAngle) > 90) ? 'text-red-600' : 'text-blue-600'}`}>
+                            {userAssessment.maxMcpAngle ? `${parseFloat(userAssessment.maxMcpAngle).toFixed(0)}°` : 'N/A'}
+                          </div>
+                          <div className="text-xs text-gray-500">Normal: 70-90°</div>
+                        </div>
+                        <div className="text-center p-3 bg-gray-50 rounded">
+                          <div className="text-sm text-gray-600">PIP Joint</div>
+                          <div className={`text-lg font-bold ${userAssessment.maxPipAngle && (parseFloat(userAssessment.maxPipAngle) < 90 || parseFloat(userAssessment.maxPipAngle) > 110) ? 'text-red-600' : 'text-green-600'}`}>
+                            {userAssessment.maxPipAngle ? `${parseFloat(userAssessment.maxPipAngle).toFixed(0)}°` : 'N/A'}
+                          </div>
+                          <div className="text-xs text-gray-500">Normal: 90-110°</div>
+                        </div>
+                        <div className="text-center p-3 bg-gray-50 rounded">
+                          <div className="text-sm text-gray-600">DIP Joint</div>
+                          <div className={`text-lg font-bold ${userAssessment.maxDipAngle && (parseFloat(userAssessment.maxDipAngle) < 70 || parseFloat(userAssessment.maxDipAngle) > 90) ? 'text-red-600' : 'text-red-600'}`}>
+                            {userAssessment.maxDipAngle ? `${parseFloat(userAssessment.maxDipAngle).toFixed(0)}°` : 'N/A'}
+                          </div>
+                          <div className="text-xs text-gray-500">Normal: 70-90°</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Parse ROM data for individual fingers */}
+                    {(() => {
+                      let romData = null;
+                      try {
+                        romData = userAssessment.romData ? JSON.parse(userAssessment.romData) : null;
+                      } catch (e) {
+                        romData = null;
+                      }
+                      
+                      const fingers = [
+                        { name: 'Middle Finger', key: 'middle', romValue: userAssessment.middleFingerRom, highlight: true },
+                        { name: 'Ring Finger', key: 'ring', romValue: userAssessment.ringFingerRom, highlight: false },
+                        { name: 'Pinky Finger', key: 'pinky', romValue: userAssessment.pinkyFingerRom, highlight: false }
+                      ];
+
+                      return fingers.map((finger, index) => {
+                        const fingerData = romData?.[finger.key];
+                        const mcpAngle = fingerData?.mcp || 0;
+                        const pipAngle = fingerData?.pip || 0;
+                        const dipAngle = fingerData?.dip || 0;
+
+                        return (
+                          <div key={finger.key} className={`mb-6 p-4 rounded-lg ${finger.highlight ? 'border-2 border-blue-300 bg-blue-50' : 'border border-gray-200'}`}>
+                            <div className="flex justify-between items-center mb-4">
+                              <h5 className="text-lg font-medium text-gray-900">{finger.name}</h5>
+                              <span className="text-lg font-bold text-gray-900">
+                                {finger.romValue ? `${parseFloat(finger.romValue).toFixed(0)}° TAM` : 'N/A'}
+                              </span>
+                            </div>
+                            <div className="grid grid-cols-3 gap-4">
+                              <div className={`text-center p-3 rounded ${finger.highlight ? 'bg-white' : 'bg-gray-50'}`}>
+                                <div className="text-sm text-gray-600">MCP Joint</div>
+                                <div className={`text-lg font-bold ${mcpAngle < 70 || mcpAngle > 90 ? 'text-red-600' : 'text-blue-600'}`}>
+                                  {mcpAngle.toFixed(0)}°
+                                </div>
+                                <div className="text-xs text-gray-500">Normal: 70-90°</div>
+                              </div>
+                              <div className={`text-center p-3 rounded ${finger.highlight ? 'bg-white' : 'bg-gray-50'}`}>
+                                <div className="text-sm text-gray-600">PIP Joint</div>
+                                <div className={`text-lg font-bold ${pipAngle < 90 || pipAngle > 110 ? 'text-red-600' : 'text-green-600'}`}>
+                                  {pipAngle.toFixed(0)}°
+                                </div>
+                                <div className="text-xs text-gray-500">Normal: 90-110°</div>
+                              </div>
+                              <div className={`text-center p-3 rounded ${finger.highlight ? 'bg-white' : 'bg-gray-50'}`}>
+                                <div className="text-sm text-gray-600">DIP Joint</div>
+                                <div className={`text-lg font-bold ${dipAngle < 70 || dipAngle > 90 ? 'text-red-600' : 'text-green-600'}`}>
+                                  {dipAngle.toFixed(0)}°
+                                </div>
+                                <div className="text-xs text-gray-500">Normal: 70-90°</div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      });
+                    })()}
+
+                    {/* Summary */}
+                    <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                      <h5 className="font-medium mb-3 text-blue-900">TAM Summary</h5>
+                      <div className="flex justify-between items-center mb-3">
                         <span className="font-medium text-blue-900">Total Active ROM</span>
                         <span className="font-bold text-xl text-blue-900">{parseFloat(userAssessment.totalActiveRom).toFixed(0)}°</span>
                       </div>
-                      <p className="mt-2">
-                        <strong>Assessment:</strong> {parseFloat(userAssessment.totalActiveRom) >= 220 ? 
-                          'Excellent range of motion' : 
+                      <div className="text-sm text-blue-800">
+                        <strong>Clinical Assessment:</strong> {parseFloat(userAssessment.totalActiveRom) >= 220 ? 
+                          'Excellent range of motion within normal limits' : 
                           parseFloat(userAssessment.totalActiveRom) >= 180 ? 
-                            'Good range of motion' : 
-                            'Limited range of motion - consider follow-up'}
-                      </p>
+                            'Good range of motion with mild limitations' : 
+                            parseFloat(userAssessment.totalActiveRom) >= 140 ? 
+                              'Moderate limitations - consider therapy intervention' : 
+                              'Significant limitations - rehabilitation recommended'}
+                      </div>
                     </div>
                   </div>
                 )}
