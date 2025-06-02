@@ -406,12 +406,6 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
       ctx.beginPath();
       ctx.arc(x, y, size, 0, 2 * Math.PI);
       ctx.fill();
-
-      // Draw landmark numbers
-      ctx.fillStyle = '#ffffff';
-      ctx.font = '10px Arial';
-      ctx.fillText(index.toString(), x + 6, y - 6);
-      ctx.fillStyle = '#10b981';
     });
 
     // Draw hand connections with highlighted measurement path based on selected digit
