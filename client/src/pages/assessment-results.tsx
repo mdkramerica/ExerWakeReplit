@@ -262,7 +262,7 @@ export default function AssessmentResults() {
                             mcpAngle: userAssessment.middleFingerMcp,
                             pipAngle: userAssessment.middleFingerPip,
                             dipAngle: userAssessment.middleFingerDip,
-                            highlight: true 
+                            highlight: false 
                           },
                           { 
                             name: 'Ring Finger', 
