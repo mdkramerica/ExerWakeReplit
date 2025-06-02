@@ -42,23 +42,27 @@ export function calculateKapandjiScore(landmarks: HandLandmark[]): KapandjiScore
 
   const thumbTip = landmarks[4];
   
-  // Define anatomical targets with their Kapandji scores
-  // Using a distance threshold of 0.05 (normalized coordinates)
-  const THRESHOLD = 0.05;
+  // Define anatomical targets with their Kapandji scores based on correct scoring system
+  const THRESHOLD = 0.04; // Slightly tighter threshold for more precise scoring
+  
+  // Calculate specific anatomical landmarks for accurate Kapandji scoring
+  const indexSide = landmarks[6]; // Lateral side of index finger (PIP joint)
+  const palmBase = averageLandmarks([0, 1, 17], landmarks); // Base of little finger area
+  const midPalm = averageLandmarks([0, 17, 18], landmarks); // Mid-palm below little finger
+  const distalCrease = averageLandmarks([13, 17, 18], landmarks); // Distal palmar crease
+  const proximalCrease = averageLandmarks([0, 9, 13], landmarks); // Proximal palmar crease
   
   const targets = [
-    { landmark: landmarks[5], score: 1, name: 'Index MCP', key: 'indexMcp' },
-    { landmark: landmarks[9], score: 2, name: 'Middle MCP', key: 'middleMcp' },
-    { landmark: landmarks[13], score: 3, name: 'Ring MCP', key: 'ringMcp' },
-    { landmark: landmarks[17], score: 4, name: 'Pinky MCP', key: 'pinkyMcp' },
-    { landmark: landmarks[18], score: 6, name: 'Pinky PIP', key: 'pinkyPip' },
-    { landmark: landmarks[19], score: 7, name: 'Pinky DIP', key: 'pinkyDip' },
-    { landmark: landmarks[20], score: 8, name: 'Pinky Tip', key: 'pinkyTip' },
+    { landmark: indexSide, score: 1, name: 'Lateral Index', key: 'indexMcp' },
+    { landmark: landmarks[8], score: 2, name: 'Index Tip', key: 'middleMcp' },
+    { landmark: landmarks[12], score: 3, name: 'Middle Tip', key: 'ringMcp' },
+    { landmark: landmarks[16], score: 4, name: 'Ring Tip', key: 'pinkyMcp' },
+    { landmark: landmarks[20], score: 5, name: 'Little Tip', key: 'pinkyPip' },
+    { landmark: palmBase, score: 6, name: 'Little Base', key: 'pinkyDip' },
+    { landmark: midPalm, score: 7, name: 'Mid-Palm', key: 'pinkyTip' },
+    { landmark: distalCrease, score: 8, name: 'Distal Crease', key: 'palmCenter' },
+    { landmark: proximalCrease, score: 9, name: 'Proximal Crease', key: 'beyondPalm' },
   ];
-
-  // Calculate palm center
-  const palmCenter = averageLandmarks([0, 1, 5, 9, 13, 17], landmarks);
-  targets.push({ landmark: palmCenter, score: 9, name: 'Palm Center', key: 'palmCenter' });
 
   let maxScore = 0;
   const reachedLandmarks: string[] = [];
@@ -84,40 +88,22 @@ export function calculateKapandjiScore(landmarks: HandLandmark[]): KapandjiScore
     }
   }
 
-  // Special case: Check if thumb reaches beyond palm (score 10)
-  // Use a more accurate palm boundary detection
-  const pinkyTip = landmarks[20];
+  // Score 10: Full opposition across palm to radial side (under pinky metacarpal)
   const wrist = landmarks[0];
   const pinkyMcp = landmarks[17];
-  
-  // Determine handedness by comparing thumb base to wrist
   const isRightHand = landmarks[1].x > wrist.x;
   
-  // Calculate palm boundary more accurately using pinky MCP and wrist
-  const palmBoundaryX = isRightHand ? 
-    Math.max(pinkyMcp.x, pinkyTip.x) : 
-    Math.min(pinkyMcp.x, pinkyTip.x);
+  // For score 10, thumb must reach the radial side under the pinky metacarpal
+  const radialTarget = {
+    x: isRightHand ? pinkyMcp.x + 0.08 : pinkyMcp.x - 0.08,
+    y: pinkyMcp.y + 0.02,
+    z: pinkyMcp.z
+  };
   
-  // Require thumb to be significantly beyond the palm boundary
-  const BEYOND_PALM_THRESHOLD = 0.06; // Increased threshold for more accuracy
-  
-  const reachesBeyondPalm = isRightHand ? 
-    (thumbTip.x > palmBoundaryX + BEYOND_PALM_THRESHOLD) : 
-    (thumbTip.x < palmBoundaryX - BEYOND_PALM_THRESHOLD);
-
-  // Debug logging
-  console.log('Kapandji Beyond Palm Debug:', {
-    isRightHand,
-    thumbTipX: thumbTip.x,
-    palmBoundaryX,
-    threshold: BEYOND_PALM_THRESHOLD,
-    requiredX: isRightHand ? palmBoundaryX + BEYOND_PALM_THRESHOLD : palmBoundaryX - BEYOND_PALM_THRESHOLD,
-    reachesBeyondPalm
-  });
-
-  if (reachesBeyondPalm) {
+  const distanceToRadial = euclideanDistance(thumbTip, radialTarget);
+  if (distanceToRadial < THRESHOLD * 1.5) { // Slightly more lenient for score 10
     maxScore = Math.max(maxScore, 10);
-    reachedLandmarks.push('Beyond Palm');
+    reachedLandmarks.push('Full Opposition');
     details.beyondPalm = true;
   }
 
