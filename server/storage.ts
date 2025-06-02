@@ -202,6 +202,7 @@ export class MemStorage implements IStorage {
     // Initialize default assessments
     const defaultAssessments = [
       {
+        referenceId: "WF-001",
         name: "Wrist Flexion",
         description: "Measure forward bending range of motion",
         videoUrl: "/videos/wrist-flexion.mp4",
@@ -212,6 +213,7 @@ export class MemStorage implements IStorage {
         orderIndex: 1
       },
       {
+        referenceId: "WE-002",
         name: "Wrist Extension",
         description: "Measure backward bending range of motion",
         videoUrl: "/videos/wrist-extension.mp4",
@@ -222,6 +224,7 @@ export class MemStorage implements IStorage {
         orderIndex: 2
       },
       {
+        referenceId: "FF-003",
         name: "Finger Flexion",
         description: "Measure finger closing range of motion",
         videoUrl: "/videos/finger-flexion.mp4",
@@ -232,6 +235,7 @@ export class MemStorage implements IStorage {
         orderIndex: 3
       },
       {
+        referenceId: "FE-004",
         name: "Finger Extension",
         description: "Measure finger opening range of motion",
         videoUrl: "/videos/finger-extension.mp4",
@@ -242,6 +246,7 @@ export class MemStorage implements IStorage {
         orderIndex: 4
       },
       {
+        referenceId: "TO-005",
         name: "Thumb Opposition",
         description: "Measure thumb to finger touch capability",
         videoUrl: "/videos/thumb-opposition.mp4",
@@ -252,6 +257,7 @@ export class MemStorage implements IStorage {
         orderIndex: 5
       },
       {
+        referenceId: "SF-006",
         name: "Shoulder Flexion",
         description: "Measure forward shoulder movement",
         videoUrl: "/videos/shoulder-flexion.mp4",
@@ -262,6 +268,7 @@ export class MemStorage implements IStorage {
         orderIndex: 6
       },
       {
+        referenceId: "SA-007",
         name: "Shoulder Abduction",
         description: "Measure sideways shoulder movement",
         videoUrl: "/videos/shoulder-abduction.mp4",
@@ -272,6 +279,7 @@ export class MemStorage implements IStorage {
         orderIndex: 7
       },
       {
+        referenceId: "EFE-008",
         name: "Elbow Flexion/Extension",
         description: "Measure elbow bending and straightening",
         videoUrl: "/videos/elbow-flexion.mp4",

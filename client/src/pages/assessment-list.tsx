@@ -171,9 +171,16 @@ export default function AssessmentList() {
                         )}
                       </div>
                       <div>
-                        <h3 className={`font-medium ${isLocked ? "text-gray-800" : "text-gray-900"}`}>
-                          {assessment.name}
-                        </h3>
+                        <div className="flex items-center gap-2">
+                          <h3 className={`font-medium ${isLocked ? "text-gray-800" : "text-gray-900"}`}>
+                            {assessment.name}
+                          </h3>
+                          {assessment.referenceId && (
+                            <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-md font-mono">
+                              {assessment.referenceId}
+                            </span>
+                          )}
+                        </div>
                         <p className={`text-sm ${isLocked ? "text-gray-800" : "text-gray-700"}`}>
                           {assessment.description}
                         </p>

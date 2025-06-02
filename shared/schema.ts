@@ -12,6 +12,7 @@ export const users = pgTable("users", {
 
 export const assessments = pgTable("assessments", {
   id: serial("id").primaryKey(),
+  referenceId: text("reference_id").notNull().unique(), // Unique reference ID for each assessment
   name: text("name").notNull(),
   description: text("description").notNull(),
   videoUrl: text("video_url"),
