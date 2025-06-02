@@ -225,10 +225,9 @@ export default function AssessmentList() {
                           variant="outline"
                           size="sm"
                           onClick={() => {
-                            const userId = userCode.replace(/^user-/, '');
-                            const userAssessment = historyData.history.find((h: any) => h.assessmentName === assessment.name);
-                            if (userAssessment) {
-                              navigate(`/assessment-results/${userCode}/${userAssessment.id}`);
+                            const historySection = document.getElementById('patient-history');
+                            if (historySection) {
+                              historySection.scrollIntoView({ behavior: 'smooth' });
                             }
                           }}
                           className="text-blue-600 border-blue-200 hover:bg-blue-50"
@@ -285,7 +284,7 @@ export default function AssessmentList() {
 
       {/* Patient History Section */}
       {historyData.history && historyData.history.length > 0 && (
-        <Card className="medical-card mt-6">
+        <Card id="patient-history" className="medical-card mt-6">
           <CardHeader>
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center">
