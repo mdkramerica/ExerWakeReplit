@@ -72,17 +72,6 @@ export default function AssessmentList() {
 
   const userId = userData?.user?.id;
 
-  // Debug logging
-  console.log('Assessment List Debug:', {
-    userCode,
-    userData,
-    userId,
-    pathParts,
-    assessmentData,
-    progressData,
-    historyData
-  });
-
   const { data: assessmentData, isLoading: assessmentsLoading } = useQuery({
     queryKey: [`/api/users/${userId}/assessments`],
     enabled: !!userId,
@@ -100,6 +89,17 @@ export default function AssessmentList() {
 
   const isLoading = userLoading || assessmentsLoading || progressLoading || historyLoading;
 
+  // Debug logging
+  console.log('Assessment List Debug:', {
+    userCode,
+    userData,
+    userId,
+    pathParts,
+    assessmentData,
+    progressData,
+    historyData
+  });
+
   if (isLoading) {
     return (
       <div className="max-w-4xl mx-auto">
@@ -116,7 +116,7 @@ export default function AssessmentList() {
     );
   }
 
-  if (!assessmentData?.assessments || !progressData || !historyData) {
+  if (!assessmentData?.assessments) {
     return (
       <div className="max-w-4xl mx-auto">
         <Card className="medical-card">
