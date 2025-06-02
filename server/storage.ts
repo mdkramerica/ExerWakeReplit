@@ -350,20 +350,23 @@ export class MemStorage implements IStorage {
     
     // Define which assessments are needed for each injury type
     const injuryAssessmentMap: Record<string, string[]> = {
-      "Trigger Finger": ["TAM (Total Active Motion)"],
-      "Carpal Tunnel": ["TAM (Total Active Motion)", "Kapandji Score", "Wrist Flexion/Extension", "Forearm Pronation/Supination", "Wrist Radial/Ulnar Deviation"],
-      "Distal Radius Fracture": ["TAM (Total Active Motion)", "Kapandji Score", "Wrist Flexion/Extension", "Forearm Pronation/Supination", "Wrist Radial/Ulnar Deviation"],
-      "CMC Arthroplasty": ["TAM (Total Active Motion)", "Kapandji Score", "Wrist Flexion/Extension", "Forearm Pronation/Supination", "Wrist Radial/Ulnar Deviation"],
-      "Metacarpal ORIF": ["TAM (Total Active Motion)"],
-      "Phalanx Fracture": ["TAM (Total Active Motion)"],
-      "Radial Head Replacement": ["TAM (Total Active Motion)", "Kapandji Score", "Wrist Flexion/Extension", "Forearm Pronation/Supination", "Wrist Radial/Ulnar Deviation"],
-      "Terrible Triad Injury": ["TAM (Total Active Motion)", "Kapandji Score", "Wrist Flexion/Extension", "Forearm Pronation/Supination", "Wrist Radial/Ulnar Deviation"],
-      "Dupuytren's Contracture": ["TAM (Total Active Motion)"],
-      "Flexor Tendon Injury": ["TAM (Total Active Motion)"],
-      "Extensor Tendon Injury": ["TAM (Total Active Motion)"]
+      "Trigger Finger": ["Finger Flexion", "Finger Extension"],
+      "Carpal Tunnel": ["Wrist Flexion", "Wrist Extension", "Finger Flexion", "Finger Extension", "Thumb Opposition"],
+      "Distal Radius Fracture": ["Wrist Flexion", "Wrist Extension", "Finger Flexion", "Finger Extension", "Thumb Opposition"],
+      "CMC Arthroplasty": ["Thumb Opposition", "Wrist Flexion", "Wrist Extension"],
+      "Metacarpal ORIF": ["Finger Flexion", "Finger Extension", "Thumb Opposition"],
+      "Phalanx Fracture": ["Finger Flexion", "Finger Extension"],
+      "Radial Head Replacement": ["Wrist Flexion", "Wrist Extension", "Finger Flexion", "Finger Extension", "Elbow Flexion/Extension"],
+      "Terrible Triad Injury": ["Wrist Flexion", "Wrist Extension", "Finger Flexion", "Finger Extension", "Elbow Flexion/Extension"],
+      "Dupuytren's Contracture": ["Finger Flexion", "Finger Extension"],
+      "Flexor Tendon Injury": ["Finger Flexion", "Finger Extension"],
+      "Extensor Tendon Injury": ["Finger Flexion", "Finger Extension"],
+      "Wrist Fracture": ["Wrist Flexion", "Wrist Extension", "Finger Flexion", "Finger Extension"],
+      "Tendon Injury": ["Finger Flexion", "Finger Extension"],
+      "Other Injury": ["Wrist Flexion", "Wrist Extension", "Finger Flexion", "Finger Extension", "Thumb Opposition"]
     };
 
-    const requiredAssessments = injuryAssessmentMap[injuryType] || ["TAM (Total Active Motion)"];
+    const requiredAssessments = injuryAssessmentMap[injuryType] || ["Finger Flexion", "Finger Extension"];
     return allAssessments.filter(assessment => requiredAssessments.includes(assessment.name));
   }
 
