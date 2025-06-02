@@ -142,7 +142,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let userAssessment = await storage.getUserAssessment(userId, assessmentId);
       
       if (!userAssessment) {
+        // Generate unique run ID: format YYYYMMDD-HHMM-XXXX
+        const now = new Date();
+        const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
+        const timeStr = now.toTimeString().slice(0, 5).replace(':', '');
+        const randomStr = Math.random().toString(36).substring(2, 6).toUpperCase();
+        const runId = `${dateStr}-${timeStr}-${randomStr}`;
+        
         userAssessment = await storage.createUserAssessment({
+          runId,
           userId,
           assessmentId,
           isCompleted: false
@@ -294,8 +302,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const sessionCount = existingAssessments.filter(ua => ua.assessmentId === assessmentId).length;
       const sessionNumber = sessionCount + 1;
       
+      // Generate unique run ID for this assessment session
+      const now = new Date();
+      const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
+      const timeStr = now.toTimeString().slice(0, 5).replace(':', '');
+      const randomStr = Math.random().toString(36).substring(2, 6).toUpperCase();
+      const runId = `${dateStr}-${timeStr}-${randomStr}`;
+      
       // Create new assessment (don't update existing ones - allow multiple sessions)
       const userAssessment = await storage.createUserAssessment({
+        runId,
         userId,
         assessmentId,
         sessionNumber,
