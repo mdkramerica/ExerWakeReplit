@@ -167,11 +167,11 @@ export class DatabaseStorage implements IStorage {
 
   async getAllUserAssessments(): Promise<UserAssessment[]> {
     const allUserAssessments = await db.select().from(userAssessments);
-    const assessments = await db.select().from(assessments);
+    const allAssessments = await db.select().from(assessments);
     
     // Add assessment names to the user assessments
     return allUserAssessments.map(ua => {
-      const assessment = assessments.find(a => a.id === ua.assessmentId);
+      const assessment = allAssessments.find(a => a.id === ua.assessmentId);
       return {
         ...ua,
         assessmentName: assessment?.name || 'Unknown Assessment'
@@ -524,6 +524,8 @@ async function initializeDatabase() {
     console.error("Error initializing database:", error);
   }
 }
+
+
 
 export const storage = new DatabaseStorage();
 
