@@ -190,23 +190,8 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
       // No finger connections for wrist assessments
       
     } else {
-      // For finger/hand assessments, show full hand
+      // For finger/hand assessments (TAM, Kapandji), show only relevant landmarks
       
-      // Highlight the selected finger for TAM assessments
-      if (selectedDigit !== 'INDEX') {
-        // Draw non-selected landmarks in muted color
-        ctx.fillStyle = '#00ff0060'; // Semi-transparent green
-        landmarks.forEach((landmark, index) => {
-          const x = landmark.x * canvasWidth;
-          const y = landmark.y * canvasHeight;
-          
-          ctx.beginPath();
-          ctx.arc(x, y, 3, 0, 2 * Math.PI);
-          ctx.fill();
-        });
-      }
-
-      // Draw selected finger landmarks prominently
       const fingerLandmarkRanges = {
         'INDEX': [5, 6, 7, 8],
         'MIDDLE': [9, 10, 11, 12],
@@ -216,6 +201,18 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
 
       const activeLandmarks = fingerLandmarkRanges[selectedDigit] || [5, 6, 7, 8];
       
+      // Draw wrist point
+      if (landmarks[0]) {
+        ctx.fillStyle = '#f44336'; // Red for wrist
+        const x = landmarks[0].x * canvasWidth;
+        const y = landmarks[0].y * canvasHeight;
+        
+        ctx.beginPath();
+        ctx.arc(x, y, 4, 0, 2 * Math.PI);
+        ctx.fill();
+      }
+      
+      // Draw selected finger landmarks prominently
       ctx.fillStyle = '#ffeb3b'; // Yellow for active finger
       activeLandmarks.forEach((index) => {
         if (landmarks[index]) {
@@ -227,17 +224,6 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
           ctx.fill();
         }
       });
-
-      // Draw wrist point
-      if (landmarks[0]) {
-        ctx.fillStyle = '#f44336'; // Red for wrist
-        const x = landmarks[0].x * canvasWidth;
-        const y = landmarks[0].y * canvasHeight;
-        
-        ctx.beginPath();
-        ctx.arc(x, y, 4, 0, 2 * Math.PI);
-        ctx.fill();
-      }
 
       // Draw hand connections only for the active finger
       ctx.strokeStyle = '#ffeb3b';
