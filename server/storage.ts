@@ -519,7 +519,7 @@ async function initializeDatabase() {
   }
 }
 
-export const storage = new DatabaseStorage();
+export const storage = new MemStorage();
 
 // Initialize database on startup
 initializeDatabase();

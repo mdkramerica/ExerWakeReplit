@@ -122,6 +122,14 @@ export default function AssessmentResults() {
                 Session {userAssessment.sessionNumber || 1} | 
                 Completed: {userAssessment.completedAt ? new Date(userAssessment.completedAt).toLocaleDateString() : 'N/A'}
               </p>
+              {userAssessment.runId && (
+                <div className="mt-2 flex items-center justify-center gap-2">
+                  <span className="text-sm text-gray-500">Assessment ID:</span>
+                  <span className="px-3 py-1 bg-blue-50 text-blue-600 text-sm rounded-md font-mono">
+                    {userAssessment.runId}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 

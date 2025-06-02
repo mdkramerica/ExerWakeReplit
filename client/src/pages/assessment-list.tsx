@@ -292,7 +292,14 @@ export default function AssessmentList() {
                               <Clock className="w-3 h-3" />
                               <span>{new Date(record.completedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                             </div>
-
+                            {record.runId && (
+                              <div className="flex items-center gap-1">
+                                <span className="text-xs">ID:</span>
+                                <span className="px-2 py-1 bg-blue-50 text-blue-600 text-xs rounded font-mono">
+                                  {record.runId}
+                                </span>
+                              </div>
+                            )}
                           </div>
                         </div>
                         
