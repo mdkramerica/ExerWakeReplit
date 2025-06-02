@@ -237,7 +237,7 @@ export default function AssessmentList() {
                     ) : assessment.id === nextAssessment?.id ? (
                       <Button
                         size="sm"
-                        onClick={() => navigate(`/assessment/${userCode}/${assessment.id}`)}
+                        onClick={() => navigate(`/assessment/${assessment.id}/video`)}
                         className="bg-blue-600 hover:bg-blue-700 text-white"
                       >
                         Start Assessment
