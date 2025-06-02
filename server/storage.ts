@@ -189,8 +189,18 @@ export class MemStorage implements IStorage {
   private initializeData() {
     // Initialize default injury types
     const defaultInjuryTypes = [
+      { name: "Trigger Finger", description: "Stenosing tenosynovitis affecting finger flexion", icon: "fas fa-hand-point-up" },
+      { name: "Carpal Tunnel", description: "Median nerve compression requiring comprehensive assessment", icon: "fas fa-hand-scissors" },
+      { name: "Distal Radius Fracture", description: "Wrist fracture requiring full range of motion evaluation", icon: "fas fa-hand-paper" },
+      { name: "CMC Arthroplasty", description: "Thumb basal joint replacement recovery assessment", icon: "fas fa-thumbs-up" },
+      { name: "Metacarpal ORIF", description: "Hand bone fracture repair recovery", icon: "fas fa-hand-rock" },
+      { name: "Phalanx Fracture", description: "Finger bone fracture recovery assessment", icon: "fas fa-hand-point-right" },
+      { name: "Radial Head Replacement", description: "Elbow joint replacement affecting hand function", icon: "fas fa-hand-spock" },
+      { name: "Terrible Triad Injury", description: "Complex elbow injury requiring comprehensive evaluation", icon: "fas fa-hand-lizard" },
+      { name: "Dupuytren's Contracture", description: "Palmar fascia contracture affecting finger extension", icon: "fas fa-hand-peace" },
+      { name: "Flexor Tendon Injury", description: "Finger flexion tendon repair recovery", icon: "fas fa-hand-grab" },
+      { name: "Extensor Tendon Injury", description: "Finger extension tendon repair recovery", icon: "fas fa-hand-stop" },
       { name: "Wrist Fracture", description: "Recovery from wrist bone fractures and related mobility issues", icon: "fas fa-hand-paper" },
-      { name: "Carpal Tunnel", description: "Post-surgical recovery from carpal tunnel release procedure", icon: "fas fa-hand-scissors" },
       { name: "Tendon Injury", description: "Recovery from hand or wrist tendon repair surgery", icon: "fas fa-hand-rock" },
       { name: "Other Injury", description: "Other hand or wrist conditions requiring assessment", icon: "fas fa-hand-spock" }
     ];
