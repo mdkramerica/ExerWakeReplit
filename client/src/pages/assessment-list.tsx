@@ -171,16 +171,9 @@ export default function AssessmentList() {
                         )}
                       </div>
                       <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className={`font-medium ${isLocked ? "text-gray-800" : "text-gray-900"}`}>
-                            {assessment.name}
-                          </h3>
-                          {assessment.referenceId && (
-                            <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-md font-mono">
-                              {assessment.referenceId}
-                            </span>
-                          )}
-                        </div>
+                        <h3 className={`font-medium ${isLocked ? "text-gray-800" : "text-gray-900"}`}>
+                          {assessment.name}
+                        </h3>
                         <p className={`text-sm ${isLocked ? "text-gray-800" : "text-gray-700"}`}>
                           {assessment.description}
                         </p>
@@ -292,14 +285,7 @@ export default function AssessmentList() {
                               <Clock className="w-3 h-3" />
                               <span>{new Date(record.completedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                             </div>
-                            {record.runId && (
-                              <div className="flex items-center gap-1">
-                                <span className="text-xs">ID:</span>
-                                <span className="px-2 py-1 bg-blue-50 text-blue-600 text-xs rounded font-mono">
-                                  {record.runId}
-                                </span>
-                              </div>
-                            )}
+
                           </div>
                         </div>
                         

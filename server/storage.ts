@@ -189,18 +189,8 @@ export class MemStorage implements IStorage {
   private initializeData() {
     // Initialize default injury types
     const defaultInjuryTypes = [
-      { name: "Trigger Finger", description: "Stenosing tenosynovitis affecting finger flexion", icon: "fas fa-hand-point-up" },
-      { name: "Carpal Tunnel", description: "Median nerve compression requiring comprehensive assessment", icon: "fas fa-hand-scissors" },
-      { name: "Distal Radius Fracture", description: "Wrist fracture requiring full range of motion evaluation", icon: "fas fa-hand-paper" },
-      { name: "CMC Arthroplasty", description: "Thumb basal joint replacement recovery assessment", icon: "fas fa-thumbs-up" },
-      { name: "Metacarpal ORIF", description: "Hand bone fracture repair recovery", icon: "fas fa-hand-rock" },
-      { name: "Phalanx Fracture", description: "Finger bone fracture recovery assessment", icon: "fas fa-hand-point-right" },
-      { name: "Radial Head Replacement", description: "Elbow joint replacement affecting hand function", icon: "fas fa-hand-spock" },
-      { name: "Terrible Triad Injury", description: "Complex elbow injury requiring comprehensive evaluation", icon: "fas fa-hand-lizard" },
-      { name: "Dupuytren's Contracture", description: "Palmar fascia contracture affecting finger extension", icon: "fas fa-hand-peace" },
-      { name: "Flexor Tendon Injury", description: "Finger flexion tendon repair recovery", icon: "fas fa-hand-grab" },
-      { name: "Extensor Tendon Injury", description: "Finger extension tendon repair recovery", icon: "fas fa-hand-stop" },
       { name: "Wrist Fracture", description: "Recovery from wrist bone fractures and related mobility issues", icon: "fas fa-hand-paper" },
+      { name: "Carpal Tunnel", description: "Post-surgical recovery from carpal tunnel release procedure", icon: "fas fa-hand-scissors" },
       { name: "Tendon Injury", description: "Recovery from hand or wrist tendon repair surgery", icon: "fas fa-hand-rock" },
       { name: "Other Injury", description: "Other hand or wrist conditions requiring assessment", icon: "fas fa-hand-spock" }
     ];
@@ -212,7 +202,6 @@ export class MemStorage implements IStorage {
     // Initialize default assessments
     const defaultAssessments = [
       {
-        referenceId: "WF-001",
         name: "Wrist Flexion",
         description: "Measure forward bending range of motion",
         videoUrl: "/videos/wrist-flexion.mp4",
@@ -223,7 +212,6 @@ export class MemStorage implements IStorage {
         orderIndex: 1
       },
       {
-        referenceId: "WE-002",
         name: "Wrist Extension",
         description: "Measure backward bending range of motion",
         videoUrl: "/videos/wrist-extension.mp4",
@@ -234,7 +222,6 @@ export class MemStorage implements IStorage {
         orderIndex: 2
       },
       {
-        referenceId: "FF-003",
         name: "Finger Flexion",
         description: "Measure finger closing range of motion",
         videoUrl: "/videos/finger-flexion.mp4",
@@ -245,7 +232,6 @@ export class MemStorage implements IStorage {
         orderIndex: 3
       },
       {
-        referenceId: "FE-004",
         name: "Finger Extension",
         description: "Measure finger opening range of motion",
         videoUrl: "/videos/finger-extension.mp4",
@@ -256,7 +242,6 @@ export class MemStorage implements IStorage {
         orderIndex: 4
       },
       {
-        referenceId: "TO-005",
         name: "Thumb Opposition",
         description: "Measure thumb to finger touch capability",
         videoUrl: "/videos/thumb-opposition.mp4",
@@ -267,7 +252,6 @@ export class MemStorage implements IStorage {
         orderIndex: 5
       },
       {
-        referenceId: "SF-006",
         name: "Shoulder Flexion",
         description: "Measure forward shoulder movement",
         videoUrl: "/videos/shoulder-flexion.mp4",
@@ -278,7 +262,6 @@ export class MemStorage implements IStorage {
         orderIndex: 6
       },
       {
-        referenceId: "SA-007",
         name: "Shoulder Abduction",
         description: "Measure sideways shoulder movement",
         videoUrl: "/videos/shoulder-abduction.mp4",
@@ -289,7 +272,6 @@ export class MemStorage implements IStorage {
         orderIndex: 7
       },
       {
-        referenceId: "EFE-008",
         name: "Elbow Flexion/Extension",
         description: "Measure elbow bending and straightening",
         videoUrl: "/videos/elbow-flexion.mp4",
@@ -350,23 +332,20 @@ export class MemStorage implements IStorage {
     
     // Define which assessments are needed for each injury type
     const injuryAssessmentMap: Record<string, string[]> = {
-      "Trigger Finger": ["Finger Flexion", "Finger Extension"],
-      "Carpal Tunnel": ["Wrist Flexion", "Wrist Extension", "Finger Flexion", "Finger Extension", "Thumb Opposition"],
-      "Distal Radius Fracture": ["Wrist Flexion", "Wrist Extension", "Finger Flexion", "Finger Extension", "Thumb Opposition"],
-      "CMC Arthroplasty": ["Thumb Opposition", "Wrist Flexion", "Wrist Extension"],
-      "Metacarpal ORIF": ["Finger Flexion", "Finger Extension", "Thumb Opposition"],
-      "Phalanx Fracture": ["Finger Flexion", "Finger Extension"],
-      "Radial Head Replacement": ["Wrist Flexion", "Wrist Extension", "Finger Flexion", "Finger Extension", "Elbow Flexion/Extension"],
-      "Terrible Triad Injury": ["Wrist Flexion", "Wrist Extension", "Finger Flexion", "Finger Extension", "Elbow Flexion/Extension"],
-      "Dupuytren's Contracture": ["Finger Flexion", "Finger Extension"],
-      "Flexor Tendon Injury": ["Finger Flexion", "Finger Extension"],
-      "Extensor Tendon Injury": ["Finger Flexion", "Finger Extension"],
-      "Wrist Fracture": ["Wrist Flexion", "Wrist Extension", "Finger Flexion", "Finger Extension"],
-      "Tendon Injury": ["Finger Flexion", "Finger Extension"],
-      "Other Injury": ["Wrist Flexion", "Wrist Extension", "Finger Flexion", "Finger Extension", "Thumb Opposition"]
+      "Trigger Finger": ["TAM (Total Active Motion)"],
+      "Carpal Tunnel": ["TAM (Total Active Motion)", "Kapandji Score", "Wrist Flexion/Extension", "Forearm Pronation/Supination", "Wrist Radial/Ulnar Deviation"],
+      "Distal Radius Fracture": ["TAM (Total Active Motion)", "Kapandji Score", "Wrist Flexion/Extension", "Forearm Pronation/Supination", "Wrist Radial/Ulnar Deviation"],
+      "CMC Arthroplasty": ["TAM (Total Active Motion)", "Kapandji Score", "Wrist Flexion/Extension", "Forearm Pronation/Supination", "Wrist Radial/Ulnar Deviation"],
+      "Metacarpal ORIF": ["TAM (Total Active Motion)"],
+      "Phalanx Fracture": ["TAM (Total Active Motion)"],
+      "Radial Head Replacement": ["TAM (Total Active Motion)", "Kapandji Score", "Wrist Flexion/Extension", "Forearm Pronation/Supination", "Wrist Radial/Ulnar Deviation"],
+      "Terrible Triad Injury": ["TAM (Total Active Motion)", "Kapandji Score", "Wrist Flexion/Extension", "Forearm Pronation/Supination", "Wrist Radial/Ulnar Deviation"],
+      "Dupuytren's Contracture": ["TAM (Total Active Motion)"],
+      "Flexor Tendon Injury": ["TAM (Total Active Motion)"],
+      "Extensor Tendon Injury": ["TAM (Total Active Motion)"]
     };
 
-    const requiredAssessments = injuryAssessmentMap[injuryType] || ["Finger Flexion", "Finger Extension"];
+    const requiredAssessments = injuryAssessmentMap[injuryType] || ["TAM (Total Active Motion)"];
     return allAssessments.filter(assessment => requiredAssessments.includes(assessment.name));
   }
 
@@ -394,10 +373,7 @@ export class MemStorage implements IStorage {
 
   async createUserAssessment(insertUserAssessment: InsertUserAssessment): Promise<UserAssessment> {
     const id = this.currentUserAssessmentId++;
-    const userAssessment: UserAssessment = { 
-      ...insertUserAssessment, 
-      id
-    };
+    const userAssessment: UserAssessment = { ...insertUserAssessment, id };
     this.userAssessments.set(id, userAssessment);
     return userAssessment;
   }
@@ -532,7 +508,7 @@ async function initializeDatabase() {
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
 
 // Initialize database on startup
 initializeDatabase();

@@ -12,7 +12,6 @@ export const users = pgTable("users", {
 
 export const assessments = pgTable("assessments", {
   id: serial("id").primaryKey(),
-  referenceId: text("reference_id").notNull().unique(), // Unique reference ID for each assessment
   name: text("name").notNull(),
   description: text("description").notNull(),
   videoUrl: text("video_url"),
@@ -25,7 +24,6 @@ export const assessments = pgTable("assessments", {
 
 export const userAssessments = pgTable("user_assessments", {
   id: serial("id").primaryKey(),
-  runId: text("run_id").notNull().unique(), // Unique ID for each assessment run
   userId: integer("user_id").notNull(),
   assessmentId: integer("assessment_id").notNull(),
   sessionNumber: integer("session_number").default(1), // Track multiple sessions
