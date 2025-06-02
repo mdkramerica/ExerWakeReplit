@@ -340,24 +340,6 @@ export default function AssessmentResults() {
                         });
                       })()}
                     </div>
-
-                    {/* Summary */}
-                    <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                      <h5 className="font-medium mb-3 text-blue-900">TAM Summary</h5>
-                      <div className="flex justify-between items-center mb-3">
-                        <span className="font-medium text-blue-900">Total Active ROM</span>
-                        <span className="font-bold text-xl text-blue-900">{parseFloat(userAssessment.totalActiveRom).toFixed(0)}°</span>
-                      </div>
-                      <div className="text-sm text-blue-800">
-                        <strong>Clinical Assessment:</strong> {parseFloat(userAssessment.totalActiveRom) >= 220 ? 
-                          'Excellent range of motion within normal limits' : 
-                          parseFloat(userAssessment.totalActiveRom) >= 180 ? 
-                            'Good range of motion with mild limitations' : 
-                            parseFloat(userAssessment.totalActiveRom) >= 140 ? 
-                              'Moderate limitations - consider therapy intervention' : 
-                              'Significant limitations - rehabilitation recommended'}
-                      </div>
-                    </div>
                   </div>
                 )}
 
