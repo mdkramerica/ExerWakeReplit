@@ -82,9 +82,20 @@ export default function VideoInstruction() {
             <ProgressBar currentStep={3} totalSteps={3} />
             <h2 className="text-2xl font-semibold text-gray-900 mb-2">Assessment Instructions</h2>
             <p className="text-medical-gray">
-              Watch the video carefully to understand how to perform the {assessment.name.toLowerCase()} assessment.
+              Follow these instructions carefully to perform the {assessment.name.toLowerCase()} assessment.
             </p>
           </div>
+
+          {/* Prominent Instructions Section */}
+          {assessment.instructions && (
+            <div className="mb-8 bg-blue-50 border border-blue-200 rounded-xl p-6">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                <Info className="w-6 h-6 text-blue-600 mr-3" />
+                How to Perform This Assessment
+              </h3>
+              <p className="text-lg text-gray-800 leading-relaxed">{assessment.instructions}</p>
+            </div>
+          )}
 
           <div className="grid lg:grid-cols-2 gap-8">
             <div>
@@ -179,12 +190,7 @@ export default function VideoInstruction() {
                 </ul>
               </div>
 
-              {assessment.instructions && (
-                <div className="bg-gray-100 rounded-lg p-6">
-                  <h3 className="font-semibold text-gray-900 mb-3">Instructions</h3>
-                  <p className="text-sm text-gray-700">{assessment.instructions}</p>
-                </div>
-              )}
+
 
               <div className="text-center pt-4">
                 <Button
