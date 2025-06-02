@@ -19,9 +19,26 @@ export default function Overview() {
   const injuryTypes = injuryTypesData?.injuryTypes || [];
   const assessments = assessmentsData?.assessments || [];
 
-  // Group assessments by injury type (for now we'll show all assessments for each injury type)
+  // Group assessments by injury type based on the assessment mapping
   const getAssessmentsForInjury = (injuryName: string) => {
-    return assessments.filter((assessment: any) => assessment.isActive);
+    const injuryAssessmentMap: Record<string, string[]> = {
+      "Trigger Finger": ["TAM (Total Active Motion)"],
+      "Carpal Tunnel": ["TAM (Total Active Motion)", "Kapandji Score", "Wrist Flexion/Extension", "Forearm Pronation/Supination", "Wrist Radial/Ulnar Deviation"],
+      "Distal Radius Fracture": ["TAM (Total Active Motion)", "Kapandji Score", "Wrist Flexion/Extension", "Forearm Pronation/Supination", "Wrist Radial/Ulnar Deviation"],
+      "CMC Arthroplasty": ["TAM (Total Active Motion)", "Kapandji Score", "Wrist Flexion/Extension", "Forearm Pronation/Supination", "Wrist Radial/Ulnar Deviation"],
+      "Metacarpal ORIF": ["TAM (Total Active Motion)"],
+      "Phalanx Fracture": ["TAM (Total Active Motion)"],
+      "Radial Head Replacement": ["TAM (Total Active Motion)", "Kapandji Score", "Wrist Flexion/Extension", "Forearm Pronation/Supination", "Wrist Radial/Ulnar Deviation"],
+      "Terrible Triad Injury": ["TAM (Total Active Motion)", "Kapandji Score", "Wrist Flexion/Extension", "Forearm Pronation/Supination", "Wrist Radial/Ulnar Deviation"],
+      "Dupuytren's Contracture": ["TAM (Total Active Motion)"],
+      "Flexor Tendon Injury": ["TAM (Total Active Motion)"],
+      "Extensor Tendon Injury": ["TAM (Total Active Motion)"]
+    };
+
+    const requiredAssessments = injuryAssessmentMap[injuryName] || ["TAM (Total Active Motion)"];
+    return assessments.filter((assessment: any) => 
+      assessment.isActive && requiredAssessments.includes(assessment.name)
+    );
   };
 
   return (
