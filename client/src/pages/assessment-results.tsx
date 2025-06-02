@@ -313,22 +313,22 @@ export default function AssessmentResults() {
                                   <div className="text-xs text-gray-500">Normal: 70-90°</div>
                                 </div>
                                 <div className={`p-2 rounded ${
-                                  pipAngle < 90 || pipAngle > 110 ? 'bg-red-50 border border-red-200' : 'bg-gray-100'
+                                  pipAngle < 90 ? 'bg-red-50 border border-red-200' : 'bg-gray-100'
                                 }`}>
                                   <div className="text-xs text-gray-800">PIP Joint</div>
                                   <div className={`font-medium ${
-                                    pipAngle < 90 || pipAngle > 110 ? 'text-red-600' : 'text-green-600'
+                                    pipAngle < 90 ? 'text-red-600' : 'text-green-600'
                                   }`}>
                                     {Math.round(pipAngle)}°
                                   </div>
                                   <div className="text-xs text-gray-500">Normal: 90-110°</div>
                                 </div>
                                 <div className={`p-2 rounded ${
-                                  dipAngle < 70 || dipAngle > 90 ? 'bg-red-50 border border-red-200' : 'bg-gray-100'
+                                  dipAngle < 70 ? 'bg-red-50 border border-red-200' : 'bg-gray-100'
                                 }`}>
                                   <div className="text-xs text-gray-800">DIP Joint</div>
                                   <div className={`font-medium ${
-                                    dipAngle < 70 || dipAngle > 90 ? 'text-red-600' : 'text-purple-600'
+                                    dipAngle < 70 ? 'text-red-600' : 'text-purple-600'
                                   }`}>
                                     {Math.round(dipAngle)}°
                                   </div>
