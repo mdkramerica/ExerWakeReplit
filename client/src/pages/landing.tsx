@@ -22,11 +22,13 @@ export default function Landing() {
     onSuccess: (data) => {
       // Store user data in sessionStorage
       sessionStorage.setItem('currentUser', JSON.stringify(data.user));
+      // Store user code in localStorage for redirect logic
+      localStorage.setItem('currentUserCode', data.user.code);
       
       if (data.isFirstTime && !data.hasInjuryType) {
         setLocation("/injury-selection");
       } else {
-        setLocation("/assessments");
+        setLocation(`/assessment-list/${data.user.code}`);
       }
     },
     onError: () => {

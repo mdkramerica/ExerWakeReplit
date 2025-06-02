@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -50,6 +50,19 @@ export default function AssessmentList() {
   // Get user code from URL path - handle both /assessments and /assessment-list/:code routes
   const pathParts = window.location.pathname.split('/');
   const userCode = pathParts[1] === 'assessment-list' ? pathParts[2] : null;
+
+  // If user is on /assessments without a code, check for stored user data or redirect to landing
+  React.useEffect(() => {
+    if (pathParts[1] === 'assessments' && !userCode) {
+      // Check localStorage for recent user code
+      const storedUserCode = localStorage.getItem('currentUserCode');
+      if (storedUserCode) {
+        navigate(`/assessment-list/${storedUserCode}`);
+      } else {
+        navigate('/');
+      }
+    }
+  }, [pathParts, userCode, navigate]);
 
   // First get user data using the code to get the actual user ID
   const { data: userData, isLoading: userLoading } = useQuery({
