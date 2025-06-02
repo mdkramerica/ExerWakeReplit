@@ -118,10 +118,24 @@ export default function Admin() {
     <div className="container mx-auto px-4 py-8 max-w-6xl">
       {/* Admin Header */}
       <div className="mb-8">
-        <div className="flex items-center gap-3 mb-4">
-          <Shield className="w-8 h-8 text-red-600" />
-          <h1 className="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
-          <Badge variant="destructive" className="ml-2">ADMIN ACCESS</Badge>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <Shield className="w-8 h-8 text-red-600" />
+            <h1 className="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
+            <Badge variant="destructive" className="ml-2">ADMIN ACCESS</Badge>
+          </div>
+          <Button 
+            variant="outline" 
+            onClick={() => {
+              localStorage.removeItem('currentUser');
+              localStorage.removeItem('adminMode');
+              navigate('/');
+            }}
+            className="flex items-center gap-2"
+          >
+            <RotateCcw className="w-4 h-4" />
+            Exit Admin Mode
+          </Button>
         </div>
         <p className="text-gray-600">Full access to all assessments and injury types across the platform</p>
       </div>

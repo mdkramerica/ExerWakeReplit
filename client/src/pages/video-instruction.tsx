@@ -8,19 +8,35 @@ import ProgressBar from "@/components/progress-bar";
 import { apiRequest } from "@/lib/queryClient";
 
 export default function VideoInstruction() {
-  const { id } = useParams();
+  const params = useParams();
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [videoWatched, setVideoWatched] = useState(false);
   const [, setLocation] = useLocation();
+  
+  // Handle both route formats: /assessment/:code/:id and /assessment/:id/video
+  const userCode = params.code;
+  const assessmentId = params.code ? params.id : params.id;
+  const id = assessmentId;
 
   useEffect(() => {
-    const savedUser = sessionStorage.getItem('currentUser');
-    if (savedUser) {
-      setCurrentUser(JSON.parse(savedUser));
+    if (userCode) {
+      // Route with user code - get user by code
+      const savedUser = localStorage.getItem(`user-${userCode}`);
+      if (savedUser) {
+        setCurrentUser(JSON.parse(savedUser));
+      } else {
+        setLocation("/");
+      }
     } else {
-      setLocation("/");
+      // Legacy route - use sessionStorage
+      const savedUser = sessionStorage.getItem('currentUser');
+      if (savedUser) {
+        setCurrentUser(JSON.parse(savedUser));
+      } else {
+        setLocation("/");
+      }
     }
-  }, [setLocation]);
+  }, [setLocation, userCode]);
 
   const { data: assessmentData, isLoading } = useQuery({
     queryKey: [`/api/assessments/${id}`],
@@ -45,7 +61,11 @@ export default function VideoInstruction() {
   };
 
   const handleBack = () => {
-    setLocation("/assessments");
+    if (userCode) {
+      setLocation(`/assessment-list/${userCode}`);
+    } else {
+      setLocation("/assessments");
+    }
   };
 
   if (isLoading) {
