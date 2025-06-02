@@ -543,6 +543,38 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
     const correctedHand = frame.handedness === "Right" ? "Left" : frame.handedness === "Left" ? "Right" : frame.handedness;
     ctx.fillText(`Hand: ${correctedHand}`, 10, 65);
 
+    // For Kapandji assessments, draw palm boundary line
+    if (isKapandjiAssessment && frame.landmarks && frame.landmarks.length >= 21) {
+      const wrist = frame.landmarks[0];
+      const pinkyMcp = frame.landmarks[17];
+      const pinkyTip = frame.landmarks[20];
+      const thumbBase = frame.landmarks[1];
+      
+      // Determine handedness
+      const isRightHand = thumbBase.x > wrist.x;
+      
+      // Calculate palm boundary (same logic as in Kapandji calculator)
+      const palmBoundaryX = isRightHand ? 
+        Math.max(pinkyMcp.x, pinkyTip.x) : 
+        Math.min(pinkyMcp.x, pinkyTip.x);
+      
+      // Draw palm boundary line
+      const boundaryX = (1 - palmBoundaryX) * canvas.width; // Flip for display
+      ctx.strokeStyle = '#ffff00'; // Yellow line
+      ctx.lineWidth = 3;
+      ctx.setLineDash([5, 5]);
+      ctx.beginPath();
+      ctx.moveTo(boundaryX, 0);
+      ctx.lineTo(boundaryX, canvas.height);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      
+      // Label the boundary line
+      ctx.fillStyle = '#ffff00';
+      ctx.font = 'bold 12px Arial';
+      ctx.fillText('Palm Boundary', boundaryX + 5, 20);
+    }
+
     // Draw finger measurement legend (moved up to avoid timeline scrubber)
     const legendHeight = 70;
     const legendY = canvas.height - 120; // Moved up 40px to clear timeline

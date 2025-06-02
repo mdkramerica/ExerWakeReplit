@@ -105,6 +105,16 @@ export function calculateKapandjiScore(landmarks: HandLandmark[]): KapandjiScore
     (thumbTip.x > palmBoundaryX + BEYOND_PALM_THRESHOLD) : 
     (thumbTip.x < palmBoundaryX - BEYOND_PALM_THRESHOLD);
 
+  // Debug logging
+  console.log('Kapandji Beyond Palm Debug:', {
+    isRightHand,
+    thumbTipX: thumbTip.x,
+    palmBoundaryX,
+    threshold: BEYOND_PALM_THRESHOLD,
+    requiredX: isRightHand ? palmBoundaryX + BEYOND_PALM_THRESHOLD : palmBoundaryX - BEYOND_PALM_THRESHOLD,
+    reachesBeyondPalm
+  });
+
   if (reachesBeyondPalm) {
     maxScore = Math.max(maxScore, 10);
     reachedLandmarks.push('Beyond Palm');
