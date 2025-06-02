@@ -27,6 +27,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/users/by-code/:code", async (req, res) => {
+    try {
+      const { code } = req.params;
+      
+      if (!code || code.length !== 6) {
+        return res.status(400).json({ message: "Invalid code format" });
+      }
+      
+      const user = await storage.getUserByCode(code);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      res.json({ user });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
   app.patch("/api/users/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);

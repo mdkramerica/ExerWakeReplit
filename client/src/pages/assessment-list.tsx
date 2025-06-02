@@ -59,6 +59,14 @@ export default function AssessmentList() {
 
   const userId = userData?.user?.id;
 
+  // Debug logging
+  console.log('Assessment List Debug:', {
+    userCode,
+    userData,
+    userId,
+    pathParts
+  });
+
   const { data: assessmentData, isLoading: assessmentsLoading } = useQuery({
     queryKey: [`/api/users/${userId}/assessments`],
     enabled: !!userId,
