@@ -249,7 +249,9 @@ export default function AssessmentResults() {
                       let romData = null;
                       try {
                         romData = userAssessment.romData ? JSON.parse(userAssessment.romData) : null;
+                        console.log('ROM Data Structure:', romData);
                       } catch (e) {
+                        console.error('ROM Data Parse Error:', e);
                         romData = null;
                       }
                       
