@@ -1,0 +1,127 @@
+import { useQuery } from "@tanstack/react-query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Link } from "wouter";
+import { getInjuryIcon } from "@/components/medical-icons";
+
+export default function Overview() {
+  // Fetch all injury types
+  const { data: injuryTypesData } = useQuery({
+    queryKey: ['/api/injury-types']
+  });
+
+  // Fetch all assessments
+  const { data: assessmentsData } = useQuery({
+    queryKey: ['/api/assessments']
+  });
+
+  const injuryTypes = injuryTypesData?.injuryTypes || [];
+  const assessments = assessmentsData?.assessments || [];
+
+  // Group assessments by injury type (for now we'll show all assessments for each injury type)
+  const getAssessmentsForInjury = (injuryName: string) => {
+    return assessments.filter((assessment: any) => assessment.isActive);
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-6xl mx-auto">
+          {/* Header */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <Link href="/">
+                <Button variant="outline" className="flex items-center gap-2">
+                  ← Back to Home
+                </Button>
+              </Link>
+            </div>
+
+            <div className="text-center">
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                Assessment Overview
+              </h1>
+              <p className="text-gray-600">
+                Complete assessment coverage by injury type
+              </p>
+            </div>
+          </div>
+
+          {/* Injury Types and Assessments */}
+          <div className="space-y-8">
+            {injuryTypes.map((injuryType: any) => {
+              const assessmentsForInjury = getAssessmentsForInjury(injuryType.name);
+              const InjuryIcon = getInjuryIcon(injuryType.name);
+
+              return (
+                <Card key={injuryType.id} className="border border-gray-200">
+                  <CardHeader className="bg-gray-50 border-b border-gray-200">
+                    <CardTitle className="text-xl font-semibold text-gray-900 flex items-center gap-3">
+                      <InjuryIcon className="w-8 h-8 text-blue-600" />
+                      {injuryType.name}
+                      <Badge variant="outline" className="ml-auto">
+                        {assessmentsForInjury.length} assessments
+                      </Badge>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    {assessmentsForInjury.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {assessmentsForInjury.map((assessment: any) => (
+                          <div
+                            key={assessment.id}
+                            className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                          >
+                            <div className="flex items-start justify-between mb-3">
+                              <h3 className="font-medium text-gray-900 text-sm">
+                                {assessment.name}
+                              </h3>
+                              <Badge variant="outline" className="text-xs">
+                                {assessment.duration}s
+                              </Badge>
+                            </div>
+                            
+                            <p className="text-gray-600 text-xs mb-4 line-clamp-2">
+                              {assessment.description}
+                            </p>
+                            
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-gray-500">
+                                Order: {assessment.orderIndex}
+                              </span>
+                              
+                              <Link href={`/assessment/${assessment.id}/video`}>
+                                <Button 
+                                  size="sm" 
+                                  className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1"
+                                >
+                                  Start Assessment
+                                </Button>
+                              </Link>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-gray-500">
+                        <p>No assessments available for this injury type</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+
+          {/* Footer Note */}
+          <div className="mt-12 text-center">
+            <p className="text-sm text-gray-500">
+              All assessments are available for each injury type. Complete assessments in any order.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

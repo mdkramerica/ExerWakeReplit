@@ -14,6 +14,7 @@ import ThankYou from "@/pages/thank-you";
 import AssessmentResults from "@/pages/assessment-results";
 import JointTest from "@/pages/joint-test";
 import SharedAssessment from "@/pages/shared-assessment";
+import Overview from "@/pages/overview";
 import Header from "@/components/header";
 import Footer from "@/components/footer";
 
@@ -21,6 +22,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Landing} />
+      <Route path="/overview" component={Overview} />
       <Route path="/injury-selection" component={InjurySelection} />
       <Route path="/assessments" component={AssessmentList} />
       <Route path="/assessment-list/:code" component={AssessmentList} />

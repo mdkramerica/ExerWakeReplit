@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -107,6 +107,14 @@ export default function Landing() {
               )}
             </Button>
           </form>
+          
+          <div className="mt-6 text-center">
+            <Link href="/overview">
+              <Button variant="outline" className="text-blue-600 border-blue-200 hover:bg-blue-50">
+                Browse All Assessments
+              </Button>
+            </Link>
+          </div>
           
           <div className="mt-8 pt-6 border-t border-gray-200">
             <div className="flex items-center justify-center space-x-4 text-sm text-gray-800">
