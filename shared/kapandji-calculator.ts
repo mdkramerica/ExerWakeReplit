@@ -85,16 +85,25 @@ export function calculateKapandjiScore(landmarks: HandLandmark[]): KapandjiScore
   }
 
   // Special case: Check if thumb reaches beyond palm (score 10)
-  // For right hand: thumb x > pinky tip x, for left hand: thumb x < pinky tip x
+  // Use a more accurate palm boundary detection
   const pinkyTip = landmarks[20];
   const wrist = landmarks[0];
+  const pinkyMcp = landmarks[17];
   
   // Determine handedness by comparing thumb base to wrist
   const isRightHand = landmarks[1].x > wrist.x;
   
+  // Calculate palm boundary more accurately using pinky MCP and wrist
+  const palmBoundaryX = isRightHand ? 
+    Math.max(pinkyMcp.x, pinkyTip.x) : 
+    Math.min(pinkyMcp.x, pinkyTip.x);
+  
+  // Require thumb to be significantly beyond the palm boundary
+  const BEYOND_PALM_THRESHOLD = 0.06; // Increased threshold for more accuracy
+  
   const reachesBeyondPalm = isRightHand ? 
-    (thumbTip.x > pinkyTip.x + 0.03) : 
-    (thumbTip.x < pinkyTip.x - 0.03);
+    (thumbTip.x > palmBoundaryX + BEYOND_PALM_THRESHOLD) : 
+    (thumbTip.x < palmBoundaryX - BEYOND_PALM_THRESHOLD);
 
   if (reachesBeyondPalm) {
     maxScore = Math.max(maxScore, 10);
