@@ -18,13 +18,18 @@ export default function VideoInstruction() {
   const assessmentId = params.code ? params.id : params.id;
   const id = assessmentId;
 
+  // Fetch user data if we have a user code
+  const { data: userData, isLoading: userLoading } = useQuery({
+    queryKey: [`/api/users/by-code/${userCode}`],
+    enabled: !!userCode,
+  });
+
   useEffect(() => {
     if (userCode) {
-      // Route with user code - get user by code
-      const savedUser = localStorage.getItem(`user-${userCode}`);
-      if (savedUser) {
-        setCurrentUser(JSON.parse(savedUser));
-      } else {
+      // Route with user code - wait for API data
+      if (userData?.user) {
+        setCurrentUser(userData.user);
+      } else if (!userLoading && userData === undefined) {
         setLocation("/");
       }
     } else {
@@ -36,7 +41,7 @@ export default function VideoInstruction() {
         setLocation("/");
       }
     }
-  }, [setLocation, userCode]);
+  }, [setLocation, userCode, userData, userLoading]);
 
   const { data: assessmentData, isLoading } = useQuery({
     queryKey: [`/api/assessments/${id}`],
@@ -45,7 +50,8 @@ export default function VideoInstruction() {
 
   const startAssessmentMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest("POST", `/api/users/${currentUser.id}/assessments/${id}/start`);
+      const userId = currentUser?.id || "admin";
+      const response = await apiRequest("POST", `/api/users/${userId}/assessments/${id}/start`);
       return response.json();
     },
   });
@@ -68,7 +74,7 @@ export default function VideoInstruction() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || userLoading || (userCode && !currentUser)) {
     return (
       <div className="max-w-4xl mx-auto">
         <Card className="medical-card">
