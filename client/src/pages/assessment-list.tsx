@@ -77,7 +77,10 @@ export default function AssessmentList() {
     userCode,
     userData,
     userId,
-    pathParts
+    pathParts,
+    assessmentData,
+    progressData,
+    historyData
   });
 
   const { data: assessmentData, isLoading: assessmentsLoading } = useQuery({
