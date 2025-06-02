@@ -825,8 +825,8 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
               </div>
             </div>
 
-            {/* Live ROM Data Display */}
-            {currentROM && (
+            {/* Live ROM Data Display - only show for TAM assessments, not Kapandji */}
+            {currentROM && !assessmentName.toLowerCase().includes('kapandji') && (
               <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
                 <h4 className="font-medium mb-3 flex items-center text-gray-900">
                   <span className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>

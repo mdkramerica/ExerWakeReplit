@@ -174,7 +174,10 @@ export default function AssessmentList() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                      {getInjuryIcon(assessment.name)}
+                      {(() => {
+                        const IconComponent = getInjuryIcon(assessment.name);
+                        return <IconComponent className="w-6 h-6 text-blue-600" />;
+                      })()}
                     </div>
                     <div>
                       <h3 className="font-medium text-gray-900">{assessment.name}</h3>
