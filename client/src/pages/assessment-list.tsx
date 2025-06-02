@@ -220,20 +220,29 @@ export default function AssessmentList() {
                     )}
                     
                     {assessment.isCompleted ? (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          const userId = userCode.replace(/^user-/, '');
-                          const userAssessment = historyData.history.find((h: any) => h.assessmentName === assessment.name);
-                          if (userAssessment) {
-                            navigate(`/assessment-results/${userCode}/${userAssessment.id}`);
-                          }
-                        }}
-                        className="text-blue-600 border-blue-200 hover:bg-blue-50"
-                      >
-                        View Results
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const userId = userCode.replace(/^user-/, '');
+                            const userAssessment = historyData.history.find((h: any) => h.assessmentName === assessment.name);
+                            if (userAssessment) {
+                              navigate(`/assessment-results/${userCode}/${userAssessment.id}`);
+                            }
+                          }}
+                          className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                        >
+                          View Results
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={() => navigate(`/assessment/${assessment.id}/video`)}
+                          className="bg-green-600 hover:bg-green-700 text-white"
+                        >
+                          Redo Assessment
+                        </Button>
+                      </div>
                     ) : assessment.id === nextAssessment?.id ? (
                       <Button
                         size="sm"
