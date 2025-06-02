@@ -448,93 +448,61 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
       }
     });
 
-    // Draw live data overlay (ROM for TAM, Kapandji score for Kapandji assessments)
+    // Draw live ROM data overlay
     if (frame.landmarks && frame.landmarks.length >= 21) {
-      if (isKapandjiAssessment) {
-        // For Kapandji assessments, show opposition scoring
-        const kapandjiScore = calculateKapandjiScore(frame.landmarks);
-        
-        // Semi-transparent background for Kapandji overlay
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-        ctx.fillRect(canvas.width - 240, 10, 220, 140);
-        
-        // Kapandji title
-        ctx.fillStyle = '#00ff00';
-        ctx.font = 'bold 14px Arial';
-        ctx.fillText('Kapandji Opposition', canvas.width - 230, 30);
-        
-        // Current score
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Arial';
-        ctx.fillText(`Score: ${kapandjiScore.maxScore}/10`, canvas.width - 230, 55);
-        
-        // Show achieved levels
-        ctx.font = '11px Arial';
-        ctx.fillStyle = '#ffff00';
-        if (kapandjiScore.reachedLandmarks.length > 0) {
-          ctx.fillText('Achieved:', canvas.width - 230, 75);
-          kapandjiScore.reachedLandmarks.forEach((landmark, index) => {
-            ctx.fillText(`• ${landmark}`, canvas.width - 230, 90 + (index * 12));
-          });
-        } else {
-          ctx.fillText('No opposition detected', canvas.width - 230, 75);
+      const romData = calculateFingerROM(frame.landmarks, selectedDigit);
+      
+      // Semi-transparent background for ROM overlay
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+      ctx.fillRect(canvas.width - 240, 10, 220, 120);
+      
+      // ROM title with selected digit
+      ctx.fillStyle = '#00ff00';
+      ctx.font = 'bold 14px Arial';
+      ctx.fillText(`${selectedDigit.charAt(0) + selectedDigit.slice(1).toLowerCase()} Finger`, canvas.width - 230, 30);
+      
+      // Draw finger diagram indicator based on selected digit
+      const getFingerLandmarks = (digit: string) => {
+        switch (digit) {
+          case 'INDEX': return [5, 6, 7, 8];
+          case 'MIDDLE': return [9, 10, 11, 12];
+          case 'RING': return [13, 14, 15, 16];
+          case 'PINKY': return [17, 18, 19, 20];
+          default: return [5, 6, 7, 8];
         }
-      } else {
-        // For TAM assessments, show ROM data
-        const romData = calculateFingerROM(frame.landmarks, selectedDigit);
-        
-        // Semi-transparent background for ROM overlay
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-        ctx.fillRect(canvas.width - 240, 10, 220, 120);
-        
-        // ROM title with selected digit
-        ctx.fillStyle = '#00ff00';
-        ctx.font = 'bold 14px Arial';
-        ctx.fillText(`${selectedDigit.charAt(0) + selectedDigit.slice(1).toLowerCase()} Finger`, canvas.width - 230, 30);
-        
-        // Draw finger diagram indicator based on selected digit
-        const getFingerLandmarks = (digit: string) => {
-          switch (digit) {
-            case 'INDEX': return [5, 6, 7, 8];
-            case 'MIDDLE': return [9, 10, 11, 12];
-            case 'RING': return [13, 14, 15, 16];
-            case 'PINKY': return [17, 18, 19, 20];
-            default: return [5, 6, 7, 8];
-          }
-        };
-        
-        const fingerLandmarks = getFingerLandmarks(selectedDigit);
-        ctx.strokeStyle = '#ffff00'; // Yellow to match highlighted connections
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(canvas.width - 50, 40);
-        ctx.lineTo(canvas.width - 30, 40);
-        ctx.lineTo(canvas.width - 30, 50);
-        ctx.lineTo(canvas.width - 20, 50);
-        ctx.lineTo(canvas.width - 20, 60);
-        ctx.lineTo(canvas.width - 10, 60);
-        ctx.stroke();
-        
-        // Joint angles with color coding
-        ctx.font = '12px Arial';
-        
-        // MCP Joint (blue to match highlighted landmarks)
-        ctx.fillStyle = '#3b82f6';
-        ctx.fillText(`MCP: ${Math.round(romData.mcpAngle)}°`, canvas.width - 230, 50);
-        
-        // PIP Joint (green)
-        ctx.fillStyle = '#10b981';
-        ctx.fillText(`PIP: ${Math.round(romData.pipAngle)}°`, canvas.width - 230, 70);
-        
-        // DIP Joint (purple)
-        ctx.fillStyle = '#8b5cf6';
-        ctx.fillText(`DIP: ${Math.round(romData.dipAngle)}°`, canvas.width - 230, 90);
-        
-        // Total ROM (white, emphasized)
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 12px Arial';
-        ctx.fillText(`Total: ${Math.round(romData.totalActiveRom)}°`, canvas.width - 210, 110);
-      }
+      };
+      
+      const fingerLandmarks = getFingerLandmarks(selectedDigit);
+      ctx.strokeStyle = '#ffff00'; // Yellow to match highlighted connections
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(canvas.width - 50, 40);
+      ctx.lineTo(canvas.width - 30, 40);
+      ctx.lineTo(canvas.width - 30, 50);
+      ctx.lineTo(canvas.width - 20, 50);
+      ctx.lineTo(canvas.width - 20, 60);
+      ctx.lineTo(canvas.width - 10, 60);
+      ctx.stroke();
+      
+      // Joint angles with color coding
+      ctx.font = '12px Arial';
+      
+      // MCP Joint (blue to match highlighted landmarks)
+      ctx.fillStyle = '#3b82f6';
+      ctx.fillText(`MCP: ${Math.round(romData.mcpAngle)}°`, canvas.width - 230, 50);
+      
+      // PIP Joint (green)
+      ctx.fillStyle = '#10b981';
+      ctx.fillText(`PIP: ${Math.round(romData.pipAngle)}°`, canvas.width - 230, 70);
+      
+      // DIP Joint (purple)
+      ctx.fillStyle = '#8b5cf6';
+      ctx.fillText(`DIP: ${Math.round(romData.dipAngle)}°`, canvas.width - 230, 90);
+      
+      // Total ROM (white, emphasized)
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 12px Arial';
+      ctx.fillText(`Total: ${Math.round(romData.totalActiveRom)}°`, canvas.width - 210, 110);
       
       // Draw angle visualization on the finger joints with matching colors
       if (frame.landmarks[5] && frame.landmarks[6] && frame.landmarks[7] && frame.landmarks[8]) {
