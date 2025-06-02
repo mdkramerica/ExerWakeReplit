@@ -241,90 +241,105 @@ export default function AssessmentResults() {
 
                 {/* Comprehensive ROM Analysis for TAM assessments */}
                 {!isKapandjiAssessment && userAssessment.totalActiveRom && (
-                  <div className="bg-white border border-gray-200 p-6 rounded-lg">
-                    <h4 className="font-medium mb-6 text-gray-900 text-xl">Comprehensive ROM Analysis - All Digits</h4>
-                    
-                    {/* Individual finger ROM analysis */}
-                    {(() => {
-                      const allFingers = [
-                        { 
-                          name: 'Index Finger', 
-                          key: 'index', 
-                          romValue: userAssessment.indexFingerRom,
-                          mcpAngle: userAssessment.maxMcpAngle,
-                          pipAngle: userAssessment.maxPipAngle,
-                          dipAngle: userAssessment.maxDipAngle,
-                          highlight: false 
-                        },
-                        { 
-                          name: 'Middle Finger', 
-                          key: 'middle', 
-                          romValue: userAssessment.middleFingerRom,
-                          mcpAngle: userAssessment.middleFingerMcp,
-                          pipAngle: userAssessment.middleFingerPip,
-                          dipAngle: userAssessment.middleFingerDip,
-                          highlight: true 
-                        },
-                        { 
-                          name: 'Ring Finger', 
-                          key: 'ring', 
-                          romValue: userAssessment.ringFingerRom,
-                          mcpAngle: userAssessment.ringFingerMcp,
-                          pipAngle: userAssessment.ringFingerPip,
-                          dipAngle: userAssessment.ringFingerDip,
-                          highlight: false 
-                        },
-                        { 
-                          name: 'Pinky Finger', 
-                          key: 'pinky', 
-                          romValue: userAssessment.pinkyFingerRom,
-                          mcpAngle: userAssessment.pinkyFingerMcp,
-                          pipAngle: userAssessment.pinkyFingerPip,
-                          dipAngle: userAssessment.pinkyFingerDip,
-                          highlight: false 
-                        }
-                      ];
+                  <div className="bg-gray-100 border border-gray-200 p-4 rounded-lg">
+                    <h4 className="font-medium mb-3 text-gray-900">Comprehensive ROM Analysis - All Digits</h4>
+                    <div className="space-y-4">
+                      {(() => {
+                        const allFingers = [
+                          { 
+                            name: 'Index Finger', 
+                            key: 'index', 
+                            romValue: userAssessment.indexFingerRom,
+                            mcpAngle: userAssessment.maxMcpAngle,
+                            pipAngle: userAssessment.maxPipAngle,
+                            dipAngle: userAssessment.maxDipAngle,
+                            highlight: false 
+                          },
+                          { 
+                            name: 'Middle Finger', 
+                            key: 'middle', 
+                            romValue: userAssessment.middleFingerRom,
+                            mcpAngle: userAssessment.middleFingerMcp,
+                            pipAngle: userAssessment.middleFingerPip,
+                            dipAngle: userAssessment.middleFingerDip,
+                            highlight: true 
+                          },
+                          { 
+                            name: 'Ring Finger', 
+                            key: 'ring', 
+                            romValue: userAssessment.ringFingerRom,
+                            mcpAngle: userAssessment.ringFingerMcp,
+                            pipAngle: userAssessment.ringFingerPip,
+                            dipAngle: userAssessment.ringFingerDip,
+                            highlight: false 
+                          },
+                          { 
+                            name: 'Pinky Finger', 
+                            key: 'pinky', 
+                            romValue: userAssessment.pinkyFingerRom,
+                            mcpAngle: userAssessment.pinkyFingerMcp,
+                            pipAngle: userAssessment.pinkyFingerPip,
+                            dipAngle: userAssessment.pinkyFingerDip,
+                            highlight: false 
+                          }
+                        ];
 
-                      return allFingers.map((finger, index) => {
-                        const mcpAngle = finger.mcpAngle ? parseFloat(finger.mcpAngle) : 0;
-                        const pipAngle = finger.pipAngle ? parseFloat(finger.pipAngle) : 0;
-                        const dipAngle = finger.dipAngle ? parseFloat(finger.dipAngle) : 0;
+                        return allFingers.map((finger, index) => {
+                          const mcpAngle = finger.mcpAngle ? parseFloat(finger.mcpAngle) : 0;
+                          const pipAngle = finger.pipAngle ? parseFloat(finger.pipAngle) : 0;
+                          const dipAngle = finger.dipAngle ? parseFloat(finger.dipAngle) : 0;
 
-                        return (
-                          <div key={finger.key} className={`mb-6 p-4 rounded-lg ${finger.highlight ? 'border-2 border-blue-300 bg-blue-50' : 'border border-gray-200'}`}>
-                            <div className="flex justify-between items-center mb-4">
-                              <h5 className="text-lg font-medium text-gray-900">{finger.name}</h5>
-                              <span className="text-lg font-bold text-gray-900">
-                                {finger.romValue ? `${parseFloat(finger.romValue).toFixed(0)}° TAM` : 'N/A'}
-                              </span>
+                          return (
+                            <div key={finger.key} className={`bg-white p-4 rounded border ${
+                              finger.highlight ? 'ring-2 ring-blue-500' : ''
+                            }`}>
+                              <div className="flex justify-between items-center mb-3">
+                                <span className="font-medium text-gray-900">{finger.name}</span>
+                                <span className="font-bold text-lg text-gray-900">
+                                  {finger.romValue ? `${Math.round(parseFloat(finger.romValue))}° TAM` : 'N/A'}
+                                </span>
+                              </div>
+                              
+                              <div className="grid grid-cols-3 gap-3 text-sm">
+                                <div className={`p-2 rounded ${
+                                  mcpAngle < 70 ? 'bg-red-50 border border-red-200' : 'bg-gray-100'
+                                }`}>
+                                  <div className="text-xs text-gray-800">MCP Joint</div>
+                                  <div className={`font-medium ${
+                                    mcpAngle < 70 ? 'text-red-600' : 'text-blue-600'
+                                  }`}>
+                                    {Math.round(mcpAngle)}°
+                                  </div>
+                                  <div className="text-xs text-gray-500">Normal: 70-90°</div>
+                                </div>
+                                <div className={`p-2 rounded ${
+                                  pipAngle < 90 || pipAngle > 110 ? 'bg-red-50 border border-red-200' : 'bg-gray-100'
+                                }`}>
+                                  <div className="text-xs text-gray-800">PIP Joint</div>
+                                  <div className={`font-medium ${
+                                    pipAngle < 90 || pipAngle > 110 ? 'text-red-600' : 'text-green-600'
+                                  }`}>
+                                    {Math.round(pipAngle)}°
+                                  </div>
+                                  <div className="text-xs text-gray-500">Normal: 90-110°</div>
+                                </div>
+                                <div className={`p-2 rounded ${
+                                  dipAngle < 70 || dipAngle > 90 ? 'bg-red-50 border border-red-200' : 'bg-gray-100'
+                                }`}>
+                                  <div className="text-xs text-gray-800">DIP Joint</div>
+                                  <div className={`font-medium ${
+                                    dipAngle < 70 || dipAngle > 90 ? 'text-red-600' : 'text-purple-600'
+                                  }`}>
+                                    {Math.round(dipAngle)}°
+                                  </div>
+                                  <div className="text-xs text-gray-500">Normal: 70-90°</div>
+                                </div>
+                              </div>
                             </div>
-                            <div className="grid grid-cols-3 gap-4">
-                              <div className={`text-center p-3 rounded ${finger.highlight ? 'bg-white' : 'bg-gray-50'}`}>
-                                <div className="text-sm text-gray-600">MCP Joint</div>
-                                <div className={`text-lg font-bold ${mcpAngle < 70 || mcpAngle > 90 ? 'text-red-600' : 'text-blue-600'}`}>
-                                  {mcpAngle.toFixed(0)}°
-                                </div>
-                                <div className="text-xs text-gray-500">Normal: 70-90°</div>
-                              </div>
-                              <div className={`text-center p-3 rounded ${finger.highlight ? 'bg-white' : 'bg-gray-50'}`}>
-                                <div className="text-sm text-gray-600">PIP Joint</div>
-                                <div className={`text-lg font-bold ${pipAngle < 90 || pipAngle > 110 ? 'text-red-600' : 'text-green-600'}`}>
-                                  {pipAngle.toFixed(0)}°
-                                </div>
-                                <div className="text-xs text-gray-500">Normal: 90-110°</div>
-                              </div>
-                              <div className={`text-center p-3 rounded ${finger.highlight ? 'bg-white' : 'bg-gray-50'}`}>
-                                <div className="text-sm text-gray-600">DIP Joint</div>
-                                <div className={`text-lg font-bold ${dipAngle < 70 || dipAngle > 90 ? 'text-red-600' : 'text-green-600'}`}>
-                                  {dipAngle.toFixed(0)}°
-                                </div>
-                                <div className="text-xs text-gray-500">Normal: 70-90°</div>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      });
-                    })()}
+                          );
+                        });
+                      })()}
+                    </div>
 
                     {/* Summary */}
                     <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
