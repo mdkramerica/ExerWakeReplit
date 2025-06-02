@@ -13,14 +13,21 @@
 .bg-amber-200,
 .bg-amber-300,
 .bg-amber-400,
+.bg-blue-50,
 *[style*="background-color: yellow"],
 *[style*="background: yellow"],
 *[style*="background-color: #fef3c7"],
 *[style*="background-color: #fde68a"],
 *[style*="background-color: #fbbf24"],
+*[style*="background-color: #eff6ff"],
+*[style*="background-color: #dbeafe"],
 div[class*="yellow"],
 section[class*="yellow"],
-article[class*="yellow"] {
+article[class*="yellow"],
+div[class*="bg-blue-50"],
+section[class*="bg-blue-50"],
+article[class*="bg-blue-50"],
+*[class*="kapandji"] {
   background-color: #ffffff !important;
   background: #ffffff !important;
 }
@@ -28,6 +35,59 @@ article[class*="yellow"] {
 /* Force white backgrounds on all main content areas */
 main, section, article, .card, [data-testid="card"] {
   background-color: #ffffff !important;
+}
+
+/* Universal background fix - remove ALL colored backgrounds */
+* {
+  background-color: transparent !important;
+}
+
+/* Restore only necessary backgrounds */
+body, #root {
+  background-color: #f9fafb !important;
+}
+
+.card, [data-testid="card"], main, section, article {
+  background-color: #ffffff !important;
+}
+
+/* Button backgrounds */
+button[class*="bg-blue"], .bg-blue-500, .bg-blue-600 {
+  background-color: rgb(59 130 246) !important;
+}
+
+/* Status backgrounds */
+.status-excellent { background-color: rgb(220 252 231) !important; }
+.status-good { background-color: rgb(219 234 254) !important; }
+.status-needs-attention { background-color: rgb(254 243 199) !important; }
+.status-poor { background-color: rgb(254 226 226) !important; }
+
+/* Safari/WebKit specific fixes for yellow backgrounds */
+@supports (-webkit-appearance: none) {
+  * {
+    background-color: transparent !important;
+    -webkit-appearance: none !important;
+  }
+  
+  body, #root {
+    background-color: #f9fafb !important;
+  }
+  
+  .card, [data-testid="card"], main, section, article, div {
+    background-color: #ffffff !important;
+  }
+  
+  /* Force remove any browser default styling */
+  div[class*="Assessment"], 
+  div[class*="assessment"], 
+  *:contains("Kapandji"),
+  h1 + div,
+  h2 + div,
+  h3 + div,
+  h4 + div {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+  }
 }
 
 /* Ensure body and root have proper backgrounds */
