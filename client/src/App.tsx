@@ -14,6 +14,7 @@ import ThankYou from "@/pages/thank-you";
 import AssessmentResults from "@/pages/assessment-results";
 import JointTest from "@/pages/joint-test";
 import SharedAssessment from "@/pages/shared-assessment";
+import Admin from "@/pages/admin";
 import Header from "@/components/header";
 import Footer from "@/components/footer";
 
@@ -29,6 +30,7 @@ function Router() {
       <Route path="/assessment-results/:code/:userAssessmentId" component={AssessmentResults} />
       <Route path="/joint-test" component={JointTest} />
       <Route path="/shared/:token" component={SharedAssessment} />
+      <Route path="/admin" component={Admin} />
       <Route path="/thank-you" component={ThankYou} />
       <Route component={NotFound} />
     </Switch>

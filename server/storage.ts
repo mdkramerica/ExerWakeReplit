@@ -39,6 +39,9 @@ export interface IStorage {
   // Injury Type methods
   getInjuryTypes(): Promise<InjuryType[]>;
   createInjuryType(injuryType: InsertInjuryType): Promise<InjuryType>;
+  
+  // Admin methods
+  getAllUserAssessments(): Promise<UserAssessment[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -160,6 +163,20 @@ export class DatabaseStorage implements IStorage {
       .values(insertInjuryType)
       .returning();
     return injuryType;
+  }
+
+  async getAllUserAssessments(): Promise<UserAssessment[]> {
+    const allUserAssessments = await db.select().from(userAssessments);
+    const assessments = await db.select().from(assessments);
+    
+    // Add assessment names to the user assessments
+    return allUserAssessments.map(ua => {
+      const assessment = assessments.find(a => a.id === ua.assessmentId);
+      return {
+        ...ua,
+        assessmentName: assessment?.name || 'Unknown Assessment'
+      };
+    }).sort((a, b) => new Date(b.completedAt || 0).getTime() - new Date(a.completedAt || 0).getTime());
   }
 }
 

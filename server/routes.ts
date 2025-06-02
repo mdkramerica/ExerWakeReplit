@@ -561,6 +561,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin API endpoints
+  app.get("/api/admin/all-user-assessments", async (req, res) => {
+    try {
+      const allUserAssessments = await storage.getAllUserAssessments();
+      res.json({ history: allUserAssessments });
+    } catch (error) {
+      console.error("Error fetching all user assessments:", error);
+      res.status(500).json({ message: "Failed to fetch user assessments" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
