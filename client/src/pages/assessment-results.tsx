@@ -244,17 +244,8 @@ export default function AssessmentResults() {
                   <div className="bg-white border border-gray-200 p-6 rounded-lg">
                     <h4 className="font-medium mb-6 text-gray-900 text-xl">Comprehensive ROM Analysis - All Digits</h4>
                     
-                    {/* Parse ROM data for individual fingers */}
+                    {/* Individual finger ROM analysis */}
                     {(() => {
-                      let romData = null;
-                      try {
-                        romData = userAssessment.romData ? JSON.parse(userAssessment.romData) : null;
-                        console.log('ROM Data Structure:', romData);
-                      } catch (e) {
-                        console.error('ROM Data Parse Error:', e);
-                        romData = null;
-                      }
-                      
                       const allFingers = [
                         { 
                           name: 'Index Finger', 
@@ -268,37 +259,36 @@ export default function AssessmentResults() {
                         { 
                           name: 'Middle Finger', 
                           key: 'middle', 
-                          romValue: userAssessment.middleFingerRom, 
+                          romValue: userAssessment.middleFingerRom,
+                          mcpAngle: userAssessment.middleFingerMcp,
+                          pipAngle: userAssessment.middleFingerPip,
+                          dipAngle: userAssessment.middleFingerDip,
                           highlight: true 
                         },
                         { 
                           name: 'Ring Finger', 
                           key: 'ring', 
-                          romValue: userAssessment.ringFingerRom, 
+                          romValue: userAssessment.ringFingerRom,
+                          mcpAngle: userAssessment.ringFingerMcp,
+                          pipAngle: userAssessment.ringFingerPip,
+                          dipAngle: userAssessment.ringFingerDip,
                           highlight: false 
                         },
                         { 
                           name: 'Pinky Finger', 
                           key: 'pinky', 
-                          romValue: userAssessment.pinkyFingerRom, 
+                          romValue: userAssessment.pinkyFingerRom,
+                          mcpAngle: userAssessment.pinkyFingerMcp,
+                          pipAngle: userAssessment.pinkyFingerPip,
+                          dipAngle: userAssessment.pinkyFingerDip,
                           highlight: false 
                         }
                       ];
 
                       return allFingers.map((finger, index) => {
-                        const fingerData = romData?.[finger.key];
-                        
-                        // For index finger, use the specific stored values, for others use ROM data
-                        let mcpAngle, pipAngle, dipAngle;
-                        if (finger.key === 'index') {
-                          mcpAngle = finger.mcpAngle ? parseFloat(finger.mcpAngle) : 0;
-                          pipAngle = finger.pipAngle ? parseFloat(finger.pipAngle) : 0;
-                          dipAngle = finger.dipAngle ? parseFloat(finger.dipAngle) : 0;
-                        } else {
-                          mcpAngle = fingerData?.mcp || 0;
-                          pipAngle = fingerData?.pip || 0;
-                          dipAngle = fingerData?.dip || 0;
-                        }
+                        const mcpAngle = finger.mcpAngle ? parseFloat(finger.mcpAngle) : 0;
+                        const pipAngle = finger.pipAngle ? parseFloat(finger.pipAngle) : 0;
+                        const dipAngle = finger.dipAngle ? parseFloat(finger.dipAngle) : 0;
 
                         return (
                           <div key={finger.key} className={`mb-6 p-4 rounded-lg ${finger.highlight ? 'border-2 border-blue-300 bg-blue-50' : 'border border-gray-200'}`}>
