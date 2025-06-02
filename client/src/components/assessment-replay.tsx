@@ -559,17 +559,23 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
       // Highlight thumb tip (landmark 4) when touching targets
       if (currentKapandji.maxScore > 0 && frame.landmarks[4]) {
         const thumbTip = frame.landmarks[4];
+        // Apply mirroring correction for proper alignment
+        const thumbX = (1 - thumbTip.x) * canvas.width;
+        const thumbY = thumbTip.y * canvas.height;
+        
+        // Static highlight circle
         ctx.beginPath();
-        ctx.arc(thumbTip.x * canvas.width, thumbTip.y * canvas.height, 12, 0, 2 * Math.PI);
+        ctx.arc(thumbX, thumbY, 8, 0, 2 * Math.PI);
         ctx.strokeStyle = '#10b981';
         ctx.lineWidth = 3;
         ctx.stroke();
         
-        // Pulsing effect for active achievement
-        const pulseRadius = 15 + Math.sin(Date.now() * 0.01) * 3;
+        // Pulsing effect for active achievement - slower, more visible pulse
+        const time = Date.now() * 0.003; // Slower pulse timing
+        const pulseRadius = 12 + Math.sin(time) * 4; // Bigger pulse range
         ctx.beginPath();
-        ctx.arc(thumbTip.x * canvas.width, thumbTip.y * canvas.height, pulseRadius, 0, 2 * Math.PI);
-        ctx.strokeStyle = 'rgba(16, 185, 129, 0.5)';
+        ctx.arc(thumbX, thumbY, pulseRadius, 0, 2 * Math.PI);
+        ctx.strokeStyle = `rgba(16, 185, 129, ${0.3 + Math.sin(time) * 0.2})`; // Varying opacity
         ctx.lineWidth = 2;
         ctx.stroke();
       }
