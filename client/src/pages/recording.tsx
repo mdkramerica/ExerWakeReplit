@@ -18,6 +18,8 @@ export default function Recording() {
   const [currentRepetition, setCurrentRepetition] = useState(1);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTimer, setRecordingTimer] = useState(0);
+  const [countdownTimer, setCountdownTimer] = useState(0);
+  const [isCountingDown, setIsCountingDown] = useState(false);
   const [handDetected, setHandDetected] = useState(false);
   const [landmarksCount, setLandmarksCount] = useState(0);
   const [trackingQuality, setTrackingQuality] = useState("Poor");
@@ -92,12 +94,28 @@ export default function Recording() {
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    if (isRecording) {
+    if (isCountingDown) {
+      interval = setInterval(() => {
+        setCountdownTimer(prev => {
+          if (prev <= 1) {
+            setIsCountingDown(false);
+            setIsRecording(true);
+            setRecordingTimer(assessment?.duration || 10);
+            const startTime = Date.now();
+            recordingStartTimeRef.current = startTime;
+            setRecordingMotionData([]);
+            recordingMotionDataRef.current = [];
+            setMaxROM({ mcpAngle: 0, pipAngle: 0, dipAngle: 0, totalActiveRom: 0 });
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } else if (isRecording) {
       interval = setInterval(() => {
         setRecordingTimer(prev => {
           if (prev <= 0) {
             setIsRecording(false);
-            // Delay clearing start time to allow final motion data capture
             setTimeout(() => {
               recordingStartTimeRef.current = null;
               handleRepetitionComplete();
@@ -109,19 +127,12 @@ export default function Recording() {
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [isRecording, assessment?.duration]);
+  }, [isRecording, isCountingDown, assessment?.duration]);
 
   const startRecording = () => {
-    const startTime = Date.now();
-    console.log(`startRecording called - setting start time to ${startTime}`);
-    recordingStartTimeRef.current = startTime; // Set start time first using ref
-    setIsRecording(true);
-    setRecordingTimer(assessment?.duration || 10); // Start with full duration for countdown
-    setRecordingMotionData([]); // Clear previous motion data
-    recordingMotionDataRef.current = []; // Clear ref data too
-    // Reset ROM values for new recording
-    setMaxROM({ mcpAngle: 0, pipAngle: 0, dipAngle: 0, totalActiveRom: 0 });
-    console.log(`Recording state set: isRecording=true, startTime=${recordingStartTimeRef.current}`);
+    setIsCountingDown(true);
+    setCountdownTimer(3); // 3 second countdown
+    console.log('Starting 3 second countdown...');
   };
 
   const stopRecording = () => {
@@ -352,10 +363,24 @@ export default function Recording() {
                 
                 {/* Timer */}
                 <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
-                  <div className="bg-black bg-opacity-50 rounded-lg px-4 py-2">
-                    <div className="text-white text-2xl font-mono">
-                      {formatTime(recordingTimer)}
-                    </div>
+                  <div className="bg-black bg-opacity-70 rounded-lg px-6 py-3">
+                    {isCountingDown ? (
+                      <div className="text-center">
+                        <div className="text-yellow-400 text-4xl font-bold font-mono">
+                          {countdownTimer}
+                        </div>
+                        <div className="text-white text-sm mt-1">Get Ready</div>
+                      </div>
+                    ) : (
+                      <div className="text-center">
+                        <div className="text-white text-3xl font-mono">
+                          {formatTime(recordingTimer)}
+                        </div>
+                        {isRecording && (
+                          <div className="text-red-400 text-sm mt-1">Recording...</div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -364,26 +389,31 @@ export default function Recording() {
               
               {/* Recording Controls */}
               <div className="flex items-center justify-center space-x-4">
-                {!isRecording ? (
+                {!isRecording && !isCountingDown ? (
                   <Button
                     onClick={startRecording}
                     disabled={!handDetected}
-                    className="bg-red-500 text-white w-16 h-16 rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
+                    className="bg-red-500 text-white w-20 h-20 rounded-full flex items-center justify-center hover:bg-red-600 transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <div className="w-4 h-4 bg-white rounded-full"></div>
+                    <div className="w-6 h-6 bg-white rounded-full"></div>
                   </Button>
+                ) : isCountingDown ? (
+                  <div className="w-20 h-20 rounded-full bg-yellow-500 flex items-center justify-center shadow-lg">
+                    <div className="text-white text-xl font-bold">{countdownTimer}</div>
+                  </div>
                 ) : (
                   <Button
                     onClick={stopRecording}
-                    className="bg-red-500 text-white w-16 h-16 rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
+                    className="bg-red-600 text-white w-20 h-20 rounded-full flex items-center justify-center hover:bg-red-700 transition-all duration-200 shadow-lg animate-pulse"
                   >
-                    <Square className="w-6 h-6" />
+                    <Square className="w-8 h-8" />
                   </Button>
                 )}
                 <Button
                   onClick={retakeRecording}
                   variant="outline"
-                  className="px-6 py-3"
+                  className="px-6 py-3 border-2 hover:bg-gray-50"
+                  disabled={isRecording || isCountingDown}
                 >
                   <RotateCcw className="w-4 h-4 mr-2" />
                   Retake
