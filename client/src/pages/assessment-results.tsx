@@ -244,39 +244,6 @@ export default function AssessmentResults() {
                   <div className="bg-white border border-gray-200 p-6 rounded-lg">
                     <h4 className="font-medium mb-6 text-gray-900 text-xl">Comprehensive ROM Analysis - All Digits</h4>
                     
-                    {/* Index Finger */}
-                    <div className="mb-6 p-4 border border-gray-200 rounded-lg">
-                      <div className="flex justify-between items-center mb-4">
-                        <h5 className="text-lg font-medium text-gray-900">Index Finger</h5>
-                        <span className="text-lg font-bold text-gray-900">
-                          {userAssessment.indexFingerRom ? `${parseFloat(userAssessment.indexFingerRom).toFixed(0)}° TAM` : 'N/A'}
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-3 gap-4">
-                        <div className="text-center p-3 bg-gray-50 rounded">
-                          <div className="text-sm text-gray-600">MCP Joint</div>
-                          <div className={`text-lg font-bold ${userAssessment.maxMcpAngle && (parseFloat(userAssessment.maxMcpAngle) < 70 || parseFloat(userAssessment.maxMcpAngle) > 90) ? 'text-red-600' : 'text-blue-600'}`}>
-                            {userAssessment.maxMcpAngle ? `${parseFloat(userAssessment.maxMcpAngle).toFixed(0)}°` : 'N/A'}
-                          </div>
-                          <div className="text-xs text-gray-500">Normal: 70-90°</div>
-                        </div>
-                        <div className="text-center p-3 bg-gray-50 rounded">
-                          <div className="text-sm text-gray-600">PIP Joint</div>
-                          <div className={`text-lg font-bold ${userAssessment.maxPipAngle && (parseFloat(userAssessment.maxPipAngle) < 90 || parseFloat(userAssessment.maxPipAngle) > 110) ? 'text-red-600' : 'text-green-600'}`}>
-                            {userAssessment.maxPipAngle ? `${parseFloat(userAssessment.maxPipAngle).toFixed(0)}°` : 'N/A'}
-                          </div>
-                          <div className="text-xs text-gray-500">Normal: 90-110°</div>
-                        </div>
-                        <div className="text-center p-3 bg-gray-50 rounded">
-                          <div className="text-sm text-gray-600">DIP Joint</div>
-                          <div className={`text-lg font-bold ${userAssessment.maxDipAngle && (parseFloat(userAssessment.maxDipAngle) < 70 || parseFloat(userAssessment.maxDipAngle) > 90) ? 'text-red-600' : 'text-red-600'}`}>
-                            {userAssessment.maxDipAngle ? `${parseFloat(userAssessment.maxDipAngle).toFixed(0)}°` : 'N/A'}
-                          </div>
-                          <div className="text-xs text-gray-500">Normal: 70-90°</div>
-                        </div>
-                      </div>
-                    </div>
-
                     {/* Parse ROM data for individual fingers */}
                     {(() => {
                       let romData = null;
@@ -286,17 +253,50 @@ export default function AssessmentResults() {
                         romData = null;
                       }
                       
-                      const fingers = [
-                        { name: 'Middle Finger', key: 'middle', romValue: userAssessment.middleFingerRom, highlight: true },
-                        { name: 'Ring Finger', key: 'ring', romValue: userAssessment.ringFingerRom, highlight: false },
-                        { name: 'Pinky Finger', key: 'pinky', romValue: userAssessment.pinkyFingerRom, highlight: false }
+                      const allFingers = [
+                        { 
+                          name: 'Index Finger', 
+                          key: 'index', 
+                          romValue: userAssessment.indexFingerRom,
+                          mcpAngle: userAssessment.maxMcpAngle,
+                          pipAngle: userAssessment.maxPipAngle,
+                          dipAngle: userAssessment.maxDipAngle,
+                          highlight: false 
+                        },
+                        { 
+                          name: 'Middle Finger', 
+                          key: 'middle', 
+                          romValue: userAssessment.middleFingerRom, 
+                          highlight: true 
+                        },
+                        { 
+                          name: 'Ring Finger', 
+                          key: 'ring', 
+                          romValue: userAssessment.ringFingerRom, 
+                          highlight: false 
+                        },
+                        { 
+                          name: 'Pinky Finger', 
+                          key: 'pinky', 
+                          romValue: userAssessment.pinkyFingerRom, 
+                          highlight: false 
+                        }
                       ];
 
-                      return fingers.map((finger, index) => {
+                      return allFingers.map((finger, index) => {
                         const fingerData = romData?.[finger.key];
-                        const mcpAngle = fingerData?.mcp || 0;
-                        const pipAngle = fingerData?.pip || 0;
-                        const dipAngle = fingerData?.dip || 0;
+                        
+                        // For index finger, use the specific stored values, for others use ROM data
+                        let mcpAngle, pipAngle, dipAngle;
+                        if (finger.key === 'index') {
+                          mcpAngle = finger.mcpAngle ? parseFloat(finger.mcpAngle) : 0;
+                          pipAngle = finger.pipAngle ? parseFloat(finger.pipAngle) : 0;
+                          dipAngle = finger.dipAngle ? parseFloat(finger.dipAngle) : 0;
+                        } else {
+                          mcpAngle = fingerData?.mcp || 0;
+                          pipAngle = fingerData?.pip || 0;
+                          dipAngle = fingerData?.dip || 0;
+                        }
 
                         return (
                           <div key={finger.key} className={`mb-6 p-4 rounded-lg ${finger.highlight ? 'border-2 border-blue-300 bg-blue-50' : 'border border-gray-200'}`}>
