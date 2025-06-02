@@ -145,7 +145,7 @@ export default function AssessmentResults() {
 
                 {/* Kapandji Specific Scoring */}
                 {isKapandjiAssessment && (
-                  <div className="bg-blue-50 border border-blue-200 p-6 rounded-lg">
+                  <div className="bg-white border border-gray-200 p-6 rounded-lg">
                     <h4 className="font-medium mb-4 text-gray-900">Kapandji Opposition Score</h4>
                     <div className="space-y-4">
                       <div className="text-center mb-6">
