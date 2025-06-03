@@ -442,21 +442,22 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
         }
       }
       
-      // Try MediaPipe first, then fallback if needed
+      // Always start with fallback demo, then upgrade to live tracking
+      showFallbackDemo();
+      
+      // Try MediaPipe initialization
       const success = await initializeHands();
       if (success) {
         console.log('MediaPipe initialized, starting camera...');
         
         try {
           await startCamera();
-          console.log('Live tracking ready - place hand in front of camera');
+          console.log('Live tracking ready - MediaPipe will override demo when hand detected');
         } catch (error) {
-          console.log('Camera failed, showing fallback demo');
-          showFallbackDemo();
+          console.log('Camera failed, keeping fallback demo');
         }
       } else {
-        console.log('MediaPipe failed, showing fallback demo');
-        showFallbackDemo();
+        console.log('MediaPipe failed, keeping fallback demo');
       }
     };
     

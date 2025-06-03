@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Shield, ShieldX, Lock, Info, ArrowRight } from "lucide-react";
-import MotionDemo from "@/components/motion-demo";
+import MotionDemo from "@/components/motion-demo-fixed";
 
 export default function Landing() {
   const [code, setCode] = useState("");
