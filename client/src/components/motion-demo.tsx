@@ -160,8 +160,6 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
 
   // Process MediaPipe results
   const onResults = useCallback((results: any) => {
-    console.log('Live tracking results received');
-    
     // Cancel any existing fallback animation when we get live results
     if (animationRef.current) {
       cancelAnimationFrame(animationRef.current);
