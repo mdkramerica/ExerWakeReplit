@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Play, Pause, RotateCcw, Download } from "lucide-react";
 import { calculateCurrentROM, calculateFingerROM, type JointAngles } from "@/lib/rom-calculator";
 import { calculateKapandjiScore, calculateMaxKapandjiScore, type KapandjiScore } from "@shared/kapandji-calculator";
-import exerLogoPath from "@assets/exer-logo.png";
+// Remove the import since we'll load the image directly
 
 interface ReplayData {
   timestamp: number;
@@ -46,6 +46,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
   const [maxTAMFrame, setMaxTAMFrame] = useState<number>(0);
   const [minTAMFrame, setMinTAMFrame] = useState<number>(0);
   const [isolateMode, setIsolateMode] = useState(false);
+  const [logoImage, setLogoImage] = useState<HTMLImageElement | null>(null);
   
   // Fetch real motion data if userAssessmentId is provided
   const { data: motionData, isLoading } = useQuery({
@@ -60,6 +61,13 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
   // Check if this is a Kapandji assessment
   const isKapandjiAssessment = assessmentName === "Kapandji Score" || 
                               assessmentName?.includes("Kapandji");
+
+  // Load Exer logo image
+  useEffect(() => {
+    const img = new Image();
+    img.onload = () => setLogoImage(img);
+    img.src = '/images/exer-logo.png';
+  }, []);
 
   // Initialize frame with maximum TAM when replay data changes
   useEffect(() => {
@@ -351,46 +359,19 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Draw Exer logo in top-right corner
-    const logoX = canvas.width - 130;
-    const logoY = 10;
-    const logoWidth = 120;
-    const logoHeight = 40;
-    
-    // Draw logo background
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-    ctx.fillRect(logoX, logoY, logoWidth, logoHeight);
-    
-    // Draw logo border
-    ctx.strokeStyle = '#e5e7eb';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(logoX, logoY, logoWidth, logoHeight);
-    
-    // Draw geometric icon
-    const iconX = logoX + 8;
-    const iconY = logoY + 8;
-    
-    // Outer rectangle
-    ctx.fillStyle = '#3b82f6';
-    ctx.fillRect(iconX, iconY, 24, 24);
-    
-    // Inner rectangle
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(iconX + 4, iconY + 4, 16, 16);
-    
-    // Center circle
-    ctx.fillStyle = '#3b82f6';
-    ctx.beginPath();
-    ctx.arc(iconX + 12, iconY + 12, 3, 0, 2 * Math.PI);
-    ctx.fill();
-    
-    // Draw text
-    ctx.fillStyle = '#374151';
-    ctx.font = 'bold 14px Arial';
-    ctx.fillText('Exer', logoX + 40, logoY + 16);
-    
-    ctx.fillStyle = '#6b7280';
-    ctx.font = '10px Arial';
-    ctx.fillText('AI Motion', logoX + 40, logoY + 28);
+    if (logoImage) {
+      const logoWidth = 120;
+      const logoHeight = 40;
+      const logoX = canvas.width - logoWidth - 10;
+      const logoY = 10;
+      
+      // Draw semi-transparent background
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.fillRect(logoX - 5, logoY - 5, logoWidth + 10, logoHeight + 10);
+      
+      // Draw the logo image
+      ctx.drawImage(logoImage, logoX, logoY, logoWidth, logoHeight);
+    }
 
     // Draw grid for reference
     ctx.strokeStyle = '#374151';
