@@ -98,6 +98,9 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
         }
       });
 
+      // Set up the results callback before setting options
+      handsRef.current.onResults(onResults);
+
       handsRef.current.setOptions({
         maxNumHands: 1,
         modelComplexity: 0,
@@ -107,7 +110,8 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
         selfieMode: true
       });
 
-      handsRef.current.onResults(onResults);
+      // Initialize MediaPipe
+      await handsRef.current.initialize();
       console.log('MediaPipe demo initialized successfully');
       setIsInitialized(true);
       return true;
@@ -121,6 +125,7 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
 
   // Process MediaPipe results
   const onResults = useCallback((results: any) => {
+    console.log('MediaPipe results received:', results);
     const canvas = canvasRef.current;
     const video = videoRef.current;
     
@@ -141,6 +146,7 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
 
     if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
       detectedHand = true;
+      console.log('Hand detected with landmarks:', results.multiHandLandmarks[0].length);
       const landmarks = results.multiHandLandmarks[0];
 
       // Draw hand landmarks in bright green with larger, more visible points
@@ -186,6 +192,8 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
         ctx.stroke();
       });
       ctx.shadowBlur = 0;
+    } else {
+      console.log('No hand landmarks detected');
     }
 
     setHandDetected(detectedHand);
@@ -231,10 +239,23 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
         }
       });
 
+      console.log('Camera stream obtained successfully');
       video.srcObject = stream;
+      
       video.onloadedmetadata = () => {
-        video.play();
-        processFrame();
+        console.log('Video metadata loaded, starting playback');
+        video.play().then(() => {
+          console.log('Video playing, starting frame processing');
+          processFrame();
+        }).catch(err => {
+          console.error('Video play failed:', err);
+          showFallbackDemo();
+        });
+      };
+      
+      video.onerror = (err) => {
+        console.error('Video error:', err);
+        showFallbackDemo();
       };
     } catch (error: any) {
       console.warn('Camera access failed for demo:', error);
@@ -262,10 +283,7 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
         await handsRef.current.send({ image: video });
       }
     } catch (error) {
-      // Silently handle frame processing errors to avoid console spam
-      if (error && typeof error === 'object' && Object.keys(error).length > 0) {
-        console.warn('Frame processing failed:', error);
-      }
+      console.warn('Frame processing failed:', error);
     }
 
     animationRef.current = requestAnimationFrame(processFrame);
@@ -288,47 +306,52 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
       ctx.fillStyle = '#1a1a1a';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Create realistic hand skeleton animation
+      // Create realistic hand waving hello animation
       const baseX = canvas.width / 2;
       const baseY = canvas.height / 2;
       
-      // Animate hand opening and closing
-      const openAmount = (Math.sin(frame * 0.04) + 1) / 2; // 0 to 1
+      // Waving motion - hand moves side to side and rotates
+      const wavePhase = frame * 0.08;
+      const waveOffsetX = Math.sin(wavePhase) * 40;
+      const waveRotation = Math.sin(wavePhase) * 0.3;
       
-      // Define hand landmark positions (simplified but realistic)
+      // Finger wiggling motion for more natural wave
+      const fingerWiggle = Math.sin(frame * 0.12) * 10;
+      
+      // Define hand landmark positions for waving hello
       const handLandmarks = [
-        // Wrist
-        { x: baseX, y: baseY + 60 },
+        // Wrist (moves with wave)
+        { x: baseX + waveOffsetX, y: baseY + 60 },
         
-        // Thumb
-        { x: baseX - 40 - openAmount * 20, y: baseY + 40 },
-        { x: baseX - 60 - openAmount * 30, y: baseY + 20 },
-        { x: baseX - 75 - openAmount * 35, y: baseY },
-        { x: baseX - 85 - openAmount * 40, y: baseY - 15 },
+        // Thumb (slightly bent, natural position)
+        { x: baseX + waveOffsetX - 40, y: baseY + 40 },
+        { x: baseX + waveOffsetX - 55, y: baseY + 25 },
+        { x: baseX + waveOffsetX - 65, y: baseY + 10 },
+        { x: baseX + waveOffsetX - 70, y: baseY },
         
-        // Index finger
-        { x: baseX - 30, y: baseY + 50 },
-        { x: baseX - 35, y: baseY + 10 - openAmount * 40 },
-        { x: baseX - 40, y: baseY - 20 - openAmount * 60 },
-        { x: baseX - 45, y: baseY - 40 - openAmount * 80 },
+        // Index finger (extended and wiggling)
+        { x: baseX + waveOffsetX - 30, y: baseY + 50 },
+        { x: baseX + waveOffsetX - 35 + Math.cos(waveRotation) * 10, y: baseY + 15 + fingerWiggle },
+        { x: baseX + waveOffsetX - 40 + Math.cos(waveRotation) * 15, y: baseY - 15 + fingerWiggle },
+        { x: baseX + waveOffsetX - 45 + Math.cos(waveRotation) * 20, y: baseY - 35 + fingerWiggle },
         
-        // Middle finger
-        { x: baseX - 10, y: baseY + 50 },
-        { x: baseX - 10, y: baseY + 5 - openAmount * 45 },
-        { x: baseX - 10, y: baseY - 25 - openAmount * 70 },
-        { x: baseX - 10, y: baseY - 50 - openAmount * 95 },
+        // Middle finger (extended and wiggling)
+        { x: baseX + waveOffsetX - 10, y: baseY + 50 },
+        { x: baseX + waveOffsetX - 10 + Math.cos(waveRotation) * 5, y: baseY + 10 + fingerWiggle * 0.8 },
+        { x: baseX + waveOffsetX - 10 + Math.cos(waveRotation) * 10, y: baseY - 20 + fingerWiggle * 0.8 },
+        { x: baseX + waveOffsetX - 10 + Math.cos(waveRotation) * 15, y: baseY - 45 + fingerWiggle * 0.8 },
         
-        // Ring finger
-        { x: baseX + 10, y: baseY + 50 },
-        { x: baseX + 15, y: baseY + 10 - openAmount * 40 },
-        { x: baseX + 20, y: baseY - 15 - openAmount * 60 },
-        { x: baseX + 25, y: baseY - 35 - openAmount * 80 },
+        // Ring finger (extended and wiggling)
+        { x: baseX + waveOffsetX + 10, y: baseY + 50 },
+        { x: baseX + waveOffsetX + 15 + Math.cos(waveRotation) * 5, y: baseY + 15 + fingerWiggle * 0.6 },
+        { x: baseX + waveOffsetX + 20 + Math.cos(waveRotation) * 10, y: baseY - 10 + fingerWiggle * 0.6 },
+        { x: baseX + waveOffsetX + 25 + Math.cos(waveRotation) * 15, y: baseY - 30 + fingerWiggle * 0.6 },
         
-        // Pinky
-        { x: baseX + 30, y: baseY + 45 },
-        { x: baseX + 40, y: baseY + 15 - openAmount * 35 },
-        { x: baseX + 50, y: baseY - 5 - openAmount * 50 },
-        { x: baseX + 60, y: baseY - 20 - openAmount * 65 }
+        // Pinky (extended and wiggling)
+        { x: baseX + waveOffsetX + 30, y: baseY + 45 },
+        { x: baseX + waveOffsetX + 40 + Math.cos(waveRotation) * 8, y: baseY + 20 + fingerWiggle * 0.4 },
+        { x: baseX + waveOffsetX + 50 + Math.cos(waveRotation) * 12, y: baseY + 5 + fingerWiggle * 0.4 },
+        { x: baseX + waveOffsetX + 60 + Math.cos(waveRotation) * 16, y: baseY - 10 + fingerWiggle * 0.4 }
       ];
 
       // Draw hand connections
@@ -375,7 +398,7 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
       
       ctx.fillStyle = '#ffffff';
       ctx.font = '14px Arial';
-      ctx.fillText('21-Joint Motion Analysis', 15, 55);
+      ctx.fillText('👋 Waving Hello - 21-Joint Analysis', 15, 55);
       
       ctx.font = '12px Arial';
       ctx.fillStyle = '#cccccc';
@@ -404,14 +427,8 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
     const init = async () => {
       console.log('Initializing motion demo...');
       
-      // For deployment reliability, prioritize fallback demo
-      const isProduction = window.location.protocol === 'https:' && !window.location.hostname.includes('localhost');
-      
-      if (isProduction) {
-        console.log('Production environment detected, using fallback demo for reliability');
-        showFallbackDemo();
-        return;
-      }
+      // Always try camera first, fallback only on actual failure
+      console.log('Attempting camera initialization...');
       
       const success = await initializeHands();
       if (success) {
