@@ -532,100 +532,28 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
       }
     });
 
-    // Draw live ROM data overlay
-    if (frame.landmarks && frame.landmarks.length >= 21) {
-      const romData = calculateFingerROM(frame.landmarks, selectedDigit);
+    // For Kapandji assessments, only highlight thumb landmarks (no ROM data)
+    if (isKapandjiAssessment && frame.landmarks && frame.landmarks.length >= 21) {
+      // Draw thumb connections in yellow
+      const thumbConnections = [[0, 1], [1, 2], [2, 3], [3, 4]]; // Wrist to thumb joints
       
-      // Semi-transparent background for ROM overlay
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-      ctx.fillRect(canvas.width - 240, 10, 220, 120);
-      
-      // ROM title with selected digit
-      ctx.fillStyle = '#00ff00';
-      ctx.font = 'bold 14px Arial';
-      ctx.fillText(`${selectedDigit.charAt(0) + selectedDigit.slice(1).toLowerCase()} Finger`, canvas.width - 230, 30);
-      
-      // Draw finger diagram indicator based on selected digit
-      const getFingerLandmarks = (digit: string) => {
-        switch (digit) {
-          case 'INDEX': return [5, 6, 7, 8];
-          case 'MIDDLE': return [9, 10, 11, 12];
-          case 'RING': return [13, 14, 15, 16];
-          case 'PINKY': return [17, 18, 19, 20];
-          default: return [5, 6, 7, 8];
+      thumbConnections.forEach(([start, end]) => {
+        if (frame.landmarks[start] && frame.landmarks[end]) {
+          ctx.strokeStyle = '#fbbf24'; // Yellow for thumb
+          ctx.lineWidth = 4;
+          
+          ctx.beginPath();
+          ctx.moveTo(
+            (1 - frame.landmarks[start].x) * canvas.width,
+            frame.landmarks[start].y * canvas.height
+          );
+          ctx.lineTo(
+            (1 - frame.landmarks[end].x) * canvas.width,
+            frame.landmarks[end].y * canvas.height
+          );
+          ctx.stroke();
         }
-      };
-      
-      const fingerLandmarks = getFingerLandmarks(selectedDigit);
-      ctx.strokeStyle = '#ffff00'; // Yellow to match highlighted connections
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(canvas.width - 50, 40);
-      ctx.lineTo(canvas.width - 30, 40);
-      ctx.lineTo(canvas.width - 30, 50);
-      ctx.lineTo(canvas.width - 20, 50);
-      ctx.lineTo(canvas.width - 20, 60);
-      ctx.lineTo(canvas.width - 10, 60);
-      ctx.stroke();
-      
-      // Joint angles with color coding
-      ctx.font = '12px Arial';
-      
-      // MCP Joint (blue to match highlighted landmarks)
-      ctx.fillStyle = '#3b82f6';
-      ctx.fillText(`MCP: ${Math.round(romData.mcpAngle)}°`, canvas.width - 230, 50);
-      
-      // PIP Joint (green)
-      ctx.fillStyle = '#10b981';
-      ctx.fillText(`PIP: ${Math.round(romData.pipAngle)}°`, canvas.width - 230, 70);
-      
-      // DIP Joint (purple)
-      ctx.fillStyle = '#8b5cf6';
-      ctx.fillText(`DIP: ${Math.round(romData.dipAngle)}°`, canvas.width - 230, 90);
-      
-      // Total ROM (white, emphasized)
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 12px Arial';
-      ctx.fillText(`Total: ${Math.round(romData.totalActiveRom)}°`, canvas.width - 210, 110);
-      
-      // Draw angle visualization on the finger joints with matching colors (fixed mirroring)
-      // Need to use the correct landmarks based on selected digit
-      const activeJoints = getActiveFingerJoints(selectedDigit);
-      if (frame.landmarks[0] && frame.landmarks[activeJoints.mcp] && frame.landmarks[activeJoints.pip] && frame.landmarks[activeJoints.dip] && frame.landmarks[activeJoints.tip]) {
-        ctx.lineWidth = 2;
-        ctx.setLineDash([3, 3]);
-        
-        // Draw MCP angle arc (blue) - positioned at MCP joint, properly oriented
-        const mcpCenter = { x: (1 - frame.landmarks[activeJoints.mcp].x) * canvas.width, y: frame.landmarks[activeJoints.mcp].y * canvas.height };
-        const wristPos = { x: (1 - frame.landmarks[0].x) * canvas.width, y: frame.landmarks[0].y * canvas.height };
-        const pipPos = { x: (1 - frame.landmarks[activeJoints.pip].x) * canvas.width, y: frame.landmarks[activeJoints.pip].y * canvas.height };
-        
-        // Calculate the starting angle from MCP to wrist direction
-        const wristAngle = Math.atan2(wristPos.y - mcpCenter.y, wristPos.x - mcpCenter.x);
-        const arcSpan = (romData.mcpAngle / 180) * Math.PI;
-        
-        ctx.strokeStyle = '#3b82f6'; // Blue - matches MCP in live display
-        ctx.beginPath();
-        ctx.arc(mcpCenter.x, mcpCenter.y, 15, wristAngle, wristAngle + arcSpan);
-        ctx.stroke();
-        
-        // Draw PIP angle arc (green) - centered at PIP joint, angle measured from MCP-PIP-DIP
-        const pipCenter = { x: (1 - frame.landmarks[activeJoints.pip].x) * canvas.width, y: frame.landmarks[activeJoints.pip].y * canvas.height };
-        ctx.strokeStyle = '#10b981'; // Green - matches PIP in live display
-        ctx.beginPath();
-        ctx.arc(pipCenter.x, pipCenter.y, 12, 0, (romData.pipAngle / 180) * Math.PI);
-        ctx.stroke();
-        
-        // Draw DIP angle arc (purple) - centered at DIP joint, angle measured from PIP-DIP-TIP
-        const dipCenter = { x: (1 - frame.landmarks[activeJoints.dip].x) * canvas.width, y: frame.landmarks[activeJoints.dip].y * canvas.height };
-        ctx.strokeStyle = '#8b5cf6'; // Purple - matches DIP in live display
-        ctx.beginPath();
-        ctx.arc(dipCenter.x, dipCenter.y, 10, 0, (romData.dipAngle / 180) * Math.PI);
-        ctx.stroke();
-        
-        ctx.setLineDash([]); // Reset line dash
-      }
-
+      });
     }
 
     // Draw timestamp and quality info
@@ -637,59 +565,9 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
     const correctedHand = frame.handedness === "Right" ? "Left" : frame.handedness === "Left" ? "Right" : frame.handedness;
     ctx.fillText(`Hand: ${correctedHand}`, 10, 65);
 
-    // For Kapandji assessments, draw palm boundary line
-    if (isKapandjiAssessment && frame.landmarks && frame.landmarks.length >= 21) {
-      const wrist = frame.landmarks[0];
-      const pinkyMcp = frame.landmarks[17];
-      const pinkyTip = frame.landmarks[20];
-      const thumbBase = frame.landmarks[1];
-      
-      // Determine handedness
-      const isRightHand = thumbBase.x > wrist.x;
-      
-      // Calculate palm boundary (same logic as in Kapandji calculator)
-      const palmBoundaryX = isRightHand ? 
-        Math.max(pinkyMcp.x, pinkyTip.x) : 
-        Math.min(pinkyMcp.x, pinkyTip.x);
-      
-      // Draw palm boundary line
-      const boundaryX = (1 - palmBoundaryX) * canvas.width; // Flip for display
-      ctx.strokeStyle = '#ffff00'; // Yellow line
-      ctx.lineWidth = 3;
-      ctx.setLineDash([5, 5]);
-      ctx.beginPath();
-      ctx.moveTo(boundaryX, 0);
-      ctx.lineTo(boundaryX, canvas.height);
-      ctx.stroke();
-      ctx.setLineDash([]);
-      
-      // Label the boundary line
-      ctx.fillStyle = '#ffff00';
-      ctx.font = 'bold 12px Arial';
-      ctx.fillText('Palm Boundary', boundaryX + 5, 20);
-    }
 
-    // Draw finger measurement legend (moved up to avoid timeline scrubber)
-    const legendHeight = 70;
-    const legendY = canvas.height - 120; // Moved up 40px to clear timeline
-    
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-    ctx.fillRect(10, legendY, 200, legendHeight);
-    
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '12px Arial';
-    ctx.fillText('Finger Measurement:', 15, legendY + 20);
-    
-    // Color-coded legend
-    ctx.fillStyle = '#ffff00'; // Yellow for active finger
-    ctx.fillRect(15, legendY + 35, 10, 10);
-    ctx.fillStyle = '#ffffff';
-    ctx.fillText(`${selectedDigit.charAt(0) + selectedDigit.slice(1).toLowerCase()} Finger (Active)`, 30, legendY + 43);
-    
-    ctx.fillStyle = '#10b981'; // Green for other landmarks
-    ctx.fillRect(15, legendY + 55, 10, 10);
-    ctx.fillStyle = '#ffffff';
-    ctx.fillText('Other Landmarks', 30, legendY + 63);
+
+    // No legend for Kapandji assessments - keep display clean
 
     // Draw Kapandji scoring overlay for Kapandji assessments
     if (isKapandjiAssessment && frame.landmarks && frame.landmarks.length >= 21) {
