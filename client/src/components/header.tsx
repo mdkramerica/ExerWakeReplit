@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import exerLogoPath from "@assets/exer-logo.png";
 
 export default function Header() {
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
 
   const handleLogout = () => {
     // Clear session storage
@@ -13,9 +13,10 @@ export default function Header() {
     setLocation("/");
   };
 
-  // Check if user is logged in
+  // Check if user is logged in and not on landing page
   const currentUser = sessionStorage.getItem('currentUser');
   const isLoggedIn = !!currentUser;
+  const isOnLandingPage = location === "/";
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200">
@@ -37,7 +38,7 @@ export default function Header() {
               <Shield className="w-4 h-4 text-exer-purple" />
               <span>Secure & Private</span>
             </div>
-            {isLoggedIn && (
+            {isLoggedIn && !isOnLandingPage && (
               <Button
                 onClick={handleLogout}
                 variant="outline"
