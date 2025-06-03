@@ -424,29 +424,18 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
       const x = (1 - landmark.x) * canvas.width; // Flip horizontally to remove mirror effect
       const y = landmark.y * canvas.height;
       
-      // Color-code landmarks for all 21 hand points
-      let color = '#4caf50'; // Default green for other landmarks
+      // Color-code landmarks: yellow for active finger, green for all others
+      let color = '#4caf50'; // Default green for all landmarks
       let size = 4;
       
       if (activeLandmarks.includes(index)) {
-        // Active finger landmarks - yellow/bright colors
-        if (index === activeJoints.mcp) {
-          color = '#3b82f6'; // Blue for MCP
-          size = 8;
-        } else if (index === activeJoints.pip) {
-          color = '#10b981'; // Green for PIP
-          size = 8;
-        } else if (index === activeJoints.dip) {
-          color = '#8b5cf6'; // Purple for DIP
-          size = 8;
-        } else if (index === activeJoints.tip) {
-          color = '#f59e0b'; // Orange for fingertip
-          size = 6;
-        }
-      } else if (index === 0) {
-        // Wrist landmark
-        color = '#ef4444'; // Red for wrist
-        size = 5;
+        // Active finger landmarks - yellow
+        color = '#ffeb3b'; // Yellow for active finger
+        size = 6;
+      } else {
+        // All other landmarks - green (including wrist)
+        color = '#4caf50'; // Green for other landmarks
+        size = 4;
       }
       
       ctx.fillStyle = color;
