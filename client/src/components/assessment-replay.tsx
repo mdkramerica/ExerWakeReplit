@@ -350,6 +350,48 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
     ctx.fillStyle = '#1f2937';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+    // Draw Exer logo in top-right corner
+    const logoX = canvas.width - 130;
+    const logoY = 10;
+    const logoWidth = 120;
+    const logoHeight = 40;
+    
+    // Draw logo background
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.fillRect(logoX, logoY, logoWidth, logoHeight);
+    
+    // Draw logo border
+    ctx.strokeStyle = '#e5e7eb';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(logoX, logoY, logoWidth, logoHeight);
+    
+    // Draw geometric icon
+    const iconX = logoX + 8;
+    const iconY = logoY + 8;
+    
+    // Outer rectangle
+    ctx.fillStyle = '#3b82f6';
+    ctx.fillRect(iconX, iconY, 24, 24);
+    
+    // Inner rectangle
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(iconX + 4, iconY + 4, 16, 16);
+    
+    // Center circle
+    ctx.fillStyle = '#3b82f6';
+    ctx.beginPath();
+    ctx.arc(iconX + 12, iconY + 12, 3, 0, 2 * Math.PI);
+    ctx.fill();
+    
+    // Draw text
+    ctx.fillStyle = '#374151';
+    ctx.font = 'bold 14px Arial';
+    ctx.fillText('Exer', logoX + 40, logoY + 16);
+    
+    ctx.fillStyle = '#6b7280';
+    ctx.font = '10px Arial';
+    ctx.fillText('AI Motion', logoX + 40, logoY + 28);
+
     // Draw grid for reference
     ctx.strokeStyle = '#374151';
     ctx.lineWidth = 1;
