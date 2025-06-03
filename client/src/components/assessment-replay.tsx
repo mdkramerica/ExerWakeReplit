@@ -235,11 +235,14 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
       });
       
       // Draw all 21 landmarks
-      landmarks.forEach((landmark, index) => {
+      for (let index = 0; index < landmarks.length && index < 21; index++) {
+        const landmark = landmarks[index];
+        if (!landmark) continue;
+        
         const x = landmark.x * canvasWidth;
         const y = landmark.y * canvasHeight;
 
-        // Highlight active finger landmarks
+        // Set different colors for different landmark types
         if (activeLandmarks.includes(index)) {
           ctx.fillStyle = '#ffeb3b'; // Yellow for active finger
           ctx.beginPath();
@@ -256,7 +259,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
           ctx.arc(x, y, 4, 0, 2 * Math.PI);
           ctx.fill();
         }
-      });
+      }
       
       // Connect finger base to wrist
       if (landmarks[0] && landmarks[activeLandmarks[0]]) {
