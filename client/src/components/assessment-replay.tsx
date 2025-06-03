@@ -190,7 +190,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
       // No finger connections for wrist assessments
       
     } else {
-      // For finger/hand assessments (TAM, Kapandji), show only relevant landmarks
+      // For finger/hand assessments (TAM, Kapandji), show all 21 landmarks
       
       const fingerLandmarkRanges = {
         'INDEX': [5, 6, 7, 8],
@@ -201,39 +201,26 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
 
       const activeLandmarks = fingerLandmarkRanges[selectedDigit] || [5, 6, 7, 8];
       
-      // Draw wrist point
-      if (landmarks[0]) {
-        ctx.fillStyle = '#f44336'; // Red for wrist
-        const x = landmarks[0].x * canvasWidth;
-        const y = landmarks[0].y * canvasHeight;
-        
-        ctx.beginPath();
-        ctx.arc(x, y, 4, 0, 2 * Math.PI);
-        ctx.fill();
-      }
-      
-      // Draw selected finger landmarks prominently
-      ctx.fillStyle = '#ffeb3b'; // Yellow for active finger
-      activeLandmarks.forEach((index) => {
-        if (landmarks[index]) {
-          const x = landmarks[index].x * canvasWidth;
-          const y = landmarks[index].y * canvasHeight;
-          
-          ctx.beginPath();
-          ctx.arc(x, y, 5, 0, 2 * Math.PI);
-          ctx.fill();
-        }
-      });
+      // Define all hand connections (MediaPipe standard)
+      const connections = [
+        // Thumb
+        [0, 1], [1, 2], [2, 3], [3, 4],
+        // Index finger
+        [0, 5], [5, 6], [6, 7], [7, 8],
+        // Middle finger
+        [0, 9], [9, 10], [10, 11], [11, 12],
+        // Ring finger
+        [0, 13], [13, 14], [14, 15], [15, 16],
+        // Pinky
+        [0, 17], [17, 18], [18, 19], [19, 20],
+        // Palm connections
+        [5, 9], [9, 13], [13, 17]
+      ];
 
-      // Draw hand connections only for the active finger
-      ctx.strokeStyle = '#ffeb3b';
+      // Draw all hand connections
+      ctx.strokeStyle = '#ffeb3b'; // Yellow for connections
       ctx.lineWidth = 2;
-      
-      // Draw connections for selected finger only
-      for (let i = 0; i < activeLandmarks.length - 1; i++) {
-        const start = activeLandmarks[i];
-        const end = activeLandmarks[i + 1];
-        
+      connections.forEach(([start, end]) => {
         if (landmarks[start] && landmarks[end]) {
           const startX = landmarks[start].x * canvasWidth;
           const startY = landmarks[start].y * canvasHeight;
@@ -245,7 +232,31 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
           ctx.lineTo(endX, endY);
           ctx.stroke();
         }
-      }
+      });
+      
+      // Draw all 21 landmarks
+      landmarks.forEach((landmark, index) => {
+        const x = landmark.x * canvasWidth;
+        const y = landmark.y * canvasHeight;
+
+        // Highlight active finger landmarks
+        if (activeLandmarks.includes(index)) {
+          ctx.fillStyle = '#ffeb3b'; // Yellow for active finger
+          ctx.beginPath();
+          ctx.arc(x, y, 6, 0, 2 * Math.PI);
+          ctx.fill();
+        } else if (index === 0) {
+          ctx.fillStyle = '#f44336'; // Red for wrist
+          ctx.beginPath();
+          ctx.arc(x, y, 5, 0, 2 * Math.PI);
+          ctx.fill();
+        } else {
+          ctx.fillStyle = '#4caf50'; // Green for other landmarks
+          ctx.beginPath();
+          ctx.arc(x, y, 4, 0, 2 * Math.PI);
+          ctx.fill();
+        }
+      });
       
       // Connect finger base to wrist
       if (landmarks[0] && landmarks[activeLandmarks[0]]) {
