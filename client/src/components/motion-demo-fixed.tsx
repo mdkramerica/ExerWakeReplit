@@ -311,24 +311,8 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
       console.log('Starting hand tracking demo...');
       runDemo();
       
-      // Optional enhancement: Try live tracking only in development
-      if (import.meta.env.DEV) {
-        setTimeout(async () => {
-          try {
-            console.log('Attempting to upgrade to live tracking...');
-            const success = await Promise.race([
-              initializeMediaPipe(),
-              new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000))
-            ]);
-            
-            if (success) {
-              console.log('Live tracking upgrade successful');
-            }
-          } catch (error) {
-            console.log('Live tracking unavailable, demo continues');
-          }
-        }, 2000);
-      }
+      // Live tracking disabled for stability
+      console.log('Demo mode active - 21-joint biomechanical analysis ready');
     };
 
     init();
