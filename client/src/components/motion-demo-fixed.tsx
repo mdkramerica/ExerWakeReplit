@@ -102,42 +102,53 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
     ctx.fillText(isLive ? 'LIVE' : 'DEMO', canvas.width - (isLive ? 55 : 60), 30);
   }, []);
 
-  // Generate animated hand for demo
+  // Generate animated hand for demo - palm facing camera with big waving hello
   const generateDemoHand = useCallback((frame: number) => {
     const baseX = 320;
-    const baseY = 240;
-    const wavePhase = frame * 0.08;
-    const waveOffsetX = Math.sin(wavePhase) * 40;
-    const fingerWiggle = Math.sin(frame * 0.12) * 10;
+    const baseY = 280;
+    
+    // Big enthusiastic waving motion
+    const wavePhase = frame * 0.05; // Slower for dramatic effect
+    const waveOffsetX = Math.sin(wavePhase) * 100; // Much bigger horizontal movement
+    const waveRotation = Math.sin(wavePhase) * 0.5; // Hand rotation during wave
+    
+    // Finger movement for big hello wave
+    const fingerWave = Math.sin(frame * 0.12) * 30; // Bigger finger movement
+    const palmTilt = Math.cos(wavePhase) * 20; // Palm tilts during wave
     
     return [
-      // Wrist
-      { x: (baseX + waveOffsetX) / 640, y: (baseY + 60) / 480, z: 0 },
-      // Thumb
-      { x: (baseX + waveOffsetX - 40) / 640, y: (baseY + 40) / 480, z: 0 },
-      { x: (baseX + waveOffsetX - 55) / 640, y: (baseY + 25) / 480, z: 0 },
-      { x: (baseX + waveOffsetX - 65) / 640, y: (baseY + 10) / 480, z: 0 },
-      { x: (baseX + waveOffsetX - 70) / 640, y: (baseY) / 480, z: 0 },
-      // Index
-      { x: (baseX + waveOffsetX - 30) / 640, y: (baseY + 50) / 480, z: 0 },
-      { x: (baseX + waveOffsetX - 35) / 640, y: (baseY + 15 + fingerWiggle) / 480, z: 0 },
-      { x: (baseX + waveOffsetX - 40) / 640, y: (baseY - 15 + fingerWiggle) / 480, z: 0 },
-      { x: (baseX + waveOffsetX - 45) / 640, y: (baseY - 35 + fingerWiggle) / 480, z: 0 },
-      // Middle
-      { x: (baseX + waveOffsetX - 10) / 640, y: (baseY + 50) / 480, z: 0 },
-      { x: (baseX + waveOffsetX - 10) / 640, y: (baseY + 10 + fingerWiggle * 0.8) / 480, z: 0 },
-      { x: (baseX + waveOffsetX - 10) / 640, y: (baseY - 20 + fingerWiggle * 0.8) / 480, z: 0 },
-      { x: (baseX + waveOffsetX - 10) / 640, y: (baseY - 45 + fingerWiggle * 0.8) / 480, z: 0 },
-      // Ring
-      { x: (baseX + waveOffsetX + 10) / 640, y: (baseY + 50) / 480, z: 0 },
-      { x: (baseX + waveOffsetX + 15) / 640, y: (baseY + 15 + fingerWiggle * 0.6) / 480, z: 0 },
-      { x: (baseX + waveOffsetX + 20) / 640, y: (baseY - 10 + fingerWiggle * 0.6) / 480, z: 0 },
-      { x: (baseX + waveOffsetX + 25) / 640, y: (baseY - 30 + fingerWiggle * 0.6) / 480, z: 0 },
-      // Pinky
-      { x: (baseX + waveOffsetX + 30) / 640, y: (baseY + 45) / 480, z: 0 },
-      { x: (baseX + waveOffsetX + 40) / 640, y: (baseY + 20 + fingerWiggle * 0.4) / 480, z: 0 },
-      { x: (baseX + waveOffsetX + 50) / 640, y: (baseY + 5 + fingerWiggle * 0.4) / 480, z: 0 },
-      { x: (baseX + waveOffsetX + 60) / 640, y: (baseY - 10 + fingerWiggle * 0.4) / 480, z: 0 }
+      // Wrist (anchor point)
+      { x: (baseX + waveOffsetX) / 640, y: (baseY + 80) / 480, z: 0 },
+      
+      // Thumb (extends outward from palm)
+      { x: (baseX + waveOffsetX - 70) / 640, y: (baseY + 50) / 480, z: 0 },
+      { x: (baseX + waveOffsetX - 90) / 640, y: (baseY + 25) / 480, z: 0 },
+      { x: (baseX + waveOffsetX - 105) / 640, y: (baseY + 5) / 480, z: 0 },
+      { x: (baseX + waveOffsetX - 115) / 640, y: (baseY - 15) / 480, z: 0 },
+      
+      // Index finger (enthusiastic waving)
+      { x: (baseX + waveOffsetX - 50) / 640, y: (baseY + 60) / 480, z: 0 },
+      { x: (baseX + waveOffsetX - 55 + Math.cos(waveRotation) * 25) / 640, y: (baseY + 20 + fingerWave + palmTilt) / 480, z: 0 },
+      { x: (baseX + waveOffsetX - 60 + Math.cos(waveRotation) * 40) / 640, y: (baseY - 20 + fingerWave + palmTilt) / 480, z: 0 },
+      { x: (baseX + waveOffsetX - 65 + Math.cos(waveRotation) * 55) / 640, y: (baseY - 65 + fingerWave + palmTilt) / 480, z: 0 },
+      
+      // Middle finger (tallest, most prominent)
+      { x: (baseX + waveOffsetX - 15) / 640, y: (baseY + 60) / 480, z: 0 },
+      { x: (baseX + waveOffsetX - 18 + Math.cos(waveRotation) * 20) / 640, y: (baseY + 15 + fingerWave * 0.9 + palmTilt) / 480, z: 0 },
+      { x: (baseX + waveOffsetX - 22 + Math.cos(waveRotation) * 35) / 640, y: (baseY - 30 + fingerWave * 0.9 + palmTilt) / 480, z: 0 },
+      { x: (baseX + waveOffsetX - 26 + Math.cos(waveRotation) * 50) / 640, y: (baseY - 80 + fingerWave * 0.9 + palmTilt) / 480, z: 0 },
+      
+      // Ring finger (follows the wave)
+      { x: (baseX + waveOffsetX + 25) / 640, y: (baseY + 60) / 480, z: 0 },
+      { x: (baseX + waveOffsetX + 30 + Math.cos(waveRotation) * 18) / 640, y: (baseY + 20 + fingerWave * 0.7 + palmTilt) / 480, z: 0 },
+      { x: (baseX + waveOffsetX + 35 + Math.cos(waveRotation) * 30) / 640, y: (baseY - 15 + fingerWave * 0.7 + palmTilt) / 480, z: 0 },
+      { x: (baseX + waveOffsetX + 40 + Math.cos(waveRotation) * 45) / 640, y: (baseY - 60 + fingerWave * 0.7 + palmTilt) / 480, z: 0 },
+      
+      // Pinky (energetic little finger)
+      { x: (baseX + waveOffsetX + 60) / 640, y: (baseY + 55) / 480, z: 0 },
+      { x: (baseX + waveOffsetX + 70 + Math.cos(waveRotation) * 15) / 640, y: (baseY + 25 + fingerWave * 0.5 + palmTilt) / 480, z: 0 },
+      { x: (baseX + waveOffsetX + 80 + Math.cos(waveRotation) * 25) / 640, y: (baseY + 0 + fingerWave * 0.5 + palmTilt) / 480, z: 0 },
+      { x: (baseX + waveOffsetX + 90 + Math.cos(waveRotation) * 35) / 640, y: (baseY - 35 + fingerWave * 0.5 + palmTilt) / 480, z: 0 }
     ];
   }, []);
 
