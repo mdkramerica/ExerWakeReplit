@@ -362,22 +362,22 @@ export default function Recording() {
                 </div>
                 
                 {/* Timer */}
-                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
-                  <div className="bg-black bg-opacity-70 rounded-lg px-6 py-3">
+                <div className="absolute top-4 left-4">
+                  <div className="bg-black bg-opacity-90 rounded-lg px-4 py-2">
                     {isCountingDown ? (
                       <div className="text-center">
-                        <div className="text-yellow-400 text-4xl font-bold font-mono">
+                        <div className="text-yellow-400 text-2xl font-bold font-mono">
                           {countdownTimer}
                         </div>
-                        <div className="text-white text-sm mt-1">Get Ready</div>
+                        <div className="text-white text-xs mt-1">Get Ready</div>
                       </div>
                     ) : (
                       <div className="text-center">
-                        <div className="text-white text-3xl font-mono">
+                        <div className="text-white text-xl font-mono">
                           {formatTime(recordingTimer)}
                         </div>
                         {isRecording && (
-                          <div className="text-red-400 text-sm mt-1">Recording...</div>
+                          <div className="text-red-400 text-xs mt-1">Recording...</div>
                         )}
                       </div>
                     )}
@@ -393,20 +393,22 @@ export default function Recording() {
                   <Button
                     onClick={startRecording}
                     disabled={!handDetected}
-                    className="bg-red-500 text-white w-20 h-20 rounded-full flex items-center justify-center hover:bg-red-600 transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-red-500 text-white px-8 py-4 rounded-lg flex items-center justify-center hover:bg-red-600 transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <div className="w-6 h-6 bg-white rounded-full"></div>
+                    <div className="w-4 h-4 bg-white rounded-full mr-3"></div>
+                    <span className="text-lg font-semibold">RECORD</span>
                   </Button>
                 ) : isCountingDown ? (
-                  <div className="w-20 h-20 rounded-full bg-yellow-500 flex items-center justify-center shadow-lg">
+                  <div className="px-8 py-4 rounded-lg bg-yellow-500 flex items-center justify-center shadow-lg">
                     <div className="text-white text-xl font-bold">{countdownTimer}</div>
                   </div>
                 ) : (
                   <Button
                     onClick={stopRecording}
-                    className="bg-red-600 text-white w-20 h-20 rounded-full flex items-center justify-center hover:bg-red-700 transition-all duration-200 shadow-lg animate-pulse"
+                    className="bg-red-600 text-white px-8 py-4 rounded-lg flex items-center justify-center hover:bg-red-700 transition-all duration-200 shadow-lg animate-pulse"
                   >
-                    <Square className="w-8 h-8" />
+                    <Square className="w-6 h-6 mr-3" />
+                    <span className="text-lg font-semibold">STOP</span>
                   </Button>
                 )}
                 <Button
