@@ -115,7 +115,13 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
       console.log('Creating MediaPipe Hands instance...');
       handsRef.current = new HandsClass({
         locateFile: (file: string) => {
-          return `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/${file}`;
+          // Try multiple CDN sources for better reliability
+          const cdnSources = [
+            `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/${file}`,
+            `https://unpkg.com/@mediapipe/hands@0.4.1675469240/${file}`,
+            `https://cdn.skypack.dev/@mediapipe/hands@0.4.1675469240/${file}`
+          ];
+          return cdnSources[0]; // Use primary CDN
         }
       });
 
@@ -125,15 +131,21 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
       handsRef.current.setOptions({
         maxNumHands: 1,
         modelComplexity: 0,
-        minDetectionConfidence: 0.5,
+        minDetectionConfidence: 0.7,
         minTrackingConfidence: 0.5,
         staticImageMode: false,
         selfieMode: true
       });
 
-      // Initialize MediaPipe
+      // Initialize MediaPipe with error handling
       if (typeof handsRef.current.initialize === 'function') {
-        await handsRef.current.initialize();
+        try {
+          await handsRef.current.initialize();
+          console.log('MediaPipe initialization completed successfully');
+        } catch (initError) {
+          console.warn('MediaPipe initialization failed:', initError);
+          throw initError;
+        }
       }
       console.log('MediaPipe demo initialized successfully');
       setIsInitialized(true);
@@ -148,6 +160,8 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
 
   // Process MediaPipe results
   const onResults = useCallback((results: any) => {
+    console.log('Live tracking results received');
+    
     // Cancel any existing fallback animation when we get live results
     if (animationRef.current) {
       cancelAnimationFrame(animationRef.current);
@@ -305,7 +319,8 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
         await handsRef.current.send({ image: video });
       }
     } catch (error) {
-      // Silently handle frame processing errors
+      console.warn('Frame processing error:', error);
+      // Continue processing despite errors
     }
 
     animationRef.current = requestAnimationFrame(processFrame);
