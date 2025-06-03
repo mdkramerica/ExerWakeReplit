@@ -100,32 +100,15 @@ export default function VideoInstruction() {
           <div className="grid lg:grid-cols-2 gap-8">
             <div>
               <div className="bg-gray-900 rounded-xl aspect-video mb-6 relative overflow-hidden">
-                <img 
-                  src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450" 
-                  alt={`Medical demonstration video showing ${assessment.name.toLowerCase()}`}
+                <video 
+                  controls
                   className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-                  <button
-                    onClick={handleVideoPlay}
-                    className="w-16 h-16 bg-white bg-opacity-90 rounded-full flex items-center justify-center hover:bg-opacity-100 transition-all"
-                  >
-                    <Play className="w-6 h-6 text-blue-600 ml-1" />
-                  </button>
-                </div>
-                <div className="absolute bottom-4 left-4 right-4">
-                  <div className="bg-black bg-opacity-50 rounded-lg p-2">
-                    <div className="flex items-center justify-between text-white text-sm">
-                      <span>0:00</span>
-                      <div className="flex-1 mx-3">
-                        <div className="bg-gray-600 h-1 rounded">
-                          <div className="bg-white h-1 rounded w-0"></div>
-                        </div>
-                      </div>
-                      <span>2:30</span>
-                    </div>
-                  </div>
-                </div>
+                  onPlay={handleVideoPlay}
+                  preload="metadata"
+                >
+                  <source src={assessment.videoUrl} type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
               </div>
               
               <div className="text-center">
