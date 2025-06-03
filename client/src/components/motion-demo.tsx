@@ -12,6 +12,27 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
   const [isInitialized, setIsInitialized] = useState(false);
   const [handDetected, setHandDetected] = useState(false);
 
+  // Initialize canvas immediately when component mounts
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        canvas.width = 640;
+        canvas.height = 480;
+        ctx.fillStyle = '#1a1a1a';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw loading message
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 18px Arial';
+        ctx.fillText('Exer AI Hand Tracking Demo', 15, 30);
+        ctx.font = '14px Arial';
+        ctx.fillText('Initializing motion analysis...', 15, 55);
+      }
+    }
+  }, []);
+
   // Initialize MediaPipe hands for the demo
   const initializeHands = useCallback(async () => {
     try {
@@ -423,35 +444,29 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
     const init = async () => {
       console.log('Initializing motion demo...');
       
-      // Always try camera first, fallback only on actual failure
+      // Always start with fallback demo to ensure canvas shows something
+      showFallbackDemo();
+      
+      // Then try camera initialization
       console.log('Attempting camera initialization...');
       
       const success = await initializeHands();
       if (success) {
         console.log('MediaPipe initialized, attempting camera access...');
         
-        // Set a timeout for camera initialization
-        const cameraTimeout = setTimeout(() => {
-          console.log('Camera initialization timeout, falling back to demo');
-          showFallbackDemo();
-        }, 3000);
-        
         try {
           await startCamera();
-          clearTimeout(cameraTimeout);
+          console.log('Camera started successfully, switching to live tracking');
         } catch (error) {
-          clearTimeout(cameraTimeout);
-          console.log('Camera failed, showing fallback demo');
-          showFallbackDemo();
+          console.log('Camera failed, keeping fallback demo');
         }
       } else {
-        console.log('MediaPipe failed, showing fallback demo');
-        showFallbackDemo();
+        console.log('MediaPipe failed, keeping fallback demo');
       }
     };
     
     // Add delay to ensure page is fully loaded
-    const timer = setTimeout(init, 500);
+    const timer = setTimeout(init, 100);
 
     return () => {
       clearTimeout(timer);
@@ -470,7 +485,7 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
   }, [initializeHands, startCamera]);
 
   return (
-    <div className={`relative ${className} rounded-lg overflow-hidden bg-gray-900`}>
+    <div className={`relative ${className} rounded-lg overflow-hidden bg-gray-900 min-h-48`}>
       <video
         ref={videoRef}
         className="hidden"
@@ -479,7 +494,8 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
       />
       <canvas
         ref={canvasRef}
-        className="w-full h-full object-cover"
+        className="w-full h-full object-cover block"
+        style={{ minHeight: '192px', backgroundColor: '#1a1a1a' }}
       />
       
       {/* Demo info overlay */}
