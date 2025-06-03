@@ -87,8 +87,15 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
     ctx.font = '14px Arial';
     const statusText = isLive 
       ? (hasHand ? 'LIVE: Hand Detected - 21 Joint Tracking' : 'LIVE: Position hand to see tracking')
-      : '👋 Waving Hello - 21-Joint Analysis';
+      : 'Real-Time Motion Analysis Demo';
     ctx.fillText(statusText, 10, 55);
+    
+    // Add subtitle for demo mode
+    if (!isLive) {
+      ctx.font = '12px Arial';
+      ctx.fillStyle = '#cccccc';
+      ctx.fillText('Precision 21-joint biomechanical tracking', 10, 75);
+    }
     
     // Draw status indicator
     ctx.fillStyle = hasHand ? '#00ff00' : (isLive ? '#ff6666' : '#ffa500');
