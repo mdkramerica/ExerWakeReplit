@@ -695,47 +695,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
     if (isKapandjiAssessment && frame.landmarks && frame.landmarks.length >= 21) {
       const currentKapandji = calculateKapandjiScore(frame.landmarks);
       
-      // Draw "Beyond Palm" threshold line
-      if (frame.landmarks[0] && frame.landmarks[5] && frame.landmarks[17]) {
-        // Calculate palm boundary line from wrist to pinky MCP
-        const wrist = frame.landmarks[0];
-        const indexMcp = frame.landmarks[5];
-        const pinkyMcp = frame.landmarks[17];
-        
-        // Calculate palm center and extend line beyond it
-        const palmCenterX = (indexMcp.x + pinkyMcp.x) / 2;
-        const palmCenterY = (indexMcp.y + pinkyMcp.y) / 2;
-        
-        // Calculate direction vector from wrist to palm center
-        const dirX = palmCenterX - wrist.x;
-        const dirY = palmCenterY - wrist.y;
-        
-        // Extend line beyond palm center
-        const extensionFactor = 1.5;
-        const beyondPalmX = palmCenterX + dirX * extensionFactor;
-        const beyondPalmY = palmCenterY + dirY * extensionFactor;
-        
-        // Convert to canvas coordinates with mirroring
-        const startX = (1 - palmCenterX) * canvas.width;
-        const startY = palmCenterY * canvas.height;
-        const endX = (1 - beyondPalmX) * canvas.width;
-        const endY = beyondPalmY * canvas.height;
-        
-        // Draw the "Distal Palmar Crease" threshold line
-        ctx.strokeStyle = currentKapandji.details.distalPalmarCrease ? '#10b981' : '#f59e0b';
-        ctx.lineWidth = 3;
-        ctx.setLineDash([5, 5]);
-        ctx.beginPath();
-        ctx.moveTo(startX, startY);
-        ctx.lineTo(endX, endY);
-        ctx.stroke();
-        ctx.setLineDash([]);
-        
-        // Add label for the line
-        ctx.fillStyle = currentKapandji.details.distalPalmarCrease ? '#10b981' : '#f59e0b';
-        ctx.font = 'bold 12px Arial';
-        ctx.fillText('Distal Palmar Crease', endX - 50, endY - 10);
-      }
+
       
       // Draw Kapandji score overlay in top-right corner
       const scoreBoxWidth = 250;
