@@ -120,7 +120,10 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
       });
 
       // Set up the results callback before setting options
-      handsRef.current.onResults(onResults);
+      handsRef.current.onResults((results: any) => {
+        console.log('MediaPipe results callback triggered');
+        onResults(results);
+      });
 
       handsRef.current.setOptions({
         maxNumHands: 1,
@@ -132,7 +135,9 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
       });
 
       // Initialize MediaPipe
-      await handsRef.current.initialize();
+      if (typeof handsRef.current.initialize === 'function') {
+        await handsRef.current.initialize();
+      }
       console.log('MediaPipe demo initialized successfully');
       setIsInitialized(true);
       return true;
@@ -146,21 +151,29 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
 
   // Process MediaPipe results
   const onResults = useCallback((results: any) => {
+    // Cancel any existing fallback animation when we get live results
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+      animationRef.current = null;
+    }
+
     const canvas = canvasRef.current;
     const video = videoRef.current;
     
-    if (!canvas || !video) return;
+    if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
     // Set canvas dimensions
-    canvas.width = video.videoWidth || 640;
-    canvas.height = video.videoHeight || 480;
+    const canvasWidth = video?.videoWidth || 640;
+    const canvasHeight = video?.videoHeight || 480;
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
 
     // Draw clean dark background
     ctx.fillStyle = '#1a1a1a';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
     let detectedHand = false;
 
@@ -168,26 +181,21 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
       detectedHand = true;
       const landmarks = results.multiHandLandmarks[0];
 
-      // Draw hand landmarks in bright green with larger, more visible points
+      // Draw hand landmarks in bright green
       ctx.fillStyle = '#00ff00';
+      ctx.shadowColor = '#00ff00';
+      ctx.shadowBlur = 8;
       landmarks.forEach((landmark: any) => {
-        const x = landmark.x * canvas.width;
-        const y = landmark.y * canvas.height;
+        const x = landmark.x * canvasWidth;
+        const y = landmark.y * canvasHeight;
         
         ctx.beginPath();
-        ctx.arc(x, y, 6, 0, 2 * Math.PI);
+        ctx.arc(x, y, 5, 0, 2 * Math.PI);
         ctx.fill();
-        
-        // Add glow effect
-        ctx.shadowColor = '#00ff00';
-        ctx.shadowBlur = 10;
-        ctx.beginPath();
-        ctx.arc(x, y, 3, 0, 2 * Math.PI);
-        ctx.fill();
-        ctx.shadowBlur = 0;
       });
+      ctx.shadowBlur = 0;
 
-      // Draw hand connections with glow effect
+      // Draw hand connections
       const connections = [
         [0, 1], [1, 2], [2, 3], [3, 4], // thumb
         [0, 5], [5, 6], [6, 7], [7, 8], // index
@@ -198,16 +206,16 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
       ];
 
       ctx.strokeStyle = '#00ff00';
-      ctx.lineWidth = 3;
+      ctx.lineWidth = 2;
       ctx.shadowColor = '#00ff00';
-      ctx.shadowBlur = 5;
+      ctx.shadowBlur = 4;
       connections.forEach(([start, end]) => {
         const startLandmark = landmarks[start];
         const endLandmark = landmarks[end];
         
         ctx.beginPath();
-        ctx.moveTo(startLandmark.x * canvas.width, startLandmark.y * canvas.height);
-        ctx.lineTo(endLandmark.x * canvas.width, endLandmark.y * canvas.height);
+        ctx.moveTo(startLandmark.x * canvasWidth, startLandmark.y * canvasHeight);
+        ctx.lineTo(endLandmark.x * canvasWidth, endLandmark.y * canvasHeight);
         ctx.stroke();
       });
       ctx.shadowBlur = 0;
@@ -227,7 +235,7 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
     // Draw status indicator
     ctx.fillStyle = detectedHand ? '#00ff00' : '#ff6666';
     ctx.beginPath();
-    ctx.arc(canvas.width - 20, 20, 8, 0, 2 * Math.PI);
+    ctx.arc(canvasWidth - 20, 20, 8, 0, 2 * Math.PI);
     ctx.fill();
   }, []);
 
@@ -297,13 +305,17 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
 
     try {
       if (handsRef.current && typeof handsRef.current.send === 'function') {
+        console.log('Sending frame to MediaPipe for processing');
         await handsRef.current.send({ image: video });
       }
     } catch (error) {
       console.warn('Frame processing failed:', error);
     }
 
-    animationRef.current = requestAnimationFrame(processFrame);
+    // Continue processing at 30fps
+    setTimeout(() => {
+      animationRef.current = requestAnimationFrame(processFrame);
+    }, 33);
   }, [isInitialized]);
 
   // Fallback animated demo without camera
@@ -444,12 +456,15 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
     const init = async () => {
       console.log('Initializing motion demo...');
       
-      // Always start with fallback demo to ensure canvas shows something
+      // Start with fallback demo immediately
       showFallbackDemo();
       
-      // Then try camera initialization
-      console.log('Attempting camera initialization...');
+      // For now, keep the fallback demo until MediaPipe is fully working
+      console.log('Using fallback demo for reliable display');
+      return;
       
+      // MediaPipe initialization disabled temporarily
+      /*
       const success = await initializeHands();
       if (success) {
         console.log('MediaPipe initialized, attempting camera access...');
@@ -463,6 +478,7 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
       } else {
         console.log('MediaPipe failed, keeping fallback demo');
       }
+      */
     };
     
     // Add delay to ensure page is fully loaded
