@@ -120,10 +120,7 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
       });
 
       // Set up the results callback before setting options
-      handsRef.current.onResults((results: any) => {
-        console.log('MediaPipe results callback triggered');
-        onResults(results);
-      });
+      handsRef.current.onResults(onResults);
 
       handsRef.current.setOptions({
         maxNumHands: 1,
@@ -305,17 +302,13 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
 
     try {
       if (handsRef.current && typeof handsRef.current.send === 'function') {
-        console.log('Sending frame to MediaPipe for processing');
         await handsRef.current.send({ image: video });
       }
     } catch (error) {
-      console.warn('Frame processing failed:', error);
+      // Silently handle frame processing errors
     }
 
-    // Continue processing at 30fps
-    setTimeout(() => {
-      animationRef.current = requestAnimationFrame(processFrame);
-    }, 33);
+    animationRef.current = requestAnimationFrame(processFrame);
   }, [isInitialized]);
 
   // Fallback animated demo without camera
@@ -459,26 +452,20 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
       // Start with fallback demo immediately
       showFallbackDemo();
       
-      // For now, keep the fallback demo until MediaPipe is fully working
-      console.log('Using fallback demo for reliable display');
-      return;
-      
-      // MediaPipe initialization disabled temporarily
-      /*
+      // Then try MediaPipe initialization
       const success = await initializeHands();
       if (success) {
         console.log('MediaPipe initialized, attempting camera access...');
         
         try {
           await startCamera();
-          console.log('Camera started successfully, switching to live tracking');
+          console.log('Camera started successfully, live tracking enabled');
         } catch (error) {
           console.log('Camera failed, keeping fallback demo');
         }
       } else {
         console.log('MediaPipe failed, keeping fallback demo');
       }
-      */
     };
     
     // Add delay to ensure page is fully loaded
