@@ -244,22 +244,45 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
             try {
               await videoRef.current!.play();
               
-              // Start continuous frame processing for live tracking
+              // Start controlled frame processing to prevent memory issues
+              let frameCount = 0;
+              let isProcessing = false;
+              
               const processFrame = async () => {
+                if (isProcessing || !handsRef.current || !videoRef.current) {
+                  return;
+                }
+                
                 try {
-                  if (handsRef.current && videoRef.current) {
+                  isProcessing = true;
+                  frameCount++;
+                  
+                  // Only process every 3rd frame to reduce load
+                  if (frameCount % 3 === 0) {
                     await handsRef.current.send({ image: videoRef.current });
-                    requestAnimationFrame(processFrame);
                   }
+                  
+                  isProcessing = false;
+                  
+                  // Continue processing with rate limiting
+                  setTimeout(() => requestAnimationFrame(processFrame), 100);
                 } catch (error) {
-                  console.warn('Frame processing error:', error);
-                  // Continue processing despite errors
-                  requestAnimationFrame(processFrame);
+                  console.warn('Frame processing error, falling back to demo:', error);
+                  isProcessing = false;
+                  
+                  // Fall back to demo mode on repeated errors
+                  if (frameCount > 10) {
+                    console.log('Too many errors, switching to demo mode');
+                    runDemo();
+                    return;
+                  }
+                  
+                  setTimeout(() => requestAnimationFrame(processFrame), 200);
                 }
               };
               
-              // Start processing immediately
-              processFrame();
+              // Start processing with initial delay
+              setTimeout(processFrame, 500);
               
               console.log('MediaPipe initialized successfully');
               resolve(true);
@@ -281,22 +304,39 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
   // Initialize component
   useEffect(() => {
     const init = async () => {
-      // First priority: Try live tracking
+      // First priority: Try live tracking with timeout
       console.log('Attempting live hand tracking...');
       
+      // Set a timeout to fall back to demo if live tracking takes too long
+      const timeoutId = setTimeout(() => {
+        if (!isLiveMode) {
+          console.log('Live tracking timeout, starting demo mode');
+          runDemo();
+        }
+      }, 5000);
+      
       try {
-        const success = await initializeMediaPipe();
+        const success = await Promise.race([
+          initializeMediaPipe(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 4000))
+        ]);
+        
+        clearTimeout(timeoutId);
+        
         if (success) {
           console.log('Live tracking initialized successfully');
           return; // Live tracking is active, no need for demo
         }
       } catch (error) {
+        clearTimeout(timeoutId);
         console.log('Live tracking failed, falling back to demo mode');
       }
       
       // Fallback: Start animated demo
-      console.log('Starting demo mode - 21-joint biomechanical analysis');
-      runDemo();
+      if (!isLiveMode) {
+        console.log('Starting demo mode - 21-joint biomechanical analysis');
+        runDemo();
+      }
     };
 
     init();
@@ -309,7 +349,7 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
         streamRef.current.getTracks().forEach(track => track.stop());
       }
     };
-  }, [runDemo, initializeMediaPipe]);
+  }, [runDemo, initializeMediaPipe, isLiveMode]);
 
   return (
     <div className={className}>
