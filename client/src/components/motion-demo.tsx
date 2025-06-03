@@ -158,9 +158,17 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
     }
   }, []);
 
+  // Track if we're using live tracking
+  const [isUsingLiveTracking, setIsUsingLiveTracking] = useState(false);
+
   // Process MediaPipe results
   const onResults = useCallback((results: any) => {
-    // Cancel any existing fallback animation when we get live results
+    console.log('MediaPipe results received, switching to live tracking');
+    
+    // Mark that we're now using live tracking
+    setIsUsingLiveTracking(true);
+    
+    // Cancel any existing fallback animation
     if (animationRef.current) {
       cancelAnimationFrame(animationRef.current);
       animationRef.current = null;
@@ -199,7 +207,7 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
         const y = landmark.y * canvasHeight;
         
         ctx.beginPath();
-        ctx.arc(x, y, 5, 0, 2 * Math.PI);
+        ctx.arc(x, y, 6, 0, 2 * Math.PI);
         ctx.fill();
       });
       ctx.shadowBlur = 0;
@@ -215,9 +223,9 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
       ];
 
       ctx.strokeStyle = '#00ff00';
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 3;
       ctx.shadowColor = '#00ff00';
-      ctx.shadowBlur = 4;
+      ctx.shadowBlur = 5;
       connections.forEach(([start, end]) => {
         const startLandmark = landmarks[start];
         const endLandmark = landmarks[end];
@@ -234,18 +242,23 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
 
     // Draw demo overlay
     ctx.fillStyle = detectedHand ? '#00ff00' : '#ffffff';
-    ctx.font = 'bold 16px Arial';
-    ctx.fillText('Exer AI Hand Tracking Demo', 10, 25);
+    ctx.font = 'bold 18px Arial';
+    ctx.fillText('Exer AI Hand Tracking Demo', 10, 30);
     
     ctx.fillStyle = '#ffffff';
-    ctx.font = '12px Arial';
-    ctx.fillText(detectedHand ? 'Hand Detected - 21 Joint Tracking' : 'Position hand to see tracking', 10, 45);
+    ctx.font = '14px Arial';
+    ctx.fillText(detectedHand ? 'LIVE: Hand Detected - 21 Joint Tracking' : 'LIVE: Position hand to see tracking', 10, 55);
     
     // Draw status indicator
     ctx.fillStyle = detectedHand ? '#00ff00' : '#ff6666';
     ctx.beginPath();
-    ctx.arc(canvasWidth - 20, 20, 8, 0, 2 * Math.PI);
+    ctx.arc(canvasWidth - 25, 25, 10, 0, 2 * Math.PI);
     ctx.fill();
+    
+    // Add "LIVE" text
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 12px Arial';
+    ctx.fillText('LIVE', canvasWidth - 55, 30);
   }, []);
 
   // Start camera for demo
@@ -337,6 +350,11 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
 
     let frame = 0;
     const animate = () => {
+      // Stop animation if live tracking has taken over
+      if (isUsingLiveTracking) {
+        return;
+      }
+
       // Clear canvas with dark background
       ctx.fillStyle = '#1a1a1a';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
