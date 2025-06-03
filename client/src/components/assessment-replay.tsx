@@ -506,11 +506,18 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
         ctx.lineWidth = 2;
         ctx.setLineDash([3, 3]);
         
-        // Draw MCP angle arc (blue) - positioned at MCP joint where the red line was drawn
+        // Draw MCP angle arc (blue) - positioned at MCP joint, properly oriented
         const mcpCenter = { x: (1 - frame.landmarks[activeJoints.mcp].x) * canvas.width, y: frame.landmarks[activeJoints.mcp].y * canvas.height };
+        const wristPos = { x: (1 - frame.landmarks[0].x) * canvas.width, y: frame.landmarks[0].y * canvas.height };
+        const pipPos = { x: (1 - frame.landmarks[activeJoints.pip].x) * canvas.width, y: frame.landmarks[activeJoints.pip].y * canvas.height };
+        
+        // Calculate the starting angle from MCP to wrist direction
+        const wristAngle = Math.atan2(wristPos.y - mcpCenter.y, wristPos.x - mcpCenter.x);
+        const arcSpan = (romData.mcpAngle / 180) * Math.PI;
+        
         ctx.strokeStyle = '#3b82f6'; // Blue - matches MCP in live display
         ctx.beginPath();
-        ctx.arc(mcpCenter.x, mcpCenter.y, 15, 0, (romData.mcpAngle / 180) * Math.PI);
+        ctx.arc(mcpCenter.x, mcpCenter.y, 15, wristAngle, wristAngle + arcSpan);
         ctx.stroke();
         
         // Draw PIP angle arc (green) - centered at PIP joint, angle measured from MCP-PIP-DIP
