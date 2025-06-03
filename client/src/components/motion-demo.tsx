@@ -160,18 +160,21 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
 
   // Track if we're using live tracking
   const [isUsingLiveTracking, setIsUsingLiveTracking] = useState(false);
+  const liveTrackingRef = useRef(false);
 
   // Process MediaPipe results
   const onResults = useCallback((results: any) => {
-    console.log('MediaPipe results received, switching to live tracking');
-    
     // Mark that we're now using live tracking
-    setIsUsingLiveTracking(true);
-    
-    // Cancel any existing fallback animation
-    if (animationRef.current) {
-      cancelAnimationFrame(animationRef.current);
-      animationRef.current = null;
+    if (!liveTrackingRef.current) {
+      console.log('MediaPipe results received, switching to live tracking');
+      liveTrackingRef.current = true;
+      setIsUsingLiveTracking(true);
+      
+      // Cancel any existing fallback animation
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+        animationRef.current = null;
+      }
     }
 
     const canvas = canvasRef.current;
@@ -351,7 +354,7 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
     let frame = 0;
     const animate = () => {
       // Stop animation if live tracking has taken over
-      if (isUsingLiveTracking) {
+      if (liveTrackingRef.current) {
         return;
       }
 
