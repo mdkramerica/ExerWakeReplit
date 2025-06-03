@@ -697,11 +697,11 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
       
 
       
-      // Draw Kapandji score overlay in top-right corner
+      // Draw Kapandji score overlay in bottom-right corner, above Exer AI branding
       const scoreBoxWidth = 250;
       const scoreBoxHeight = 180;
       const scoreBoxX = canvas.width - scoreBoxWidth - 10;
-      const scoreBoxY = 10;
+      const scoreBoxY = canvas.height - scoreBoxHeight - 60; // 60px above bottom for timeline and branding
       
       // Background
       ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
