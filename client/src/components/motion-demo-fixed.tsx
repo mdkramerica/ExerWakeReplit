@@ -143,6 +143,9 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
 
   // Demo animation loop
   const runDemo = useCallback(() => {
+    // Ensure we're in demo mode
+    setIsLiveMode(false);
+    
     let frame = 0;
     
     const animate = () => {
@@ -271,6 +274,7 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
                   // Fall back to demo after 5 consecutive errors
                   if (errorCount >= 5) {
                     console.log('Multiple errors detected, switching to demo mode');
+                    setIsLiveMode(false);
                     runDemo();
                     return;
                   }
