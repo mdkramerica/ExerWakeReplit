@@ -358,26 +358,29 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
       setCurrentROM(romData);
     }
 
-    // Draw hand landmarks with finger highlighting
+    // Draw only relevant landmarks for the selected finger measurement
+    const getActiveFingerJoints = (digit: string) => {
+      switch (digit) {
+        case 'INDEX': return { mcp: 5, pip: 6, dip: 7, tip: 8 };
+        case 'MIDDLE': return { mcp: 9, pip: 10, dip: 11, tip: 12 };
+        case 'RING': return { mcp: 13, pip: 14, dip: 15, tip: 16 };
+        case 'PINKY': return { mcp: 17, pip: 18, dip: 19, tip: 20 };
+        default: return { mcp: 5, pip: 6, dip: 7, tip: 8 };
+      }
+    };
+    
+    const activeJoints = getActiveFingerJoints(selectedDigit);
+    const relevantLandmarks = [0, activeJoints.mcp, activeJoints.pip, activeJoints.dip, activeJoints.tip]; // Wrist + finger joints
+    
     frame.landmarks.forEach((landmark, index) => {
+      // Only draw relevant landmarks
+      if (!relevantLandmarks.includes(index)) return;
+      
       const x = (1 - landmark.x) * canvas.width; // Flip horizontally to remove mirror effect
       const y = landmark.y * canvas.height;
       
-      // Get active finger joint landmarks based on selected digit
-      const getActiveFingerJoints = (digit: string) => {
-        switch (digit) {
-          case 'INDEX': return { mcp: 5, pip: 6, dip: 7, tip: 8 };
-          case 'MIDDLE': return { mcp: 9, pip: 10, dip: 11, tip: 12 };
-          case 'RING': return { mcp: 13, pip: 14, dip: 15, tip: 16 };
-          case 'PINKY': return { mcp: 17, pip: 18, dip: 19, tip: 20 };
-          default: return { mcp: 5, pip: 6, dip: 7, tip: 8 };
-        }
-      };
-      
-      const activeJoints = getActiveFingerJoints(selectedDigit);
-      
       // Color-code joints to match live joint angles display
-      let color = '#10b981'; // Default green for other landmarks
+      let color = '#10b981'; // Default green
       let size = 4;
       
       if (index === activeJoints.mcp) {
