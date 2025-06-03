@@ -197,12 +197,14 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
         }
       });
 
-      // Set conservative options for better compatibility
+      // Set optimized options for smooth performance
       hands.setOptions({
         maxNumHands: 1,
-        modelComplexity: 0, // Use lite model for better performance
-        minDetectionConfidence: 0.7,
-        minTrackingConfidence: 0.5
+        modelComplexity: 0, // Lite model for best performance
+        minDetectionConfidence: 0.5, // Lower for better responsiveness
+        minTrackingConfidence: 0.3,   // Lower for smoother tracking
+        staticImageMode: false,       // Enable video mode optimization
+        useCpuInference: false        // Use GPU acceleration
       });
 
       // Handle results with error protection
@@ -244,45 +246,42 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
             try {
               await videoRef.current!.play();
               
-              // Start controlled frame processing to prevent memory issues
-              let frameCount = 0;
-              let isProcessing = false;
+              // Optimized frame processing for smooth tracking
+              let lastProcessTime = 0;
+              let errorCount = 0;
               
               const processFrame = async () => {
-                if (isProcessing || !handsRef.current || !videoRef.current) {
+                const now = performance.now();
+                
+                // Limit to 15 FPS for smooth performance
+                if (now - lastProcessTime < 66 || !handsRef.current || !videoRef.current) {
+                  requestAnimationFrame(processFrame);
                   return;
                 }
                 
                 try {
-                  isProcessing = true;
-                  frameCount++;
-                  
-                  // Only process every 3rd frame to reduce load
-                  if (frameCount % 3 === 0) {
-                    await handsRef.current.send({ image: videoRef.current });
-                  }
-                  
-                  isProcessing = false;
-                  
-                  // Continue processing with rate limiting
-                  setTimeout(() => requestAnimationFrame(processFrame), 100);
+                  lastProcessTime = now;
+                  await handsRef.current.send({ image: videoRef.current });
+                  errorCount = 0; // Reset error count on success
+                  requestAnimationFrame(processFrame);
                 } catch (error) {
-                  console.warn('Frame processing error, falling back to demo:', error);
-                  isProcessing = false;
+                  errorCount++;
+                  console.warn(`Frame processing error ${errorCount}:`, error);
                   
-                  // Fall back to demo mode on repeated errors
-                  if (frameCount > 10) {
-                    console.log('Too many errors, switching to demo mode');
+                  // Fall back to demo after 5 consecutive errors
+                  if (errorCount >= 5) {
+                    console.log('Multiple errors detected, switching to demo mode');
                     runDemo();
                     return;
                   }
                   
-                  setTimeout(() => requestAnimationFrame(processFrame), 200);
+                  // Continue with longer delay after error
+                  setTimeout(() => requestAnimationFrame(processFrame), 150);
                 }
               };
               
-              // Start processing with initial delay
-              setTimeout(processFrame, 500);
+              // Start processing immediately for responsiveness
+              processFrame();
               
               console.log('MediaPipe initialized successfully');
               resolve(true);
