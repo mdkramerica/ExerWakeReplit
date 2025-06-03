@@ -721,8 +721,8 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
         const endX = (1 - beyondPalmX) * canvas.width;
         const endY = beyondPalmY * canvas.height;
         
-        // Draw the "Beyond Palm" threshold line
-        ctx.strokeStyle = currentKapandji.details.beyondPalm ? '#10b981' : '#f59e0b';
+        // Draw the "Distal Palmar Crease" threshold line
+        ctx.strokeStyle = currentKapandji.details.distalPalmarCrease ? '#10b981' : '#f59e0b';
         ctx.lineWidth = 3;
         ctx.setLineDash([5, 5]);
         ctx.beginPath();
@@ -732,9 +732,9 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
         ctx.setLineDash([]);
         
         // Add label for the line
-        ctx.fillStyle = currentKapandji.details.beyondPalm ? '#10b981' : '#f59e0b';
+        ctx.fillStyle = currentKapandji.details.distalPalmarCrease ? '#10b981' : '#f59e0b';
         ctx.font = 'bold 12px Arial';
-        ctx.fillText('Beyond Palm Line', endX - 50, endY - 10);
+        ctx.fillText('Distal Palmar Crease', endX - 50, endY - 10);
       }
       
       // Draw Kapandji score overlay in top-right corner
@@ -760,15 +760,16 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
       // Individual level indicators
       ctx.font = '11px Arial';
       const levels = [
-        { level: 1, name: 'Index MCP', achieved: currentKapandji.details.indexMcp },
-        { level: 2, name: 'Middle MCP', achieved: currentKapandji.details.middleMcp },
-        { level: 3, name: 'Ring MCP', achieved: currentKapandji.details.ringMcp },
-        { level: 4, name: 'Pinky MCP', achieved: currentKapandji.details.pinkyMcp },
-        { level: 5, name: 'Pinky PIP', achieved: currentKapandji.details.pinkyPip },
-        { level: 6, name: 'Pinky DIP', achieved: currentKapandji.details.pinkyDip },
-        { level: 7, name: 'Pinky Tip', achieved: currentKapandji.details.pinkyTip },
-        { level: 8, name: 'Palm Center', achieved: currentKapandji.details.palmCenter },
-        { level: 9, name: 'Beyond Palm', achieved: currentKapandji.details.beyondPalm }
+        { level: 1, name: 'Index Proximal', achieved: currentKapandji.details.indexProximalPhalanx },
+        { level: 2, name: 'Index Middle', achieved: currentKapandji.details.indexMiddlePhalanx },
+        { level: 3, name: 'Index Tip', achieved: currentKapandji.details.indexTip },
+        { level: 4, name: 'Middle Tip', achieved: currentKapandji.details.middleTip },
+        { level: 5, name: 'Ring Tip', achieved: currentKapandji.details.ringTip },
+        { level: 6, name: 'Little Tip', achieved: currentKapandji.details.littleTip },
+        { level: 7, name: 'Little DIP', achieved: currentKapandji.details.littleDipCrease },
+        { level: 8, name: 'Little PIP', achieved: currentKapandji.details.littlePipCrease },
+        { level: 9, name: 'Little MCP', achieved: currentKapandji.details.littleMcpCrease },
+        { level: 10, name: 'Distal Crease', achieved: currentKapandji.details.distalPalmarCrease }
       ];
       
       levels.forEach((level, index) => {

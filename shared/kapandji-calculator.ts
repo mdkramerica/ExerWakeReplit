@@ -8,15 +8,16 @@ export interface KapandjiScore {
   maxScore: number;
   reachedLandmarks: string[];
   details: {
-    indexMcp: boolean;
-    middleMcp: boolean;
-    ringMcp: boolean;
-    pinkyMcp: boolean;
-    pinkyPip: boolean;
-    pinkyDip: boolean;
-    pinkyTip: boolean;
-    palmCenter: boolean;
-    beyondPalm: boolean;
+    indexProximalPhalanx: boolean;    // Score 1: Radial side of proximal phalanx of index
+    indexMiddlePhalanx: boolean;      // Score 2: Radial side of middle phalanx of index
+    indexTip: boolean;                // Score 3: Tip of index finger
+    middleTip: boolean;               // Score 4: Tip of middle finger
+    ringTip: boolean;                 // Score 5: Tip of ring finger
+    littleTip: boolean;               // Score 6: Tip of little finger
+    littleDipCrease: boolean;         // Score 7: DIP joint crease of little finger
+    littlePipCrease: boolean;         // Score 8: PIP joint crease of little finger
+    littleMcpCrease: boolean;         // Score 9: MCP joint crease of little finger
+    distalPalmarCrease: boolean;      // Score 10: Distal palmar crease
   };
 }
 
@@ -42,40 +43,48 @@ export function calculateKapandjiScore(landmarks: HandLandmark[]): KapandjiScore
 
   const thumbTip = landmarks[4];
   
-  // Define anatomical targets with their Kapandji scores based on correct scoring system
-  const THRESHOLD = 0.04; // Slightly tighter threshold for more precise scoring
+  // Define anatomical targets with correct Kapandji scoring locations
+  const THRESHOLD = 0.04; // Distance threshold for contact detection
   
-  // Calculate specific anatomical landmarks for accurate Kapandji scoring
-  const indexSide = landmarks[6]; // Lateral side of index finger (PIP joint)
-  const palmBase = averageLandmarks([0, 1, 17], landmarks); // Base of little finger area
-  const midPalm = averageLandmarks([0, 17, 18], landmarks); // Mid-palm below little finger
-  const distalCrease = averageLandmarks([13, 17, 18], landmarks); // Distal palmar crease
-  const proximalCrease = averageLandmarks([0, 9, 13], landmarks); // Proximal palmar crease
+  // Calculate anatomical landmarks based on MediaPipe hand structure
+  // Index finger landmarks: 5=MCP, 6=PIP, 7=DIP, 8=TIP
+  const indexProximalSide = landmarks[6]; // Approximate radial side of proximal phalanx
+  const indexMiddleSide = landmarks[7]; // Approximate radial side of middle phalanx
+  
+  // Little finger landmarks: 17=MCP, 18=PIP, 19=DIP, 20=TIP
+  const littleDipCrease = landmarks[19]; // DIP joint crease area
+  const littlePipCrease = landmarks[18]; // PIP joint crease area
+  const littleMcpCrease = landmarks[17]; // MCP joint crease area
+  
+  // Palmar crease approximation using wrist and palm landmarks
+  const distalPalmarCrease = averageLandmarks([0, 9, 13, 17], landmarks); // Distal palmar crease
   
   const targets = [
-    { landmark: indexSide, score: 1, name: 'Lateral Index', key: 'indexMcp' },
-    { landmark: landmarks[8], score: 2, name: 'Index Tip', key: 'middleMcp' },
-    { landmark: landmarks[12], score: 3, name: 'Middle Tip', key: 'ringMcp' },
-    { landmark: landmarks[16], score: 4, name: 'Ring Tip', key: 'pinkyMcp' },
-    { landmark: landmarks[20], score: 5, name: 'Little Tip', key: 'pinkyPip' },
-    { landmark: palmBase, score: 6, name: 'Little Base', key: 'pinkyDip' },
-    { landmark: midPalm, score: 7, name: 'Mid-Palm', key: 'pinkyTip' },
-    { landmark: distalCrease, score: 8, name: 'Distal Crease', key: 'palmCenter' },
-    { landmark: proximalCrease, score: 9, name: 'Proximal Crease', key: 'beyondPalm' },
+    { landmark: indexProximalSide, score: 1, name: 'Index Proximal Phalanx (Radial)', key: 'indexProximalPhalanx' },
+    { landmark: indexMiddleSide, score: 2, name: 'Index Middle Phalanx (Radial)', key: 'indexMiddlePhalanx' },
+    { landmark: landmarks[8], score: 3, name: 'Index Finger Tip', key: 'indexTip' },
+    { landmark: landmarks[12], score: 4, name: 'Middle Finger Tip', key: 'middleTip' },
+    { landmark: landmarks[16], score: 5, name: 'Ring Finger Tip', key: 'ringTip' },
+    { landmark: landmarks[20], score: 6, name: 'Little Finger Tip', key: 'littleTip' },
+    { landmark: littleDipCrease, score: 7, name: 'Little DIP Joint Crease', key: 'littleDipCrease' },
+    { landmark: littlePipCrease, score: 8, name: 'Little PIP Joint Crease', key: 'littlePipCrease' },
+    { landmark: littleMcpCrease, score: 9, name: 'Little MCP Joint Crease', key: 'littleMcpCrease' },
+    { landmark: distalPalmarCrease, score: 10, name: 'Distal Palmar Crease', key: 'distalPalmarCrease' },
   ];
 
   let maxScore = 0;
   const reachedLandmarks: string[] = [];
   const details = {
-    indexMcp: false,
-    middleMcp: false,
-    ringMcp: false,
-    pinkyMcp: false,
-    pinkyPip: false,
-    pinkyDip: false,
-    pinkyTip: false,
-    palmCenter: false,
-    beyondPalm: false
+    indexProximalPhalanx: false,
+    indexMiddlePhalanx: false,
+    indexTip: false,
+    middleTip: false,
+    ringTip: false,
+    littleTip: false,
+    littleDipCrease: false,
+    littlePipCrease: false,
+    littleMcpCrease: false,
+    distalPalmarCrease: false
   };
 
   // Check each target in order
@@ -104,7 +113,7 @@ export function calculateKapandjiScore(landmarks: HandLandmark[]): KapandjiScore
   if (distanceToRadial < THRESHOLD * 1.5) { // Slightly more lenient for score 10
     maxScore = Math.max(maxScore, 10);
     reachedLandmarks.push('Full Opposition');
-    details.beyondPalm = true;
+    details.distalPalmarCrease = true;
   }
 
   return {
@@ -119,15 +128,16 @@ export function calculateMaxKapandjiScore(motionFrames: Array<{landmarks: HandLa
     maxScore: 0,
     reachedLandmarks: [],
     details: {
-      indexMcp: false,
-      middleMcp: false,
-      ringMcp: false,
-      pinkyMcp: false,
-      pinkyPip: false,
-      pinkyDip: false,
-      pinkyTip: false,
-      palmCenter: false,
-      beyondPalm: false
+      indexProximalPhalanx: false,
+      indexMiddlePhalanx: false,
+      indexTip: false,
+      middleTip: false,
+      ringTip: false,
+      littleTip: false,
+      littleDipCrease: false,
+      littlePipCrease: false,
+      littleMcpCrease: false,
+      distalPalmarCrease: false
     }
   };
 
