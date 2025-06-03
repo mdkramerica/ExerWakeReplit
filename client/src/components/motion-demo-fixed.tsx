@@ -209,7 +209,7 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
       hands.onResults((results: any) => {
         try {
           if (!isLiveMode) {
-            console.log('Switching to live mode');
+            console.log('Live tracking active');
             setIsLiveMode(true);
             if (animationRef.current) {
               cancelAnimationFrame(animationRef.current);
@@ -244,21 +244,22 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
             try {
               await videoRef.current!.play();
               
-              // Start processing with error recovery
+              // Start continuous frame processing for live tracking
               const processFrame = async () => {
                 try {
-                  if (handsRef.current && videoRef.current && !isLiveMode) {
+                  if (handsRef.current && videoRef.current) {
                     await handsRef.current.send({ image: videoRef.current });
                     requestAnimationFrame(processFrame);
                   }
                 } catch (error) {
-                  console.warn('Frame processing error, continuing demo mode');
-                  // Don't stop the demo on processing errors
+                  console.warn('Frame processing error:', error);
+                  // Continue processing despite errors
+                  requestAnimationFrame(processFrame);
                 }
               };
               
-              // Start processing after a delay
-              setTimeout(processFrame, 1000);
+              // Start processing immediately
+              processFrame();
               
               console.log('MediaPipe initialized successfully');
               resolve(true);
@@ -279,12 +280,26 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
 
   // Initialize component
   useEffect(() => {
-    // Start with demo immediately - this is the primary mode
-    runDemo();
-    
-    // Live tracking disabled for deployment stability
-    // Demo mode provides reliable hand tracking visualization
-    console.log('Hand tracking demo active - showing 21-joint biomechanical analysis');
+    const init = async () => {
+      // First priority: Try live tracking
+      console.log('Attempting live hand tracking...');
+      
+      try {
+        const success = await initializeMediaPipe();
+        if (success) {
+          console.log('Live tracking initialized successfully');
+          return; // Live tracking is active, no need for demo
+        }
+      } catch (error) {
+        console.log('Live tracking failed, falling back to demo mode');
+      }
+      
+      // Fallback: Start animated demo
+      console.log('Starting demo mode - 21-joint biomechanical analysis');
+      runDemo();
+    };
+
+    init();
 
     return () => {
       if (animationRef.current) {
