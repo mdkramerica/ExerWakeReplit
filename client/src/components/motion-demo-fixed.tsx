@@ -307,38 +307,27 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
   // Initialize component
   useEffect(() => {
     const init = async () => {
-      // First priority: Try live tracking with timeout
-      console.log('Attempting live hand tracking...');
+      // Primary mode: Start with reliable demo
+      console.log('Starting hand tracking demo...');
+      runDemo();
       
-      // Set a timeout to fall back to demo if live tracking takes too long
-      const timeoutId = setTimeout(() => {
-        if (!isLiveMode) {
-          console.log('Live tracking timeout, starting demo mode');
-          runDemo();
-        }
-      }, 5000);
-      
-      try {
-        const success = await Promise.race([
-          initializeMediaPipe(),
-          new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 4000))
-        ]);
-        
-        clearTimeout(timeoutId);
-        
-        if (success) {
-          console.log('Live tracking initialized successfully');
-          return; // Live tracking is active, no need for demo
-        }
-      } catch (error) {
-        clearTimeout(timeoutId);
-        console.log('Live tracking failed, falling back to demo mode');
-      }
-      
-      // Fallback: Start animated demo
-      if (!isLiveMode) {
-        console.log('Starting demo mode - 21-joint biomechanical analysis');
-        runDemo();
+      // Optional enhancement: Try live tracking only in development
+      if (import.meta.env.DEV) {
+        setTimeout(async () => {
+          try {
+            console.log('Attempting to upgrade to live tracking...');
+            const success = await Promise.race([
+              initializeMediaPipe(),
+              new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000))
+            ]);
+            
+            if (success) {
+              console.log('Live tracking upgrade successful');
+            }
+          } catch (error) {
+            console.log('Live tracking unavailable, demo continues');
+          }
+        }, 2000);
       }
     };
 
@@ -352,7 +341,7 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
         streamRef.current.getTracks().forEach(track => track.stop());
       }
     };
-  }, [runDemo, initializeMediaPipe, isLiveMode]);
+  }, [runDemo, initializeMediaPipe]);
 
   return (
     <div className={className}>
