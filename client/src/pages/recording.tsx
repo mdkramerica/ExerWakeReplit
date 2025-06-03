@@ -361,28 +361,19 @@ export default function Recording() {
                   </div>
                 </div>
                 
-                {/* Timer */}
-                <div className="absolute top-4 left-4">
-                  <div className="bg-black bg-opacity-90 rounded-lg px-4 py-2">
-                    {isCountingDown ? (
+                {/* Countdown timer overlay during countdown */}
+                {isCountingDown && (
+                  <div className="absolute top-4 left-4">
+                    <div className="bg-black bg-opacity-90 rounded-lg px-4 py-2">
                       <div className="text-center">
                         <div className="text-yellow-400 text-2xl font-bold font-mono">
                           {countdownTimer}
                         </div>
                         <div className="text-white text-xs mt-1">Get Ready</div>
                       </div>
-                    ) : (
-                      <div className="text-center">
-                        <div className="text-white text-xl font-mono">
-                          {formatTime(recordingTimer)}
-                        </div>
-                        {isRecording && (
-                          <div className="text-red-400 text-xs mt-1">Recording...</div>
-                        )}
-                      </div>
-                    )}
+                    </div>
                   </div>
-                </div>
+                )}
 
 
               </div>
@@ -411,6 +402,19 @@ export default function Recording() {
                     <span className="text-lg font-semibold">STOP</span>
                   </Button>
                 )}
+                
+                {/* Timer next to recording button */}
+                {isRecording && (
+                  <div className="bg-gray-900 text-white px-4 py-2 rounded-lg">
+                    <div className="text-center">
+                      <div className="text-white text-xl font-mono">
+                        {formatTime(recordingTimer)}
+                      </div>
+                      <div className="text-red-400 text-xs mt-1">Recording...</div>
+                    </div>
+                  </div>
+                )}
+                
                 <Button
                   onClick={retakeRecording}
                   variant="outline"
