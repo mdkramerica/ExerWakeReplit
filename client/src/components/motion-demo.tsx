@@ -162,52 +162,33 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
   const [isUsingLiveTracking, setIsUsingLiveTracking] = useState(false);
   const liveTrackingRef = useRef(false);
 
-  // Process MediaPipe results
-  const onResults = useCallback((results: any) => {
-    // Mark that we're now using live tracking
-    if (!liveTrackingRef.current) {
-      console.log('MediaPipe results received, switching to live tracking');
-      liveTrackingRef.current = true;
-      setIsUsingLiveTracking(true);
-      
-      // Cancel any existing fallback animation
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-        animationRef.current = null;
-      }
-    }
-
+  // Unified canvas drawing function for both live and demo
+  const drawFrame = useCallback((landmarks?: any[], isLive = false) => {
     const canvas = canvasRef.current;
-    const video = videoRef.current;
-    
     if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Set canvas dimensions
-    const canvasWidth = video?.videoWidth || 640;
-    const canvasHeight = video?.videoHeight || 480;
-    canvas.width = canvasWidth;
-    canvas.height = canvasHeight;
+    canvas.width = 640;
+    canvas.height = 480;
 
     // Draw clean dark background
     ctx.fillStyle = '#1a1a1a';
-    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     let detectedHand = false;
 
-    if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+    if (landmarks && landmarks.length > 0) {
       detectedHand = true;
-      const landmarks = results.multiHandLandmarks[0];
 
       // Draw hand landmarks in bright green
       ctx.fillStyle = '#00ff00';
       ctx.shadowColor = '#00ff00';
       ctx.shadowBlur = 8;
       landmarks.forEach((landmark: any) => {
-        const x = landmark.x * canvasWidth;
-        const y = landmark.y * canvasHeight;
+        const x = landmark.x * canvas.width;
+        const y = landmark.y * canvas.height;
         
         ctx.beginPath();
         ctx.arc(x, y, 6, 0, 2 * Math.PI);
@@ -234,8 +215,8 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
         const endLandmark = landmarks[end];
         
         ctx.beginPath();
-        ctx.moveTo(startLandmark.x * canvasWidth, startLandmark.y * canvasHeight);
-        ctx.lineTo(endLandmark.x * canvasWidth, endLandmark.y * canvasHeight);
+        ctx.moveTo(startLandmark.x * canvas.width, startLandmark.y * canvas.height);
+        ctx.lineTo(endLandmark.x * canvas.width, endLandmark.y * canvas.height);
         ctx.stroke();
       });
       ctx.shadowBlur = 0;
@@ -250,19 +231,50 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
     
     ctx.fillStyle = '#ffffff';
     ctx.font = '14px Arial';
-    ctx.fillText(detectedHand ? 'LIVE: Hand Detected - 21 Joint Tracking' : 'LIVE: Position hand to see tracking', 10, 55);
+    const statusText = isLive 
+      ? (detectedHand ? 'LIVE: Hand Detected - 21 Joint Tracking' : 'LIVE: Position hand to see tracking')
+      : '👋 Waving Hello - 21-Joint Analysis';
+    ctx.fillText(statusText, 10, 55);
     
     // Draw status indicator
-    ctx.fillStyle = detectedHand ? '#00ff00' : '#ff6666';
+    ctx.fillStyle = detectedHand ? '#00ff00' : (isLive ? '#ff6666' : '#ffa500');
     ctx.beginPath();
-    ctx.arc(canvasWidth - 25, 25, 10, 0, 2 * Math.PI);
+    ctx.arc(canvas.width - 25, 25, 10, 0, 2 * Math.PI);
     ctx.fill();
     
-    // Add "LIVE" text
+    // Add status text
     ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 12px Arial';
-    ctx.fillText('LIVE', canvasWidth - 55, 30);
+    ctx.fillText(isLive ? 'LIVE' : 'DEMO', canvas.width - (isLive ? 55 : 60), 30);
   }, []);
+
+  // Process MediaPipe results
+  const onResults = useCallback((results: any) => {
+    // Force immediate switch to live tracking
+    liveTrackingRef.current = true;
+    setIsUsingLiveTracking(true);
+    
+    // Cancel any existing fallback animation immediately
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+      animationRef.current = null;
+    }
+
+    // Draw live tracking frame
+    const landmarks = results.multiHandLandmarks?.[0];
+    drawFrame(landmarks, true);
+    
+    // Continue processing frames
+    if (handsRef.current && videoRef.current) {
+      requestAnimationFrame(async () => {
+        try {
+          await handsRef.current?.send({ image: videoRef.current });
+        } catch (error) {
+          console.warn('Frame processing error:', error);
+        }
+      });
+    }
+  }, [drawFrame]);
 
   // Start camera for demo
   const startCamera = useCallback(async () => {
@@ -342,15 +354,6 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
 
   // Fallback animated demo without camera
   const showFallbackDemo = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    canvas.width = 640;
-    canvas.height = 480;
-
     let frame = 0;
     const animate = () => {
       // Stop animation if live tracking has taken over
@@ -358,13 +361,9 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
         return;
       }
 
-      // Clear canvas with dark background
-      ctx.fillStyle = '#1a1a1a';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
       // Create realistic hand waving hello animation
-      const baseX = canvas.width / 2;
-      const baseY = canvas.height / 2;
+      const baseX = 320; // center of 640px canvas
+      const baseY = 240; // center of 480px canvas
       
       // Waving motion - hand moves side to side and rotates
       const wavePhase = frame * 0.08;
@@ -374,131 +373,90 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
       // Finger wiggling motion for more natural wave
       const fingerWiggle = Math.sin(frame * 0.12) * 10;
       
-      // Define hand landmark positions for waving hello
-      const handLandmarks = [
-        // Wrist (moves with wave)
-        { x: baseX + waveOffsetX, y: baseY + 60 },
+      // Convert to MediaPipe format (normalized coordinates)
+      const animatedLandmarks = [
+        // Wrist
+        { x: (baseX + waveOffsetX) / 640, y: (baseY + 60) / 480, z: 0 },
         
-        // Thumb (slightly bent, natural position)
-        { x: baseX + waveOffsetX - 40, y: baseY + 40 },
-        { x: baseX + waveOffsetX - 55, y: baseY + 25 },
-        { x: baseX + waveOffsetX - 65, y: baseY + 10 },
-        { x: baseX + waveOffsetX - 70, y: baseY },
+        // Thumb
+        { x: (baseX + waveOffsetX - 40) / 640, y: (baseY + 40) / 480, z: 0 },
+        { x: (baseX + waveOffsetX - 55) / 640, y: (baseY + 25) / 480, z: 0 },
+        { x: (baseX + waveOffsetX - 65) / 640, y: (baseY + 10) / 480, z: 0 },
+        { x: (baseX + waveOffsetX - 70) / 640, y: (baseY) / 480, z: 0 },
         
-        // Index finger (extended and wiggling)
-        { x: baseX + waveOffsetX - 30, y: baseY + 50 },
-        { x: baseX + waveOffsetX - 35 + Math.cos(waveRotation) * 10, y: baseY + 15 + fingerWiggle },
-        { x: baseX + waveOffsetX - 40 + Math.cos(waveRotation) * 15, y: baseY - 15 + fingerWiggle },
-        { x: baseX + waveOffsetX - 45 + Math.cos(waveRotation) * 20, y: baseY - 35 + fingerWiggle },
+        // Index finger
+        { x: (baseX + waveOffsetX - 30) / 640, y: (baseY + 50) / 480, z: 0 },
+        { x: (baseX + waveOffsetX - 35 + Math.cos(waveRotation) * 10) / 640, y: (baseY + 15 + fingerWiggle) / 480, z: 0 },
+        { x: (baseX + waveOffsetX - 40 + Math.cos(waveRotation) * 15) / 640, y: (baseY - 15 + fingerWiggle) / 480, z: 0 },
+        { x: (baseX + waveOffsetX - 45 + Math.cos(waveRotation) * 20) / 640, y: (baseY - 35 + fingerWiggle) / 480, z: 0 },
         
-        // Middle finger (extended and wiggling)
-        { x: baseX + waveOffsetX - 10, y: baseY + 50 },
-        { x: baseX + waveOffsetX - 10 + Math.cos(waveRotation) * 5, y: baseY + 10 + fingerWiggle * 0.8 },
-        { x: baseX + waveOffsetX - 10 + Math.cos(waveRotation) * 10, y: baseY - 20 + fingerWiggle * 0.8 },
-        { x: baseX + waveOffsetX - 10 + Math.cos(waveRotation) * 15, y: baseY - 45 + fingerWiggle * 0.8 },
+        // Middle finger
+        { x: (baseX + waveOffsetX - 10) / 640, y: (baseY + 50) / 480, z: 0 },
+        { x: (baseX + waveOffsetX - 10 + Math.cos(waveRotation) * 5) / 640, y: (baseY + 10 + fingerWiggle * 0.8) / 480, z: 0 },
+        { x: (baseX + waveOffsetX - 10 + Math.cos(waveRotation) * 10) / 640, y: (baseY - 20 + fingerWiggle * 0.8) / 480, z: 0 },
+        { x: (baseX + waveOffsetX - 10 + Math.cos(waveRotation) * 15) / 640, y: (baseY - 45 + fingerWiggle * 0.8) / 480, z: 0 },
         
-        // Ring finger (extended and wiggling)
-        { x: baseX + waveOffsetX + 10, y: baseY + 50 },
-        { x: baseX + waveOffsetX + 15 + Math.cos(waveRotation) * 5, y: baseY + 15 + fingerWiggle * 0.6 },
-        { x: baseX + waveOffsetX + 20 + Math.cos(waveRotation) * 10, y: baseY - 10 + fingerWiggle * 0.6 },
-        { x: baseX + waveOffsetX + 25 + Math.cos(waveRotation) * 15, y: baseY - 30 + fingerWiggle * 0.6 },
+        // Ring finger
+        { x: (baseX + waveOffsetX + 10) / 640, y: (baseY + 50) / 480, z: 0 },
+        { x: (baseX + waveOffsetX + 15 + Math.cos(waveRotation) * 5) / 640, y: (baseY + 15 + fingerWiggle * 0.6) / 480, z: 0 },
+        { x: (baseX + waveOffsetX + 20 + Math.cos(waveRotation) * 10) / 640, y: (baseY - 10 + fingerWiggle * 0.6) / 480, z: 0 },
+        { x: (baseX + waveOffsetX + 25 + Math.cos(waveRotation) * 15) / 640, y: (baseY - 30 + fingerWiggle * 0.6) / 480, z: 0 },
         
-        // Pinky (extended and wiggling)
-        { x: baseX + waveOffsetX + 30, y: baseY + 45 },
-        { x: baseX + waveOffsetX + 40 + Math.cos(waveRotation) * 8, y: baseY + 20 + fingerWiggle * 0.4 },
-        { x: baseX + waveOffsetX + 50 + Math.cos(waveRotation) * 12, y: baseY + 5 + fingerWiggle * 0.4 },
-        { x: baseX + waveOffsetX + 60 + Math.cos(waveRotation) * 16, y: baseY - 10 + fingerWiggle * 0.4 }
+        // Pinky
+        { x: (baseX + waveOffsetX + 30) / 640, y: (baseY + 45) / 480, z: 0 },
+        { x: (baseX + waveOffsetX + 40 + Math.cos(waveRotation) * 8) / 640, y: (baseY + 20 + fingerWiggle * 0.4) / 480, z: 0 },
+        { x: (baseX + waveOffsetX + 50 + Math.cos(waveRotation) * 12) / 640, y: (baseY + 5 + fingerWiggle * 0.4) / 480, z: 0 },
+        { x: (baseX + waveOffsetX + 60 + Math.cos(waveRotation) * 16) / 640, y: (baseY - 10 + fingerWiggle * 0.4) / 480, z: 0 }
       ];
-
-      // Draw hand connections
-      const connections = [
-        [0, 1], [1, 2], [2, 3], [3, 4], // thumb
-        [0, 5], [5, 6], [6, 7], [7, 8], // index
-        [5, 9], [9, 10], [10, 11], [11, 12], // middle
-        [9, 13], [13, 14], [14, 15], [15, 16], // ring
-        [13, 17], [17, 18], [18, 19], [19, 20], // pinky
-        [0, 17] // palm
-      ];
-
-      // Draw connections with glow
-      ctx.strokeStyle = '#00ff00';
-      ctx.lineWidth = 2;
-      ctx.shadowColor = '#00ff00';
-      ctx.shadowBlur = 8;
-      connections.forEach(([start, end]) => {
-        const startPoint = handLandmarks[start];
-        const endPoint = handLandmarks[end];
-        
-        ctx.beginPath();
-        ctx.moveTo(startPoint.x, startPoint.y);
-        ctx.lineTo(endPoint.x, endPoint.y);
-        ctx.stroke();
-      });
-      ctx.shadowBlur = 0;
-
-      // Draw landmarks with glow effect
-      ctx.fillStyle = '#00ff00';
-      ctx.shadowColor = '#00ff00';
-      ctx.shadowBlur = 10;
-      handLandmarks.forEach((landmark, i) => {
-        ctx.beginPath();
-        ctx.arc(landmark.x, landmark.y, i === 0 ? 6 : 4, 0, 2 * Math.PI);
-        ctx.fill();
-      });
-      ctx.shadowBlur = 0;
-
-      // Draw demo text with better styling
-      ctx.fillStyle = '#00ff00';
-      ctx.font = 'bold 18px Arial';
-      ctx.fillText('Exer AI Hand Tracking Demo', 15, 30);
       
-      ctx.fillStyle = '#ffffff';
-      ctx.font = '14px Arial';
-      ctx.fillText('👋 Waving Hello - 21-Joint Analysis', 15, 55);
-      
-      ctx.font = '12px Arial';
-      ctx.fillStyle = '#cccccc';
-      ctx.fillText('Advanced biomechanical assessment platform', 15, canvas.height - 25);
-      ctx.fillText('Clinical-grade precision for medical research', 15, canvas.height - 10);
-
-      // Draw status indicator
-      ctx.fillStyle = '#00ff00';
-      ctx.beginPath();
-      ctx.arc(canvas.width - 25, 25, 8, 0, 2 * Math.PI);
-      ctx.fill();
-      
-      ctx.fillStyle = '#ffffff';
-      ctx.font = '10px Arial';
-      ctx.fillText('DEMO', canvas.width - 50, 30);
+      // Use unified drawing function for demo
+      drawFrame(animatedLandmarks, false);
 
       frame++;
       animationRef.current = requestAnimationFrame(animate);
     };
-    
-    animate();
-  }, []);
+
+    animationRef.current = requestAnimationFrame(animate);
+  }, [drawFrame]);
 
   // Initialize on mount
   useEffect(() => {
     const init = async () => {
       console.log('Initializing motion demo...');
       
-      // Start with fallback demo immediately
-      showFallbackDemo();
+      // Show immediate canvas content
+      const canvas = canvasRef.current;
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          canvas.width = 640;
+          canvas.height = 480;
+          ctx.fillStyle = '#1a1a1a';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 18px Arial';
+          ctx.fillText('Exer AI Hand Tracking Demo', 15, 30);
+          ctx.font = '14px Arial';
+          ctx.fillText('Starting live tracking...', 15, 55);
+        }
+      }
       
-      // Then try MediaPipe initialization
+      // Try MediaPipe first, then fallback if needed
       const success = await initializeHands();
       if (success) {
-        console.log('MediaPipe initialized, attempting camera access...');
+        console.log('MediaPipe initialized, starting camera...');
         
         try {
           await startCamera();
-          console.log('Camera started successfully, live tracking enabled');
+          console.log('Live tracking ready - place hand in front of camera');
         } catch (error) {
-          console.log('Camera failed, keeping fallback demo');
+          console.log('Camera failed, showing fallback demo');
+          showFallbackDemo();
         }
       } else {
-        console.log('MediaPipe failed, keeping fallback demo');
+        console.log('MediaPipe failed, showing fallback demo');
+        showFallbackDemo();
       }
     };
     
