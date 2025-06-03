@@ -401,7 +401,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             ringFingerRom: ua.ringFingerRom,
             pinkyFingerRom: ua.pinkyFingerRom,
             sessionNumber: ua.sessionNumber || 1,
-            repetitionData: ua.repetitionData
+            repetitionData: ua.repetitionData,
+            handType: ua.handType
           };
         })
         .sort((a, b) => new Date(b.completedAt!).getTime() - new Date(a.completedAt!).getTime()); // Sort by completion date, newest first
