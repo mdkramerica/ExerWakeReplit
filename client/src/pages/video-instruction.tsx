@@ -102,6 +102,9 @@ export default function VideoInstruction() {
               <div className="bg-gray-900 rounded-xl aspect-video mb-6 relative overflow-hidden">
                 <video 
                   controls
+                  autoPlay
+                  loop
+                  muted
                   className="w-full h-full object-cover"
                   onPlay={handleVideoPlay}
                   preload="metadata"

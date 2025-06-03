@@ -236,19 +236,24 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
   const processFrame = useCallback(async () => {
     const video = videoRef.current;
     
-    if (!video || video.readyState !== video.HAVE_ENOUGH_DATA || !handsRef.current) {
+    if (!video || video.readyState !== video.HAVE_ENOUGH_DATA || !handsRef.current || !isInitialized) {
       animationRef.current = requestAnimationFrame(processFrame);
       return;
     }
 
     try {
-      await handsRef.current.send({ image: video });
+      if (handsRef.current && typeof handsRef.current.send === 'function') {
+        await handsRef.current.send({ image: video });
+      }
     } catch (error) {
-      console.warn('Frame processing failed:', error);
+      // Silently handle frame processing errors to avoid console spam
+      if (error && typeof error === 'object' && Object.keys(error).length > 0) {
+        console.warn('Frame processing failed:', error);
+      }
     }
 
     animationRef.current = requestAnimationFrame(processFrame);
-  }, []);
+  }, [isInitialized]);
 
   // Fallback animated demo without camera
   const showFallbackDemo = useCallback(() => {
