@@ -60,7 +60,7 @@ export default function VideoInstruction() {
     );
   }
 
-  const assessment = assessmentData?.assessment;
+  const assessment = (assessmentData as any)?.assessment;
 
   if (!assessment) {
     return (

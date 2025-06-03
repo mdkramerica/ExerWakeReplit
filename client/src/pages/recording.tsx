@@ -90,7 +90,7 @@ export default function Recording() {
     },
   });
 
-  const assessment = assessmentData?.assessment;
+  const assessment = (assessmentData as any)?.assessment;
 
   useEffect(() => {
     let interval: NodeJS.Timeout;

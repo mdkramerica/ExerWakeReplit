@@ -18,7 +18,7 @@ export default function AssessmentResults() {
     enabled: !!params?.userAssessmentId
   });
 
-  const userAssessment = assessmentData?.userAssessment;
+  const userAssessment = (assessmentData as any)?.userAssessment;
 
   // Fetch user data
   const { data: userData } = useQuery({
@@ -26,7 +26,7 @@ export default function AssessmentResults() {
     enabled: !!params?.code
   });
 
-  const user = userData?.user || assessmentData?.user;
+  const user = (userData as any)?.user || (assessmentData as any)?.user;
 
   const generateShareLink = async () => {
     try {
@@ -160,31 +160,31 @@ export default function AssessmentResults() {
                         <div className="grid grid-cols-2 gap-3 text-sm">
                           <div className="space-y-2">
                             <div className="flex justify-between">
-                              <span>Level 1: Lateral Index Finger</span>
+                              <span>Level 1: Index Proximal Phalanx</span>
                               <span className={parseInt(userAssessment.totalActiveRom || '0') >= 1 ? 'text-green-600' : 'text-red-600'}>
                                 {parseInt(userAssessment.totalActiveRom || '0') >= 1 ? '✓' : '✗'}
                               </span>
                             </div>
                             <div className="flex justify-between">
-                              <span>Level 2: Index Fingertip</span>
+                              <span>Level 2: Index Middle Phalanx</span>
                               <span className={parseInt(userAssessment.totalActiveRom || '0') >= 2 ? 'text-green-600' : 'text-red-600'}>
                                 {parseInt(userAssessment.totalActiveRom || '0') >= 2 ? '✓' : '✗'}
                               </span>
                             </div>
                             <div className="flex justify-between">
-                              <span>Level 3: Middle Fingertip</span>
+                              <span>Level 3: Index Finger Tip</span>
                               <span className={parseInt(userAssessment.totalActiveRom || '0') >= 3 ? 'text-green-600' : 'text-red-600'}>
                                 {parseInt(userAssessment.totalActiveRom || '0') >= 3 ? '✓' : '✗'}
                               </span>
                             </div>
                             <div className="flex justify-between">
-                              <span>Level 4: Ring Fingertip</span>
+                              <span>Level 4: Middle Finger Tip</span>
                               <span className={parseInt(userAssessment.totalActiveRom || '0') >= 4 ? 'text-green-600' : 'text-red-600'}>
                                 {parseInt(userAssessment.totalActiveRom || '0') >= 4 ? '✓' : '✗'}
                               </span>
                             </div>
                             <div className="flex justify-between">
-                              <span>Level 5: Little Fingertip</span>
+                              <span>Level 5: Ring Finger Tip</span>
                               <span className={parseInt(userAssessment.totalActiveRom || '0') >= 5 ? 'text-green-600' : 'text-red-600'}>
                                 {parseInt(userAssessment.totalActiveRom || '0') >= 5 ? '✓' : '✗'}
                               </span>
@@ -192,31 +192,31 @@ export default function AssessmentResults() {
                           </div>
                           <div className="space-y-2">
                             <div className="flex justify-between">
-                              <span>Level 6: Base of Little Finger</span>
+                              <span>Level 6: Little Finger Tip</span>
                               <span className={parseInt(userAssessment.totalActiveRom || '0') >= 6 ? 'text-green-600' : 'text-red-600'}>
                                 {parseInt(userAssessment.totalActiveRom || '0') >= 6 ? '✓' : '✗'}
                               </span>
                             </div>
                             <div className="flex justify-between">
-                              <span>Level 7: Mid-Palm Below Little</span>
+                              <span>Level 7: Little DIP Crease</span>
                               <span className={parseInt(userAssessment.totalActiveRom || '0') >= 7 ? 'text-green-600' : 'text-red-600'}>
                                 {parseInt(userAssessment.totalActiveRom || '0') >= 7 ? '✓' : '✗'}
                               </span>
                             </div>
                             <div className="flex justify-between">
-                              <span>Level 8: Distal Palmar Crease</span>
+                              <span>Level 8: Little PIP Crease</span>
                               <span className={parseInt(userAssessment.totalActiveRom || '0') >= 8 ? 'text-green-600' : 'text-red-600'}>
                                 {parseInt(userAssessment.totalActiveRom || '0') >= 8 ? '✓' : '✗'}
                               </span>
                             </div>
                             <div className="flex justify-between">
-                              <span>Level 9: Proximal Palmar Crease</span>
+                              <span>Level 9: Little MCP Crease</span>
                               <span className={parseInt(userAssessment.totalActiveRom || '0') >= 9 ? 'text-green-600' : 'text-red-600'}>
                                 {parseInt(userAssessment.totalActiveRom || '0') >= 9 ? '✓' : '✗'}
                               </span>
                             </div>
                             <div className="flex justify-between font-medium">
-                              <span>Level 10: Full Opposition</span>
+                              <span>Level 10: Distal Palmar Crease</span>
                               <span className={parseInt(userAssessment.totalActiveRom || '0') >= 10 ? 'text-green-600 font-bold' : 'text-red-600'}>
                                 {parseInt(userAssessment.totalActiveRom || '0') >= 10 ? '✓' : '✗'}
                               </span>

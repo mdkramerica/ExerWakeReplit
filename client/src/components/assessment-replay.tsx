@@ -54,7 +54,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
   });
 
   // Use actual recorded motion data or provided recording data
-  const actualMotionData = motionData?.motionData || recordingData;
+  const actualMotionData = (motionData as any)?.motionData || recordingData;
   const replayData: ReplayData[] = actualMotionData.length > 0 ? actualMotionData : [];
 
   // Check if this is a Kapandji assessment
