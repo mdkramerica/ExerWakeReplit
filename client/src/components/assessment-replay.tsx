@@ -506,9 +506,8 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
         ctx.lineWidth = 2;
         ctx.setLineDash([3, 3]);
         
-        // Draw MCP angle arc (blue) - centered at MCP joint where angle is calculated
-        // MCP angle is calculated at the MCP joint (middle point of wrist-MCP-PIP triplet)
-        const mcpCenter = { x: (1 - frame.landmarks[activeJoints.mcp].x) * canvas.width, y: frame.landmarks[activeJoints.mcp].y * canvas.height };
+        // Draw MCP angle arc (blue) - positioned at wrist where the angle measurement starts
+        const mcpCenter = { x: (1 - frame.landmarks[0].x) * canvas.width, y: frame.landmarks[0].y * canvas.height };
         ctx.strokeStyle = '#3b82f6'; // Blue - matches MCP in live display
         ctx.beginPath();
         ctx.arc(mcpCenter.x, mcpCenter.y, 15, 0, (romData.mcpAngle / 180) * Math.PI);
