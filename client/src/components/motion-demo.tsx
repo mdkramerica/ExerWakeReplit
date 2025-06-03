@@ -125,7 +125,6 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
 
   // Process MediaPipe results
   const onResults = useCallback((results: any) => {
-    console.log('MediaPipe results received:', results);
     const canvas = canvasRef.current;
     const video = videoRef.current;
     
@@ -146,7 +145,6 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
 
     if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
       detectedHand = true;
-      console.log('Hand detected with landmarks:', results.multiHandLandmarks[0].length);
       const landmarks = results.multiHandLandmarks[0];
 
       // Draw hand landmarks in bright green with larger, more visible points
@@ -192,8 +190,6 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
         ctx.stroke();
       });
       ctx.shadowBlur = 0;
-    } else {
-      console.log('No hand landmarks detected');
     }
 
     setHandDetected(detectedHand);
