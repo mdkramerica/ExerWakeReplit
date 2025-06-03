@@ -45,6 +45,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
   const [isDragging, setIsDragging] = useState(false);
   const [maxTAMFrame, setMaxTAMFrame] = useState<number>(0);
   const [minTAMFrame, setMinTAMFrame] = useState<number>(0);
+  const [isolateMode, setIsolateMode] = useState(false);
   
   // Fetch real motion data if userAssessmentId is provided
   const { data: motionData, isLoading } = useQuery({
@@ -386,21 +387,61 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
     const activeJoints = getActiveFingerJoints(selectedDigit);
     const activeLandmarks = [activeJoints.mcp, activeJoints.pip, activeJoints.dip, activeJoints.tip]; // Active finger joints
     
-    // Draw all hand connections first
-    const connections = [
-      // Thumb
-      [0, 1], [1, 2], [2, 3], [3, 4],
-      // Index finger
-      [0, 5], [5, 6], [6, 7], [7, 8],
-      // Middle finger
-      [0, 9], [9, 10], [10, 11], [11, 12],
-      // Ring finger
-      [0, 13], [13, 14], [14, 15], [15, 16],
-      // Pinky
-      [0, 17], [17, 18], [18, 19], [19, 20],
-      // Palm connections
-      [5, 9], [9, 13], [13, 17]
-    ];
+    // Define connections based on isolation mode
+    let connections;
+    let visibleLandmarks;
+    
+    if (isolateMode) {
+      // Show only selected finger + thumb + wrist-to-MCP connections
+      const fingerConnections = {
+        'INDEX': [[0, 5], [5, 6], [6, 7], [7, 8]],
+        'MIDDLE': [[0, 9], [9, 10], [10, 11], [11, 12]],
+        'RING': [[0, 13], [13, 14], [14, 15], [15, 16]],
+        'PINKY': [[0, 17], [17, 18], [18, 19], [19, 20]]
+      };
+      
+      connections = [
+        // Always show thumb
+        [0, 1], [1, 2], [2, 3], [3, 4],
+        // Show selected finger
+        ...fingerConnections[selectedDigit],
+        // Show all wrist-to-MCP connections
+        [0, 5], [0, 9], [0, 13], [0, 17]
+      ];
+      
+      // Define visible landmarks for isolation mode
+      const fingerLandmarks = {
+        'INDEX': [5, 6, 7, 8],
+        'MIDDLE': [9, 10, 11, 12],
+        'RING': [13, 14, 15, 16],
+        'PINKY': [17, 18, 19, 20]
+      };
+      
+      visibleLandmarks = [
+        0, // Wrist
+        1, 2, 3, 4, // Thumb
+        5, 9, 13, 17, // All MCP joints
+        ...fingerLandmarks[selectedDigit] // Selected finger
+      ];
+    } else {
+      // Show all connections (existing behavior)
+      connections = [
+        // Thumb
+        [0, 1], [1, 2], [2, 3], [3, 4],
+        // Index finger
+        [0, 5], [5, 6], [6, 7], [7, 8],
+        // Middle finger
+        [0, 9], [9, 10], [10, 11], [11, 12],
+        // Ring finger
+        [0, 13], [13, 14], [14, 15], [15, 16],
+        // Pinky
+        [0, 17], [17, 18], [18, 19], [19, 20],
+        // Palm connections
+        [5, 9], [9, 13], [13, 17]
+      ];
+      
+      visibleLandmarks = Array.from({length: 21}, (_, i) => i); // All landmarks
+    }
     
     ctx.lineWidth = 2;
     connections.forEach(([start, end]) => {
@@ -422,7 +463,8 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
     });
     
     frame.landmarks.forEach((landmark, index) => {
-      // Draw all landmarks, not just relevant ones
+      // Only draw visible landmarks based on isolation mode
+      if (!visibleLandmarks.includes(index)) return;
       
       const x = (1 - landmark.x) * canvas.width; // Flip horizontally to remove mirror effect
       const y = landmark.y * canvas.height;
@@ -1058,6 +1100,19 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
                       <option value="RING">Ring Finger</option>
                       <option value="PINKY">Pinky Finger</option>
                     </select>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setIsolateMode(!isolateMode)}
+                      className={`px-4 py-2 rounded-md font-medium text-sm transition-colors ${
+                        isolateMode 
+                          ? 'bg-blue-600 text-white border-2 border-blue-600' 
+                          : 'bg-white text-gray-900 border-2 border-gray-300 hover:border-blue-500'
+                      }`}
+                    >
+                      {isolateMode ? 'Show All' : 'Isolate Finger'}
+                    </button>
                   </div>
                   
                   <div className="flex items-center gap-2">
