@@ -500,26 +500,28 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
       ctx.fillText(`Total: ${Math.round(romData.totalActiveRom)}°`, canvas.width - 210, 110);
       
       // Draw angle visualization on the finger joints with matching colors (fixed mirroring)
-      if (frame.landmarks[5] && frame.landmarks[6] && frame.landmarks[7] && frame.landmarks[8]) {
+      // Need to use the correct landmarks based on selected digit
+      const activeJoints = getActiveFingerJoints(selectedDigit);
+      if (frame.landmarks[0] && frame.landmarks[activeJoints.mcp] && frame.landmarks[activeJoints.pip] && frame.landmarks[activeJoints.dip] && frame.landmarks[activeJoints.tip]) {
         ctx.lineWidth = 2;
         ctx.setLineDash([3, 3]);
         
-        // Draw MCP angle arc (blue to match live display) - apply horizontal flip
-        const mcpCenter = { x: (1 - frame.landmarks[5].x) * canvas.width, y: frame.landmarks[5].y * canvas.height };
+        // Draw MCP angle arc (blue) - centered at MCP joint, angle measured from wrist-MCP-PIP
+        const mcpCenter = { x: (1 - frame.landmarks[activeJoints.mcp].x) * canvas.width, y: frame.landmarks[activeJoints.mcp].y * canvas.height };
         ctx.strokeStyle = '#3b82f6'; // Blue - matches MCP in live display
         ctx.beginPath();
         ctx.arc(mcpCenter.x, mcpCenter.y, 15, 0, (romData.mcpAngle / 180) * Math.PI);
         ctx.stroke();
         
-        // Draw PIP angle arc (green to match live display) - apply horizontal flip
-        const pipCenter = { x: (1 - frame.landmarks[6].x) * canvas.width, y: frame.landmarks[6].y * canvas.height };
+        // Draw PIP angle arc (green) - centered at PIP joint, angle measured from MCP-PIP-DIP
+        const pipCenter = { x: (1 - frame.landmarks[activeJoints.pip].x) * canvas.width, y: frame.landmarks[activeJoints.pip].y * canvas.height };
         ctx.strokeStyle = '#10b981'; // Green - matches PIP in live display
         ctx.beginPath();
         ctx.arc(pipCenter.x, pipCenter.y, 12, 0, (romData.pipAngle / 180) * Math.PI);
         ctx.stroke();
         
-        // Draw DIP angle arc (purple to match live display) - apply horizontal flip
-        const dipCenter = { x: (1 - frame.landmarks[7].x) * canvas.width, y: frame.landmarks[7].y * canvas.height };
+        // Draw DIP angle arc (purple) - centered at DIP joint, angle measured from PIP-DIP-TIP
+        const dipCenter = { x: (1 - frame.landmarks[activeJoints.dip].x) * canvas.width, y: frame.landmarks[activeJoints.dip].y * canvas.height };
         ctx.strokeStyle = '#8b5cf6'; // Purple - matches DIP in live display
         ctx.beginPath();
         ctx.arc(dipCenter.x, dipCenter.y, 10, 0, (romData.dipAngle / 180) * Math.PI);
