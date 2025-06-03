@@ -95,6 +95,23 @@ export default function InjurySelection() {
             </p>
           </div>
 
+          <div className="flex justify-center mb-6">
+            <Button
+              onClick={handleContinue}
+              disabled={!selectedInjury || updateUserMutation.isPending}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3"
+            >
+              {updateUserMutation.isPending ? (
+                "Saving..."
+              ) : (
+                <>
+                  Continue to Assessments
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </>
+              )}
+            </Button>
+          </div>
+
           <div className="grid md:grid-cols-2 gap-4 mb-8">
             {injuryTypes.map((injury) => (
               <button
