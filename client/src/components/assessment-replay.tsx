@@ -499,34 +499,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
       ctx.font = 'bold 12px Arial';
       ctx.fillText(`Total: ${Math.round(romData.totalActiveRom)}°`, canvas.width - 210, 110);
       
-      // Draw angle visualization on the finger joints with matching colors
-      if (frame.landmarks[5] && frame.landmarks[6] && frame.landmarks[7] && frame.landmarks[8]) {
-        ctx.lineWidth = 2;
-        ctx.setLineDash([3, 3]);
-        
-        // Draw MCP angle arc (blue to match live display)
-        const mcpCenter = { x: frame.landmarks[5].x * canvas.width, y: frame.landmarks[5].y * canvas.height };
-        ctx.strokeStyle = '#3b82f6'; // Blue - matches MCP in live display
-        ctx.beginPath();
-        ctx.arc(mcpCenter.x, mcpCenter.y, 15, 0, (romData.mcpAngle / 180) * Math.PI);
-        ctx.stroke();
-        
-        // Draw PIP angle arc (green to match live display)
-        const pipCenter = { x: frame.landmarks[6].x * canvas.width, y: frame.landmarks[6].y * canvas.height };
-        ctx.strokeStyle = '#10b981'; // Green - matches PIP in live display
-        ctx.beginPath();
-        ctx.arc(pipCenter.x, pipCenter.y, 12, 0, (romData.pipAngle / 180) * Math.PI);
-        ctx.stroke();
-        
-        // Draw DIP angle arc (purple to match live display)
-        const dipCenter = { x: frame.landmarks[7].x * canvas.width, y: frame.landmarks[7].y * canvas.height };
-        ctx.strokeStyle = '#8b5cf6'; // Purple - matches DIP in live display
-        ctx.beginPath();
-        ctx.arc(dipCenter.x, dipCenter.y, 10, 0, (romData.dipAngle / 180) * Math.PI);
-        ctx.stroke();
-        
-        ctx.setLineDash([]); // Reset line dash
-      }
+
     }
 
     // Draw timestamp and quality info
