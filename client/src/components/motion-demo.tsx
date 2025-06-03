@@ -15,49 +15,86 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
   // Initialize MediaPipe hands for the demo
   const initializeHands = useCallback(async () => {
     try {
-      // Dynamic import with multiple fallback strategies
+      // Production-optimized MediaPipe loading
       let HandsClass;
       
-      try {
-        // First, try direct import
-        const { Hands } = await import('@mediapipe/hands');
-        HandsClass = Hands;
-        console.log('MediaPipe Hands loaded via import');
-      } catch (importError) {
-        console.log('Import failed, trying global access...');
-        
-        // Second, try global scope
-        HandsClass = (window as any).Hands;
-        
-        if (!HandsClass) {
-          console.log('Global access failed, loading CDN script...');
-          
-          // Third, load from CDN
-          await new Promise<void>((resolve, reject) => {
-            const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js';
-            script.onload = () => {
-              console.log('MediaPipe CDN script loaded');
+      // Always prioritize CDN loading for deployment compatibility
+      console.log('Loading MediaPipe from CDN for deployment compatibility...');
+      
+      // Load MediaPipe script from CDN
+      await new Promise<void>((resolve, reject) => {
+        // Check if script already exists
+        const existingScript = document.querySelector('script[src*="mediapipe/hands"]');
+        if (existingScript) {
+          console.log('MediaPipe script already loaded');
+          resolve();
+          return;
+        }
+
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.js';
+        script.crossOrigin = 'anonymous';
+        script.async = true;
+        script.defer = true;
+        script.onload = () => {
+          console.log('MediaPipe CDN script loaded successfully');
+          resolve();
+        };
+        script.onerror = () => {
+          console.error('Primary CDN failed, trying backup...');
+          // Try backup CDN with different approach
+          const backupScript = document.createElement('script');
+          backupScript.src = 'https://unpkg.com/@mediapipe/hands@0.4.1675469240/hands.js';
+          backupScript.crossOrigin = 'anonymous';
+          backupScript.async = true;
+          backupScript.defer = true;
+          backupScript.onload = () => {
+            console.log('Backup CDN loaded successfully');
+            resolve();
+          };
+          backupScript.onerror = () => {
+            console.error('Backup CDN also failed, trying JSPM...');
+            // Try third CDN option
+            const jspmScript = document.createElement('script');
+            jspmScript.src = 'https://jspm.dev/@mediapipe/hands@0.4.1675469240';
+            jspmScript.crossOrigin = 'anonymous';
+            jspmScript.type = 'module';
+            jspmScript.onload = () => {
+              console.log('JSPM CDN loaded successfully');
               resolve();
             };
-            script.onerror = () => reject(new Error('CDN load failed'));
-            document.head.appendChild(script);
-          });
-          
-          // Wait a bit for script to initialize
-          await new Promise(resolve => setTimeout(resolve, 100));
-          HandsClass = (window as any).Hands;
-        }
+            jspmScript.onerror = () => reject(new Error('All CDN sources failed'));
+            document.head.appendChild(jspmScript);
+          };
+          document.head.appendChild(backupScript);
+        };
+        document.head.appendChild(script);
+      });
+      
+      // Wait for MediaPipe to be available globally
+      let attempts = 0;
+      while (attempts < 10) {
+        HandsClass = (window as any).Hands;
+        if (HandsClass) break;
+        await new Promise(resolve => setTimeout(resolve, 200));
+        attempts++;
       }
 
       if (!HandsClass) {
-        throw new Error('MediaPipe Hands class not available after all attempts');
+        // Fallback to ES module import if available
+        try {
+          const { Hands } = await import('@mediapipe/hands');
+          HandsClass = Hands;
+          console.log('Fallback: MediaPipe loaded via ES import');
+        } catch (importError) {
+          throw new Error('MediaPipe not available after all loading attempts');
+        }
       }
 
       console.log('Creating MediaPipe Hands instance...');
       handsRef.current = new HandsClass({
         locateFile: (file: string) => {
-          return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+          return `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/${file}`;
         }
       });
 
@@ -65,7 +102,9 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
         maxNumHands: 1,
         modelComplexity: 0,
         minDetectionConfidence: 0.5,
-        minTrackingConfidence: 0.5
+        minTrackingConfidence: 0.5,
+        staticImageMode: false,
+        selfieMode: true
       });
 
       handsRef.current.onResults(onResults);
@@ -74,6 +113,8 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
       return true;
     } catch (error) {
       console.warn('MediaPipe demo initialization failed:', error);
+      // Show fallback animation instead of failing completely
+      showFallbackDemo();
       return false;
     }
   }, []);
@@ -263,15 +304,23 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
   // Initialize on mount
   useEffect(() => {
     const init = async () => {
+      console.log('Initializing motion demo...');
       const success = await initializeHands();
       if (success) {
+        console.log('MediaPipe initialized, starting camera...');
         await startCamera();
+      } else {
+        console.log('MediaPipe failed, showing fallback demo');
+        // Fallback demo is already triggered in initializeHands
       }
     };
     
-    init();
+    // Add delay to ensure page is fully loaded
+    const timer = setTimeout(init, 500);
 
     return () => {
+      clearTimeout(timer);
+      
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
       }
