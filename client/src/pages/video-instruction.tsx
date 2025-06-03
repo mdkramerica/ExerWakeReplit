@@ -111,18 +111,25 @@ export default function VideoInstruction() {
                 </video>
               </div>
               
-              <div className="text-center">
+              <div className="text-center space-y-3">
                 <Button
                   onClick={handleProceedToRecording}
-                  disabled={!videoWatched}
-                  className="medical-button"
+                  className="medical-button w-full"
                 >
                   Ready to Record
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
-                <p className="text-xs text-gray-800 mt-2">
-                  Make sure you understand the movement before proceeding
-                </p>
+                {!videoWatched && (
+                  <p className="text-xs text-gray-600 mt-2">
+                    You can proceed directly to recording or watch the video first for guidance
+                  </p>
+                )}
+                {videoWatched && (
+                  <div className="flex items-center justify-center text-sm text-green-600">
+                    <CheckCircle className="w-4 h-4 mr-1" />
+                    Video watched - ready to proceed
+                  </div>
+                )}
               </div>
             </div>
 
