@@ -33,6 +33,67 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
   const lastFrameTime = useRef<number>(0);
   const prevIsRecording = useRef(isRecording);
   const isArmAssessment = assessmentType.includes('shoulder') || assessmentType.includes('elbow') || assessmentType.includes('arm');
+  const previousLandmarks = useRef<any[]>([]);
+  const frameConfidenceScores = useRef<number[]>([]);
+
+  // Calculate tracking confidence for finger stability
+  const calculateFingerConfidence = (landmarks: any[], fingerIndices: number[]) => {
+    if (!previousLandmarks.current.length || !landmarks.length) {
+      return { confidence: 1.0, reason: 'initial_frame' };
+    }
+
+    let totalMovement = 0;
+    let validPoints = 0;
+
+    // Check movement for each finger joint
+    for (const index of fingerIndices) {
+      if (landmarks[index] && previousLandmarks.current[index]) {
+        const current = landmarks[index];
+        const previous = previousLandmarks.current[index];
+        
+        // Calculate Euclidean distance between frames
+        const distance = Math.sqrt(
+          Math.pow(current.x - previous.x, 2) + 
+          Math.pow(current.y - previous.y, 2) + 
+          Math.pow(current.z - previous.z, 2)
+        );
+        
+        totalMovement += distance;
+        validPoints++;
+      }
+    }
+
+    if (validPoints === 0) {
+      return { confidence: 0.0, reason: 'no_valid_points' };
+    }
+
+    const averageMovement = totalMovement / validPoints;
+    
+    // Define thresholds for finger movement
+    const LOW_MOVEMENT_THRESHOLD = 0.02; // Very stable
+    const HIGH_MOVEMENT_THRESHOLD = 0.15; // Too much movement - likely tracking error
+    
+    let confidence;
+    let reason;
+    
+    if (averageMovement < LOW_MOVEMENT_THRESHOLD) {
+      confidence = 1.0;
+      reason = 'stable_tracking';
+    } else if (averageMovement < HIGH_MOVEMENT_THRESHOLD) {
+      // Linear interpolation between thresholds
+      confidence = 1.0 - ((averageMovement - LOW_MOVEMENT_THRESHOLD) / (HIGH_MOVEMENT_THRESHOLD - LOW_MOVEMENT_THRESHOLD));
+      reason = 'moderate_movement';
+    } else {
+      confidence = 0.0;
+      reason = 'excessive_movement';
+    }
+
+    return { 
+      confidence: Math.max(0, Math.min(1, confidence)), 
+      reason,
+      movement: averageMovement 
+    };
+  };
 
   // Log recording state changes
   if (prevIsRecording.current !== isRecording) {
@@ -248,6 +309,27 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
     if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
       handDetected = true;
       landmarks = results.multiHandLandmarks[0];
+      
+      // Calculate finger tracking confidence for each digit
+      const fingerIndices = {
+        INDEX: [5, 6, 7, 8],
+        MIDDLE: [9, 10, 11, 12], 
+        RING: [13, 14, 15, 16],
+        PINKY: [17, 18, 19, 20]
+      };
+      
+      const fingerConfidences = {
+        INDEX: calculateFingerConfidence(landmarks, fingerIndices.INDEX),
+        MIDDLE: calculateFingerConfidence(landmarks, fingerIndices.MIDDLE),
+        RING: calculateFingerConfidence(landmarks, fingerIndices.RING),
+        PINKY: calculateFingerConfidence(landmarks, fingerIndices.PINKY)
+      };
+      
+      // Store previous landmarks for next frame comparison
+      previousLandmarks.current = [...landmarks];
+      
+      // Add confidence scores to landmarks data
+      (landmarks as any).fingerConfidences = fingerConfidences;
       
       // Determine hand type from MediaPipe results 
       if (results.multiHandedness && results.multiHandedness.length > 0) {

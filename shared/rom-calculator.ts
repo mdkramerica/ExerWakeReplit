@@ -83,6 +83,22 @@ function calculateFlexionAngle(p1: HandLandmark, p2: HandLandmark, p3: HandLandm
 export function calculateFingerROM(landmarks: HandLandmark[], fingerType: 'INDEX' | 'MIDDLE' | 'RING' | 'PINKY'): JointAngles {
   const finger = FINGER_LANDMARKS[fingerType];
   
+  // Check if landmarks have confidence data attached
+  const fingerConfidences = (landmarks as any).fingerConfidences;
+  const confidence = fingerConfidences ? fingerConfidences[fingerType] : null;
+  
+  // Apply confidence threshold - only calculate if tracking is reliable
+  const CONFIDENCE_THRESHOLD = 0.7; // 70% confidence required
+  if (confidence && confidence.confidence < CONFIDENCE_THRESHOLD) {
+    console.log(`${fingerType} finger tracking unreliable (${Math.round(confidence.confidence * 100)}%): ${confidence.reason}, movement: ${confidence.movement?.toFixed(4)}`);
+    return {
+      mcpAngle: 0,
+      pipAngle: 0,
+      dipAngle: 0,
+      totalActiveRom: 0
+    };
+  }
+  
   // Calculate flexion angles using correct landmark triplets
   // MCP: wrist (0) -> MCP joint (5) -> PIP joint (6)
   const mcpAngle = calculateFlexionAngle(
@@ -107,6 +123,10 @@ export function calculateFingerROM(landmarks: HandLandmark[], fingerType: 'INDEX
   
   // Total active range of motion
   const totalActiveRom = mcpAngle + pipAngle + dipAngle;
+  
+  if (confidence) {
+    console.log(`${fingerType} ROM calculated with ${Math.round(confidence.confidence * 100)}% confidence: TAM=${Math.round(totalActiveRom)}°`);
+  }
   
   return {
     mcpAngle: Math.round(mcpAngle * 100) / 100, // Round to 2 decimal places
