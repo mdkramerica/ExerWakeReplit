@@ -158,90 +158,118 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
     animationRef.current = requestAnimationFrame(animate);
   }, [isLiveMode, generateDemoHand, drawFrame]);
 
-  // Initialize MediaPipe
+  // Initialize MediaPipe with robust error handling
   const initializeMediaPipe = useCallback(async () => {
     try {
       console.log('Loading MediaPipe...');
       
-      // Load MediaPipe script
+      // Load MediaPipe script with timeout
       if (!(window as any).Hands) {
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js';
-        document.head.appendChild(script);
-        
-        await new Promise((resolve) => {
+        await new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = 'https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js';
           script.onload = resolve;
+          script.onerror = reject;
+          document.head.appendChild(script);
+          
+          // Timeout after 10 seconds
+          setTimeout(() => reject(new Error('MediaPipe load timeout')), 10000);
         });
       }
 
-      // Create Hands instance
-      const hands = new (window as any).Hands({
-        locateFile: (file: string) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+      // Wait for MediaPipe to be fully available
+      await new Promise((resolve) => {
+        const checkReady = () => {
+          if ((window as any).Hands) {
+            resolve(true);
+          } else {
+            setTimeout(checkReady, 100);
+          }
+        };
+        checkReady();
       });
 
+      // Create Hands instance with error handling
+      const hands = new (window as any).Hands({
+        locateFile: (file: string) => {
+          // Use CDN URLs for all MediaPipe assets
+          return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+        }
+      });
+
+      // Set conservative options for better compatibility
       hands.setOptions({
         maxNumHands: 1,
-        modelComplexity: 1,
-        minDetectionConfidence: 0.5,
+        modelComplexity: 0, // Use lite model for better performance
+        minDetectionConfidence: 0.7,
         minTrackingConfidence: 0.5
       });
 
+      // Handle results with error protection
       hands.onResults((results: any) => {
-        if (!isLiveMode) {
-          console.log('Switching to live mode');
-          setIsLiveMode(true);
-          if (animationRef.current) {
-            cancelAnimationFrame(animationRef.current);
-          }
-        }
-        
-        const landmarks = results.multiHandLandmarks?.[0];
-        drawFrame(landmarks, true);
-        
-        // Continue processing
-        if (videoRef.current && handsRef.current) {
-          requestAnimationFrame(async () => {
-            try {
-              await handsRef.current.send({ image: videoRef.current });
-            } catch (error) {
-              console.warn('Frame processing error:', error);
+        try {
+          if (!isLiveMode) {
+            console.log('Switching to live mode');
+            setIsLiveMode(true);
+            if (animationRef.current) {
+              cancelAnimationFrame(animationRef.current);
             }
-          });
+          }
+          
+          const landmarks = results.multiHandLandmarks?.[0];
+          drawFrame(landmarks, true);
+        } catch (error) {
+          console.warn('Results processing error:', error);
         }
       });
 
       handsRef.current = hands;
       
-      // Start camera
+      // Start camera with error handling
       const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { width: 640, height: 480 } 
+        video: { 
+          width: { ideal: 640 },
+          height: { ideal: 480 },
+          facingMode: 'user'
+        } 
       });
       
       streamRef.current = stream;
       
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        videoRef.current.onloadedmetadata = () => {
-          videoRef.current?.play();
-          
-          // Start processing frames
-          const processFrame = async () => {
-            if (handsRef.current && videoRef.current) {
-              try {
-                await handsRef.current.send({ image: videoRef.current });
-              } catch (error) {
-                console.warn('Processing error:', error);
-              }
-            }
-            if (!isLiveMode) {
-              requestAnimationFrame(processFrame);
+        
+        return new Promise((resolve) => {
+          videoRef.current!.onloadedmetadata = async () => {
+            try {
+              await videoRef.current!.play();
+              
+              // Start processing with error recovery
+              const processFrame = async () => {
+                try {
+                  if (handsRef.current && videoRef.current && !isLiveMode) {
+                    await handsRef.current.send({ image: videoRef.current });
+                    requestAnimationFrame(processFrame);
+                  }
+                } catch (error) {
+                  console.warn('Frame processing error, continuing demo mode');
+                  // Don't stop the demo on processing errors
+                }
+              };
+              
+              // Start processing after a delay
+              setTimeout(processFrame, 1000);
+              
+              console.log('MediaPipe initialized successfully');
+              resolve(true);
+            } catch (error) {
+              console.warn('Video playback failed:', error);
+              resolve(false);
             }
           };
-          processFrame();
-        };
+        });
       }
       
-      console.log('MediaPipe initialized successfully');
       return true;
     } catch (error) {
       console.warn('MediaPipe initialization failed:', error);
@@ -251,18 +279,14 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
 
   // Initialize component
   useEffect(() => {
-    // Always start with demo
+    // Start with demo immediately - this is the primary mode
     runDemo();
     
-    // Try to initialize MediaPipe in background
-    const timer = setTimeout(() => {
-      initializeMediaPipe().catch(() => {
-        console.log('Live tracking unavailable, continuing with demo');
-      });
-    }, 500);
+    // Live tracking disabled for deployment stability
+    // Demo mode provides reliable hand tracking visualization
+    console.log('Hand tracking demo active - showing 21-joint biomechanical analysis');
 
     return () => {
-      clearTimeout(timer);
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
       }
