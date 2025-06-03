@@ -402,7 +402,6 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
       [5, 9], [9, 13], [13, 17]
     ];
     
-    ctx.strokeStyle = '#ffeb3b'; // Yellow connections
     ctx.lineWidth = 2;
     connections.forEach(([start, end]) => {
       if (frame.landmarks[start] && frame.landmarks[end]) {
@@ -410,6 +409,10 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
         const startY = frame.landmarks[start].y * canvas.height;
         const endX = (1 - frame.landmarks[end].x) * canvas.width;
         const endY = frame.landmarks[end].y * canvas.height;
+        
+        // Color connections: yellow for active finger, green for others
+        const isActiveFinger = activeLandmarks.includes(start) && activeLandmarks.includes(end);
+        ctx.strokeStyle = isActiveFinger ? '#ffeb3b' : '#4caf50'; // Yellow for active finger, green for others
         
         ctx.beginPath();
         ctx.moveTo(startX, startY);
@@ -424,18 +427,29 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
       const x = (1 - landmark.x) * canvas.width; // Flip horizontally to remove mirror effect
       const y = landmark.y * canvas.height;
       
-      // Color-code landmarks: yellow for active finger, green for all others
-      let color = '#4caf50'; // Default green for all landmarks
+      // Color-code landmarks for all 21 hand points
+      let color = '#4caf50'; // Default green for other landmarks
       let size = 4;
       
       if (activeLandmarks.includes(index)) {
-        // Active finger landmarks - yellow
-        color = '#ffeb3b'; // Yellow for active finger
-        size = 6;
-      } else {
-        // All other landmarks - green (including wrist)
-        color = '#4caf50'; // Green for other landmarks
-        size = 4;
+        // Active finger landmarks - yellow/bright colors
+        if (index === activeJoints.mcp) {
+          color = '#3b82f6'; // Blue for MCP
+          size = 8;
+        } else if (index === activeJoints.pip) {
+          color = '#10b981'; // Green for PIP
+          size = 8;
+        } else if (index === activeJoints.dip) {
+          color = '#8b5cf6'; // Purple for DIP
+          size = 8;
+        } else if (index === activeJoints.tip) {
+          color = '#f59e0b'; // Orange for fingertip
+          size = 6;
+        }
+      } else if (index === 0) {
+        // Wrist landmark
+        color = '#ef4444'; // Red for wrist
+        size = 5;
       }
       
       ctx.fillStyle = color;
