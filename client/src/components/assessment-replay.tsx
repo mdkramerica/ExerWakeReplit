@@ -411,32 +411,24 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
       ctx.fill();
     });
 
-    // Draw hand connections with highlighted measurement path based on selected digit
+    // Draw only the finger measurement connections (no scattered connections)
     const getDigitConnections = (digit: string) => {
       switch (digit) {
-        case 'INDEX': return [[5, 6], [6, 7], [7, 8]];
-        case 'MIDDLE': return [[9, 10], [10, 11], [11, 12]];
-        case 'RING': return [[13, 14], [14, 15], [15, 16]];
-        case 'PINKY': return [[17, 18], [18, 19], [19, 20]];
-        default: return [[5, 6], [6, 7], [7, 8]];
+        case 'INDEX': return [[0, 5], [5, 6], [6, 7], [7, 8]]; // Wrist to MCP, then finger joints
+        case 'MIDDLE': return [[0, 9], [9, 10], [10, 11], [11, 12]];
+        case 'RING': return [[0, 13], [13, 14], [14, 15], [15, 16]];
+        case 'PINKY': return [[0, 17], [17, 18], [18, 19], [19, 20]];
+        default: return [[0, 5], [5, 6], [6, 7], [7, 8]];
       }
     };
     const measurementConnections = getDigitConnections(selectedDigit);
     
-    HAND_CONNECTIONS.forEach(([start, end]) => {
+    // Only draw the measurement path connections
+    measurementConnections.forEach(([start, end]) => {
       if (frame.landmarks[start] && frame.landmarks[end]) {
-        // Highlight measurement path in yellow
-        const isMeasurementPath = measurementConnections.some(([s, e]) => 
-          (s === start && e === end) || (s === end && e === start)
-        );
-        
-        if (isMeasurementPath) {
-          ctx.strokeStyle = '#fbbf24'; // Yellow for measurement path
-          ctx.lineWidth = 4;
-        } else {
-          ctx.strokeStyle = '#10b981'; // Green for other connections
-          ctx.lineWidth = 2;
-        }
+        // Yellow for measurement path
+        ctx.strokeStyle = '#fbbf24';
+        ctx.lineWidth = 4;
         
         ctx.beginPath();
         ctx.moveTo(
