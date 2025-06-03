@@ -323,6 +323,12 @@ export default function AssessmentList() {
                             <Clock className="w-3 h-3" />
                             <span>{new Date(record.completedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                           </div>
+                          {record.handType && (
+                            <div className="flex items-center gap-1">
+                              <span className="font-medium">Hand:</span>
+                              <span>{record.handType}</span>
+                            </div>
+                          )}
                         </div>
                         
                         {/* TAM Assessment ROM Breakdown */}

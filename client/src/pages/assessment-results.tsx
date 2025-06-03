@@ -120,6 +120,7 @@ export default function AssessmentResults() {
               <p className="text-gray-600">
                 Patient: {user?.code || params?.code} | 
                 Session {userAssessment.sessionNumber || 1} | 
+                {userAssessment.handType && `Hand: ${userAssessment.handType} | `}
                 Completed: {userAssessment.completedAt ? new Date(userAssessment.completedAt).toLocaleDateString() : 'N/A'}
               </p>
             </div>
