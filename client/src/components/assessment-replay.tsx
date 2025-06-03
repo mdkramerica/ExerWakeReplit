@@ -372,7 +372,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
       setCurrentROM(romData);
     }
 
-    // Draw only relevant landmarks for the selected finger measurement
+    // Draw all 21 hand landmarks with special highlighting for active finger
     const getActiveFingerJoints = (digit: string) => {
       switch (digit) {
         case 'INDEX': return { mcp: 5, pip: 6, dip: 7, tip: 8 };
@@ -384,35 +384,65 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
     };
     
     const activeJoints = getActiveFingerJoints(selectedDigit);
-    const relevantLandmarks = [0, activeJoints.mcp, activeJoints.pip, activeJoints.dip, activeJoints.tip]; // Wrist + finger joints
+    const activeLandmarks = [activeJoints.mcp, activeJoints.pip, activeJoints.dip, activeJoints.tip]; // Active finger joints
+    
+    // Draw all hand connections first
+    const connections = [
+      // Thumb
+      [0, 1], [1, 2], [2, 3], [3, 4],
+      // Index finger
+      [0, 5], [5, 6], [6, 7], [7, 8],
+      // Middle finger
+      [0, 9], [9, 10], [10, 11], [11, 12],
+      // Ring finger
+      [0, 13], [13, 14], [14, 15], [15, 16],
+      // Pinky
+      [0, 17], [17, 18], [18, 19], [19, 20],
+      // Palm connections
+      [5, 9], [9, 13], [13, 17]
+    ];
+    
+    ctx.strokeStyle = '#ffeb3b'; // Yellow connections
+    ctx.lineWidth = 2;
+    connections.forEach(([start, end]) => {
+      if (frame.landmarks[start] && frame.landmarks[end]) {
+        const startX = (1 - frame.landmarks[start].x) * canvas.width;
+        const startY = frame.landmarks[start].y * canvas.height;
+        const endX = (1 - frame.landmarks[end].x) * canvas.width;
+        const endY = frame.landmarks[end].y * canvas.height;
+        
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+      }
+    });
     
     frame.landmarks.forEach((landmark, index) => {
-      // Only draw relevant landmarks
-      if (!relevantLandmarks.includes(index)) return;
+      // Draw all landmarks, not just relevant ones
       
       const x = (1 - landmark.x) * canvas.width; // Flip horizontally to remove mirror effect
       const y = landmark.y * canvas.height;
       
-      // Color-code joints to match live joint angles display
-      let color = '#10b981'; // Default green
+      // Color-code landmarks for all 21 hand points
+      let color = '#4caf50'; // Default green for other landmarks
       let size = 4;
       
-      if (index === activeJoints.mcp) {
-        // MCP joint - blue to match live display
-        color = '#3b82f6';
-        size = 8;
-      } else if (index === activeJoints.pip) {
-        // PIP joint - green to match live display
-        color = '#10b981';
-        size = 8;
-      } else if (index === activeJoints.dip) {
-        // DIP joint - purple to match live display
-        color = '#8b5cf6';
-        size = 8;
-      } else if (index === activeJoints.tip) {
-        // Fingertip - orange for selected finger
-        color = '#f59e0b';
-        size = 6;
+      if (activeLandmarks.includes(index)) {
+        // Active finger landmarks - yellow/bright colors
+        if (index === activeJoints.mcp) {
+          color = '#3b82f6'; // Blue for MCP
+          size = 8;
+        } else if (index === activeJoints.pip) {
+          color = '#10b981'; // Green for PIP
+          size = 8;
+        } else if (index === activeJoints.dip) {
+          color = '#8b5cf6'; // Purple for DIP
+          size = 8;
+        } else if (index === activeJoints.tip) {
+          color = '#f59e0b'; // Orange for fingertip
+          size = 6;
+        }
       } else if (index === 0) {
         // Wrist landmark
         color = '#ef4444'; // Red for wrist
