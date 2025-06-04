@@ -325,12 +325,19 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
   // Initialize component
   useEffect(() => {
     const init = async () => {
-      // Primary mode: Start with reliable demo
       console.log('Starting hand tracking demo...');
-      runDemo();
       
-      // Live tracking disabled for stability
-      console.log('Demo mode active - 21-joint biomechanical analysis ready');
+      // Try MediaPipe initialization first
+      const mediaPipeSuccess = await initializeMediaPipe();
+      
+      if (mediaPipeSuccess) {
+        console.log('MediaPipe initialized successfully - Live tracking active');
+        setIsLiveMode(true);
+      } else {
+        console.log('MediaPipe failed, falling back to demo');
+        runDemo();
+        console.log('Demo mode active - 21-joint biomechanical analysis ready');
+      }
     };
 
     init();
