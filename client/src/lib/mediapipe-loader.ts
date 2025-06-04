@@ -32,17 +32,8 @@ export class MediaPipeLoader {
   private async performLoad(): Promise<any> {
     console.log('Starting comprehensive MediaPipe loading...');
 
-    // Strategy 1: Try direct import
-    try {
-      console.log('Attempting direct ES6 import...');
-      const { Hands } = await import('@mediapipe/hands');
-      this.handsClass = Hands;
-      this.isLoaded = true;
-      console.log('✓ Direct import successful');
-      return this.handsClass;
-    } catch (error) {
-      console.log('✗ Direct import failed:', error);
-    }
+    // Strategy 1: Skip direct import to avoid dependency issues
+    console.log('Skipping direct import to prevent build errors...');
 
     // Strategy 2: Check global window object
     if (typeof window !== 'undefined' && (window as any).Hands) {
