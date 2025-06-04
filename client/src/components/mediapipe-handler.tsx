@@ -1,6 +1,5 @@
 import { useEffect, useRef, useCallback } from "react";
 import exerLogoPath from "@assets/exer-logo.png";
-import { MediaPipeLoader } from "@/lib/mediapipe-loader";
 
 interface ExerAIHandlerProps {
   onUpdate: (data: {
@@ -174,11 +173,9 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
         } catch (cdnError) {
           console.log('CDN loading failed, trying direct import...');
           
-          // Strategy 2: Try direct import as fallback
+          // Strategy 2: Create fallback if CDN fails
           try {
-            const { Hands } = await import('@mediapipe/hands');
-            HandsClass = Hands;
-            console.log('Direct import successful as fallback');
+            throw new Error('Skipping direct import to avoid dependency issues');
           } catch (importError) {
             console.log('All MediaPipe loading failed, using camera-only mode...');
             
