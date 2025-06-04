@@ -406,20 +406,20 @@ export default function AssessmentList() {
                         )}
 
                         {/* Kapandji Score Breakdown */}
-                        {record.assessmentName?.includes('Kapandji') && record.kapandjiScore !== null && record.kapandjiScore !== undefined && (
+                        {record.assessmentName?.includes('Kapandji') && record.totalActiveRom !== null && record.totalActiveRom !== undefined && (
                           <div className="mt-3">
                             <div className="text-sm font-medium text-gray-700 mb-2">Kapandji Opposition Score</div>
                             <div className="flex gap-3">
                               <div className={`px-4 py-3 rounded-lg border-2 ${
-                                record.kapandjiScore < 8 ? 'bg-red-50 border-red-300' : 'bg-green-50 border-green-300'
+                                parseFloat(record.totalActiveRom) < 8 ? 'bg-red-50 border-red-300' : 'bg-green-50 border-green-300'
                               }`}>
                                 <div className={`font-bold text-xs ${
-                                  record.kapandjiScore < 8 ? 'text-red-700' : 'text-green-700'
+                                  parseFloat(record.totalActiveRom) < 8 ? 'text-red-700' : 'text-green-700'
                                 }`}>Score</div>
                                 <div className={`font-bold text-2xl ${
-                                  record.kapandjiScore < 8 ? 'text-red-900' : 'text-green-900'
+                                  parseFloat(record.totalActiveRom) < 8 ? 'text-red-900' : 'text-green-900'
                                 }`}>
-                                  {record.kapandjiScore}/10
+                                  {Math.round(parseFloat(record.totalActiveRom))}/10
                                 </div>
                               </div>
                             </div>
