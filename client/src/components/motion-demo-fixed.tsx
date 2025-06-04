@@ -327,17 +327,9 @@ export default function MotionDemo({ className = "w-full h-48" }: MotionDemoProp
     const init = async () => {
       console.log('Starting hand tracking demo...');
       
-      // Try MediaPipe initialization first
-      const mediaPipeSuccess = await initializeMediaPipe();
-      
-      if (mediaPipeSuccess) {
-        console.log('MediaPipe initialized successfully - Live tracking active');
-        setIsLiveMode(true);
-      } else {
-        console.log('MediaPipe failed, falling back to demo');
-        runDemo();
-        console.log('Demo mode active - 21-joint biomechanical analysis ready');
-      }
+      // Use stable demo mode for reliable deployment
+      runDemo();
+      console.log('Demo mode active - 21-joint biomechanical analysis ready');
     };
 
     init();
