@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Shield, ShieldX, Lock, Info, ArrowRight } from "lucide-react";
-import MediaPipeHandTracker from "@/components/mediapipe-hand-tracker";
+import TensorFlowHandTracker from "@/components/tensorflow-hand-tracker";
 
 export default function Landing() {
   const [code, setCode] = useState("");
@@ -63,7 +63,7 @@ export default function Landing() {
       <Card className="medical-card">
         <CardContent className="pt-6">
           <div className="text-center mb-6">
-            <MediaPipeHandTracker className="rounded-lg mx-auto mb-6 w-full h-48" />
+            <TensorFlowHandTracker className="rounded-lg mx-auto mb-6 w-full h-48" />
             
             <h2 className="text-2xl font-semibold text-gray-800 mb-2">Advanced Motion Analysis Platform</h2>
             <p className="text-gray-800 mb-8">
