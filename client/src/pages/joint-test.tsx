@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
-// MediaPipe handler removed - using TensorFlow.js implementation
+import ExerAIHandler from "@/components/mediapipe-handler";
 import { calculateCurrentROM, type JointAngles } from "@/lib/rom-calculator";
 
 export default function JointTest() {
@@ -219,9 +219,11 @@ export default function JointTest() {
             <div>
               <h3 className="text-lg font-medium mb-3">Live Camera Feed</h3>
               <div className="bg-gray-900 rounded-xl aspect-video relative overflow-hidden">
-                <div className="w-full h-full flex items-center justify-center text-white">
-                  <p>Hand tracking component loading...</p>
-                </div>
+                <ExerAIHandler
+                  onUpdate={handleMediaPipeUpdate}
+                  isRecording={false}
+                  assessmentType="Joint Test"
+                />
               </div>
             </div>
 
