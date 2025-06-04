@@ -17,6 +17,14 @@ export default function LiveHandTracker({ className = "w-full h-48" }: LiveHandT
   // Initialize camera access
   const initCamera = useCallback(async () => {
     try {
+      console.log('Requesting camera access...');
+      
+      // Check if getUserMedia is available
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        console.warn('Camera API not available in this environment');
+        return false;
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
           width: { ideal: 640 },
@@ -24,6 +32,8 @@ export default function LiveHandTracker({ className = "w-full h-48" }: LiveHandT
           facingMode: 'user'
         }
       });
+
+      console.log('Camera access granted, initializing video...');
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
@@ -33,13 +43,28 @@ export default function LiveHandTracker({ className = "w-full h-48" }: LiveHandT
         
         // Start motion detection once video is ready
         videoRef.current.onloadedmetadata = () => {
+          console.log('Video metadata loaded, starting motion detection');
           startMotionDetection();
+        };
+        
+        videoRef.current.onerror = (e) => {
+          console.error('Video error:', e);
+          setIsLive(false);
+          runDemo();
         };
       }
       
       return true;
     } catch (error) {
       console.warn('Camera access failed:', error);
+      const err = error as DOMException;
+      if (err.name === 'NotAllowedError') {
+        console.log('Camera permission denied by user');
+      } else if (err.name === 'NotFoundError') {
+        console.log('No camera device found');
+      } else if (err.name === 'NotSupportedError') {
+        console.log('Camera not supported in this environment');
+      }
       return false;
     }
   }, []);
@@ -193,13 +218,17 @@ export default function LiveHandTracker({ className = "w-full h-48" }: LiveHandT
     const init = async () => {
       console.log('Initializing live hand tracker...');
       
-      const cameraSuccess = await initCamera();
+      // First start demo immediately for visual feedback
+      runDemo();
       
-      if (!cameraSuccess) {
-        console.log('Camera access failed, falling back to demo');
-        setIsLive(false);
-        runDemo();
-      }
+      // Then try to upgrade to live camera in background
+      setTimeout(async () => {
+        const cameraSuccess = await initCamera();
+        
+        if (!cameraSuccess) {
+          console.log('Camera access failed, continuing with demo mode');
+        }
+      }, 500);
     };
 
     init();
