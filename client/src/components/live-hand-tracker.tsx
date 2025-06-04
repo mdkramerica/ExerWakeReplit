@@ -270,7 +270,11 @@ export default function LiveHandTracker({ className = "w-full h-48" }: LiveHandT
     let frame = 0;
 
     const animate = () => {
-      if (isLive) return;
+      // Stop demo if live mode is active
+      if (isLive) {
+        console.log('Stopping demo, live mode active');
+        return;
+      }
 
       // Clear with dark background
       ctx.fillStyle = '#1a1a1a';
@@ -313,15 +317,37 @@ export default function LiveHandTracker({ className = "w-full h-48" }: LiveHandT
       ctx.fillText('Precision 21-joint biomechanical tracking', 10, 65);
 
       frame++;
-      animationRef.current = requestAnimationFrame(animate);
+      
+      if (!isLive) {
+        animationRef.current = requestAnimationFrame(animate);
+      }
     };
 
+    console.log('Starting demo animation...');
     animate();
   }, [isLive]);
 
   useEffect(() => {
     const init = async () => {
       console.log('Initializing live hand tracker...');
+      
+      // Initialize canvas immediately
+      const canvas = canvasRef.current;
+      if (canvas) {
+        canvas.width = 640;
+        canvas.height = 480;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          // Initial canvas setup
+          ctx.fillStyle = '#1a1a1a';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          
+          // Add initial text
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 18px Arial';
+          ctx.fillText('Initializing Hand Tracker...', 20, 50);
+        }
+      }
       
       // First start demo immediately for visual feedback
       runDemo();
