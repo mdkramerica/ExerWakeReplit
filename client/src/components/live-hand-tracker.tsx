@@ -44,7 +44,18 @@ export default function LiveHandTracker({ className = "w-full h-48" }: LiveHandT
         // Start motion detection once video is ready
         videoRef.current.onloadedmetadata = () => {
           console.log('Video metadata loaded, starting motion detection');
+          console.log('Video dimensions:', videoRef.current?.videoWidth, 'x', videoRef.current?.videoHeight);
           startMotionDetection();
+        };
+        
+        videoRef.current.oncanplay = () => {
+          console.log('Video can play');
+          // Force video to play
+          videoRef.current?.play().catch(e => console.warn('Video play failed:', e));
+        };
+        
+        videoRef.current.onplaying = () => {
+          console.log('Video is playing');
         };
         
         videoRef.current.onerror = (e) => {
@@ -86,13 +97,28 @@ export default function LiveHandTracker({ className = "w-full h-48" }: LiveHandT
     let motionPixelThreshold = 5000;
 
     const detectMotion = () => {
-      if (!isLive || !video || video.readyState !== 4) {
+      if (!isLive || !video) {
         animationRef.current = requestAnimationFrame(detectMotion);
         return;
       }
 
-      // Draw video frame
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      // Check if video is ready and playing
+      if (video.readyState < 2) {
+        animationRef.current = requestAnimationFrame(detectMotion);
+        return;
+      }
+
+      // Clear canvas first
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      try {
+        // Draw video frame
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      } catch (error) {
+        console.warn('Error drawing video frame:', error);
+        animationRef.current = requestAnimationFrame(detectMotion);
+        return;
+      }
       
       // Get current frame data
       const currentFrame = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -254,7 +280,7 @@ export default function LiveHandTracker({ className = "w-full h-48" }: LiveHandT
         />
         <video
           ref={videoRef}
-          className="hidden"
+          className={isLive ? "absolute inset-0 w-full h-full object-cover" : "hidden"}
           width={640}
           height={480}
           autoPlay
