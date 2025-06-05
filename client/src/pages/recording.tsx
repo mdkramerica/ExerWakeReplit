@@ -10,6 +10,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { calculateCurrentROM, calculateMaxROM, type JointAngles } from "@/lib/rom-calculator";
 import { calculateFingerROM } from "@shared/rom-calculator";
+import { calculateWristAngles } from "@shared/wrist-calculator";
 
 export default function Recording() {
   const { id } = useParams();
@@ -272,11 +273,9 @@ export default function Recording() {
       // Calculate wrist angles from landmarks for wrist assessments
       if (data.landmarks && data.landmarks.length >= 21 && (assessment?.name?.toLowerCase().includes('wrist') || assessment?.name?.toLowerCase().includes('flexion') || assessment?.name?.toLowerCase().includes('extension'))) {
         try {
-          // Import and use the wrist calculator
-          import('@shared/wrist-calculator').then(({ calculateWristAngles }) => {
-            const wristResult = calculateWristAngles(data.landmarks, data.poseLandmarks);
-            setWristAngles(wristResult);
-          });
+          const wristResult = calculateWristAngles(data.landmarks, data.poseLandmarks);
+          console.log('Calculated wrist angles:', wristResult);
+          setWristAngles(wristResult);
         } catch (error) {
           console.warn('Wrist angle calculation error:', error);
         }
