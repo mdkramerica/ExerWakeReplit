@@ -92,62 +92,10 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
       document.head.appendChild(script);
     });
 
-    // Load MediaPipe Pose for wrist assessments
-    if (isWristAssessment && handsLoaded) {
-      console.log('Loading MediaPipe Pose for enhanced wrist assessment...');
-      
-      await new Promise<boolean>((resolve) => {
-        const poseScript = document.createElement('script');
-        poseScript.src = 'https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675471629/pose.js';
-        poseScript.crossOrigin = 'anonymous';
-        
-        poseScript.onload = () => {
-          console.log('MediaPipe Pose script loaded');
-          
-          const checkPose = (attempts = 0) => {
-            if ((window as any).Pose) {
-              try {
-                const Pose = (window as any).Pose;
-                poseRef.current = new Pose({
-                  locateFile: (file: string) => {
-                    return `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675471629/${file}`;
-                  }
-                });
-
-                poseRef.current.setOptions({
-                  modelComplexity: 1,
-                  smoothLandmarks: true,
-                  enableSegmentation: false,
-                  smoothSegmentation: false,
-                  minDetectionConfidence: 0.5,
-                  minTrackingConfidence: 0.5
-                });
-
-                poseRef.current.onResults(onPoseResults);
-                console.log('MediaPipe Pose initialized successfully');
-                resolve(true);
-              } catch (error) {
-                console.error('Failed to initialize MediaPipe Pose:', error);
-                resolve(false);
-              }
-            } else if (attempts < 50) {
-              setTimeout(() => checkPose(attempts + 1), 100);
-            } else {
-              console.log('MediaPipe Pose not available after waiting');
-              resolve(false);
-            }
-          };
-          
-          checkPose();
-        };
-        
-        poseScript.onerror = () => {
-          console.error('Failed to load MediaPipe Pose script');
-          resolve(false);
-        };
-        
-        document.head.appendChild(poseScript);
-      });
+    // Skip pose loading for now to prevent memory access errors
+    // Wrist assessment will use hand landmarks only
+    if (isWristAssessment) {
+      console.log('Wrist assessment mode: using hand landmarks only for stability');
     }
 
     return handsLoaded;
@@ -233,15 +181,33 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
       let wristAngles = null;
       if (isWristAssessment && landmarks.length >= 21) {
         try {
-          // Import wrist calculator dynamically
-          const wristCalculatorPromise = import('@/../../shared/wrist-calculator');
-          wristCalculatorPromise.then(({ calculateWristAngles }) => {
-            const calculatedAngles = calculateWristAngles(landmarks, currentPoseLandmarks.current);
-            console.log('Wrist angles calculated:', calculatedAngles);
-            // Update with wrist angles in a separate call if needed
-          }).catch(error => {
-            console.warn('Wrist calculation import failed:', error);
-          });
+          // Basic wrist angle calculation using hand landmarks only for now
+          // This avoids the memory access error while still providing wrist data
+          const wrist = landmarks[0]; // Wrist base
+          const middleMcp = landmarks[9]; // Middle finger MCP joint
+          const middleTip = landmarks[12]; // Middle finger tip
+          
+          if (wrist && middleMcp && middleTip) {
+            // Simple angle calculation between wrist, MCP, and finger tip
+            const v1 = { x: wrist.x - middleMcp.x, y: wrist.y - middleMcp.y };
+            const v2 = { x: middleTip.x - middleMcp.x, y: middleTip.y - middleMcp.y };
+            
+            const dot = v1.x * v2.x + v1.y * v2.y;
+            const mag1 = Math.sqrt(v1.x * v1.x + v1.y * v1.y);
+            const mag2 = Math.sqrt(v2.x * v2.x + v2.y * v2.y);
+            
+            if (mag1 > 0 && mag2 > 0) {
+              const angle = Math.acos(Math.max(-1, Math.min(1, dot / (mag1 * mag2)))) * (180 / Math.PI);
+              const flexionAngle = Math.max(0, 180 - angle);
+              const extensionAngle = Math.max(0, angle - 180);
+              
+              wristAngles = {
+                flexionAngle,
+                extensionAngle,
+                totalWristRom: flexionAngle + extensionAngle
+              };
+            }
+          }
         } catch (error) {
           console.warn('Wrist calculation failed:', error);
         }
@@ -276,12 +242,13 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
       return;
     }
 
-    // Send frame to both hand and pose detection
+    // Send frame to hand detection only for stability
     if (handsRef.current) {
-      handsRef.current.send({ image: video });
-    }
-    if (isWristAssessment && poseRef.current) {
-      poseRef.current.send({ image: video });
+      try {
+        handsRef.current.send({ image: video });
+      } catch (error) {
+        console.warn('MediaPipe send error:', error);
+      }
     }
 
     animationRef.current = requestAnimationFrame(animate);
