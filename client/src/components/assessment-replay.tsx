@@ -799,6 +799,8 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
           const elbow = frame.poseLandmarks[elbowIndex];
           const poseWrist = frame.poseLandmarks[poseWristIndex];
           
+          console.log(`Elbow detection debug - Hand: ${currentWristAngles.handType}, ElbowIndex: ${elbowIndex}, Elbow visibility: ${elbow?.visibility || 'undefined'}, PoseWrist visibility: ${poseWrist?.visibility || 'undefined'}`);
+          
           if (elbow && poseWrist && (elbow.visibility || 1) > 0.5) {
             const elbowX = elbow.x * canvas.width;
             const elbowY = elbow.y * canvas.height;
