@@ -289,10 +289,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
               totalActiveRom = kapandjiResult.maxScore;
               
               // Store details in individual finger fields for display
-              indexFingerRom = kapandjiResult.details.indexMcp ? 1 : 0;
-              middleFingerRom = kapandjiResult.details.middleMcp ? 2 : 0;
-              ringFingerRom = kapandjiResult.details.ringMcp ? 3 : 0;
-              pinkyFingerRom = kapandjiResult.details.pinkyMcp ? 4 : 0;
+              indexFingerRom = kapandjiResult.details.indexTip ? 3 : (kapandjiResult.details.indexMiddlePhalanx ? 2 : (kapandjiResult.details.indexProximalPhalanx ? 1 : 0));
+              middleFingerRom = kapandjiResult.details.middleTip ? 4 : 0;
+              ringFingerRom = kapandjiResult.details.ringTip ? 5 : 0;
+              pinkyFingerRom = kapandjiResult.details.littleTip ? 6 : 0;
               
               console.log('Kapandji assessment completed with score:', totalActiveRom);
               
@@ -364,34 +364,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         romData,
         repetitionData,
         qualityScore,
-        maxMcpAngle: maxMcpAngle !== null ? maxMcpAngle.toString() : null,
-        maxPipAngle: maxPipAngle !== null ? maxPipAngle.toString() : null,
-        maxDipAngle: maxDipAngle !== null ? maxDipAngle.toString() : null,
-        totalActiveRom: totalActiveRom !== null ? totalActiveRom.toString() : null,
-        indexFingerRom: indexFingerRom !== null ? indexFingerRom.toString() : null,
-        middleFingerRom: middleFingerRom !== null ? middleFingerRom.toString() : null,
-        ringFingerRom: ringFingerRom !== null ? ringFingerRom.toString() : null,
-        pinkyFingerRom: pinkyFingerRom !== null ? pinkyFingerRom.toString() : null,
+        maxMcpAngle: maxMcpAngle !== null ? String(maxMcpAngle) : null,
+        maxPipAngle: maxPipAngle !== null ? String(maxPipAngle) : null,
+        maxDipAngle: maxDipAngle !== null ? String(maxDipAngle) : null,
+        totalActiveRom: totalActiveRom !== null ? String(totalActiveRom) : null,
+        indexFingerRom: indexFingerRom !== null ? String(indexFingerRom) : null,
+        middleFingerRom: middleFingerRom !== null ? String(middleFingerRom) : null,
+        ringFingerRom: ringFingerRom !== null ? String(ringFingerRom) : null,
+        pinkyFingerRom: pinkyFingerRom !== null ? String(pinkyFingerRom) : null,
         
         // Individual joint angles for detailed breakdown
-        middleFingerMcp: middleFingerMcp !== null ? middleFingerMcp.toString() : null,
-        middleFingerPip: middleFingerPip !== null ? middleFingerPip.toString() : null,
-        middleFingerDip: middleFingerDip !== null ? middleFingerDip.toString() : null,
+        middleFingerMcp: middleFingerMcp !== null ? String(middleFingerMcp) : null,
+        middleFingerPip: middleFingerPip !== null ? String(middleFingerPip) : null,
+        middleFingerDip: middleFingerDip !== null ? String(middleFingerDip) : null,
         
-        ringFingerMcp: ringFingerMcp !== null ? ringFingerMcp.toString() : null,
-        ringFingerPip: ringFingerPip !== null ? ringFingerPip.toString() : null,
-        ringFingerDip: ringFingerDip !== null ? ringFingerDip.toString() : null,
+        ringFingerMcp: ringFingerMcp !== null ? String(ringFingerMcp) : null,
+        ringFingerPip: ringFingerPip !== null ? String(ringFingerPip) : null,
+        ringFingerDip: ringFingerDip !== null ? String(ringFingerDip) : null,
         
-        pinkyFingerMcp: pinkyFingerMcp !== null ? pinkyFingerMcp.toString() : null,
-        pinkyFingerPip: pinkyFingerPip !== null ? pinkyFingerPip.toString() : null,
-        pinkyFingerDip: pinkyFingerDip !== null ? pinkyFingerDip.toString() : null,
+        pinkyFingerMcp: pinkyFingerMcp !== null ? String(pinkyFingerMcp) : null,
+        pinkyFingerPip: pinkyFingerPip !== null ? String(pinkyFingerPip) : null,
+        pinkyFingerDip: pinkyFingerDip !== null ? String(pinkyFingerDip) : null,
         handType: handType || null,
         
         // Wrist angle data
-        wristFlexionAngle: wristFlexionAngle !== null ? wristFlexionAngle.toString() : null,
-        wristExtensionAngle: wristExtensionAngle !== null ? wristExtensionAngle.toString() : null,
-        maxWristFlexion: maxWristFlexion !== null ? maxWristFlexion.toString() : null,
-        maxWristExtension: maxWristExtension !== null ? maxWristExtension.toString() : null
+        wristFlexionAngle: wristFlexionAngle !== null ? String(wristFlexionAngle) : null,
+        wristExtensionAngle: wristExtensionAngle !== null ? String(wristExtensionAngle) : null,
+        maxWristFlexion: maxWristFlexion !== null ? String(maxWristFlexion) : null,
+        maxWristExtension: maxWristExtension !== null ? String(maxWristExtension) : null
       });
       
       res.json({ userAssessment });
