@@ -55,6 +55,13 @@ export const userAssessments = pgTable("user_assessments", {
   pinkyFingerPip: numeric("pinky_finger_pip", { precision: 5, scale: 2 }),
   pinkyFingerDip: numeric("pinky_finger_dip", { precision: 5, scale: 2 }),
   handType: text("hand_type"), // "Left" or "Right" hand identifier
+  
+  // Wrist angle measurements
+  wristFlexionAngle: numeric("wrist_flexion_angle", { precision: 5, scale: 2 }),
+  wristExtensionAngle: numeric("wrist_extension_angle", { precision: 5, scale: 2 }),
+  maxWristFlexion: numeric("max_wrist_flexion", { precision: 5, scale: 2 }),
+  maxWristExtension: numeric("max_wrist_extension", { precision: 5, scale: 2 }),
+  
   shareToken: text("share_token").unique(), // Unique token for public sharing
 });
 
