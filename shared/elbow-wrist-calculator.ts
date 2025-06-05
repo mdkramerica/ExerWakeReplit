@@ -222,9 +222,10 @@ export function calculateElbowReferencedWristAngle(
               z: referenceNorm.x * measurementNorm.y - referenceNorm.y * measurementNorm.x
             };
             
-            // Determine direction based on camera coordinate system
-            // Positive Y cross product indicates extension (hand moves upward/backward)
-            const isExtension = crossProduct.y > 0;
+            // Determine direction based on camera coordinate system and hand type
+            // For left hand: Positive Y cross product indicates extension
+            // For right hand: Negative Y cross product indicates extension (mirrored)
+            const isExtension = handType === 'LEFT' ? crossProduct.y > 0 : crossProduct.y < 0;
             
             if (isExtension) {
               result.wristExtensionAngle = Math.min(angleDegrees, 70);

@@ -816,6 +816,38 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
             ctx.lineTo(poseWristX, poseWristY);
             ctx.stroke();
             
+            // Draw infinite reference line (elbow-wrist baseline extended)
+            const referenceVector = {
+              x: wristX - elbowX,
+              y: wristY - elbowY
+            };
+            const referenceLength = Math.sqrt(referenceVector.x**2 + referenceVector.y**2);
+            
+            if (referenceLength > 0) {
+              // Normalize the reference vector
+              const normalizedRef = {
+                x: referenceVector.x / referenceLength,
+                y: referenceVector.y / referenceLength
+              };
+              
+              // Extend the line across the entire canvas
+              const extensionLength = Math.max(canvas.width, canvas.height) * 2;
+              const startX = elbowX - normalizedRef.x * extensionLength;
+              const startY = elbowY - normalizedRef.y * extensionLength;
+              const endX = elbowX + normalizedRef.x * extensionLength;
+              const endY = elbowY + normalizedRef.y * extensionLength;
+              
+              // Draw infinite reference line
+              ctx.strokeStyle = '#fbbf24'; // Yellow
+              ctx.lineWidth = 2;
+              ctx.setLineDash([8, 4]); // Dashed pattern
+              ctx.beginPath();
+              ctx.moveTo(startX, startY);
+              ctx.lineTo(endX, endY);
+              ctx.stroke();
+              ctx.setLineDash([]); // Reset dash pattern
+            }
+            
             // Highlight elbow point
             ctx.fillStyle = '#3b82f6';
             ctx.beginPath();
