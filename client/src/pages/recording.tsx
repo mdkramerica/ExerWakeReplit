@@ -269,8 +269,18 @@ export default function Recording() {
         setPoseLandmarks(data.poseLandmarks);
       }
       
-      // Update wrist angles if available
-      if (data.wristAngles) {
+      // Calculate wrist angles from landmarks for wrist assessments
+      if (data.landmarks && data.landmarks.length >= 21 && (assessment?.name?.toLowerCase().includes('wrist') || assessment?.name?.toLowerCase().includes('flexion') || assessment?.name?.toLowerCase().includes('extension'))) {
+        try {
+          // Import and use the wrist calculator
+          import('@shared/wrist-calculator').then(({ calculateWristAngles }) => {
+            const wristResult = calculateWristAngles(data.landmarks, data.poseLandmarks);
+            setWristAngles(wristResult);
+          });
+        } catch (error) {
+          console.warn('Wrist angle calculation error:', error);
+        }
+      } else if (data.wristAngles) {
         setWristAngles(data.wristAngles);
       }
       
