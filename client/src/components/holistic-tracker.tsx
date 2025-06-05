@@ -79,7 +79,7 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType 
     canvas.width = video.videoWidth || 640;
     canvas.height = video.videoHeight || 480;
 
-    // Clear and draw video frame
+    // Clear and draw clean video frame without overlays for better performance
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
@@ -88,38 +88,13 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType 
     let handDetected = false;
     let trackingQuality = "Poor";
 
-    // Process pose landmarks (including elbow data)
+    // Process pose landmarks (including elbow data) - no visual drawing
     if (results.poseLandmarks) {
       poseLandmarks = results.poseLandmarks;
-      
-      // Draw pose connections with emphasis on arms
-      ctx.save();
-      ctx.globalCompositeOperation = 'source-over';
-      drawConnectors(ctx, poseLandmarks, POSE_CONNECTIONS, { color: '#00FF00', lineWidth: 2 });
-      ctx.restore();
-
-      // Highlight key arm landmarks
-      const armIndices = [11, 12, 13, 14, 15, 16]; // Shoulders, elbows, wrists
-      armIndices.forEach(index => {
-        const landmark = poseLandmarks[index];
-        if (landmark && landmark.visibility > 0.5) {
-          const x = landmark.x * canvas.width;
-          const y = landmark.y * canvas.height;
-          
-          ctx.beginPath();
-          ctx.arc(x, y, 8, 0, 2 * Math.PI);
-          ctx.fillStyle = index === 13 || index === 14 ? '#FF0000' : '#0080FF'; // Elbows in red
-          ctx.fill();
-          ctx.strokeStyle = '#FFFFFF';
-          ctx.lineWidth = 2;
-          ctx.stroke();
-        }
-      });
-
       trackingQuality = "Good";
     }
 
-    // Process hand landmarks
+    // Process hand landmarks - no visual drawing
     if (results.leftHandLandmarks || results.rightHandLandmarks) {
       handDetected = true;
       
@@ -127,27 +102,21 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType 
       handLandmarks = results.rightHandLandmarks || results.leftHandLandmarks;
       
       if (handLandmarks) {
-        // Draw hand connections and landmarks
-        ctx.save();
-        drawConnectors(ctx, handLandmarks, HAND_CONNECTIONS, { color: '#CC0000', lineWidth: 2 });
-        drawLandmarks(ctx, handLandmarks, { color: '#FF0000', lineWidth: 1, radius: 3 });
-        ctx.restore();
-        
         trackingQuality = poseLandmarks.length > 0 ? "Excellent" : "Good";
       }
     }
 
-    // Add assessment guidance overlay
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-    ctx.fillRect(10, 10, 320, 120);
+    // Simple status overlay only
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.fillRect(10, 10, 280, 80);
     
     ctx.fillStyle = '#ffffff';
-    ctx.font = '16px Arial';
-    ctx.fillText('MediaPipe Holistic Tracking', 20, 35);
+    ctx.font = '14px Arial';
+    ctx.fillText('Holistic Tracking Active', 20, 30);
     
     if (isWristAssessment) {
       ctx.fillStyle = '#00ff00';
-      ctx.fillText('Comprehensive Hand + Pose Analysis', 20, 55);
+      ctx.fillText('Elbow + Hand Detection', 20, 50);
       ctx.fillText('Elbow Reference: Active', 20, 75);
       
       if (poseLandmarks.length > 0 && handDetected) {
