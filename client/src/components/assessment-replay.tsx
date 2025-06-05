@@ -724,6 +724,92 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
       
       ctx.setLineDash([]); // Reset line dash
     }
+    
+    // Draw wrist angle information for wrist assessments
+    if (isWristAssessment && currentWristAngles) {
+      const wristBoxX = canvas.width - 280;
+      const wristBoxY = 20;
+      const wristBoxWidth = 260;
+      const wristBoxHeight = 180;
+      
+      // Semi-transparent background
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+      ctx.fillRect(wristBoxX, wristBoxY, wristBoxWidth, wristBoxHeight);
+      
+      // Border
+      ctx.strokeStyle = '#3b82f6';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(wristBoxX, wristBoxY, wristBoxWidth, wristBoxHeight);
+      
+      // Title
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 14px Arial';
+      ctx.fillText('Wrist Angle Analysis', wristBoxX + 10, wristBoxY + 20);
+      
+      // Current forearm-to-hand angle
+      ctx.fillStyle = '#10b981';
+      ctx.font = 'bold 16px Arial';
+      ctx.fillText(`Raw Angle: ${currentWristAngles.forearmToHandAngle.toFixed(1)}°`, wristBoxX + 10, wristBoxY + 45);
+      
+      // Flexion angle
+      ctx.fillStyle = currentWristAngles.wristFlexionAngle > 0 ? '#3b82f6' : '#6b7280';
+      ctx.font = '12px Arial';
+      ctx.fillText(`Flexion: ${currentWristAngles.wristFlexionAngle.toFixed(1)}°`, wristBoxX + 10, wristBoxY + 70);
+      
+      // Extension angle
+      ctx.fillStyle = currentWristAngles.wristExtensionAngle > 0 ? '#f59e0b' : '#6b7280';
+      ctx.fillText(`Extension: ${currentWristAngles.wristExtensionAngle.toFixed(1)}°`, wristBoxX + 130, wristBoxY + 70);
+      
+      // Hand type and confidence
+      ctx.fillStyle = '#9ca3af';
+      ctx.font = '11px Arial';
+      ctx.fillText(`Hand: ${currentWristAngles.handType}`, wristBoxX + 10, wristBoxY + 95);
+      ctx.fillText(`Confidence: ${(currentWristAngles.confidence * 100).toFixed(1)}%`, wristBoxX + 10, wristBoxY + 110);
+      
+      // Maximum angles (if available)
+      if (maxWristAngles) {
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 11px Arial';
+        ctx.fillText('Session Maximum:', wristBoxX + 10, wristBoxY + 135);
+        
+        ctx.fillStyle = '#3b82f6';
+        ctx.font = '10px Arial';
+        ctx.fillText(`Max Flexion: ${maxWristAngles.wristFlexionAngle.toFixed(1)}°`, wristBoxX + 10, wristBoxY + 150);
+        
+        ctx.fillStyle = '#f59e0b';
+        ctx.fillText(`Max Extension: ${maxWristAngles.wristExtensionAngle.toFixed(1)}°`, wristBoxX + 10, wristBoxY + 165);
+      }
+      
+      // Visual angle indicator
+      if (frame.landmarks && frame.landmarks.length >= 21) {
+        const wrist = frame.landmarks[0]; // Wrist landmark
+        const middleMcp = frame.landmarks[9]; // Middle finger MCP
+        
+        const wristX = (1 - wrist.x) * canvas.width;
+        const wristY = wrist.y * canvas.height;
+        const mcpX = (1 - middleMcp.x) * canvas.width;
+        const mcpY = middleMcp.y * canvas.height;
+        
+        // Draw wrist-to-hand vector
+        ctx.strokeStyle = '#f59e0b';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(wristX, wristY);
+        ctx.lineTo(mcpX, mcpY);
+        ctx.stroke();
+        
+        // Highlight wrist point
+        ctx.fillStyle = '#ef4444';
+        ctx.beginPath();
+        ctx.arc(wristX, wristY, 8, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        // Add angle indicator text near wrist
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 12px Arial';
+        ctx.fillText(`${currentWristAngles.forearmToHandAngle.toFixed(1)}°`, wristX + 15, wristY - 10);
+      }
+    }
 
     // Draw timeline scrubber overlay at bottom of canvas
     const timelineHeight = 30;
@@ -988,32 +1074,45 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
 
                 {/* Settings Controls */}
                 <div className="flex flex-wrap items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <label className="text-sm font-semibold text-gray-900">Digit:</label>
-                    <select
-                      value={selectedDigit}
-                      onChange={(e) => setSelectedDigit(e.target.value as 'INDEX' | 'MIDDLE' | 'RING' | 'PINKY')}
-                      className="border-2 border-gray-300 rounded-md px-3 py-2 bg-white font-medium text-gray-900 focus:border-blue-500 focus:outline-none"
-                    >
-                      <option value="INDEX">Index Finger</option>
-                      <option value="MIDDLE">Middle Finger</option>
-                      <option value="RING">Ring Finger</option>
-                      <option value="PINKY">Pinky Finger</option>
-                    </select>
-                  </div>
+                  {!isWristAssessment && (
+                    <>
+                      <div className="flex items-center gap-2">
+                        <label className="text-sm font-semibold text-gray-900">Digit:</label>
+                        <select
+                          value={selectedDigit}
+                          onChange={(e) => setSelectedDigit(e.target.value as 'INDEX' | 'MIDDLE' | 'RING' | 'PINKY')}
+                          className="border-2 border-gray-300 rounded-md px-3 py-2 bg-white font-medium text-gray-900 focus:border-blue-500 focus:outline-none"
+                        >
+                          <option value="INDEX">Index Finger</option>
+                          <option value="MIDDLE">Middle Finger</option>
+                          <option value="RING">Ring Finger</option>
+                          <option value="PINKY">Pinky Finger</option>
+                        </select>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setIsolateMode(!isolateMode)}
+                          className={`px-4 py-2 rounded-md font-medium text-sm transition-colors ${
+                            isolateMode 
+                              ? 'bg-blue-600 text-white border-2 border-blue-600' 
+                              : 'bg-white text-gray-900 border-2 border-gray-300 hover:border-blue-500'
+                          }`}
+                        >
+                          {isolateMode ? 'Show All' : 'Isolate Finger'}
+                        </button>
+                      </div>
+                    </>
+                  )}
                   
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setIsolateMode(!isolateMode)}
-                      className={`px-4 py-2 rounded-md font-medium text-sm transition-colors ${
-                        isolateMode 
-                          ? 'bg-blue-600 text-white border-2 border-blue-600' 
-                          : 'bg-white text-gray-900 border-2 border-gray-300 hover:border-blue-500'
-                      }`}
-                    >
-                      {isolateMode ? 'Show All' : 'Isolate Finger'}
-                    </button>
-                  </div>
+                  {isWristAssessment && (
+                    <div className="flex items-center gap-2">
+                      <label className="text-sm font-semibold text-gray-900">View Mode:</label>
+                      <span className="px-3 py-2 bg-blue-100 text-blue-800 rounded-md font-medium text-sm">
+                        Wrist Analysis
+                      </span>
+                    </div>
+                  )}
                   
                   <div className="flex items-center gap-2">
                     <label className="text-sm font-semibold text-gray-900">Speed:</label>
@@ -1108,6 +1207,76 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
                       <div className="text-xs text-gray-700">Max: {Math.round(maxROM.totalActiveRom)}°</div>
                     )}
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* Wrist Assessment Data */}
+            {isWristAssessment && currentWristAngles && (
+              <div className="bg-gray-100 border border-gray-200 p-4 rounded-lg">
+                <h4 className="font-medium mb-3 text-gray-900">Wrist Angle Analysis</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-white p-4 rounded border">
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="font-medium text-gray-900">Current Frame</span>
+                      <span className="text-sm text-gray-600">Frame {currentFrame + 1}</span>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-gray-700">Raw Angle:</span>
+                        <span className="font-bold text-green-600">{currentWristAngles.forearmToHandAngle.toFixed(1)}°</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-700">Flexion:</span>
+                        <span className={`font-bold ${currentWristAngles.wristFlexionAngle > 0 ? 'text-blue-600' : 'text-gray-400'}`}>
+                          {currentWristAngles.wristFlexionAngle.toFixed(1)}°
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-700">Extension:</span>
+                        <span className={`font-bold ${currentWristAngles.wristExtensionAngle > 0 ? 'text-orange-600' : 'text-gray-400'}`}>
+                          {currentWristAngles.wristExtensionAngle.toFixed(1)}°
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-700">Hand Type:</span>
+                        <span className="font-medium text-gray-900">{currentWristAngles.handType}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-700">Confidence:</span>
+                        <span className="font-medium text-gray-900">{(currentWristAngles.confidence * 100).toFixed(1)}%</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {maxWristAngles && (
+                    <div className="bg-white p-4 rounded border">
+                      <div className="flex justify-between items-center mb-3">
+                        <span className="font-medium text-gray-900">Session Maximum</span>
+                        <span className="text-sm text-gray-600">Best Performance</span>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <div className="flex justify-between">
+                          <span className="text-gray-700">Max Raw Angle:</span>
+                          <span className="font-bold text-green-600">{maxWristAngles.forearmToHandAngle.toFixed(1)}°</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-700">Max Flexion:</span>
+                          <span className="font-bold text-blue-600">{maxWristAngles.wristFlexionAngle.toFixed(1)}°</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-700">Max Extension:</span>
+                          <span className="font-bold text-orange-600">{maxWristAngles.wristExtensionAngle.toFixed(1)}°</span>
+                        </div>
+                        <div className="pt-2 border-t">
+                          <div className="text-xs text-gray-600">Clinical Normal Ranges:</div>
+                          <div className="text-xs text-gray-600">Flexion: 0-80° | Extension: 0-70°</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
