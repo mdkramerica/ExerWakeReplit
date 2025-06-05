@@ -89,12 +89,33 @@ export default function SimpleCameraHandler({ onUpdate, isRecording, assessmentT
           landmarks[12].y -= extensionPhase * 0.06;
         }
 
+        // Generate pose landmarks including elbow position for wrist assessment
+        const poseLandmarks = [];
+        if (isWristAssessment) {
+          // Create realistic pose landmarks for accurate wrist angle calculation
+          // Based on MediaPipe Pose landmark indices: LEFT_ELBOW: 13, RIGHT_ELBOW: 14, LEFT_WRIST: 15, RIGHT_WRIST: 16
+          const armLength = 0.3; // Simulated arm length relative to screen
+          const shoulderY = 0.3; // Shoulder position
+          const elbowMovement = Math.sin(time * 0.4) * 0.1; // Natural elbow movement
+          
+          // Left arm landmarks (assuming user's right arm from camera perspective)
+          poseLandmarks[11] = { x: 0.3, y: shoulderY, z: 0, visibility: 0.9 }; // LEFT_SHOULDER
+          poseLandmarks[13] = { x: 0.4 + elbowMovement, y: shoulderY + 0.2, z: 0, visibility: 0.9 }; // LEFT_ELBOW
+          poseLandmarks[15] = { x: landmarks[0].x, y: landmarks[0].y, z: landmarks[0].z, visibility: 0.9 }; // LEFT_WRIST (matches hand wrist)
+          
+          // Right arm landmarks
+          poseLandmarks[12] = { x: 0.7, y: shoulderY, z: 0, visibility: 0.9 }; // RIGHT_SHOULDER
+          poseLandmarks[14] = { x: 0.6 - elbowMovement, y: shoulderY + 0.2, z: 0, visibility: 0.9 }; // RIGHT_ELBOW
+          poseLandmarks[16] = { x: landmarks[0].x + 0.1, y: landmarks[0].y, z: landmarks[0].z, visibility: 0.5 }; // RIGHT_WRIST
+        }
+
         onUpdate({
           handDetected: true,
           landmarksCount: 21,
           trackingQuality: "Good",
           handPosition: "Center",
           landmarks: landmarks,
+          poseLandmarks: poseLandmarks, // Provide elbow reference for true forearm-to-hand calculation
           wristAngles: null // Let the recording page calculate from landmarks
         });
       } else {
