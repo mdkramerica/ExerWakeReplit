@@ -324,6 +324,18 @@ export default function Recording() {
       // Capture motion data if we're within the recording period (0-10 seconds)
       if (recordingStartTimeRef.current && recordingElapsed > 0 && recordingElapsed <= 10 && data.handDetected && data.landmarks && data.landmarks.length > 0) {
         console.log(`Recording motion data: ${data.landmarks.length} landmarks detected, elapsed: ${recordingElapsed.toFixed(1)}s`);
+        
+        // Calculate wrist angles for each motion frame during wrist assessments
+        let frameWristAngles = null;
+        if (assessment?.name?.toLowerCase().includes('wrist') || assessment?.name?.toLowerCase().includes('flexion') || assessment?.name?.toLowerCase().includes('extension')) {
+          try {
+            frameWristAngles = calculateWristAngles(data.landmarks, data.poseLandmarks);
+            console.log(`Frame wrist angles calculated: Flexion=${frameWristAngles.flexionAngle}°, Extension=${frameWristAngles.extensionAngle}°`);
+          } catch (error) {
+            console.warn('Frame wrist calculation error:', error);
+          }
+        }
+        
         const motionFrame = {
           timestamp: currentTime,
           landmarks: data.landmarks.map((landmark: any) => ({
@@ -332,7 +344,7 @@ export default function Recording() {
             z: parseFloat(landmark.z) || 0
           })),
           poseLandmarks: data.poseLandmarks || [],
-          wristAngles: data.wristAngles || null,
+          wristAngles: frameWristAngles || data.wristAngles || null,
           handedness: data.handType || "Right",
           quality: data.trackingQuality === "Excellent" ? 90 : data.trackingQuality === "Good" ? 70 : 50
         };
