@@ -88,8 +88,12 @@ export default function WristResults() {
   const normalFlexionRange = [0, 80];
   const normalExtensionRange = [0, 70];
   
-  const flexionPercentage = Math.min((userAssessment.maxWristFlexion / normalFlexionRange[1]) * 100, 100);
-  const extensionPercentage = Math.min((userAssessment.maxWristExtension / normalExtensionRange[1]) * 100, 100);
+  // Ensure numeric conversion for database values
+  const maxFlexion = Number(userAssessment.maxWristFlexion) || 0;
+  const maxExtension = Number(userAssessment.maxWristExtension) || 0;
+  
+  const flexionPercentage = Math.min((maxFlexion / normalFlexionRange[1]) * 100, 100);
+  const extensionPercentage = Math.min((maxExtension / normalExtensionRange[1]) * 100, 100);
   
   const getQualityColor = (score: number) => {
     if (score >= 85) return "bg-green-500";
@@ -98,8 +102,8 @@ export default function WristResults() {
   };
   
   const getResultsInterpretation = () => {
-    const flexion = userAssessment.maxWristFlexion;
-    const extension = userAssessment.maxWristExtension;
+    const flexion = maxFlexion;
+    const extension = maxExtension;
     
     if (flexion >= 60 && extension >= 50) {
       return { status: "Normal", color: "text-green-600", description: "Excellent wrist mobility" };
@@ -154,7 +158,7 @@ export default function WristResults() {
             <div className="grid md:grid-cols-3 gap-6">
               <div className="text-center">
                 <div className="text-2xl font-bold text-blue-600">
-                  {userAssessment.maxWristFlexion.toFixed(1)}°
+                  {maxFlexion.toFixed(1)}°
                 </div>
                 <div className="text-sm text-gray-600">Maximum Flexion</div>
                 <Progress value={flexionPercentage} className="mt-2" />
@@ -165,7 +169,7 @@ export default function WristResults() {
               
               <div className="text-center">
                 <div className="text-2xl font-bold text-purple-600">
-                  {userAssessment.maxWristExtension.toFixed(1)}°
+                  {maxExtension.toFixed(1)}°
                 </div>
                 <div className="text-sm text-gray-600">Maximum Extension</div>
                 <Progress value={extensionPercentage} className="mt-2" />
@@ -176,7 +180,7 @@ export default function WristResults() {
               
               <div className="text-center">
                 <div className="text-2xl font-bold text-green-600">
-                  {(userAssessment.maxWristFlexion + userAssessment.maxWristExtension).toFixed(1)}°
+                  {(maxFlexion + maxExtension).toFixed(1)}°
                 </div>
                 <div className="text-sm text-gray-600">Total ROM</div>
                 <Badge variant="outline" className="mt-2">
@@ -204,15 +208,15 @@ export default function WristResults() {
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span>Flexion Assessment:</span>
-                  <span className={userAssessment.maxWristFlexion >= 60 ? "text-green-600" : "text-red-600"}>
-                    {userAssessment.maxWristFlexion >= 60 ? "Normal" : "Limited"}
+                  <span className={maxFlexion >= 60 ? "text-green-600" : "text-red-600"}>
+                    {maxFlexion >= 60 ? "Normal" : "Limited"}
                   </span>
                 </div>
                 
                 <div className="flex justify-between">
                   <span>Extension Assessment:</span>
-                  <span className={userAssessment.maxWristExtension >= 50 ? "text-green-600" : "text-red-600"}>
-                    {userAssessment.maxWristExtension >= 50 ? "Normal" : "Limited"}
+                  <span className={maxExtension >= 50 ? "text-green-600" : "text-red-600"}>
+                    {maxExtension >= 50 ? "Normal" : "Limited"}
                   </span>
                 </div>
               </div>

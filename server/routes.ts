@@ -553,7 +553,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         assessmentName: assessment?.name
       });
       
-      res.json({ userAssessment: userAssessmentWithName, user });
+      // Return data in the format expected by wrist results page
+      res.json({ 
+        userAssessment: userAssessmentWithName, 
+        assessment: assessment,
+        user: user 
+      });
     } catch (error) {
       res.status(400).json({ message: "Failed to retrieve assessment details" });
     }
