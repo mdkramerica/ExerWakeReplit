@@ -795,8 +795,9 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
         if (frame.poseLandmarks && frame.poseLandmarks.length > 15) {
           // Use stored session hand type for consistent elbow tracking throughout replay
           const sessionHandType = frame.sessionHandType || frame.handedness || currentWristAngles.handType;
-          const elbowIndex = sessionHandType === 'LEFT' ? 13 : 14; // Left elbow: 13, Right elbow: 14
-          const poseWristIndex = sessionHandType === 'LEFT' ? 15 : 16; // Left wrist: 15, Right wrist: 16
+          // Fix mirroring: For camera-mirrored views, invert the landmark selection
+          const elbowIndex = sessionHandType === 'LEFT' ? 14 : 13; // Left hand uses right elbow due to mirroring
+          const poseWristIndex = sessionHandType === 'LEFT' ? 16 : 15; // Left hand uses right wrist due to mirroring
           
           const elbow = frame.poseLandmarks[elbowIndex];
           const poseWrist = frame.poseLandmarks[poseWristIndex];
