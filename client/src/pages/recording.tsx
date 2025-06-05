@@ -5,12 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, Hand, Lightbulb, Square, RotateCcw } from "lucide-react";
 import ProgressBar from "@/components/progress-bar";
-import HolisticTracker from "@/components/holistic-tracker";
+import SimpleCameraHandler from "@/components/simple-camera-handler";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { calculateCurrentROM, calculateMaxROM, type JointAngles } from "@/lib/rom-calculator";
 import { calculateFingerROM } from "@shared/rom-calculator";
 import { calculateWristAngles } from "@shared/wrist-calculator";
+import { calculateElbowReferencedWristAngle } from "@shared/elbow-wrist-calculator";
 
 export default function Recording() {
   const { id } = useParams();
@@ -405,7 +406,7 @@ export default function Recording() {
             {/* Camera View */}
             <div className="lg:col-span-2">
               <div className="bg-gray-900 rounded-xl aspect-video relative overflow-hidden mb-4">
-                <HolisticTracker
+                <SimpleCameraHandler
                   onUpdate={handleMediaPipeUpdate}
                   isRecording={isRecording}
                   assessmentType={assessment.name}

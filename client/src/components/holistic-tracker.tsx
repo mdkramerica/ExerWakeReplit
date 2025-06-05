@@ -185,7 +185,7 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType 
 
   // Start camera and holistic processing
   const startCamera = useCallback(async () => {
-    if (!holistic) return;
+    if (!holisticRef.current) return;
     
     try {
       const video = videoRef.current;
@@ -209,8 +209,8 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType 
 
       // Process video frames through holistic detection
       const processFrame = async () => {
-        if (video.readyState === 4) {
-          await holistic.send({ image: video });
+        if (video.readyState === 4 && holisticRef.current) {
+          await holisticRef.current.send({ image: video });
         }
         animationRef.current = requestAnimationFrame(processFrame);
       };
@@ -226,14 +226,14 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType 
         handPosition: `Camera failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
     }
-  }, [holistic, onUpdate]);
+  }, [onUpdate]);
 
   useEffect(() => {
     initializeHolistic();
   }, [initializeHolistic]);
 
   useEffect(() => {
-    if (holisticInitialized && holistic) {
+    if (holisticInitialized && holisticRef.current) {
       startCamera();
     }
 
@@ -248,7 +248,7 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType 
         stream.getTracks().forEach(track => track.stop());
       }
     };
-  }, [holisticInitialized, holistic, startCamera]);
+  }, [holisticInitialized, startCamera]);
 
   return (
     <div className="relative w-full max-w-md mx-auto bg-black rounded-lg overflow-hidden">
