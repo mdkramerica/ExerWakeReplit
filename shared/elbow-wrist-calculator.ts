@@ -131,33 +131,21 @@ function determineHandType(
   // Determine closer side
   const isLeftCloser = distanceToLeft < distanceToRight;
   
-  // Relaxed confidence checks with distance-based validation
+  // More permissive hand type detection for reliable locking
   if (isLeftCloser) {
-    // Choosing left - ensure left landmarks have reasonable visibility
-    if (leftWristVisibility > 0.5 && leftElbowVisibility > 0.5) {
-      // Check that the distance difference is meaningful
-      const distanceRatio = distanceToRight / distanceToLeft;
-      if (distanceRatio > 1.2) { // Right side should be noticeably farther
-        return 'LEFT';
-      }
+    // Choosing left - ensure left landmarks have minimal visibility
+    if (leftWristVisibility > 0.3 && leftElbowVisibility > 0.3) {
+      return 'LEFT';
     }
   } else {
-    // Choosing right - ensure right landmarks have reasonable visibility
-    if (rightWristVisibility > 0.5 && rightElbowVisibility > 0.5) {
-      // Check that the distance difference is meaningful
-      const distanceRatio = distanceToLeft / distanceToRight;
-      if (distanceRatio > 1.2) { // Left side should be noticeably farther
-        return 'RIGHT';
-      }
+    // Choosing right - ensure right landmarks have minimal visibility
+    if (rightWristVisibility > 0.3 && rightElbowVisibility > 0.3) {
+      return 'RIGHT';
     }
   }
 
-  // Fallback to simple distance-based detection if visibility is sufficient
-  if ((isLeftCloser && leftWristVisibility > 0.3) || (!isLeftCloser && rightWristVisibility > 0.3)) {
-    return isLeftCloser ? 'LEFT' : 'RIGHT';
-  }
-
-  return 'UNKNOWN';
+  // Final fallback - use distance-based detection even with low visibility
+  return isLeftCloser ? 'LEFT' : 'RIGHT';
 }
 
 export function calculateElbowReferencedWristAngleWithForce(

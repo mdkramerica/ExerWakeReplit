@@ -13,6 +13,7 @@ interface ReplayData {
   landmarks: Array<{x: number, y: number, z: number}>;
   poseLandmarks?: Array<{x: number, y: number, z: number, visibility?: number}>;
   handedness: string;
+  sessionHandType?: 'LEFT' | 'RIGHT' | 'UNKNOWN';
   quality: number;
 }
 
