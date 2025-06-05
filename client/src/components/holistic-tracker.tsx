@@ -144,37 +144,43 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType 
       });
 
       video.srcObject = stream;
-      video.onloadedmetadata = () => {
-        canvas.width = video.videoWidth || 640;
-        canvas.height = video.videoHeight || 480;
-        setCameraReady(true);
-        console.log('Holistic camera ready for comprehensive tracking');
-        
-        // Start the frame processing loop
-        const processFrame = async () => {
-          if (video.readyState >= 3) {
-            const ctx = canvas.getContext('2d');
-            if (ctx) {
-              // Always draw the video feed
-              ctx.clearRect(0, 0, canvas.width, canvas.height);
-              ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-              
-              // Only process with MediaPipe when recording
-              if (isRecording && holisticRef.current) {
-                try {
-                  await holisticRef.current.send({ image: video });
-                } catch (error) {
-                  console.warn('Holistic processing error:', error);
-                }
+      
+      await new Promise((resolve) => {
+        video.onloadedmetadata = () => {
+          video.play().then(() => {
+            canvas.width = video.videoWidth || 640;
+            canvas.height = video.videoHeight || 480;
+            setCameraReady(true);
+            console.log('Camera started:', video.videoWidth, 'x', video.videoHeight);
+            resolve(true);
+          });
+        };
+      });
+
+      // Start the frame processing loop
+      const processFrame = async () => {
+        if (video.readyState >= 2 && canvas && video.videoWidth > 0) {
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            // Always draw the video feed
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // Only process with MediaPipe when recording
+            if (isRecording && holisticRef.current) {
+              try {
+                await holisticRef.current.send({ image: video });
+              } catch (error) {
+                console.warn('Holistic processing error:', error);
               }
             }
           }
-          
-          animationRef.current = requestAnimationFrame(processFrame);
-        };
+        }
         
-        processFrame();
+        animationRef.current = requestAnimationFrame(processFrame);
       };
+      
+      processFrame();
       
     } catch (error) {
       console.error('Holistic camera initialization failed:', error);
@@ -218,10 +224,11 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType 
     <div className="relative w-full max-w-md mx-auto bg-black rounded-lg overflow-hidden">
       <video
         ref={videoRef}
-        className="hidden"
+        className="absolute inset-0 w-full h-full object-cover"
         autoPlay
         muted
         playsInline
+        style={{ display: 'none' }}
       />
       
       <canvas
