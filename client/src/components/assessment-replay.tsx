@@ -785,9 +785,9 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
         const wrist = frame.landmarks[0]; // Wrist landmark
         const middleMcp = frame.landmarks[9]; // Middle finger MCP
         
-        const wristX = (1 - wrist.x) * canvas.width;
+        const wristX = wrist.x * canvas.width;
         const wristY = wrist.y * canvas.height;
-        const mcpX = (1 - middleMcp.x) * canvas.width;
+        const mcpX = middleMcp.x * canvas.width;
         const mcpY = middleMcp.y * canvas.height;
         
         // Draw elbow and forearm line if pose landmarks available
@@ -800,9 +800,9 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
           const poseWrist = frame.poseLandmarks[poseWristIndex];
           
           if (elbow && poseWrist && (elbow.visibility || 1) > 0.5) {
-            const elbowX = (1 - elbow.x) * canvas.width;
+            const elbowX = elbow.x * canvas.width;
             const elbowY = elbow.y * canvas.height;
-            const poseWristX = (1 - poseWrist.x) * canvas.width;
+            const poseWristX = poseWrist.x * canvas.width;
             const poseWristY = poseWrist.y * canvas.height;
             
             // Draw forearm line (elbow to wrist)
