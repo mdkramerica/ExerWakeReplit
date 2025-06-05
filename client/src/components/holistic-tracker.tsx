@@ -113,12 +113,30 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType 
         }))
       );
       
-      // Implement strict hand type locking - once locked, never change
+      // Implement aggressive hand type locking for faster detection
+      if (lastHandTypeRef.current === 'UNKNOWN') {
+        // Force detection based on any available pose landmarks
+        if (poseLandmarks && poseLandmarks.length > 16) {
+          const leftElbow = poseLandmarks[13];
+          const rightElbow = poseLandmarks[14];
+          const leftWrist = poseLandmarks[15];
+          const rightWrist = poseLandmarks[16];
+          
+          if (leftElbow && rightElbow && (leftElbow.visibility || 0) > 0.1 && (rightElbow.visibility || 0) > 0.1) {
+            // Force detection based on elbow visibility scores
+            const forceHandType = (leftElbow.visibility || 0) > (rightElbow.visibility || 0) ? 'LEFT' : 'RIGHT';
+            lastHandTypeRef.current = forceHandType;
+            handTypeConfidenceRef.current = 1;
+            console.log(`🔒 FORCE LOCKED onto ${forceHandType} hand based on elbow visibility (L:${(leftElbow.visibility || 0).toFixed(2)} vs R:${(rightElbow.visibility || 0).toFixed(2)})`);
+          }
+        }
+      }
+      
+      // Secondary locking for valid detections
       if (currentDetection.handType !== 'UNKNOWN' && lastHandTypeRef.current === 'UNKNOWN') {
-        // First valid detection - lock onto this hand type permanently for this session
         lastHandTypeRef.current = currentDetection.handType;
         handTypeConfidenceRef.current = 1;
-        console.log(`🔒 PERMANENTLY LOCKED onto ${currentDetection.handType} hand for this entire session`);
+        console.log(`🔒 DETECTION LOCKED onto ${currentDetection.handType} hand`);
       }
       
       // Debug logging to track detection issues

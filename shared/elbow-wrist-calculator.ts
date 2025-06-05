@@ -226,16 +226,23 @@ export function calculateElbowReferencedWristAngleWithForce(
       // Determine flexion vs extension based on angle deviation from neutral (180°)
       if (angleDegrees < 160) {
         // Significant deviation from neutral - determine direction
+        const refMagnitude = Math.sqrt(referenceVector.x**2 + referenceVector.y**2 + referenceVector.z**2);
+        const measMagnitude = Math.sqrt(measurementVector.x**2 + measurementVector.y**2 + measurementVector.z**2);
+        
+        if (refMagnitude === 0 || measMagnitude === 0) {
+          return result; // Avoid division by zero
+        }
+        
         const referenceNorm = {
-          x: referenceVector.x / Math.sqrt(referenceVector.x**2 + referenceVector.y**2 + referenceVector.z**2),
-          y: referenceVector.y / Math.sqrt(referenceVector.x**2 + referenceVector.y**2 + referenceVector.z**2),
-          z: referenceVector.z / Math.sqrt(referenceVector.x**2 + referenceVector.y**2 + referenceVector.z**2)
+          x: referenceVector.x / refMagnitude,
+          y: referenceVector.y / refMagnitude,
+          z: referenceVector.z / refMagnitude
         };
         
         const measurementNorm = {
-          x: measurementVector.x / Math.sqrt(measurementVector.x**2 + measurementVector.y**2 + measurementVector.z**2),
-          y: measurementVector.y / Math.sqrt(measurementVector.x**2 + measurementVector.y**2 + measurementVector.z**2),
-          z: measurementVector.z / Math.sqrt(measurementVector.x**2 + measurementVector.y**2 + measurementVector.z**2)
+          x: measurementVector.x / measMagnitude,
+          y: measurementVector.y / measMagnitude,
+          z: measurementVector.z / measMagnitude
         };
         
         const crossProduct = {
