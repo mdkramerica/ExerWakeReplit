@@ -1,36 +1,30 @@
 import { useEffect, useRef, useCallback, useState } from "react";
-import exerLogoPath from "@assets/exer-logo.png";
+import { calculateElbowReferencedWristAngle } from "@shared/elbow-wrist-calculator";
+// import exerLogoPath from "@assets/exer-ai-logo-white.png";
 
 interface HolisticTrackerProps {
-  onUpdate: (data: {
-    handDetected: boolean;
-    landmarksCount: number;
-    trackingQuality: string;
-    handPosition: string;
-    landmarks?: any[];
-    poseLandmarks?: any[];
-    wristAngles?: any;
-  }) => void;
+  onUpdate: (data: any) => void;
   isRecording: boolean;
   assessmentType: string;
 }
 
 export default function HolisticTracker({ onUpdate, isRecording, assessmentType }: HolisticTrackerProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const animationRef = useRef<number | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const holisticRef = useRef<any>(null);
-  const [cameraReady, setCameraReady] = useState(false);
+  const animationRef = useRef<number>();
+  
   const [holisticInitialized, setHolisticInitialized] = useState(false);
+  const [cameraReady, setCameraReady] = useState(false);
   const [isInitializing, setIsInitializing] = useState(false);
-  const isWristAssessment = assessmentType.includes('wrist') || assessmentType.includes('flexion') || assessmentType.includes('extension');
 
-  // Initialize MediaPipe Holistic for comprehensive tracking
+  const isWristAssessment = assessmentType?.toLowerCase().includes('wrist');
+
+  // Initialize MediaPipe Holistic once
   const initializeHolistic = useCallback(async () => {
     if (isInitializing || holisticInitialized) return;
     
     setIsInitializing(true);
-    
     try {
       const { Holistic, HAND_CONNECTIONS, POSE_CONNECTIONS } = await import('@mediapipe/holistic');
       const { drawConnectors, drawLandmarks } = await import('@mediapipe/drawing_utils');
@@ -45,12 +39,14 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType 
         enableSegmentation: false,
         smoothSegmentation: false,
         refineFaceLandmarks: false,
-        minDetectionConfidence: 0.7,
-        minTrackingConfidence: 0.7
+        minDetectionConfidence: 0.5,
+        minTrackingConfidence: 0.5
       });
 
       holisticInstance.onResults((results: any) => {
-        processHolisticResults(results, drawConnectors, drawLandmarks, HAND_CONNECTIONS, POSE_CONNECTIONS);
+        if (isRecording) {
+          processHolisticResults(results);
+        }
       });
 
       holisticRef.current = holisticInstance;
@@ -63,42 +59,24 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType 
     } finally {
       setIsInitializing(false);
     }
-  }, [isInitializing, holisticInitialized]);
+  }, [isInitializing, holisticInitialized, isRecording]);
 
-  // Process holistic results with hand, pose, and elbow data
-  const processHolisticResults = useCallback((results: any, drawConnectors: any, drawLandmarks: any, HAND_CONNECTIONS: any, POSE_CONNECTIONS: any) => {
-    const canvas = canvasRef.current;
-    const video = videoRef.current;
-    
-    if (!canvas || !video) return;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    // Set canvas size
-    canvas.width = video.videoWidth || 640;
-    canvas.height = video.videoHeight || 480;
-
-    // Clear and draw clean video frame without overlays for better performance
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
+  // Process holistic results only during recording
+  const processHolisticResults = useCallback((results: any) => {
     let handLandmarks: any[] = [];
     let poseLandmarks: any[] = [];
     let handDetected = false;
     let trackingQuality = "Poor";
 
-    // Process pose landmarks (including elbow data) - no visual drawing
+    // Process pose landmarks (including elbow data)
     if (results.poseLandmarks) {
       poseLandmarks = results.poseLandmarks;
       trackingQuality = "Good";
     }
 
-    // Process hand landmarks - no visual drawing
+    // Process hand landmarks
     if (results.leftHandLandmarks || results.rightHandLandmarks) {
       handDetected = true;
-      
-      // Use the hand with better tracking
       handLandmarks = results.rightHandLandmarks || results.leftHandLandmarks;
       
       if (handLandmarks) {
@@ -106,33 +84,27 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType 
       }
     }
 
-    // Simple status overlay only
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-    ctx.fillRect(10, 10, 280, 80);
-    
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '14px Arial';
-    ctx.fillText('Holistic Tracking Active', 20, 30);
-    
-    if (isWristAssessment) {
-      ctx.fillStyle = '#00ff00';
-      ctx.fillText('Elbow + Hand Detection', 20, 50);
-      ctx.fillText('Elbow Reference: Active', 20, 75);
+    // Calculate wrist angles using elbow reference when available
+    let wristAngles = null;
+    if (isWristAssessment && handLandmarks.length > 0) {
+      wristAngles = calculateElbowReferencedWristAngle(
+        handLandmarks.map((landmark: any) => ({
+          x: landmark.x,
+          y: landmark.y,
+          z: landmark.z
+        })),
+        poseLandmarks.map((landmark: any) => ({
+          x: landmark.x,
+          y: landmark.y,
+          z: landmark.z,
+          visibility: landmark.visibility
+        }))
+      );
       
-      if (poseLandmarks.length > 0 && handDetected) {
-        ctx.fillStyle = '#ffff00';
-        ctx.fillText('✓ Full body tracking enabled', 20, 95);
-        ctx.fillText('✓ True forearm-to-hand angles', 20, 115);
-      } else if (poseLandmarks.length > 0) {
-        ctx.fillStyle = '#ff8800';
-        ctx.fillText('✓ Pose detected, awaiting hand', 20, 95);
-      } else if (handDetected) {
-        ctx.fillStyle = '#ff8800';
-        ctx.fillText('✓ Hand detected, awaiting pose', 20, 95);
-      }
+      console.log('Elbow-referenced wrist calculation:', wristAngles);
     }
 
-    // Update parent component with comprehensive tracking data
+    // Update parent component with tracking data
     onUpdate({
       handDetected,
       landmarksCount: handLandmarks.length,
@@ -148,46 +120,56 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType 
         y: landmark.y,
         z: landmark.z,
         visibility: landmark.visibility
-      }))
+      })),
+      wristAngles
     });
   }, [isWristAssessment, onUpdate]);
 
-  // Start camera and holistic processing
+  // Initialize camera and start processing
   const startCamera = useCallback(async () => {
-    if (!holisticRef.current) return;
+    if (!holisticInitialized) return;
     
     try {
       const video = videoRef.current;
-      if (!video) return;
+      const canvas = canvasRef.current;
+      
+      if (!video || !canvas) return;
 
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
+        video: { 
+          width: 640, 
+          height: 480,
           facingMode: 'user'
         }
       });
 
       video.srcObject = stream;
-      await video.play();
-      
       video.onloadedmetadata = () => {
+        canvas.width = video.videoWidth || 640;
+        canvas.height = video.videoHeight || 480;
         setCameraReady(true);
         console.log('Holistic camera ready for comprehensive tracking');
       };
 
-      // Process video frames with throttling to prevent flashing
-      let lastProcessTime = 0;
+      // Only process frames when recording to prevent flashing
       const processFrame = async () => {
-        const now = performance.now();
-        if (now - lastProcessTime > 100 && video.readyState === 4 && holisticRef.current) { // 10 FPS max
+        if (isRecording && video.readyState === 4 && holisticRef.current) {
           try {
             await holisticRef.current.send({ image: video });
-            lastProcessTime = now;
           } catch (error) {
             console.warn('Holistic processing error:', error);
           }
         }
+        
+        // Draw clean video feed
+        if (canvas && video) {
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          }
+        }
+        
         animationRef.current = requestAnimationFrame(processFrame);
       };
 
@@ -199,20 +181,25 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType 
         handDetected: false,
         landmarksCount: 0,
         trackingQuality: "Camera Error",
-        handPosition: `Camera failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+        handPosition: "Failed"
       });
     }
-  }, [onUpdate]);
+  }, [holisticInitialized, isRecording]);
 
+  // Initialize holistic on mount
   useEffect(() => {
     initializeHolistic();
   }, [initializeHolistic]);
 
+  // Start camera when holistic is ready
   useEffect(() => {
-    if (holisticInitialized && holisticRef.current) {
+    if (holisticInitialized && !cameraReady) {
       startCamera();
     }
+  }, [holisticInitialized, startCamera, cameraReady]);
 
+  // Cleanup on unmount
+  useEffect(() => {
     return () => {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
@@ -224,7 +211,7 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType 
         stream.getTracks().forEach(track => track.stop());
       }
     };
-  }, [holisticInitialized, startCamera]);
+  }, []);
 
   return (
     <div className="relative w-full max-w-md mx-auto bg-black rounded-lg overflow-hidden">
@@ -243,11 +230,7 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType 
       />
       
       <div className="absolute top-2 left-2 bg-black bg-opacity-50 rounded px-2 py-1">
-        <img 
-          src={exerLogoPath} 
-          alt="Exer AI" 
-          className="h-6 w-auto opacity-80"
-        />
+        <div className="text-white text-sm font-semibold">Exer AI</div>
       </div>
       
       <div className="absolute bottom-2 left-2 right-2 bg-black bg-opacity-50 rounded px-2 py-1 text-white text-xs">
@@ -258,6 +241,11 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType 
         {cameraReady && (
           <div className="text-blue-400">
             {isWristAssessment ? 'Elbow + Hand tracking' : 'Multi-modal ready'}
+          </div>
+        )}
+        {isRecording && (
+          <div className="text-yellow-400">
+            Recording - Processing landmarks
           </div>
         )}
       </div>
