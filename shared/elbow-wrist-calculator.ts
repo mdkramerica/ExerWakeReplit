@@ -153,10 +153,10 @@ export function calculateElbowReferencedWristAngle(
     const shoulder = poseLandmarks[shoulderIndex];
 
     if (elbow && poseWrist && shoulder && 
-        elbow.visibility > 0.5 && poseWrist.visibility > 0.5 && shoulder.visibility > 0.5) {
+        (elbow.visibility || 1) > 0.5 && (poseWrist.visibility || 1) > 0.5 && (shoulder.visibility || 1) > 0.5) {
       
       result.elbowDetected = true;
-      result.confidence = Math.min(elbow.visibility, poseWrist.visibility, shoulder.visibility);
+      result.confidence = Math.min(elbow.visibility || 1, poseWrist.visibility || 1, shoulder.visibility || 1);
 
       // Get hand landmarks for wrist analysis
       const handWrist = handLandmarks[HAND_LANDMARKS.WRIST];

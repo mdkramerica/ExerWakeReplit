@@ -274,9 +274,30 @@ export default function Recording() {
       // Calculate wrist angles from landmarks for wrist assessments
       if (data.landmarks && data.landmarks.length >= 21 && (assessment?.name?.toLowerCase().includes('wrist') || assessment?.name?.toLowerCase().includes('flexion') || assessment?.name?.toLowerCase().includes('extension'))) {
         try {
-          const wristResult = calculateWristAngles(data.landmarks, data.poseLandmarks);
-          console.log('Calculated wrist angles:', wristResult);
-          setWristAngles(wristResult);
+          // Use elbow-referenced calculation if pose landmarks available
+          if (data.poseLandmarks && data.poseLandmarks.length > 16) {
+            const elbowResult = calculateElbowReferencedWristAngle(data.landmarks, data.poseLandmarks);
+            console.log('Elbow-referenced wrist calculation:', elbowResult);
+            
+            // Convert to legacy format for compatibility
+            const wristResult = {
+              flexionAngle: elbowResult.wristFlexionAngle,
+              extensionAngle: elbowResult.wristExtensionAngle,
+              maxFlexion: elbowResult.wristFlexionAngle,
+              maxExtension: elbowResult.wristExtensionAngle,
+              totalWristRom: elbowResult.wristFlexionAngle + elbowResult.wristExtensionAngle,
+              forearmToHandAngle: elbowResult.forearmToHandAngle,
+              elbowDetected: elbowResult.elbowDetected,
+              handType: elbowResult.handType,
+              confidence: elbowResult.confidence
+            };
+            setWristAngles(wristResult);
+          } else {
+            // Fallback to hand-only calculation
+            const wristResult = calculateWristAngles(data.landmarks, data.poseLandmarks);
+            console.log('Hand-only wrist calculation:', wristResult);
+            setWristAngles(wristResult);
+          }
         } catch (error) {
           console.warn('Wrist angle calculation error:', error);
         }
