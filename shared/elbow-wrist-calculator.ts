@@ -160,9 +160,9 @@ export function calculateElbowReferencedWristAngle(
 
       // Get hand landmarks for wrist analysis
       const handWrist = handLandmarks[HAND_LANDMARKS.WRIST]; // Base of hand (point 0)
-      const indexTip = handLandmarks[HAND_LANDMARKS.INDEX_TIP]; // Point 8
+      const middleMcp = handLandmarks[HAND_LANDMARKS.MIDDLE_MCP]; // Point 9
 
-      if (handWrist && indexTip) {
+      if (handWrist && middleMcp) {
         // Calculate reference line (elbow to wrist/base of hand)
         const referenceVector = {
           x: handWrist.x - elbow.x,
@@ -170,18 +170,18 @@ export function calculateElbowReferencedWristAngle(
           z: handWrist.z - elbow.z
         };
 
-        // Calculate measurement line (elbow to index tip)
+        // Calculate measurement line (base of hand to middle finger MCP)
         const measurementVector = {
-          x: indexTip.x - elbow.x,
-          y: indexTip.y - elbow.y,
-          z: indexTip.z - elbow.z
+          x: middleMcp.x - handWrist.x,
+          y: middleMcp.y - handWrist.y,
+          z: middleMcp.z - handWrist.z
         };
 
-        // Calculate the angle between reference line (elbow-wrist) and measurement line (elbow-index tip)
+        // Calculate the angle between reference line (elbow-wrist) and measurement line (wrist-middle-MCP)
         const forearmToHandAngle = calculateAngleBetweenVectors(
           { x: elbow.x, y: elbow.y, z: elbow.z },
           { x: handWrist.x, y: handWrist.y, z: handWrist.z },
-          { x: indexTip.x, y: indexTip.y, z: indexTip.z }
+          { x: middleMcp.x, y: middleMcp.y, z: middleMcp.z }
         );
 
         result.forearmToHandAngle = forearmToHandAngle;
