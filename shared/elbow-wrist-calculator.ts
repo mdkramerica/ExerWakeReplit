@@ -193,91 +193,53 @@ export function calculateElbowReferencedWristAngle(
 
         result.forearmToHandAngle = forearmToHandAngle;
 
-        // Calculate wrist flexion/extension as deviation from the neutral elbow-wrist line
-        // The angle is measured between:
-        // 1. Forearm vector (elbow to wrist)
-        // 2. Hand vector (wrist to middle MCP)
+        // Calculate wrist flexion/extension using improved anatomical method
+        // Direct angle measurement between forearm and hand vectors
         
-        // Create normalized vectors
-        const forearmLength = Math.sqrt(
-          Math.pow(poseWrist.x - elbow.x, 2) + 
-          Math.pow(poseWrist.y - elbow.y, 2) + 
-          Math.pow(poseWrist.z - elbow.z, 2)
-        );
-        
-        const handLength = Math.sqrt(
-          Math.pow(knuckleCenter.x - handWrist.x, 2) + 
-          Math.pow(knuckleCenter.y - handWrist.y, 2) + 
-          Math.pow(knuckleCenter.z - handWrist.z, 2)
-        );
+        const forearmLength = Math.sqrt(forearmVector.x**2 + forearmVector.y**2 + forearmVector.z**2);
+        const handLength = Math.sqrt(handVector.x**2 + handVector.y**2 + handVector.z**2);
         
         if (forearmLength > 0 && handLength > 0) {
-          // Normalized forearm vector (elbow to wrist)
-          const forearmNorm = {
-            x: (poseWrist.x - elbow.x) / forearmLength,
-            y: (poseWrist.y - elbow.y) / forearmLength,
-            z: (poseWrist.z - elbow.z) / forearmLength
-          };
+          // Calculate angle between vectors using dot product
+          const dotProduct = (forearmVector.x * handVector.x + 
+                             forearmVector.y * handVector.y + 
+                             forearmVector.z * handVector.z);
+          const cosAngle = dotProduct / (forearmLength * handLength);
+          const clampedCos = Math.max(-1, Math.min(1, cosAngle));
+          const angleRadians = Math.acos(clampedCos);
+          const rawAngleDegrees = angleRadians * (180 / Math.PI);
           
-          // Normalized hand vector (wrist to middle MCP)
-          const handNorm = {
-            x: (knuckleCenter.x - handWrist.x) / handLength,
-            y: (knuckleCenter.y - handWrist.y) / handLength,
-            z: (knuckleCenter.z - handWrist.z) / handLength
-          };
+          // In neutral position, angle should be ~180° (straight line)
+          const neutralAngle = 180;
+          const deviationFromNeutral = Math.abs(rawAngleDegrees - neutralAngle);
           
-          // Define neutral wrist position: hand extends naturally from forearm
-          // Create a reference vector for neutral hand position (extending forearm direction)
-          const neutralHandVector = {
-            x: forearmNorm.x,
-            y: forearmNorm.y, 
-            z: forearmNorm.z
-          };
-          
-          // Calculate deviation from neutral hand alignment
-          const neutralDotProduct = neutralHandVector.x * handNorm.x + 
-                                   neutralHandVector.y * handNorm.y + 
-                                   neutralHandVector.z * handNorm.z;
-          const clampedNeutralDot = Math.max(-1, Math.min(1, neutralDotProduct));
-          
-          // Angle between actual hand vector and neutral hand vector
-          const deviationFromNeutral = Math.acos(clampedNeutralDot) * (180 / Math.PI);
-          
-          // Only register flexion/extension for significant deviations
-          if (deviationFromNeutral > 15) { // Threshold for meaningful wrist movement
-            // Use perpendicular vector analysis for flexion/extension direction
-            // Create a perpendicular vector to the forearm in the sagittal plane
-            const perpVector = {
-              x: 0,
-              y: forearmNorm.z, // Perpendicular in Y-Z plane
-              z: -forearmNorm.y
+          // Only register movement for significant deviations (>5° threshold)
+          if (deviationFromNeutral > 5) {
+            // Use cross product to determine flexion vs extension direction
+            const crossProduct = {
+              x: forearmVector.y * handVector.z - forearmVector.z * handVector.y,
+              y: forearmVector.z * handVector.x - forearmVector.x * handVector.z,
+              z: forearmVector.x * handVector.y - forearmVector.y * handVector.x
             };
             
-            // Project hand vector onto perpendicular to determine direction
-            const perpProjection = handNorm.x * perpVector.x + 
-                                  handNorm.y * perpVector.y + 
-                                  handNorm.z * perpVector.z;
-            
-            // Positive projection = flexion, negative = extension
-            const isFlexion = perpProjection > 0;
-            
-            // Map deviation to clinical range
-            const clinicalAngle = Math.min(deviationFromNeutral * 0.6, isFlexion ? 80 : 70);
+            // In camera coordinates, check direction for wrist movement
+            // Positive Z cross product indicates flexion (palmar direction)
+            const isFlexion = crossProduct.z > 0;
             
             if (isFlexion) {
-              result.wristFlexionAngle = clinicalAngle;
+              result.wristFlexionAngle = Math.min(deviationFromNeutral, 80);
               result.wristExtensionAngle = 0;
-              console.log(`Detected wrist flexion: ${result.wristFlexionAngle.toFixed(1)}° (deviation: ${deviationFromNeutral.toFixed(1)}°)`);
+              console.log(`Wrist flexion: ${result.wristFlexionAngle.toFixed(1)}° (raw: ${rawAngleDegrees.toFixed(1)}°)`);
             } else {
-              result.wristExtensionAngle = clinicalAngle;
+              result.wristExtensionAngle = Math.min(deviationFromNeutral, 70);
               result.wristFlexionAngle = 0;
-              console.log(`Detected wrist extension: ${result.wristExtensionAngle.toFixed(1)}° (deviation: ${deviationFromNeutral.toFixed(1)}°)`);
+              console.log(`Wrist extension: ${result.wristExtensionAngle.toFixed(1)}° (raw: ${rawAngleDegrees.toFixed(1)}°)`);
             }
           } else {
-            // Neutral position - hand aligned with forearm
+            // Neutral position - minimal deviation
             result.wristFlexionAngle = 0;
             result.wristExtensionAngle = 0;
-            console.log(`Wrist in neutral position (deviation: ${deviationFromNeutral.toFixed(1)}°)`);
+            console.log(`Wrist neutral (raw: ${rawAngleDegrees.toFixed(1)}°, deviation: ${deviationFromNeutral.toFixed(1)}°)`);
           }
         }
 
