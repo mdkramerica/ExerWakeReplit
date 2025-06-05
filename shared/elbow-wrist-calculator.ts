@@ -230,17 +230,17 @@ export function calculateElbowReferencedWristAngle(
             };
             
             // Determine direction based on camera coordinate system
-            // Positive Y cross product indicates flexion (hand moves downward/forward)
-            const isFlexion = crossProduct.y > 0;
+            // Positive Y cross product indicates extension (hand moves upward/backward)
+            const isExtension = crossProduct.y > 0;
             
-            if (isFlexion) {
-              result.wristFlexionAngle = Math.min(angleDegrees, 80);
-              result.wristExtensionAngle = 0;
-              console.log(`Wrist flexion: ${result.wristFlexionAngle.toFixed(1)}° (angle between vectors: ${angleDegrees.toFixed(1)}°)`);
-            } else {
+            if (isExtension) {
               result.wristExtensionAngle = Math.min(angleDegrees, 70);
               result.wristFlexionAngle = 0;
               console.log(`Wrist extension: ${result.wristExtensionAngle.toFixed(1)}° (angle between vectors: ${angleDegrees.toFixed(1)}°)`);
+            } else {
+              result.wristFlexionAngle = Math.min(angleDegrees, 80);
+              result.wristExtensionAngle = 0;
+              console.log(`Wrist flexion: ${result.wristFlexionAngle.toFixed(1)}° (angle between vectors: ${angleDegrees.toFixed(1)}°)`);
             }
           } else {
             // Neutral position - vectors are aligned
