@@ -210,7 +210,11 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType 
       // Process video frames through holistic detection
       const processFrame = async () => {
         if (video.readyState === 4 && holisticRef.current) {
-          await holisticRef.current.send({ image: video });
+          try {
+            await holisticRef.current.send({ image: video });
+          } catch (error) {
+            console.warn('Holistic processing error:', error);
+          }
         }
         animationRef.current = requestAnimationFrame(processFrame);
       };
