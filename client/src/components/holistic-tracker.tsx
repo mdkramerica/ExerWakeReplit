@@ -44,9 +44,7 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType 
       });
 
       holisticInstance.onResults((results: any) => {
-        if (isRecording) {
-          processHolisticResults(results);
-        }
+        processHolisticResults(results);
       });
 
       holisticRef.current = holisticInstance;
@@ -84,9 +82,9 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType 
       }
     }
 
-    // Calculate wrist angles using elbow reference when available
+    // Calculate wrist angles using elbow reference only during recording
     let wristAngles = null;
-    if (isWristAssessment && handLandmarks.length > 0) {
+    if (isRecording && isWristAssessment && handLandmarks.length > 0) {
       wristAngles = calculateElbowReferencedWristAngle(
         handLandmarks.map((landmark: any) => ({
           x: landmark.x,
@@ -166,8 +164,8 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             
-            // Only process with MediaPipe when recording
-            if (isRecording && holisticRef.current) {
+            // Always process with MediaPipe for hand detection
+            if (holisticRef.current) {
               try {
                 await holisticRef.current.send({ image: video });
               } catch (error) {
