@@ -780,8 +780,8 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
         ctx.fillText(`Max Extension: ${maxWristAngles.wristExtensionAngle.toFixed(1)}°`, wristBoxX + 10, wristBoxY + 165);
       }
       
-      // Visual angle indicator
-      if (frame.landmarks && frame.landmarks.length >= 21) {
+      // Visual angle indicator with elbow and forearm line
+      if (frame.landmarks && frame.landmarks.length >= 21 && frame.poseLandmarks) {
         const wrist = frame.landmarks[0]; // Wrist landmark
         const middleMcp = frame.landmarks[9]; // Middle finger MCP
         
@@ -790,9 +790,47 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
         const mcpX = (1 - middleMcp.x) * canvas.width;
         const mcpY = middleMcp.y * canvas.height;
         
+        // Draw elbow and forearm line if pose landmarks available
+        if (frame.poseLandmarks && frame.poseLandmarks.length > 15) {
+          // Determine which elbow based on hand type
+          const elbowIndex = currentWristAngles.handType === 'LEFT' ? 13 : 14; // Left elbow: 13, Right elbow: 14
+          const poseWristIndex = currentWristAngles.handType === 'LEFT' ? 15 : 16; // Left wrist: 15, Right wrist: 16
+          
+          const elbow = frame.poseLandmarks[elbowIndex];
+          const poseWrist = frame.poseLandmarks[poseWristIndex];
+          
+          if (elbow && poseWrist && (elbow.visibility || 1) > 0.5) {
+            const elbowX = (1 - elbow.x) * canvas.width;
+            const elbowY = elbow.y * canvas.height;
+            const poseWristX = (1 - poseWrist.x) * canvas.width;
+            const poseWristY = poseWrist.y * canvas.height;
+            
+            // Draw forearm line (elbow to wrist)
+            ctx.strokeStyle = '#3b82f6';
+            ctx.lineWidth = 4;
+            ctx.setLineDash([]);
+            ctx.beginPath();
+            ctx.moveTo(elbowX, elbowY);
+            ctx.lineTo(poseWristX, poseWristY);
+            ctx.stroke();
+            
+            // Highlight elbow point
+            ctx.fillStyle = '#3b82f6';
+            ctx.beginPath();
+            ctx.arc(elbowX, elbowY, 10, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            // Add elbow label
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 12px Arial';
+            ctx.fillText('ELBOW', elbowX - 25, elbowY - 15);
+          }
+        }
+        
         // Draw wrist-to-hand vector
         ctx.strokeStyle = '#f59e0b';
         ctx.lineWidth = 3;
+        ctx.setLineDash([]);
         ctx.beginPath();
         ctx.moveTo(wristX, wristY);
         ctx.lineTo(mcpX, mcpY);
@@ -804,10 +842,15 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
         ctx.arc(wristX, wristY, 8, 0, 2 * Math.PI);
         ctx.fill();
         
-        // Add angle indicator text near wrist
+        // Add wrist label
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 12px Arial';
-        ctx.fillText(`${currentWristAngles.forearmToHandAngle.toFixed(1)}°`, wristX + 15, wristY - 10);
+        ctx.fillText('WRIST', wristX - 20, wristY - 15);
+        
+        // Add angle indicator text near middle MCP
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 12px Arial';
+        ctx.fillText(`${currentWristAngles.forearmToHandAngle.toFixed(1)}°`, mcpX + 10, mcpY - 10);
       }
     }
 
