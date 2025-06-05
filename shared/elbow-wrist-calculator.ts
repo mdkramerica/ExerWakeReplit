@@ -193,36 +193,68 @@ export function calculateElbowReferencedWristAngle(
 
         result.forearmToHandAngle = forearmToHandAngle;
 
-        // Calculate realistic wrist flexion/extension angles
-        // Normal wrist flexion: 0-80°, Normal extension: 0-70°
-        const neutralAngle = 180;
-        const rawDeviation = Math.abs(forearmToHandAngle - neutralAngle);
+        // Calculate wrist flexion/extension as deviation from the neutral elbow-wrist line
+        // The angle is measured between:
+        // 1. Forearm vector (elbow to wrist)
+        // 2. Hand vector (wrist to middle MCP)
         
-        // Use Y-coordinate comparison for movement direction detection
-        // In camera coordinates, Y increases downward, so we need to invert logic
-        const handToElbowY = knuckleCenter.y - elbow.y;
-        const wristToElbowY = poseWrist.y - elbow.y;
-        const relativeHandPosition = handToElbowY - wristToElbowY;
+        // Create normalized vectors
+        const forearmLength = Math.sqrt(
+          Math.pow(poseWrist.x - elbow.x, 2) + 
+          Math.pow(poseWrist.y - elbow.y, 2) + 
+          Math.pow(poseWrist.z - elbow.z, 2)
+        );
         
-        // Calculate realistic clinical angles based on anatomical movement
-        if (rawDeviation > 8) { // Only consider significant movements (threshold lowered)
-          // Map the raw deviation to realistic clinical ranges
-          const clinicalAngle = Math.min(rawDeviation * 0.35, 80); // Reduced scaling factor
+        const handLength = Math.sqrt(
+          Math.pow(knuckleCenter.x - handWrist.x, 2) + 
+          Math.pow(knuckleCenter.y - handWrist.y, 2) + 
+          Math.pow(knuckleCenter.z - handWrist.z, 2)
+        );
+        
+        if (forearmLength > 0 && handLength > 0) {
+          // Normalized forearm vector (elbow to wrist)
+          const forearmNorm = {
+            x: (poseWrist.x - elbow.x) / forearmLength,
+            y: (poseWrist.y - elbow.y) / forearmLength,
+            z: (poseWrist.z - elbow.z) / forearmLength
+          };
           
-          if (relativeHandPosition > 0) {
-            // Hand is below elbow-wrist line - flexion (palmar flexion)
-            result.wristFlexionAngle = Math.min(clinicalAngle, 80);
-            result.wristExtensionAngle = 0;
-            console.log(`Detected wrist flexion: ${result.wristFlexionAngle.toFixed(1)}°`);
-          } else {
-            // Hand is above elbow-wrist line - extension (dorsiflexion)
-            result.wristExtensionAngle = Math.min(clinicalAngle, 70);
-            result.wristFlexionAngle = 0;
-            console.log(`Detected wrist extension: ${result.wristExtensionAngle.toFixed(1)}°`);
+          // Normalized hand vector (wrist to middle MCP)
+          const handNorm = {
+            x: (knuckleCenter.x - handWrist.x) / handLength,
+            y: (knuckleCenter.y - handWrist.y) / handLength,
+            z: (knuckleCenter.z - handWrist.z) / handLength
+          };
+          
+          // Calculate the actual deviation angle from neutral alignment
+          const dotProduct = forearmNorm.x * handNorm.x + forearmNorm.y * handNorm.y + forearmNorm.z * handNorm.z;
+          const clampedDot = Math.max(-1, Math.min(1, dotProduct));
+          const deviationAngle = Math.acos(clampedDot) * (180 / Math.PI);
+          
+          // Use cross product to determine flexion vs extension direction
+          const crossProduct = {
+            x: forearmNorm.y * handNorm.z - forearmNorm.z * handNorm.y,
+            y: forearmNorm.z * handNorm.x - forearmNorm.x * handNorm.z,
+            z: forearmNorm.x * handNorm.y - forearmNorm.y * handNorm.x
+          };
+          
+          // In camera coordinates, check Z component for anterior/posterior movement
+          const isFlexion = crossProduct.z > 0; // Hand moves toward palm (anterior)
+          
+          if (deviationAngle > 5) { // Minimum threshold for detection
+            if (isFlexion) {
+              result.wristFlexionAngle = Math.min(deviationAngle, 80);
+              result.wristExtensionAngle = 0;
+              console.log(`Detected wrist flexion: ${result.wristFlexionAngle.toFixed(1)}°`);
+            } else {
+              result.wristExtensionAngle = Math.min(deviationAngle, 70);
+              result.wristFlexionAngle = 0;
+              console.log(`Detected wrist extension: ${result.wristExtensionAngle.toFixed(1)}°`);
+            }
           }
         }
 
-        console.log(`Elbow-referenced calculation (${handType}): ${rawDeviation.toFixed(1)}° deviation from neutral (${forearmToHandAngle.toFixed(1)}° raw angle)`);
+        console.log(`Elbow-referenced calculation (${handType}): ${Math.abs(forearmToHandAngle - 180).toFixed(1)}° deviation from neutral (${forearmToHandAngle.toFixed(1)}° raw angle)`);
       }
     }
   }
