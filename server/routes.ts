@@ -243,19 +243,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
           
           if (rep.wristFlexionAngle !== undefined) {
-            wristFlexionAngle = Math.max(wristFlexionAngle || 0, rep.wristFlexionAngle);
+            // Validate clinical range for flexion (0-80°)
+            const validFlexion = Math.min(Math.max(rep.wristFlexionAngle, 0), 80);
+            wristFlexionAngle = Math.max(wristFlexionAngle || 0, validFlexion);
             console.log(`Updated wristFlexionAngle: ${wristFlexionAngle}`);
           }
           if (rep.wristExtensionAngle !== undefined) {
-            wristExtensionAngle = Math.max(wristExtensionAngle || 0, rep.wristExtensionAngle);
+            // Validate clinical range for extension (0-70°)
+            const validExtension = Math.min(Math.max(rep.wristExtensionAngle, 0), 70);
+            wristExtensionAngle = Math.max(wristExtensionAngle || 0, validExtension);
             console.log(`Updated wristExtensionAngle: ${wristExtensionAngle}`);
           }
           if (rep.maxWristFlexion !== undefined) {
-            maxWristFlexion = Math.max(maxWristFlexion || 0, rep.maxWristFlexion);
+            // Validate clinical range for max flexion (0-80°)
+            const validMaxFlexion = Math.min(Math.max(rep.maxWristFlexion, 0), 80);
+            maxWristFlexion = Math.max(maxWristFlexion || 0, validMaxFlexion);
             console.log(`Updated maxWristFlexion: ${maxWristFlexion}`);
           }
           if (rep.maxWristExtension !== undefined) {
-            maxWristExtension = Math.max(maxWristExtension || 0, rep.maxWristExtension);
+            // Validate clinical range for max extension (0-70°)
+            const validMaxExtension = Math.min(Math.max(rep.maxWristExtension, 0), 70);
+            maxWristExtension = Math.max(maxWristExtension || 0, validMaxExtension);
             console.log(`Updated maxWristExtension: ${maxWristExtension}`);
           }
           
