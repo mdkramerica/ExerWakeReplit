@@ -17,6 +17,10 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType 
   const [holisticInitialized, setHolisticInitialized] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
   const [isInitializing, setIsInitializing] = useState(false);
+  
+  // Add temporal stability for hand type detection
+  const lastHandTypeRef = useRef<'LEFT' | 'RIGHT' | 'UNKNOWN'>('UNKNOWN');
+  const handTypeConfidenceRef = useRef(0);
 
   const isWristAssessment = assessmentType?.toLowerCase().includes('wrist');
 

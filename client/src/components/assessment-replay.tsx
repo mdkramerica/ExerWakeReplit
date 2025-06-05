@@ -807,13 +807,13 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
             const poseWristX = poseWrist.x * canvas.width;
             const poseWristY = poseWrist.y * canvas.height;
             
-            // Draw forearm line (elbow to wrist)
+            // Draw forearm line (elbow to base of hand)
             ctx.strokeStyle = '#3b82f6';
             ctx.lineWidth = 4;
             ctx.setLineDash([]);
             ctx.beginPath();
             ctx.moveTo(elbowX, elbowY);
-            ctx.lineTo(poseWristX, poseWristY);
+            ctx.lineTo(wristX, wristY);
             ctx.stroke();
             
             // Draw infinite reference line (elbow-wrist baseline extended)

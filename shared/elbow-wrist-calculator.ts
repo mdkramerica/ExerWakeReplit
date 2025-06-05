@@ -111,15 +111,53 @@ function determineHandType(
   const handWrist = handLandmarks[HAND_LANDMARKS.WRIST];
   const leftPoseWrist = poseLandmarks[POSE_LANDMARKS.LEFT_WRIST];
   const rightPoseWrist = poseLandmarks[POSE_LANDMARKS.RIGHT_WRIST];
+  const leftElbow = poseLandmarks[POSE_LANDMARKS.LEFT_ELBOW];
+  const rightElbow = poseLandmarks[POSE_LANDMARKS.RIGHT_ELBOW];
 
-  if (!leftPoseWrist || !rightPoseWrist || !handWrist) {
+  if (!leftPoseWrist || !rightPoseWrist || !handWrist || !leftElbow || !rightElbow) {
     return 'UNKNOWN';
   }
 
+  // Check visibility thresholds to avoid low-confidence detections
+  const leftWristVisibility = leftPoseWrist.visibility || 0;
+  const rightWristVisibility = rightPoseWrist.visibility || 0;
+  const leftElbowVisibility = leftElbow.visibility || 0;
+  const rightElbowVisibility = rightElbow.visibility || 0;
+
+  // Calculate distances to both wrists
   const distanceToLeft = euclideanDistance3D(handWrist, leftPoseWrist);
   const distanceToRight = euclideanDistance3D(handWrist, rightPoseWrist);
 
-  return distanceToLeft < distanceToRight ? 'LEFT' : 'RIGHT';
+  // Determine closer side
+  const isLeftCloser = distanceToLeft < distanceToRight;
+  
+  // Relaxed confidence checks with distance-based validation
+  if (isLeftCloser) {
+    // Choosing left - ensure left landmarks have reasonable visibility
+    if (leftWristVisibility > 0.5 && leftElbowVisibility > 0.5) {
+      // Check that the distance difference is meaningful
+      const distanceRatio = distanceToRight / distanceToLeft;
+      if (distanceRatio > 1.2) { // Right side should be noticeably farther
+        return 'LEFT';
+      }
+    }
+  } else {
+    // Choosing right - ensure right landmarks have reasonable visibility
+    if (rightWristVisibility > 0.5 && rightElbowVisibility > 0.5) {
+      // Check that the distance difference is meaningful
+      const distanceRatio = distanceToLeft / distanceToRight;
+      if (distanceRatio > 1.2) { // Left side should be noticeably farther
+        return 'RIGHT';
+      }
+    }
+  }
+
+  // Fallback to simple distance-based detection if visibility is sufficient
+  if ((isLeftCloser && leftWristVisibility > 0.3) || (!isLeftCloser && rightWristVisibility > 0.3)) {
+    return isLeftCloser ? 'LEFT' : 'RIGHT';
+  }
+
+  return 'UNKNOWN';
 }
 
 export function calculateElbowReferencedWristAngle(
