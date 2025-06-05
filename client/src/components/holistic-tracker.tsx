@@ -149,31 +149,32 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType 
         canvas.height = video.videoHeight || 480;
         setCameraReady(true);
         console.log('Holistic camera ready for comprehensive tracking');
-      };
-
-      // Only process frames when recording to prevent flashing
-      const processFrame = async () => {
-        if (isRecording && video.readyState === 4 && holisticRef.current) {
-          try {
-            await holisticRef.current.send({ image: video });
-          } catch (error) {
-            console.warn('Holistic processing error:', error);
-          }
-        }
         
-        // Draw clean video feed
-        if (canvas && video) {
-          const ctx = canvas.getContext('2d');
-          if (ctx) {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        // Start the frame processing loop
+        const processFrame = async () => {
+          if (video.readyState >= 3) {
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+              // Always draw the video feed
+              ctx.clearRect(0, 0, canvas.width, canvas.height);
+              ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+              
+              // Only process with MediaPipe when recording
+              if (isRecording && holisticRef.current) {
+                try {
+                  await holisticRef.current.send({ image: video });
+                } catch (error) {
+                  console.warn('Holistic processing error:', error);
+                }
+              }
+            }
           }
-        }
+          
+          animationRef.current = requestAnimationFrame(processFrame);
+        };
         
-        animationRef.current = requestAnimationFrame(processFrame);
+        processFrame();
       };
-
-      processFrame();
       
     } catch (error) {
       console.error('Holistic camera initialization failed:', error);
