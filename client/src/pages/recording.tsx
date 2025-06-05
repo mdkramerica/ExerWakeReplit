@@ -38,6 +38,8 @@ export default function Recording() {
     ring: { mcpAngle: 0, pipAngle: 0, dipAngle: 0, totalActiveRom: 0 },
     pinky: { mcpAngle: 0, pipAngle: 0, dipAngle: 0, totalActiveRom: 0 }
   });
+  const [wristAngles, setWristAngles] = useState<any>(null);
+  const [poseLandmarks, setPoseLandmarks] = useState<any[]>([]);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
@@ -227,9 +229,19 @@ export default function Recording() {
       setDetectedHandType(data.handType);
     }
     
-    // Store current landmarks for recording
+    // Store current landmarks and pose data for recording
     if (data.landmarks && data.landmarks.length > 0) {
       setCurrentLandmarks(data.landmarks);
+      
+      // Update pose landmarks if available for enhanced wrist assessment
+      if (data.poseLandmarks) {
+        setPoseLandmarks(data.poseLandmarks);
+      }
+      
+      // Update wrist angles if available
+      if (data.wristAngles) {
+        setWristAngles(data.wristAngles);
+      }
       
       // Calculate real-time ROM for all fingers
       if (data.landmarks.length >= 21) {
@@ -279,7 +291,9 @@ export default function Recording() {
             y: parseFloat(landmark.y) || 0,
             z: parseFloat(landmark.z) || 0
           })),
-          handedness: "Right",
+          poseLandmarks: data.poseLandmarks || [],
+          wristAngles: data.wristAngles || null,
+          handedness: data.handType || "Right",
           quality: data.trackingQuality === "Excellent" ? 90 : data.trackingQuality === "Good" ? 70 : 50
         };
         
