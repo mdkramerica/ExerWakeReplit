@@ -113,27 +113,12 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType 
         }))
       );
       
-      // Implement temporal consistency - lock onto first valid hand type
-      if (currentDetection.handType !== 'UNKNOWN') {
-        if (lastHandTypeRef.current === 'UNKNOWN') {
-          // First valid detection - lock onto this hand type
-          lastHandTypeRef.current = currentDetection.handType;
-          handTypeConfidenceRef.current = 1;
-          console.log(`Locked onto ${currentDetection.handType} hand for this session`);
-        } else if (currentDetection.handType === lastHandTypeRef.current) {
-          // Consistent with locked hand type - increase confidence
-          handTypeConfidenceRef.current = Math.min(handTypeConfidenceRef.current + 0.1, 1);
-        } else {
-          // Conflicting detection - decrease confidence but don't switch immediately
-          handTypeConfidenceRef.current = Math.max(handTypeConfidenceRef.current - 0.2, 0);
-          
-          // Only switch if confidence drops very low and new detection is very confident
-          if (handTypeConfidenceRef.current < 0.2 && currentDetection.confidence > 0.8) {
-            lastHandTypeRef.current = currentDetection.handType;
-            handTypeConfidenceRef.current = 0.5;
-            console.log(`Switched to ${currentDetection.handType} hand due to low confidence`);
-          }
-        }
+      // Implement strict hand type locking - once locked, never change
+      if (currentDetection.handType !== 'UNKNOWN' && lastHandTypeRef.current === 'UNKNOWN') {
+        // First valid detection - lock onto this hand type permanently for this session
+        lastHandTypeRef.current = currentDetection.handType;
+        handTypeConfidenceRef.current = 1;
+        console.log(`🔒 PERMANENTLY LOCKED onto ${currentDetection.handType} hand for this entire session`);
       }
       
       // Force the locked hand type for consistent calculation
@@ -176,7 +161,8 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType 
         z: landmark.z,
         visibility: landmark.visibility
       })),
-      wristAngles
+      wristAngles,
+      lockedHandType: lastHandTypeRef.current
     });
   }, [isWristAssessment, onUpdate]);
 

@@ -42,6 +42,7 @@ export default function Recording() {
   });
   const [wristAngles, setWristAngles] = useState<any>(null);
   const [poseLandmarks, setPoseLandmarks] = useState<any[]>([]);
+  const [sessionHandType, setSessionHandType] = useState<'LEFT' | 'RIGHT' | 'UNKNOWN'>('UNKNOWN');
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
@@ -274,9 +275,15 @@ export default function Recording() {
     setTrackingQuality(data.trackingQuality);
     setHandPosition(data.handPosition);
     
-    // Update detected hand type
+    // Update detected hand type and maintain session consistency
     if (data.handType) {
       setDetectedHandType(data.handType);
+    }
+    
+    // Lock onto session hand type for consistency
+    if (data.lockedHandType && data.lockedHandType !== 'UNKNOWN' && sessionHandType === 'UNKNOWN') {
+      setSessionHandType(data.lockedHandType);
+      console.log(`🔒 Session locked to ${data.lockedHandType} hand`);
     }
     
     // Store current landmarks and pose data for recording
@@ -384,7 +391,8 @@ export default function Recording() {
           })),
           poseLandmarks: data.poseLandmarks || [],
           wristAngles: frameWristAngles || data.wristAngles || null,
-          handedness: data.handType || "Right",
+          handedness: sessionHandType !== 'UNKNOWN' ? sessionHandType : (data.handType || "Right"),
+          sessionHandType: sessionHandType,
           quality: data.trackingQuality === "Excellent" ? 90 : data.trackingQuality === "Good" ? 70 : 50
         };
         
