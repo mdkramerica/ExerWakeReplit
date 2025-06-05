@@ -847,10 +847,23 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
         ctx.font = 'bold 12px Arial';
         ctx.fillText('WRIST', wristX - 20, wristY - 15);
         
-        // Add angle indicator text near middle MCP
+        // Add angle indicator text near middle MCP - show flexion/extension angle
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 12px Arial';
-        ctx.fillText(`${currentWristAngles.forearmToHandAngle.toFixed(1)}°`, mcpX + 10, mcpY - 10);
+        
+        if (currentWristAngles.wristFlexionAngle > 0) {
+          // Show flexion angle in red
+          ctx.fillStyle = '#ef4444';
+          ctx.fillText(`${currentWristAngles.wristFlexionAngle.toFixed(1)}° FLEXION`, mcpX + 10, mcpY - 10);
+        } else if (currentWristAngles.wristExtensionAngle > 0) {
+          // Show extension angle in orange
+          ctx.fillStyle = '#f59e0b';
+          ctx.fillText(`${currentWristAngles.wristExtensionAngle.toFixed(1)}° EXTENSION`, mcpX + 10, mcpY - 10);
+        } else {
+          // Show neutral position
+          ctx.fillStyle = '#10b981';
+          ctx.fillText('NEUTRAL', mcpX + 10, mcpY - 10);
+        }
       }
     }
 
