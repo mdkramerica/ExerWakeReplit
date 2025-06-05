@@ -154,6 +154,33 @@ export default function Recording() {
       ? calculateMaxROM(recordingMotionDataRef.current) 
       : maxROM;
 
+    // Extract wrist angle data from motion frames
+    let maxWristFlexion = 0;
+    let maxWristExtension = 0;
+    let currentFlexion = 0;
+    let currentExtension = 0;
+
+    if (recordingMotionDataRef.current.length > 0) {
+      recordingMotionDataRef.current.forEach(frame => {
+        if (frame.wristAngles) {
+          maxWristFlexion = Math.max(maxWristFlexion, frame.wristAngles.flexionAngle || 0);
+          maxWristExtension = Math.max(maxWristExtension, frame.wristAngles.extensionAngle || 0);
+          currentFlexion = frame.wristAngles.flexionAngle || 0;
+          currentExtension = frame.wristAngles.extensionAngle || 0;
+        }
+      });
+    }
+
+    // Use current wrist angles if available
+    if (wristAngles) {
+      currentFlexion = wristAngles.flexionAngle || 0;
+      currentExtension = wristAngles.extensionAngle || 0;
+      maxWristFlexion = Math.max(maxWristFlexion, currentFlexion);
+      maxWristExtension = Math.max(maxWristExtension, currentExtension);
+    }
+
+    console.log(`Wrist angles extracted: Current Flexion=${currentFlexion}°, Current Extension=${currentExtension}°, Max Flexion=${maxWristFlexion}°, Max Extension=${maxWristExtension}°`);
+
     // Calculate actual duration from motion data timestamps
     const actualDuration = recordingMotionDataRef.current.length > 0 
       ? Math.round((recordingMotionDataRef.current[recordingMotionDataRef.current.length - 1].timestamp - recordingMotionDataRef.current[0].timestamp) / 1000)
@@ -166,7 +193,11 @@ export default function Recording() {
       qualityScore: calculateQualityScore(),
       timestamp: new Date().toISOString(),
       motionData: [...recordingMotionDataRef.current], // Use ref data for immediate access
-      romData: finalMaxROM // Include ROM calculations
+      romData: finalMaxROM, // Include ROM calculations
+      wristFlexionAngle: currentFlexion,
+      wristExtensionAngle: currentExtension,
+      maxWristFlexion: maxWristFlexion,
+      maxWristExtension: maxWristExtension
     };
 
     const newRecordedData = [...recordedData, repetitionData];

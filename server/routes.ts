@@ -206,6 +206,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let pinkyFingerPip: number | null = null;
       let pinkyFingerDip: number | null = null;
       
+      // Wrist angle calculations
+      let wristFlexionAngle: number | null = null;
+      let wristExtensionAngle: number | null = null;
+      let maxWristFlexion: number | null = null;
+      let maxWristExtension: number | null = null;
+      
       if (repetitionData && Array.isArray(repetitionData)) {
         // Collect all motion frames for multi-finger ROM calculation
         const allMotionFrames: any[] = [];
@@ -217,6 +223,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
             maxPipAngle = Math.max(maxPipAngle || 0, rep.romData.pipAngle || 0);
             maxDipAngle = Math.max(maxDipAngle || 0, rep.romData.dipAngle || 0);
             totalActiveRom = Math.max(totalActiveRom || 0, rep.romData.totalActiveRom || 0);
+          }
+          
+          // Extract wrist angle data from repetition data
+          if (rep.wristFlexionAngle !== undefined) {
+            wristFlexionAngle = Math.max(wristFlexionAngle || 0, rep.wristFlexionAngle);
+          }
+          if (rep.wristExtensionAngle !== undefined) {
+            wristExtensionAngle = Math.max(wristExtensionAngle || 0, rep.wristExtensionAngle);
+          }
+          if (rep.maxWristFlexion !== undefined) {
+            maxWristFlexion = Math.max(maxWristFlexion || 0, rep.maxWristFlexion);
+          }
+          if (rep.maxWristExtension !== undefined) {
+            maxWristExtension = Math.max(maxWristExtension || 0, rep.maxWristExtension);
           }
           
           // Collect motion data for all finger calculations
@@ -345,7 +365,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         pinkyFingerMcp: pinkyFingerMcp !== null ? pinkyFingerMcp.toString() : null,
         pinkyFingerPip: pinkyFingerPip !== null ? pinkyFingerPip.toString() : null,
         pinkyFingerDip: pinkyFingerDip !== null ? pinkyFingerDip.toString() : null,
-        handType: handType || null
+        handType: handType || null,
+        
+        // Wrist angle data
+        wristFlexionAngle: wristFlexionAngle !== null ? wristFlexionAngle.toString() : null,
+        wristExtensionAngle: wristExtensionAngle !== null ? wristExtensionAngle.toString() : null,
+        maxWristFlexion: maxWristFlexion !== null ? maxWristFlexion.toString() : null,
+        maxWristExtension: maxWristExtension !== null ? maxWristExtension.toString() : null
       });
       
       res.json({ userAssessment });
