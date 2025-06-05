@@ -78,9 +78,17 @@ export default function Recording() {
         description: "Your range of motion data has been recorded successfully.",
       });
       
-      // Navigate to detailed results page if we have an assessment ID
+      // Navigate to specialized results page based on assessment type
       if (userAssessmentId) {
-        setLocation(`/assessment-results/${currentUser.code}/${userAssessmentId}`);
+        const isWristAssessment = assessment?.name?.toLowerCase().includes('wrist') || 
+                                 assessment?.name?.toLowerCase().includes('flexion') || 
+                                 assessment?.name?.toLowerCase().includes('extension');
+        
+        if (isWristAssessment) {
+          setLocation(`/wrist-results/${currentUser.code}/${userAssessmentId}`);
+        } else {
+          setLocation(`/assessment-results/${currentUser.code}/${userAssessmentId}`);
+        }
       } else {
         setLocation(`/assessment-list/${currentUser.code}`);
       }
