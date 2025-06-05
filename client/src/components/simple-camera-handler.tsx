@@ -53,8 +53,10 @@ export default function SimpleCameraHandler({ onUpdate, isRecording, assessmentT
         ctx.fillText('Move your wrist through full range', 20, 75);
       }
 
-      // Provide basic feedback for recording
-      if (isRecording) {
+      // Only detect hands when actually present (not when just recording)
+      const handVisible = false; // Will be set to true when MediaPipe detects actual hands
+      
+      if (handVisible && isRecording) {
         // Generate authentic hand landmarks for real wrist calculations
         const time = Date.now() / 1000;
         const movementPhase = Math.sin(time * 0.8); // Simulate natural movement
@@ -120,10 +122,10 @@ export default function SimpleCameraHandler({ onUpdate, isRecording, assessmentT
         });
       } else {
         onUpdate({
-          handDetected: cameraReady,
-          landmarksCount: cameraReady ? 21 : 0,
-          trackingQuality: cameraReady ? "Ready" : "Initializing",
-          handPosition: cameraReady ? "Ready for assessment" : "Camera loading"
+          handDetected: false,
+          landmarksCount: 0,
+          trackingQuality: cameraReady ? "No Hand Detected" : "Initializing",
+          handPosition: cameraReady ? "Show your hand to begin" : "Camera loading"
         });
       }
     } catch (error) {
