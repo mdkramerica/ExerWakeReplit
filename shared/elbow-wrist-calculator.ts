@@ -160,6 +160,115 @@ function determineHandType(
   return 'UNKNOWN';
 }
 
+export function calculateElbowReferencedWristAngleWithForce(
+  handLandmarks: HandLandmark[],
+  poseLandmarks: PoseLandmark[],
+  forceHandType: 'LEFT' | 'RIGHT'
+): ElbowWristAngles {
+  const result: ElbowWristAngles = {
+    forearmToHandAngle: 0,
+    wristFlexionAngle: 0,
+    wristExtensionAngle: 0,
+    elbowDetected: false,
+    handType: forceHandType,
+    confidence: 0
+  };
+
+  if (!handLandmarks || handLandmarks.length < 21 || !poseLandmarks || poseLandmarks.length <= 16) {
+    return result;
+  }
+
+  // Force the specified hand type instead of detecting
+  const elbowIndex = forceHandType === 'LEFT' ? POSE_LANDMARKS.LEFT_ELBOW : POSE_LANDMARKS.RIGHT_ELBOW;
+  const wristIndex = forceHandType === 'LEFT' ? POSE_LANDMARKS.LEFT_WRIST : POSE_LANDMARKS.RIGHT_WRIST;
+  const shoulderIndex = forceHandType === 'LEFT' ? POSE_LANDMARKS.LEFT_SHOULDER : POSE_LANDMARKS.RIGHT_SHOULDER;
+
+  const elbow = poseLandmarks[elbowIndex];
+  const poseWrist = poseLandmarks[wristIndex];
+  const shoulder = poseLandmarks[shoulderIndex];
+
+  if (elbow && poseWrist && shoulder && 
+      (elbow.visibility || 1) > 0.3 && (poseWrist.visibility || 1) > 0.3) {
+    
+    result.elbowDetected = true;
+    result.confidence = Math.min(elbow.visibility || 1, poseWrist.visibility || 1, shoulder.visibility || 1);
+
+    // Get hand landmarks for wrist analysis
+    const handWrist = handLandmarks[HAND_LANDMARKS.WRIST]; // Base of hand (point 0)
+    const middleMcp = handLandmarks[HAND_LANDMARKS.MIDDLE_MCP]; // Point 9
+
+    if (handWrist && middleMcp) {
+      // Calculate reference line (elbow to wrist/base of hand)
+      const referenceVector = {
+        x: handWrist.x - elbow.x,
+        y: handWrist.y - elbow.y,
+        z: handWrist.z - elbow.z
+      };
+
+      // Calculate measurement line (base of hand to middle finger MCP)
+      const measurementVector = {
+        x: middleMcp.x - handWrist.x,
+        y: middleMcp.y - handWrist.y,
+        z: middleMcp.z - handWrist.z
+      };
+
+      // Calculate the angle between reference line (elbow-wrist) and measurement line (wrist-middle-MCP)
+      // Create a temporary point for angle calculation
+      const elbowPoint = { x: elbow.x, y: elbow.y, z: elbow.z };
+      const wristPoint = { x: handWrist.x, y: handWrist.y, z: handWrist.z };
+      const mcpPoint = { x: middleMcp.x, y: middleMcp.y, z: middleMcp.z };
+      const angleDegrees = calculateAngleBetweenVectors(elbowPoint, wristPoint, mcpPoint);
+      result.forearmToHandAngle = angleDegrees;
+
+      console.log(`Elbow-referenced calculation (${forceHandType}): ${angleDegrees.toFixed(1)}° deviation from neutral (${(180 - angleDegrees).toFixed(1)}° raw angle)`);
+
+      // Determine flexion vs extension based on angle deviation from neutral (180°)
+      if (angleDegrees < 160) {
+        // Significant deviation from neutral - determine direction
+        const referenceNorm = {
+          x: referenceVector.x / Math.sqrt(referenceVector.x**2 + referenceVector.y**2 + referenceVector.z**2),
+          y: referenceVector.y / Math.sqrt(referenceVector.x**2 + referenceVector.y**2 + referenceVector.z**2),
+          z: referenceVector.z / Math.sqrt(referenceVector.x**2 + referenceVector.y**2 + referenceVector.z**2)
+        };
+        
+        const measurementNorm = {
+          x: measurementVector.x / Math.sqrt(measurementVector.x**2 + measurementVector.y**2 + measurementVector.z**2),
+          y: measurementVector.y / Math.sqrt(measurementVector.x**2 + measurementVector.y**2 + measurementVector.z**2),
+          z: measurementVector.z / Math.sqrt(measurementVector.x**2 + measurementVector.y**2 + measurementVector.z**2)
+        };
+        
+        const crossProduct = {
+          x: referenceNorm.y * measurementNorm.z - referenceNorm.z * measurementNorm.y,
+          y: referenceNorm.z * measurementNorm.x - referenceNorm.x * measurementNorm.z,
+          z: referenceNorm.x * measurementNorm.y - referenceNorm.y * measurementNorm.x
+        };
+        
+        // Determine direction based on camera coordinate system and hand type
+        // For left hand: Positive Y cross product indicates extension
+        // For right hand: Negative Y cross product indicates extension (mirrored)
+        const isExtension = forceHandType === 'LEFT' ? crossProduct.y > 0 : crossProduct.y < 0;
+        
+        if (isExtension) {
+          result.wristExtensionAngle = Math.min(angleDegrees, 70);
+          result.wristFlexionAngle = 0;
+          console.log(`Wrist extension: ${result.wristExtensionAngle.toFixed(1)}° (angle between vectors: ${angleDegrees.toFixed(1)}°)`);
+        } else {
+          result.wristFlexionAngle = Math.min(angleDegrees, 80);
+          result.wristExtensionAngle = 0;
+          console.log(`Wrist flexion: ${result.wristFlexionAngle.toFixed(1)}° (angle between vectors: ${angleDegrees.toFixed(1)}°)`);
+        }
+      } else {
+        // Neutral position - vectors are aligned
+        result.wristFlexionAngle = 0;
+        result.wristExtensionAngle = 0;
+        console.log(`Wrist neutral: ${angleDegrees.toFixed(1)}° deviation from alignment`);
+      }
+    }
+  }
+
+  return result;
+}
+
 export function calculateElbowReferencedWristAngle(
   handLandmarks: HandLandmark[],
   poseLandmarks?: PoseLandmark[]

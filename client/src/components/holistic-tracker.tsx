@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback, useState } from "react";
-import { calculateElbowReferencedWristAngle } from "@shared/elbow-wrist-calculator";
+import { calculateElbowReferencedWristAngle, calculateElbowReferencedWristAngleWithForce } from "@shared/elbow-wrist-calculator";
 // import exerLogoPath from "@assets/exer-ai-logo-white.png";
 
 interface HolisticTrackerProps {
@@ -23,6 +23,15 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType 
   const handTypeConfidenceRef = useRef(0);
 
   const isWristAssessment = assessmentType?.toLowerCase().includes('wrist');
+
+  // Reset hand type tracking when recording starts
+  useEffect(() => {
+    if (isRecording) {
+      lastHandTypeRef.current = 'UNKNOWN';
+      handTypeConfidenceRef.current = 0;
+      console.log('Reset hand type tracking for new recording session');
+    }
+  }, [isRecording]);
 
   // Initialize MediaPipe Holistic once
   const initializeHolistic = useCallback(async () => {
@@ -89,7 +98,8 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType 
     // Calculate wrist angles using elbow reference only during recording
     let wristAngles = null;
     if (isRecording && isWristAssessment && handLandmarks.length > 0) {
-      wristAngles = calculateElbowReferencedWristAngle(
+      // First get the initial hand type detection
+      const currentDetection = calculateElbowReferencedWristAngle(
         handLandmarks.map((landmark: any) => ({
           x: landmark.x,
           y: landmark.y,
@@ -102,6 +112,49 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType 
           visibility: landmark.visibility
         }))
       );
+      
+      // Implement temporal consistency - lock onto first valid hand type
+      if (currentDetection.handType !== 'UNKNOWN') {
+        if (lastHandTypeRef.current === 'UNKNOWN') {
+          // First valid detection - lock onto this hand type
+          lastHandTypeRef.current = currentDetection.handType;
+          handTypeConfidenceRef.current = 1;
+          console.log(`Locked onto ${currentDetection.handType} hand for this session`);
+        } else if (currentDetection.handType === lastHandTypeRef.current) {
+          // Consistent with locked hand type - increase confidence
+          handTypeConfidenceRef.current = Math.min(handTypeConfidenceRef.current + 0.1, 1);
+        } else {
+          // Conflicting detection - decrease confidence but don't switch immediately
+          handTypeConfidenceRef.current = Math.max(handTypeConfidenceRef.current - 0.2, 0);
+          
+          // Only switch if confidence drops very low and new detection is very confident
+          if (handTypeConfidenceRef.current < 0.2 && currentDetection.confidence > 0.8) {
+            lastHandTypeRef.current = currentDetection.handType;
+            handTypeConfidenceRef.current = 0.5;
+            console.log(`Switched to ${currentDetection.handType} hand due to low confidence`);
+          }
+        }
+      }
+      
+      // Force the locked hand type for consistent calculation
+      if (lastHandTypeRef.current !== 'UNKNOWN') {
+        wristAngles = calculateElbowReferencedWristAngleWithForce(
+          handLandmarks.map((landmark: any) => ({
+            x: landmark.x,
+            y: landmark.y,
+            z: landmark.z
+          })),
+          poseLandmarks.map((landmark: any) => ({
+            x: landmark.x,
+            y: landmark.y,
+            z: landmark.z,
+            visibility: landmark.visibility
+          })),
+          lastHandTypeRef.current
+        );
+      } else {
+        wristAngles = currentDetection;
+      }
       
       console.log('Elbow-referenced wrist calculation:', wristAngles);
     }
