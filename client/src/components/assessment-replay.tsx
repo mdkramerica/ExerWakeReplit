@@ -5,11 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Play, Pause, RotateCcw, Download } from "lucide-react";
 import { calculateCurrentROM, calculateFingerROM, type JointAngles } from "@/lib/rom-calculator";
 import { calculateKapandjiScore, calculateMaxKapandjiScore, type KapandjiScore } from "@shared/kapandji-calculator";
+import { calculateElbowReferencedWristAngle, type ElbowWristAngles } from "@shared/elbow-wrist-calculator";
 // Remove the import since we'll load the image directly
 
 interface ReplayData {
   timestamp: number;
   landmarks: Array<{x: number, y: number, z: number}>;
+  poseLandmarks?: Array<{x: number, y: number, z: number, visibility?: number}>;
   handedness: string;
   quality: number;
 }
@@ -48,6 +50,10 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
   const [isolateMode, setIsolateMode] = useState(false);
   const [logoImage, setLogoImage] = useState<HTMLImageElement | null>(null);
   
+  // Wrist-specific state variables
+  const [currentWristAngles, setCurrentWristAngles] = useState<ElbowWristAngles | null>(null);
+  const [maxWristAngles, setMaxWristAngles] = useState<ElbowWristAngles | null>(null);
+  
   // Fetch real motion data if userAssessmentId is provided
   const { data: motionData, isLoading } = useQuery({
     queryKey: [`/api/user-assessments/${userAssessmentId}/motion-data`],
@@ -58,9 +64,11 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
   const actualMotionData = (motionData as any)?.motionData || recordingData;
   const replayData: ReplayData[] = actualMotionData.length > 0 ? actualMotionData : [];
 
-  // Check if this is a Kapandji assessment
+  // Check assessment types
   const isKapandjiAssessment = assessmentName === "Kapandji Score" || 
                               assessmentName?.includes("Kapandji");
+  const isWristAssessment = assessmentName === "Wrist Flexion/Extension" ||
+                           assessmentName?.toLowerCase().includes("wrist");
 
   // Load Exer logo image
   useEffect(() => {
@@ -84,6 +92,31 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
         
         // Set frame to the one with the best score
         setCurrentFrame(0); // Start from beginning for Kapandji
+      } else if (isWristAssessment) {
+        // Calculate wrist angles for all frames
+        const wristAnglesAllFrames = replayData.map(frame => {
+          if (frame.landmarks && frame.poseLandmarks) {
+            return calculateElbowReferencedWristAngle(frame.landmarks, frame.poseLandmarks);
+          }
+          return null;
+        }).filter(Boolean);
+        
+        if (wristAnglesAllFrames.length > 0) {
+          // Find maximum wrist angles
+          const maxFlexion = Math.max(...wristAnglesAllFrames.map(w => w!.wristFlexionAngle));
+          const maxExtension = Math.max(...wristAnglesAllFrames.map(w => w!.wristExtensionAngle));
+          const maxForearmAngle = Math.max(...wristAnglesAllFrames.map(w => w!.forearmToHandAngle));
+          
+          setMaxWristAngles({
+            forearmToHandAngle: maxForearmAngle,
+            wristFlexionAngle: maxFlexion,
+            wristExtensionAngle: maxExtension,
+            elbowDetected: true,
+            handType: wristAnglesAllFrames[0]!.handType,
+            confidence: Math.max(...wristAnglesAllFrames.map(w => w!.confidence))
+          });
+        }
+        setCurrentFrame(0);
       } else {
         // Calculate ROM for all digits and frames (existing TAM logic)
         const allFramesAllDigits = replayData.map(frame => ({
@@ -149,6 +182,12 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
           // Calculate current Kapandji score for this frame
           const currentKapandji = calculateKapandjiScore(frame.landmarks);
           setKapandjiScore(currentKapandji);
+        } else if (isWristAssessment) {
+          // Calculate current wrist angles for this frame
+          if (frame.landmarks && frame.poseLandmarks) {
+            const currentWrist = calculateElbowReferencedWristAngle(frame.landmarks, frame.poseLandmarks);
+            setCurrentWristAngles(currentWrist);
+          }
         } else {
           // Calculate ROM for standard assessments
           const rom = calculateFingerROM(frame.landmarks, selectedDigit);
