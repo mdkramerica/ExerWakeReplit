@@ -146,9 +146,20 @@ export function calculateWristAngles(
       console.log(`Hand-only wrist calculation: ${wristAngle.toFixed(1)}° (couldn't determine laterality)`);
     }
   } else {
-    // Standard calculation using only hand landmarks
-    wristAngle = calculateAngle3D(wrist, middleMcp, middleTip);
-    console.log(`Standard wrist calculation: ${wristAngle.toFixed(1)}° using hand landmarks only`);
+    // Improved hand-only calculation for wrist flexion/extension
+    // Use wrist to index MCP to middle MCP for better wrist angle estimation
+    const indexMcp = handLandmarks[5]; // Index finger MCP joint
+    
+    // Calculate the angle representing wrist position based on hand geometry
+    // This approximates wrist flexion by measuring the hand's overall orientation
+    wristAngle = calculateAngle3D(indexMcp, wrist, middleMcp);
+    
+    // Scale the angle to match clinical wrist ROM values (0-90° typical range)
+    // Apply a scaling factor to convert geometric angle to clinical measurement
+    const scaledAngle = Math.min(90, Math.abs(wristAngle - 90) * 0.6);
+    wristAngle = 180 - scaledAngle; // Normalize for flexion calculation
+    
+    console.log(`Improved hand-only wrist calculation: ${scaledAngle.toFixed(1)}° clinical equivalent (raw: ${wristAngle.toFixed(1)}°)`);
   }
   
   // Convert angle to flexion/extension
