@@ -159,62 +159,55 @@ export function calculateElbowReferencedWristAngle(
       result.confidence = Math.min(elbow.visibility || 1, poseWrist.visibility || 1, shoulder.visibility || 1);
 
       // Get hand landmarks for wrist analysis
-      const handWrist = handLandmarks[HAND_LANDMARKS.WRIST];
-      const indexMcp = handLandmarks[HAND_LANDMARKS.INDEX_MCP];
-      const middleMcp = handLandmarks[HAND_LANDMARKS.MIDDLE_MCP];
+      const handWrist = handLandmarks[HAND_LANDMARKS.WRIST]; // Base of hand (point 0)
+      const indexTip = handLandmarks[HAND_LANDMARKS.INDEX_TIP]; // Point 8
 
-      if (handWrist && indexMcp && middleMcp) {
-        // Calculate forearm vector (elbow to wrist)
-        const forearmVector = {
-          x: poseWrist.x - elbow.x,
-          y: poseWrist.y - elbow.y,
-          z: poseWrist.z - elbow.z
+      if (handWrist && indexTip) {
+        // Calculate reference line (elbow to wrist/base of hand)
+        const referenceVector = {
+          x: handWrist.x - elbow.x,
+          y: handWrist.y - elbow.y,
+          z: handWrist.z - elbow.z
         };
 
-        // Calculate hand orientation vector (wrist to middle of knuckles)
-        const knuckleCenter = {
-          x: (indexMcp.x + middleMcp.x) / 2,
-          y: (indexMcp.y + middleMcp.y) / 2,
-          z: (indexMcp.z + middleMcp.z) / 2
+        // Calculate measurement line (elbow to index tip)
+        const measurementVector = {
+          x: indexTip.x - elbow.x,
+          y: indexTip.y - elbow.y,
+          z: indexTip.z - elbow.z
         };
 
-        const handVector = {
-          x: knuckleCenter.x - handWrist.x,
-          y: knuckleCenter.y - handWrist.y,
-          z: knuckleCenter.z - handWrist.z
-        };
-
-        // Calculate the true forearm-to-hand angle
+        // Calculate the angle between reference line (elbow-wrist) and measurement line (elbow-index tip)
         const forearmToHandAngle = calculateAngleBetweenVectors(
           { x: elbow.x, y: elbow.y, z: elbow.z },
-          { x: poseWrist.x, y: poseWrist.y, z: poseWrist.z },
-          { x: knuckleCenter.x, y: knuckleCenter.y, z: knuckleCenter.z }
+          { x: handWrist.x, y: handWrist.y, z: handWrist.z },
+          { x: indexTip.x, y: indexTip.y, z: indexTip.z }
         );
 
         result.forearmToHandAngle = forearmToHandAngle;
 
         // Calculate anatomically correct wrist flexion/extension angles
-        // Neutral = 0°, Flexion = forward bend, Extension = backward bend
+        // Using elbow-to-wrist as reference line and elbow-to-index-tip as measurement line
         
-        const forearmLength = Math.sqrt(forearmVector.x**2 + forearmVector.y**2 + forearmVector.z**2);
-        const handLength = Math.sqrt(handVector.x**2 + handVector.y**2 + handVector.z**2);
+        const referenceLength = Math.sqrt(referenceVector.x**2 + referenceVector.y**2 + referenceVector.z**2);
+        const measurementLength = Math.sqrt(measurementVector.x**2 + measurementVector.y**2 + measurementVector.z**2);
         
-        if (forearmLength > 0 && handLength > 0) {
+        if (referenceLength > 0 && measurementLength > 0) {
           // Normalize vectors
-          const forearmNorm = {
-            x: forearmVector.x / forearmLength,
-            y: forearmVector.y / forearmLength,
-            z: forearmVector.z / forearmLength
+          const referenceNorm = {
+            x: referenceVector.x / referenceLength,
+            y: referenceVector.y / referenceLength,
+            z: referenceVector.z / referenceLength
           };
           
-          const handNorm = {
-            x: handVector.x / handLength,
-            y: handVector.y / handLength,
-            z: handVector.z / handLength
+          const measurementNorm = {
+            x: measurementVector.x / measurementLength,
+            y: measurementVector.y / measurementLength,
+            z: measurementVector.z / measurementLength
           };
           
-          // Calculate angle between forearm and hand vectors
-          const dotProduct = forearmNorm.x * handNorm.x + forearmNorm.y * handNorm.y + forearmNorm.z * handNorm.z;
+          // Calculate angle between reference line (elbow-wrist) and measurement line (elbow-index-tip)
+          const dotProduct = referenceNorm.x * measurementNorm.x + referenceNorm.y * measurementNorm.y + referenceNorm.z * measurementNorm.z;
           const clampedDot = Math.max(-1, Math.min(1, dotProduct));
           const angleRadians = Math.acos(clampedDot);
           const angleDegrees = angleRadians * (180 / Math.PI);
@@ -224,9 +217,9 @@ export function calculateElbowReferencedWristAngle(
           if (angleDegrees > 5) { // Minimum threshold for detection
             // Use cross product to determine flexion vs extension direction
             const crossProduct = {
-              x: forearmNorm.y * handNorm.z - forearmNorm.z * handNorm.y,
-              y: forearmNorm.z * handNorm.x - forearmNorm.x * handNorm.z,
-              z: forearmNorm.x * handNorm.y - forearmNorm.y * handNorm.x
+              x: referenceNorm.y * measurementNorm.z - referenceNorm.z * measurementNorm.y,
+              y: referenceNorm.z * measurementNorm.x - referenceNorm.x * measurementNorm.z,
+              z: referenceNorm.x * measurementNorm.y - referenceNorm.y * measurementNorm.x
             };
             
             // Determine direction based on camera coordinate system
