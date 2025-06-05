@@ -199,8 +199,9 @@ export function calculateElbowReferencedWristAngle(
         const rawDeviation = Math.abs(forearmToHandAngle - neutralAngle);
         
         // Use Y-coordinate comparison for movement direction detection
-        const handToElbowY = elbow.y - knuckleCenter.y;
-        const wristToElbowY = elbow.y - poseWrist.y;
+        // In camera coordinates, Y increases downward, so we need to invert logic
+        const handToElbowY = knuckleCenter.y - elbow.y;
+        const wristToElbowY = poseWrist.y - elbow.y;
         const relativeHandPosition = handToElbowY - wristToElbowY;
         
         // Calculate realistic clinical angles based on anatomical movement
@@ -209,15 +210,15 @@ export function calculateElbowReferencedWristAngle(
           const clinicalAngle = Math.min(rawDeviation * 0.35, 80); // Reduced scaling factor
           
           if (relativeHandPosition > 0) {
+            // Hand is below elbow-wrist line - flexion (palmar flexion)
+            result.wristFlexionAngle = Math.min(clinicalAngle, 80);
+            result.wristExtensionAngle = 0;
+            console.log(`Detected wrist flexion: ${result.wristFlexionAngle.toFixed(1)}°`);
+          } else {
             // Hand is above elbow-wrist line - extension (dorsiflexion)
             result.wristExtensionAngle = Math.min(clinicalAngle, 70);
             result.wristFlexionAngle = 0;
             console.log(`Detected wrist extension: ${result.wristExtensionAngle.toFixed(1)}°`);
-          } else {
-            // Hand is below elbow-wrist line - flexion (palmar flexion)  
-            result.wristFlexionAngle = Math.min(clinicalAngle, 80);
-            result.wristExtensionAngle = 0;
-            console.log(`Detected wrist flexion: ${result.wristFlexionAngle.toFixed(1)}°`);
           }
         }
 
