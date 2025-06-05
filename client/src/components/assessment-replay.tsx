@@ -508,9 +508,9 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
     ctx.lineWidth = 2;
     connections.forEach(([start, end]) => {
       if (frame.landmarks[start] && frame.landmarks[end]) {
-        const startX = (1 - frame.landmarks[start].x) * canvas.width;
+        const startX = frame.landmarks[start].x * canvas.width;
         const startY = frame.landmarks[start].y * canvas.height;
-        const endX = (1 - frame.landmarks[end].x) * canvas.width;
+        const endX = frame.landmarks[end].x * canvas.width;
         const endY = frame.landmarks[end].y * canvas.height;
         
         // Color connections: yellow for active finger, green for others
@@ -528,7 +528,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
       // Only draw visible landmarks based on isolation mode
       if (!visibleLandmarks.includes(index)) return;
       
-      const x = (1 - landmark.x) * canvas.width; // Flip horizontally to remove mirror effect
+      const x = landmark.x * canvas.width; // Natural orientation for wrist analysis
       const y = landmark.y * canvas.height;
       
       // Color-code landmarks for all 21 hand points
@@ -583,11 +583,11 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
         
         ctx.beginPath();
         ctx.moveTo(
-          (1 - frame.landmarks[start].x) * canvas.width,
+          frame.landmarks[start].x * canvas.width,
           frame.landmarks[start].y * canvas.height
         );
         ctx.lineTo(
-          (1 - frame.landmarks[end].x) * canvas.width,
+          frame.landmarks[end].x * canvas.width,
           frame.landmarks[end].y * canvas.height
         );
         ctx.stroke();
@@ -606,11 +606,11 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
           
           ctx.beginPath();
           ctx.moveTo(
-            (1 - frame.landmarks[start].x) * canvas.width,
+            frame.landmarks[start].x * canvas.width,
             frame.landmarks[start].y * canvas.height
           );
           ctx.lineTo(
-            (1 - frame.landmarks[end].x) * canvas.width,
+            frame.landmarks[end].x * canvas.width,
             frame.landmarks[end].y * canvas.height
           );
           ctx.stroke();
