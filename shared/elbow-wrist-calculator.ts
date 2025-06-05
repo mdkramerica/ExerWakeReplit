@@ -226,25 +226,8 @@ export function calculateElbowReferencedWristAngle(
     }
   }
 
-  // Fallback to hand-only calculation if pose data unavailable
-  if (!result.elbowDetected && handLandmarks.length >= 21) {
-    const handWrist = handLandmarks[HAND_LANDMARKS.WRIST];
-    const indexMcp = handLandmarks[HAND_LANDMARKS.INDEX_MCP];
-    const middleMcp = handLandmarks[HAND_LANDMARKS.MIDDLE_MCP];
-    const indexTip = handLandmarks[HAND_LANDMARKS.INDEX_TIP];
-
-    if (handWrist && indexMcp && middleMcp && indexTip) {
-      // Approximate wrist angle using hand landmarks only
-      const wristToKnuckle = calculateAngleBetweenVectors(handWrist, indexMcp, middleMcp);
-      const wristToFinger = calculateAngleBetweenVectors(handWrist, indexMcp, indexTip);
-      
-      const estimatedWristAngle = Math.abs(wristToKnuckle - 180);
-      result.wristFlexionAngle = estimatedWristAngle;
-      result.confidence = 0.6; // Lower confidence for hand-only calculation
-
-      console.log(`Hand-only fallback calculation: ${estimatedWristAngle.toFixed(1)}° wrist flexion`);
-    }
-  }
+  // Disable fallback hand-only calculation to prevent unrealistic angles
+  // Only use elbow-referenced calculations for accuracy
 
   return result;
 }

@@ -176,11 +176,14 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType 
         console.log('Holistic camera ready for comprehensive tracking');
       };
 
-      // Process video frames through holistic detection
+      // Process video frames with throttling to prevent flashing
+      let lastProcessTime = 0;
       const processFrame = async () => {
-        if (video.readyState === 4 && holisticRef.current) {
+        const now = performance.now();
+        if (now - lastProcessTime > 100 && video.readyState === 4 && holisticRef.current) { // 10 FPS max
           try {
             await holisticRef.current.send({ image: video });
+            lastProcessTime = now;
           } catch (error) {
             console.warn('Holistic processing error:', error);
           }
