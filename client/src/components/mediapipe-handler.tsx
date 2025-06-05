@@ -8,6 +8,8 @@ interface ExerAIHandlerProps {
     trackingQuality: string;
     handPosition: string;
     landmarks?: any[];
+    poseLandmarks?: any[];
+    wristAngles?: any;
   }) => void;
   isRecording: boolean;
   assessmentType: string;
@@ -32,8 +34,10 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
   const lastFrameTime = useRef<number>(0);
   const prevIsRecording = useRef(isRecording);
   const isArmAssessment = assessmentType.includes('shoulder') || assessmentType.includes('elbow') || assessmentType.includes('arm');
+  const isWristAssessment = assessmentType.includes('wrist') || assessmentType.includes('flexion') || assessmentType.includes('extension');
   const previousLandmarks = useRef<any[]>([]);
   const frameConfidenceScores = useRef<number[]>([]);
+  const currentPoseLandmarks = useRef<any[]>([]);
 
   // Calculate tracking confidence for finger stability
   const calculateFingerConfidence = (landmarks: any[], fingerIndices: number[]) => {
@@ -100,145 +104,186 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
     prevIsRecording.current = isRecording;
   }
 
+  // Process pose tracking results for enhanced wrist assessment
+  const onPoseResults = useCallback((results: any) => {
+    if (results.poseLandmarks && results.poseLandmarks.length > 0) {
+      currentPoseLandmarks.current = results.poseLandmarks;
+      console.log(`Pose detected with ${results.poseLandmarks.length} landmarks`);
+    } else {
+      currentPoseLandmarks.current = [];
+    }
+  }, []);
+
   // Initialize MediaPipe tracking systems with enhanced production support
   const initializeExerAI = useCallback(async () => {
     console.log('Starting MediaPipe initialization...');
     
     try {
-      if (isArmAssessment) {
-        // Initialize pose tracking for full arm assessments
-        const { Pose } = await import('@mediapipe/pose');
+      // Initialize dual tracking for wrist assessments or full arm assessments
+      if (isArmAssessment || isWristAssessment) {
+        console.log('Initializing pose tracking for enhanced wrist/arm assessment...');
         
-        poseRef.current = new Pose({
-          locateFile: (file: string) => {
-            return `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`;
-          }
-        });
-
-        poseRef.current.setOptions({
-          modelComplexity: 1,
-          smoothLandmarks: true,
-          enableSegmentation: false,
-          smoothSegmentation: false,
-          minDetectionConfidence: 0.5,
-          minTrackingConfidence: 0.5
-        });
-
-        poseRef.current.onResults(onPoseResults);
-        console.log('Pose tracking initialized successfully');
-      } else {
-        // Production-ready MediaPipe initialization
-        console.log('Initializing MediaPipe for production deployment...');
-        
-        let HandsClass;
-        
-        // Strategy 1: Try to load MediaPipe via CDN first (more reliable for production)
-        try {
-          console.log('Loading MediaPipe via CDN for production...');
-          
-          // Load MediaPipe script if not already loaded
-          if (!document.querySelector('script[src*="mediapipe"]')) {
-            await new Promise<void>((resolve, reject) => {
-              const script = document.createElement('script');
-              script.src = 'https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.js';
-              script.crossOrigin = 'anonymous';
-              
-              script.onload = () => {
-                console.log('MediaPipe CDN script loaded');
-                setTimeout(resolve, 200); // Give it time to initialize
-              };
-              
-              script.onerror = () => {
-                console.log('CDN script failed to load');
-                reject(new Error('CDN load failed'));
-              };
-              
-              document.head.appendChild(script);
-            });
-          }
-          
-          // Wait for MediaPipe to be available
-          let attempts = 0;
-          while (attempts < 20 && !(window as any).Hands) {
-            await new Promise(resolve => setTimeout(resolve, 100));
-            attempts++;
-          }
-          
-          if ((window as any).Hands) {
-            HandsClass = (window as any).Hands;
-            console.log('MediaPipe loaded from CDN successfully');
-          } else {
-            throw new Error('MediaPipe not available after CDN load');
-          }
-        } catch (cdnError) {
-          console.log('CDN loading failed, trying direct import...');
-          
-          // Strategy 2: Create fallback if CDN fails
-          try {
-            throw new Error('Skipping direct import to avoid dependency issues');
-          } catch (importError) {
-            console.log('All MediaPipe loading failed, using camera-only mode...');
+        // Load MediaPipe Pose script if not already loaded
+        if (!document.querySelector('script[src*="pose"]')) {
+          await new Promise<void>((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675471629/pose.js';
+            script.crossOrigin = 'anonymous';
             
-            // Create a working fallback for camera-only mode
-            HandsClass = function(config: any) {
-              return {
-                setOptions: (opts: any) => {
-                  console.log('Camera-only mode: options set');
-                },
-                onResults: (callback: any) => {
-                  console.log('Camera-only mode: results callback set');
-                },
-                send: async (inputs: any) => {
-                  // Do nothing - camera-only mode
-                }
-              };
+            script.onload = () => {
+              console.log('MediaPipe Pose script loaded');
+              setTimeout(resolve, 200);
             };
             
-            console.log('Using camera-only fallback mode');
-          }
+            script.onerror = () => {
+              console.log('Pose script failed to load');
+              reject(new Error('Pose load failed'));
+            };
+            
+            document.head.appendChild(script);
+          });
         }
 
-        console.log('Creating MediaPipe Hands instance...');
-        
-        // Create hands instance with enhanced error handling
-        try {
-          handsRef.current = new HandsClass({
+        // Wait for Pose to be available
+        let attempts = 0;
+        while (attempts < 20 && !(window as any).Pose) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+          attempts++;
+        }
+
+        if ((window as any).Pose) {
+          const PoseClass = (window as any).Pose;
+          poseRef.current = new PoseClass({
             locateFile: (file: string) => {
-              console.log(`Loading MediaPipe file: ${file}`);
-              // Primary CDN with fallback
-              if (file.endsWith('.wasm') || file.endsWith('.data')) {
-                return `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/${file}`;
-              }
-              return `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/${file}`;
+              return `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675471629/${file}`;
             }
           });
-          
-          console.log('MediaPipe Hands instance created successfully');
-        } catch (instanceError) {
-          console.error('Failed to create Hands instance:', instanceError);
-          const errorMsg = instanceError instanceof Error ? instanceError.message : 'Unknown instance error';
-          throw new Error(`Instance creation failed: ${errorMsg}`);
-        }
 
-        // Configure with production-optimized settings
-        console.log('Configuring MediaPipe options...');
-        try {
-          handsRef.current.setOptions({
-            maxNumHands: 1,
+          poseRef.current.setOptions({
             modelComplexity: 1,
-            minDetectionConfidence: 0.4,  // Slightly lower for production
-            minTrackingConfidence: 0.3,   // Lower for continuous tracking
-            staticImageMode: false,
-            selfieMode: true
+            smoothLandmarks: true,
+            enableSegmentation: false,
+            smoothSegmentation: false,
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5
           });
-          
-          handsRef.current.onResults(onHandResults);
-          console.log('MediaPipe configuration complete');
-        } catch (configError) {
-          console.error('Failed to configure MediaPipe:', configError);
-          const errorMsg = configError instanceof Error ? configError.message : 'Unknown config error';
-          throw new Error(`Configuration failed: ${errorMsg}`);
+
+          poseRef.current.onResults(onPoseResults);
+          console.log('Pose tracking initialized successfully');
         }
+      }
+      
+      // Always initialize hand tracking
+      console.log('Initializing MediaPipe hands for production deployment...');
+      
+      let HandsClass;
+      
+      // Strategy 1: Try to load MediaPipe via CDN first (more reliable for production)
+      try {
+        console.log('Loading MediaPipe via CDN for production...');
+        
+        // Load MediaPipe script if not already loaded
+        if (!document.querySelector('script[src*="mediapipe"]')) {
+          await new Promise<void>((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.js';
+            script.crossOrigin = 'anonymous';
+            
+            script.onload = () => {
+              console.log('MediaPipe CDN script loaded');
+              setTimeout(resolve, 200); // Give it time to initialize
+            };
+            
+            script.onerror = () => {
+              console.log('CDN script failed to load');
+              reject(new Error('CDN load failed'));
+            };
+            
+            document.head.appendChild(script);
+          });
+        }
+        
+        // Wait for MediaPipe to be available
+        let attempts = 0;
+        while (attempts < 20 && !(window as any).Hands) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+          attempts++;
+        }
+        
+        if ((window as any).Hands) {
+          HandsClass = (window as any).Hands;
+          console.log('MediaPipe loaded from CDN successfully');
+        } else {
+          throw new Error('MediaPipe not available after CDN load');
+        }
+      } catch (cdnError) {
+        console.log('CDN loading failed, trying direct import...');
+        
+        // Strategy 2: Create fallback if CDN fails
+        try {
+          throw new Error('Skipping direct import to avoid dependency issues');
+        } catch (importError) {
+          console.log('All MediaPipe loading failed, using camera-only mode...');
+          
+          // Create a working fallback for camera-only mode
+          HandsClass = function(config: any) {
+            return {
+              setOptions: (opts: any) => {
+                console.log('Camera-only mode: options set');
+              },
+              onResults: (callback: any) => {
+                console.log('Camera-only mode: results callback set');
+              },
+              send: async (inputs: any) => {
+                // Do nothing - camera-only mode
+              }
+            };
+          };
+          
+          console.log('Using camera-only fallback mode');
+        }
+      }
+
+      console.log('Creating MediaPipe Hands instance...');
+      
+      // Create hands instance with enhanced error handling
+      try {
+        handsRef.current = new HandsClass({
+          locateFile: (file: string) => {
+            console.log(`Loading MediaPipe file: ${file}`);
+            // Primary CDN with fallback
+            if (file.endsWith('.wasm') || file.endsWith('.data')) {
+              return `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/${file}`;
+            }
+            return `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/${file}`;
+          }
+        });
+        
+        console.log('MediaPipe Hands instance created successfully');
+      } catch (instanceError) {
+        console.error('Failed to create Hands instance:', instanceError);
+        const errorMsg = instanceError instanceof Error ? instanceError.message : 'Unknown instance error';
+        throw new Error(`Instance creation failed: ${errorMsg}`);
+      }
+
+      // Configure with production-optimized settings
+      console.log('Configuring MediaPipe options...');
+      try {
+        handsRef.current.setOptions({
+          maxNumHands: 1,
+          modelComplexity: 1,
+          minDetectionConfidence: 0.4,  // Slightly lower for production
+          minTrackingConfidence: 0.3,   // Lower for continuous tracking
+          staticImageMode: false,
+          selfieMode: true
+        });
+        
+        handsRef.current.onResults(onHandResults);
+        console.log('MediaPipe configuration complete');
+      } catch (configError) {
+        console.error('Failed to configure MediaPipe:', configError);
+        const errorMsg = configError instanceof Error ? configError.message : 'Unknown config error';
+        throw new Error(`Configuration failed: ${errorMsg}`);
       }
 
       console.log('MediaPipe initialization completed successfully');
@@ -255,9 +300,9 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
       });
       return false;
     }
-  }, [isArmAssessment, onUpdate]);
+  }, [isArmAssessment, isWristAssessment, onUpdate]);
 
-  // Process Exer AI hand tracking results
+  // Process Exer AI hand tracking results with enhanced wrist calculation
   const onHandResults = useCallback((results: any) => {
     const canvas = canvasRef.current;
     const video = videoRef.current;
@@ -300,7 +345,6 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
 
     let handDetected = false;
     let landmarks: any[] = [];
-
     let detectedHandType = "";
     
     if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
@@ -375,6 +419,18 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
       const centerX = landmarks.reduce((sum: number, landmark: any) => sum + landmark.x, 0) / landmarks.length;
       const centerY = landmarks.reduce((sum: number, landmark: any) => sum + landmark.y, 0) / landmarks.length;
 
+      // Enhanced wrist angle calculation for wrist assessments
+      let wristAngles = null;
+      if (isWristAssessment && landmarks.length >= 21) {
+        try {
+          const { calculateWristAngles } = await import('@/../../shared/wrist-calculator');
+          wristAngles = calculateWristAngles(landmarks, currentPoseLandmarks.current);
+          console.log('Wrist angles calculated:', wristAngles);
+        } catch (error) {
+          console.warn('Wrist calculation failed:', error);
+        }
+      }
+
       // Update tracking information
       const updateData = {
         handDetected: true,
@@ -382,7 +438,9 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
         trackingQuality: "Excellent",
         handPosition: `X: ${Math.round(centerX * 100)}%, Y: ${Math.round(centerY * 100)}%`,
         landmarks: landmarks,
-        handType: detectedHandType
+        handType: detectedHandType,
+        poseLandmarks: currentPoseLandmarks.current,
+        wristAngles: wristAngles
       };
       
       if (isRecording) {
@@ -399,431 +457,124 @@ export default function ExerAIHandler({ onUpdate, isRecording, assessmentType }:
         handPosition: "No hand detected"
       });
     }
+  }, [calculateFingerConfidence, isWristAssessment, isRecording, onUpdate]);
 
-    // Draw status text
-    ctx.fillStyle = handDetected ? '#00ff00' : '#ff6666';
-    ctx.font = '16px Arial';
-    ctx.fillText(handDetected ? `Hand Tracked (${landmarks.length} joints)` : 'Position hand in view', 10, 30);
-    
-    if (handDetected) {
-      ctx.fillStyle = '#ffffff';
-      ctx.font = '12px Arial';
-      ctx.fillText('Exer AI hand tracking active', 10, 50);
-    }
-  }, [onUpdate]);
-
-  // Process Exer AI pose tracking results for arm assessments
-  const onPoseResults = useCallback((results: any) => {
-    const canvas = canvasRef.current;
+  // Animation loop for continuous tracking
+  const animate = useCallback(() => {
     const video = videoRef.current;
     
-    if (!canvas || !video) return;
+    if (!video || video.readyState < 2) {
+      animationRef.current = requestAnimationFrame(animate);
+      return;
+    }
 
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    const currentTime = Date.now();
+    
+    // Throttle processing to ~15fps for better performance
+    if (currentTime - lastFrameTime.current >= 66) {
+      lastFrameTime.current = currentTime;
+      
+      // Send frame to both hand and pose detection if needed
+      if ((isArmAssessment || isWristAssessment) && poseRef.current) {
+        poseRef.current.send({ image: video });
+      }
+      if (handsRef.current) {
+        handsRef.current.send({ image: video });
+      }
+    }
 
-    // Set canvas dimensions
-    canvas.width = video.videoWidth || 640;
-    canvas.height = video.videoHeight || 480;
+    animationRef.current = requestAnimationFrame(animate);
+  }, [isArmAssessment, isWristAssessment]);
 
-    // Draw video frame
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  // Start camera and initialize MediaPipe
+  const startCamera = useCallback(async () => {
+    try {
+      const video = videoRef.current;
+      if (!video) return;
 
-    let poseDetected = false;
-    let landmarks: any[] = [];
-
-    if (results.poseLandmarks) {
-      poseDetected = true;
-      landmarks = results.poseLandmarks;
-
-      // Key arm landmarks (shoulder, elbow, wrist)
-      const armLandmarks = [
-        11, // Left shoulder
-        12, // Right shoulder
-        13, // Left elbow
-        14, // Right elbow
-        15, // Left wrist
-        16, // Right wrist
-        17, // Left pinky
-        18, // Right pinky
-        19, // Left index
-        20, // Right index
-        21, // Left thumb
-        22  // Right thumb
-      ];
-
-      // Draw arm landmarks
-      ctx.fillStyle = '#00ff00';
-      armLandmarks.forEach((index) => {
-        if (landmarks[index]) {
-          const landmark = landmarks[index];
-          const x = landmark.x * canvas.width;
-          const y = landmark.y * canvas.height;
-          
-          ctx.beginPath();
-          ctx.arc(x, y, 6, 0, 2 * Math.PI);
-          ctx.fill();
-
-          // Label key joints
-          ctx.fillStyle = '#ffffff';
-          ctx.font = '10px Arial';
-          const labels = ['', '', '', '', '', '', '', '', '', '', '', 'L-Shoulder', 'R-Shoulder', 'L-Elbow', 'R-Elbow', 'L-Wrist', 'R-Wrist'];
-          if (labels[index]) {
-            ctx.fillText(labels[index], x + 8, y - 8);
-          }
-          ctx.fillStyle = '#00ff00';
+      // Request camera permission and stream
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          facingMode: 'user'
         }
       });
 
-      // Draw arm connections
-      ctx.strokeStyle = '#00ff00';
-      ctx.lineWidth = 3;
-      
-      // Left arm: shoulder -> elbow -> wrist
-      if (landmarks[11] && landmarks[13] && landmarks[15]) {
-        ctx.beginPath();
-        ctx.moveTo(landmarks[11].x * canvas.width, landmarks[11].y * canvas.height);
-        ctx.lineTo(landmarks[13].x * canvas.width, landmarks[13].y * canvas.height);
-        ctx.lineTo(landmarks[15].x * canvas.width, landmarks[15].y * canvas.height);
-        ctx.stroke();
+      video.srcObject = stream;
+      video.play();
+
+      video.onloadedmetadata = () => {
+        console.log(`Video dimensions: ${video.videoWidth}x${video.videoHeight}`);
+      };
+
+      // Initialize MediaPipe once video is ready
+      const success = await initializeExerAI();
+      if (success) {
+        animate();
       }
-
-      // Right arm: shoulder -> elbow -> wrist
-      if (landmarks[12] && landmarks[14] && landmarks[16]) {
-        ctx.beginPath();
-        ctx.moveTo(landmarks[12].x * canvas.width, landmarks[12].y * canvas.height);
-        ctx.lineTo(landmarks[14].x * canvas.width, landmarks[14].y * canvas.height);
-        ctx.lineTo(landmarks[16].x * canvas.width, landmarks[16].y * canvas.height);
-        ctx.stroke();
-      }
-
-      // Calculate arm angles for assessment
-      const leftElbowAngle = calculateElbowAngle(landmarks[11], landmarks[13], landmarks[15]);
-      const rightElbowAngle = calculateElbowAngle(landmarks[12], landmarks[14], landmarks[16]);
-
-      // Update tracking information
-      onUpdate({
-        handDetected: true,
-        landmarksCount: armLandmarks.filter(i => landmarks[i]).length,
-        trackingQuality: "Excellent",
-        handPosition: `L-Elbow: ${leftElbowAngle}°, R-Elbow: ${rightElbowAngle}°`
-      });
-    } else {
-      // No pose detected
+    } catch (error) {
+      console.error('Camera initialization failed:', error);
       onUpdate({
         handDetected: false,
         landmarksCount: 0,
-        trackingQuality: "Poor",
-        handPosition: "Position body in view"
+        trackingQuality: "Camera Error",
+        handPosition: `Camera failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
     }
+  }, [initializeExerAI, animate, onUpdate]);
 
-    // Draw status text
-    ctx.fillStyle = poseDetected ? '#00ff00' : '#ff6666';
-    ctx.font = '16px Arial';
-    ctx.fillText(poseDetected ? `Full Arm Tracking Active` : 'Position upper body in view', 10, 30);
-    
-    if (poseDetected) {
-      ctx.fillStyle = '#ffffff';
-      ctx.font = '12px Arial';
-      ctx.fillText('Exer AI pose tracking - shoulders, elbows, wrists', 10, 50);
-    }
-  }, [onUpdate]);
-
-  // Calculate elbow angle for range of motion assessment
-  const calculateElbowAngle = (shoulder: any, elbow: any, wrist: any) => {
-    if (!shoulder || !elbow || !wrist) return 0;
-    
-    const vector1 = {
-      x: shoulder.x - elbow.x,
-      y: shoulder.y - elbow.y
-    };
-    
-    const vector2 = {
-      x: wrist.x - elbow.x,
-      y: wrist.y - elbow.y
-    };
-    
-    const dot = vector1.x * vector2.x + vector1.y * vector2.y;
-    const mag1 = Math.sqrt(vector1.x * vector1.x + vector1.y * vector1.y);
-    const mag2 = Math.sqrt(vector2.x * vector2.x + vector2.y * vector2.y);
-    
-    const angle = Math.acos(dot / (mag1 * mag2)) * (180 / Math.PI);
-    return Math.round(angle);
-  };
-
-  // Process video frames with MediaPipe
-  const processFrame = useCallback(async () => {
-    const video = videoRef.current;
-    
-    if (!video || video.readyState !== video.HAVE_ENOUGH_DATA) {
-      animationRef.current = requestAnimationFrame(processFrame);
-      return;
-    }
-
-    const now = performance.now();
-    
-    // Throttle to 30 FPS
-    if (now - lastFrameTime.current < 33) {
-      animationRef.current = requestAnimationFrame(processFrame);
-      return;
-    }
-    
-    lastFrameTime.current = now;
-
-    try {
-      if (isArmAssessment && poseRef.current) {
-        await poseRef.current.send({ image: video });
-      } else if (!isArmAssessment && handsRef.current) {
-        await handsRef.current.send({ image: video });
-      }
-    } catch (error) {
-      console.warn('Frame processing failed:', error);
-    }
-
-    animationRef.current = requestAnimationFrame(processFrame);
-  }, []);
-
+  // Effect to start camera and tracking
   useEffect(() => {
-    const startSystem = async () => {
-      console.log('Starting camera and tracking system...');
-      
-      try {
-        // Enhanced camera initialization with better error handling
-        console.log('Requesting camera access...');
-        const constraints = {
-          video: { 
-            width: { ideal: 640, max: 1280 },
-            height: { ideal: 480, max: 720 },
-            facingMode: 'user',
-            frameRate: { ideal: 30, max: 60 }
-          }
-        };
-        
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
-        console.log('✓ Camera access granted');
-        
-        if (videoRef.current) {
-          console.log('Setting up video element...');
-          videoRef.current.srcObject = stream;
-          
-          // Enhanced video loading with timeout
-          await new Promise<void>((resolve, reject) => {
-            const video = videoRef.current!;
-            let hasResolved = false;
-            
-            const onMetadataLoaded = () => {
-              if (!hasResolved) {
-                hasResolved = true;
-                console.log('✓ Video metadata loaded:', {
-                  width: video.videoWidth,
-                  height: video.videoHeight,
-                  readyState: video.readyState
-                });
-                resolve();
-              }
-            };
-            
-            const onLoadedData = () => {
-              if (!hasResolved && video.readyState >= 2) {
-                hasResolved = true;
-                console.log('✓ Video data loaded');
-                resolve();
-              }
-            };
-            
-            video.onloadedmetadata = onMetadataLoaded;
-            video.onloadeddata = onLoadedData;
-            
-            // Timeout fallback
-            setTimeout(() => {
-              if (!hasResolved) {
-                hasResolved = true;
-                console.log('⚠ Video loading timeout, proceeding anyway');
-                resolve();
-              }
-            }, 5000);
-          });
-          
-          console.log('Starting video playback...');
-          try {
-            await videoRef.current.play();
-            console.log('✓ Video playback started successfully');
-          } catch (playError) {
-            console.warn('Video play failed, but continuing:', playError);
-          }
-        }
-
-        // Initialize MediaPipe with enhanced retry logic
-        console.log('Initializing MediaPipe tracking...');
-        let initialized = false;
-        let initAttempts = 0;
-        const maxAttempts = 3;
-        
-        while (!initialized && initAttempts < maxAttempts) {
-          initAttempts++;
-          console.log(`MediaPipe initialization attempt ${initAttempts}/${maxAttempts}`);
-          
-          try {
-            initialized = await initializeExerAI();
-            if (initialized) {
-              console.log('✓ MediaPipe initialization successful');
-            } else {
-              console.log(`✗ MediaPipe initialization failed (attempt ${initAttempts})`);
-              if (initAttempts < maxAttempts) {
-                console.log('Retrying in 1 second...');
-                await new Promise(resolve => setTimeout(resolve, 1000));
-              }
-            }
-          } catch (error) {
-            console.error(`MediaPipe initialization error (attempt ${initAttempts}):`, error);
-            if (initAttempts < maxAttempts) {
-              await new Promise(resolve => setTimeout(resolve, 1000));
-            }
-          }
-        }
-        
-        if (initialized) {
-          console.log('🚀 Starting MediaPipe frame processing...');
-          processFrame();
-        } else {
-          console.log('⚠ MediaPipe failed, falling back to camera-only mode');
-          startBasicCameraMode();
-        }
-      } catch (error) {
-        console.error("System startup failed:", error);
-        let errorMessage = "Camera access error";
-        
-        if (error instanceof Error) {
-          switch (error.name) {
-            case 'NotAllowedError':
-              errorMessage = "Camera permission denied. Please allow camera access and refresh.";
-              break;
-            case 'NotFoundError':
-              errorMessage = "No camera found. Please connect a camera and refresh.";
-              break;
-            case 'NotSupportedError':
-              errorMessage = "Camera not supported. Please use HTTPS or a compatible browser.";
-              break;
-            case 'NotReadableError':
-              errorMessage = "Camera in use by another application.";
-              break;
-            case 'OverconstrainedError':
-              errorMessage = "Camera constraints not supported. Using fallback settings.";
-              break;
-            default:
-              errorMessage = `Camera error: ${error.message}`;
-          }
-        }
-        
-        console.error('Final error state:', errorMessage);
-        onUpdate({
-          handDetected: false,
-          landmarksCount: 0,
-          trackingQuality: "Error",
-          handPosition: errorMessage
-        });
-      }
-    };
-
-    startSystem();
+    startCamera();
 
     return () => {
-      console.log('Cleaning up camera and tracking system...');
-      
+      // Cleanup function
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
       }
       
-      if (videoRef.current?.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
-        stream.getTracks().forEach(track => {
-          track.stop();
-          console.log(`Stopped ${track.kind} track`);
-        });
-      }
-      
-      console.log('Cleanup complete');
-    };
-  }, []);
-
-  // Basic camera mode without hand tracking when MediaPipe fails
-  const startBasicCameraMode = useCallback(() => {
-    console.log('Starting basic camera mode...');
-    
-    const drawBasicVideo = () => {
-      const canvas = canvasRef.current;
       const video = videoRef.current;
-      
-      if (!canvas || !video) {
-        requestAnimationFrame(drawBasicVideo);
-        return;
+      if (video && video.srcObject) {
+        const stream = video.srcObject as MediaStream;
+        stream.getTracks().forEach(track => track.stop());
       }
-
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        requestAnimationFrame(drawBasicVideo);
-        return;
-      }
-
-      // Set canvas dimensions
-      canvas.width = video.videoWidth || 640;
-      canvas.height = video.videoHeight || 480;
-
-      try {
-        if (video.readyState >= 2 && video.videoWidth > 0) {
-          // Draw unmirrored video for joint-test page
-          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-          
-          // Add "Camera Only" indicator
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-          ctx.fillRect(10, 10, 120, 30);
-          ctx.fillStyle = '#000000';
-          ctx.font = '14px Arial';
-          ctx.fillText('Camera Only', 15, 30);
-          
-          // Update with basic status
-          onUpdate({
-            handDetected: false,
-            landmarksCount: 0,
-            trackingQuality: "Camera Only",
-            handPosition: "Hand tracking unavailable"
-          });
-        }
-      } catch (error) {
-        console.warn('Basic video draw error:', error);
-      }
-
-      requestAnimationFrame(drawBasicVideo);
     };
-
-    drawBasicVideo();
-  }, [onUpdate]);
+  }, [startCamera]);
 
   return (
-    <div className="relative">
+    <div className="relative w-full max-w-md mx-auto bg-black rounded-lg overflow-hidden">
+      {/* Hidden video element for MediaPipe processing */}
       <video
         ref={videoRef}
         className="hidden"
-        playsInline
+        autoPlay
         muted
+        playsInline
       />
+      
+      {/* Canvas for visualization */}
       <canvas
         ref={canvasRef}
-        className="w-full h-full border-2 border-medical-primary rounded-lg"
-        width={640}
-        height={480}
+        className="w-full h-auto"
+        style={{ maxHeight: '400px' }}
       />
-      <div className="absolute top-2 right-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-sm">
-        {isRecording ? "Recording..." : "Preview"}
-      </div>
-      <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs flex items-center space-x-1">
+      
+      {/* Exer AI branding overlay */}
+      <div className="absolute top-2 left-2 bg-black bg-opacity-50 rounded px-2 py-1">
         <img 
           src={exerLogoPath} 
           alt="Exer AI" 
-          className="h-3 w-auto brightness-0 invert"
+          className="h-6 w-auto opacity-80"
         />
-        <span>Hand Tracking</span>
+      </div>
+      
+      {/* Status overlay */}
+      <div className="absolute bottom-2 left-2 right-2 bg-black bg-opacity-50 rounded px-2 py-1 text-white text-xs">
+        Assessment: {assessmentType}
+        {isWristAssessment && (
+          <div className="text-green-400">Enhanced wrist tracking active</div>
+        )}
       </div>
     </div>
   );
