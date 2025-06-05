@@ -118,6 +118,9 @@ export default function Recording() {
             recordingStartTimeRef.current = startTime;
             setRecordingMotionData([]);
             recordingMotionDataRef.current = [];
+            // Reset session hand type for new recording
+            setSessionHandType('UNKNOWN');
+            console.log('🔄 Reset session hand type for new recording');
             setMaxROM({ mcpAngle: 0, pipAngle: 0, dipAngle: 0, totalActiveRom: 0 });
             return 0;
           }

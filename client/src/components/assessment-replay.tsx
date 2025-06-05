@@ -792,14 +792,15 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
         
         // Draw elbow and forearm line if pose landmarks available
         if (frame.poseLandmarks && frame.poseLandmarks.length > 15) {
-          // Determine which elbow based on hand type
-          const elbowIndex = currentWristAngles.handType === 'LEFT' ? 13 : 14; // Left elbow: 13, Right elbow: 14
-          const poseWristIndex = currentWristAngles.handType === 'LEFT' ? 15 : 16; // Left wrist: 15, Right wrist: 16
+          // Use stored session hand type for consistent elbow tracking throughout replay
+          const sessionHandType = frame.sessionHandType || frame.handedness || currentWristAngles.handType;
+          const elbowIndex = sessionHandType === 'LEFT' ? 13 : 14; // Left elbow: 13, Right elbow: 14
+          const poseWristIndex = sessionHandType === 'LEFT' ? 15 : 16; // Left wrist: 15, Right wrist: 16
           
           const elbow = frame.poseLandmarks[elbowIndex];
           const poseWrist = frame.poseLandmarks[poseWristIndex];
           
-          console.log(`Elbow detection debug - Hand: ${currentWristAngles.handType}, ElbowIndex: ${elbowIndex}, Elbow visibility: ${elbow?.visibility || 'undefined'}, PoseWrist visibility: ${poseWrist?.visibility || 'undefined'}`);
+          console.log(`Elbow detection debug - SessionHand: ${sessionHandType}, ElbowIndex: ${elbowIndex}, Elbow visibility: ${elbow?.visibility || 'undefined'}, PoseWrist visibility: ${poseWrist?.visibility || 'undefined'}`);
           
           if (elbow && poseWrist && (elbow.visibility || 1) > 0.5) {
             const elbowX = elbow.x * canvas.width;
