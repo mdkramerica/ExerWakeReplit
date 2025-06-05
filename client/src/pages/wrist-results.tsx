@@ -67,6 +67,23 @@ export default function WristResults() {
 
   const { userAssessment, assessment, user } = results;
   
+  // Handle cases where assessment might not be loaded yet
+  if (!assessment || !userAssessment || !user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="animate-pulse space-y-8">
+            <div className="h-8 bg-gray-300 rounded w-1/3"></div>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="h-64 bg-gray-300 rounded"></div>
+              <div className="h-64 bg-gray-300 rounded"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
   // Clinical reference ranges for wrist ROM
   const normalFlexionRange = [0, 80];
   const normalExtensionRange = [0, 70];
