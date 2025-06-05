@@ -128,24 +128,33 @@ function determineHandType(
   const distanceToLeft = euclideanDistance3D(handWrist, leftPoseWrist);
   const distanceToRight = euclideanDistance3D(handWrist, rightPoseWrist);
 
-  // Determine closer side
-  const isLeftCloser = distanceToLeft < distanceToRight;
+  // Use a more sophisticated approach: check which side has better overall tracking
+  const leftScore = (leftWristVisibility + leftElbowVisibility) / 2;
+  const rightScore = (rightWristVisibility + rightElbowVisibility) / 2;
   
-  // More permissive hand type detection for reliable locking
-  if (isLeftCloser) {
-    // Choosing left - ensure left landmarks have minimal visibility
-    if (leftWristVisibility > 0.3 && leftElbowVisibility > 0.3) {
-      return 'LEFT';
-    }
+  // Primary determination: which pose landmarks are more visible/reliable
+  let primaryChoice: 'LEFT' | 'RIGHT';
+  if (Math.abs(leftScore - rightScore) > 0.1) {
+    // Clear winner based on visibility
+    primaryChoice = leftScore > rightScore ? 'LEFT' : 'RIGHT';
   } else {
-    // Choosing right - ensure right landmarks have minimal visibility
-    if (rightWristVisibility > 0.3 && rightElbowVisibility > 0.3) {
-      return 'RIGHT';
-    }
+    // Close visibility scores, use distance
+    primaryChoice = distanceToLeft < distanceToRight ? 'LEFT' : 'RIGHT';
+  }
+  
+  // Validate the choice has minimum requirements
+  if (primaryChoice === 'LEFT' && leftWristVisibility > 0.3 && leftElbowVisibility > 0.3) {
+    return 'LEFT';
+  } else if (primaryChoice === 'RIGHT' && rightWristVisibility > 0.3 && rightElbowVisibility > 0.3) {
+    return 'RIGHT';
   }
 
-  // Final fallback - use distance-based detection even with low visibility
-  return isLeftCloser ? 'LEFT' : 'RIGHT';
+  // Fallback with lower thresholds
+  if (leftScore > 0.2 || rightScore > 0.2) {
+    return leftScore > rightScore ? 'LEFT' : 'RIGHT';
+  }
+
+  return 'UNKNOWN';
 }
 
 export function calculateElbowReferencedWristAngleWithForce(

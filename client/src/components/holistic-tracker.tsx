@@ -122,7 +122,9 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType 
       }
       
       // Debug logging to track detection issues
-      console.log(`Hand type detection: Current=${currentDetection.handType}, Locked=${lastHandTypeRef.current}, Confidence=${currentDetection.confidence}`);
+      if (currentDetection.handType !== 'UNKNOWN' || lastHandTypeRef.current !== 'UNKNOWN') {
+        console.log(`🔍 Hand Detection - Current: ${currentDetection.handType}, Locked: ${lastHandTypeRef.current}, Confidence: ${currentDetection.confidence.toFixed(3)}`);
+      }
       
       // Force the locked hand type for consistent calculation
       if (lastHandTypeRef.current !== 'UNKNOWN') {

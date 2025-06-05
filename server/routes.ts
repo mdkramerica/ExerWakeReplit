@@ -259,11 +259,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.log(`Updated maxWristExtension: ${maxWristExtension}`);
           }
           
-          // Collect motion data for all finger calculations
+          // Collect motion data for all finger calculations and extract wrist angle data
           if (rep.motionData && Array.isArray(rep.motionData)) {
             allMotionFrames.push(...rep.motionData);
+            
+            // Extract wrist angles from motion frames for wrist assessments
+            rep.motionData.forEach((frame: any) => {
+              if (frame.wristAngles) {
+                const frameWristAngles = frame.wristAngles;
+                if (frameWristAngles.wristFlexionAngle !== undefined && frameWristAngles.wristFlexionAngle > 0) {
+                  wristFlexionAngle = Math.max(wristFlexionAngle || 0, frameWristAngles.wristFlexionAngle);
+                }
+                if (frameWristAngles.wristExtensionAngle !== undefined && frameWristAngles.wristExtensionAngle > 0) {
+                  wristExtensionAngle = Math.max(wristExtensionAngle || 0, frameWristAngles.wristExtensionAngle);
+                }
+              }
+            });
           }
         });
+        
+        // Update max wrist values based on extracted data
+        if (wristFlexionAngle !== null && wristFlexionAngle > 0) {
+          maxWristFlexion = Math.max(maxWristFlexion || 0, wristFlexionAngle);
+          console.log(`Final maxWristFlexion: ${maxWristFlexion}`);
+        }
+        if (wristExtensionAngle !== null && wristExtensionAngle > 0) {
+          maxWristExtension = Math.max(maxWristExtension || 0, wristExtensionAngle);
+          console.log(`Final maxWristExtension: ${maxWristExtension}`);
+        }
         
         // Calculate max ROM for all fingers if motion data exists
         if (allMotionFrames.length > 0) {
