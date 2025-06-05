@@ -165,10 +165,19 @@ export default function Recording() {
     if (recordingMotionDataRef.current.length > 0) {
       recordingMotionDataRef.current.forEach(frame => {
         if (frame.wristAngles) {
-          maxWristFlexion = Math.max(maxWristFlexion, frame.wristAngles.flexionAngle || 0);
-          maxWristExtension = Math.max(maxWristExtension, frame.wristAngles.extensionAngle || 0);
-          currentFlexion = frame.wristAngles.flexionAngle || 0;
-          currentExtension = frame.wristAngles.extensionAngle || 0;
+          const frameFlexion = frame.wristAngles.flexionAngle || 0;
+          const frameExtension = frame.wristAngles.extensionAngle || 0;
+          
+          // Track maximum values across all frames
+          if (frameFlexion > maxWristFlexion) {
+            maxWristFlexion = frameFlexion;
+            currentFlexion = frameFlexion;
+          }
+          
+          if (frameExtension > maxWristExtension) {
+            maxWristExtension = frameExtension;
+            currentExtension = frameExtension;
+          }
         }
       });
     }

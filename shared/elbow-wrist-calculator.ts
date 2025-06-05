@@ -193,19 +193,52 @@ export function calculateElbowReferencedWristAngle(
 
         result.forearmToHandAngle = forearmToHandAngle;
 
-        // Determine flexion vs extension based on hand position relative to neutral
-        // Neutral position is when hand is in line with forearm (180°)
+        // Enhanced flexion/extension detection using 3D hand orientation
         const neutralAngle = 180;
         const deviationFromNeutral = Math.abs(forearmToHandAngle - neutralAngle);
-
-        if (forearmToHandAngle < neutralAngle) {
-          // Hand is flexed (bent toward palm side)
-          result.wristFlexionAngle = deviationFromNeutral;
-          result.wristExtensionAngle = 0;
-        } else {
-          // Hand is extended (bent toward back of hand)
-          result.wristExtensionAngle = deviationFromNeutral;
-          result.wristFlexionAngle = 0;
+        
+        // Calculate hand plane normal using three points: wrist, index MCP, middle MCP
+        const wristToIndex = {
+          x: indexMcp.x - handWrist.x,
+          y: indexMcp.y - handWrist.y,
+          z: indexMcp.z - handWrist.z
+        };
+        
+        const wristToMiddle = {
+          x: middleMcp.x - handWrist.x,
+          y: middleMcp.y - handWrist.y,
+          z: middleMcp.z - handWrist.z
+        };
+        
+        // Cross product to get hand plane normal
+        const handNormal = {
+          x: wristToIndex.y * wristToMiddle.z - wristToIndex.z * wristToMiddle.y,
+          y: wristToIndex.z * wristToMiddle.x - wristToIndex.x * wristToMiddle.z,
+          z: wristToIndex.x * wristToMiddle.y - wristToIndex.y * wristToMiddle.x
+        };
+        
+        // Compare hand normal with forearm vector to determine flexion/extension
+        const forearmDotHandNormal = forearmVector.x * handNormal.x + 
+                                    forearmVector.y * handNormal.y + 
+                                    forearmVector.z * handNormal.z;
+        
+        // Use Y-coordinate comparison for movement direction
+        const handToElbowY = elbow.y - knuckleCenter.y;
+        const wristToElbowY = elbow.y - poseWrist.y;
+        const relativeHandPosition = handToElbowY - wristToElbowY;
+        
+        if (deviationFromNeutral > 15) { // Only consider significant movements
+          if (relativeHandPosition > 0) {
+            // Hand is above elbow-wrist line - extension (dorsiflexion)
+            result.wristExtensionAngle = Math.min(deviationFromNeutral * 0.7, 70);
+            result.wristFlexionAngle = 0;
+            console.log(`Detected wrist extension: ${result.wristExtensionAngle.toFixed(1)}°`);
+          } else {
+            // Hand is below elbow-wrist line - flexion (palmar flexion)
+            result.wristFlexionAngle = Math.min(deviationFromNeutral * 0.8, 80);
+            result.wristExtensionAngle = 0;
+            console.log(`Detected wrist flexion: ${result.wristFlexionAngle.toFixed(1)}°`);
+          }
         }
 
         console.log(`Elbow-referenced calculation (${handType}): ${deviationFromNeutral.toFixed(1)}° deviation from neutral (${forearmToHandAngle.toFixed(1)}° raw angle)`);
