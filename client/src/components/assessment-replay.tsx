@@ -270,9 +270,9 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
       ctx.lineWidth = 2;
       connections.forEach(([start, end]) => {
         if (landmarks[start] && landmarks[end]) {
-          const startX = landmarks[start].x * canvasWidth;
+          const startX = (1 - landmarks[start].x) * canvasWidth; // Mirror X coordinate
           const startY = landmarks[start].y * canvasHeight;
-          const endX = landmarks[end].x * canvasWidth;
+          const endX = (1 - landmarks[end].x) * canvasWidth; // Mirror X coordinate
           const endY = landmarks[end].y * canvasHeight;
           
           ctx.beginPath();
@@ -287,7 +287,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
         const landmark = landmarks[index];
         if (!landmark) continue;
         
-        const x = landmark.x * canvasWidth;
+        const x = (1 - landmark.x) * canvasWidth; // Mirror X coordinate for display
         const y = landmark.y * canvasHeight;
 
         // Set different colors for different landmark types
@@ -311,9 +311,9 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
       
       // Connect finger base to wrist
       if (landmarks[0] && landmarks[activeLandmarks[0]]) {
-        const wristX = landmarks[0].x * canvasWidth;
+        const wristX = (1 - landmarks[0].x) * canvasWidth; // Mirror X coordinate
         const wristY = landmarks[0].y * canvasHeight;
-        const fingerBaseX = landmarks[activeLandmarks[0]].x * canvasWidth;
+        const fingerBaseX = (1 - landmarks[activeLandmarks[0]].x) * canvasWidth; // Mirror X coordinate
         const fingerBaseY = landmarks[activeLandmarks[0]].y * canvasHeight;
         
         ctx.beginPath();
