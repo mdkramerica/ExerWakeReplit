@@ -121,6 +121,9 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType 
         console.log(`🔒 PERMANENTLY LOCKED onto ${currentDetection.handType} hand for this entire session`);
       }
       
+      // Debug logging to track detection issues
+      console.log(`Hand type detection: Current=${currentDetection.handType}, Locked=${lastHandTypeRef.current}, Confidence=${currentDetection.confidence}`);
+      
       // Force the locked hand type for consistent calculation
       if (lastHandTypeRef.current !== 'UNKNOWN') {
         wristAngles = calculateElbowReferencedWristAngleWithForce(

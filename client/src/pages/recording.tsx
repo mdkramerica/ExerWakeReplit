@@ -374,14 +374,12 @@ export default function Recording() {
       if (recordingStartTimeRef.current && recordingElapsed > 0 && recordingElapsed <= 10 && data.handDetected && data.landmarks && data.landmarks.length > 0) {
         console.log(`Recording motion data: ${data.landmarks.length} landmarks detected, elapsed: ${recordingElapsed.toFixed(1)}s`);
         
-        // Calculate wrist angles for each motion frame during wrist assessments
+        // Use elbow-referenced wrist angles from the tracker for wrist assessments
         let frameWristAngles = null;
         if (assessment?.name?.toLowerCase().includes('wrist') || assessment?.name?.toLowerCase().includes('flexion') || assessment?.name?.toLowerCase().includes('extension')) {
-          try {
-            frameWristAngles = calculateWristAngles(data.landmarks, data.poseLandmarks);
-            console.log(`Frame wrist angles calculated: Flexion=${frameWristAngles.flexionAngle}°, Extension=${frameWristAngles.extensionAngle}°`);
-          } catch (error) {
-            console.warn('Frame wrist calculation error:', error);
+          frameWristAngles = data.wristAngles; // Use the elbow-referenced calculation from holistic tracker
+          if (frameWristAngles) {
+            console.log(`Frame elbow-referenced wrist angles: Flexion=${frameWristAngles.wristFlexionAngle}°, Extension=${frameWristAngles.wristExtensionAngle}°, Hand=${frameWristAngles.handType}`);
           }
         }
         
@@ -394,8 +392,8 @@ export default function Recording() {
           })),
           poseLandmarks: data.poseLandmarks || [],
           wristAngles: frameWristAngles || data.wristAngles || null,
-          handedness: sessionHandType !== 'UNKNOWN' ? sessionHandType : (data.handType || "Right"),
-          sessionHandType: sessionHandType,
+          handedness: sessionHandType !== 'UNKNOWN' ? sessionHandType : (data.lockedHandType || data.handType || "Right"),
+          sessionHandType: sessionHandType !== 'UNKNOWN' ? sessionHandType : data.lockedHandType,
           quality: data.trackingQuality === "Excellent" ? 90 : data.trackingQuality === "Good" ? 70 : 50
         };
         
