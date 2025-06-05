@@ -142,19 +142,22 @@ function determineHandType(
     primaryChoice = distanceToLeft < distanceToRight ? 'LEFT' : 'RIGHT';
   }
   
-  // Validate the choice has minimum requirements
-  if (primaryChoice === 'LEFT' && leftWristVisibility > 0.3 && leftElbowVisibility > 0.3) {
+  // More permissive validation - use lower thresholds for better detection
+  if (primaryChoice === 'LEFT' && leftElbowVisibility > 0.15) {
     return 'LEFT';
-  } else if (primaryChoice === 'RIGHT' && rightWristVisibility > 0.3 && rightElbowVisibility > 0.3) {
+  } else if (primaryChoice === 'RIGHT' && rightElbowVisibility > 0.15) {
     return 'RIGHT';
   }
 
-  // Fallback with lower thresholds
-  if (leftScore > 0.2 || rightScore > 0.2) {
-    return leftScore > rightScore ? 'LEFT' : 'RIGHT';
+  // Final fallback - prioritize elbow visibility over wrist visibility
+  if (leftElbowVisibility > rightElbowVisibility && leftElbowVisibility > 0.1) {
+    return 'LEFT';
+  } else if (rightElbowVisibility > 0.1) {
+    return 'RIGHT';
   }
 
-  return 'UNKNOWN';
+  // Last resort distance-based detection
+  return distanceToLeft < distanceToRight ? 'LEFT' : 'RIGHT';
 }
 
 export function calculateElbowReferencedWristAngleWithForce(
