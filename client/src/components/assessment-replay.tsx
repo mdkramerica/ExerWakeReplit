@@ -858,23 +858,45 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
             while (angleArc > Math.PI) angleArc -= 2 * Math.PI;
             while (angleArc < -Math.PI) angleArc += 2 * Math.PI;
             
-            // Draw angle arc if there's significant deviation
-            if (Math.abs(angleArc) > 0.1) { // Minimum threshold for arc display
-              const arcRadius = 40;
-              const startAngle = forearmAngle;
-              const endAngle = handAngle;
+            // Draw angle arc for wrist flexion/extension
+            if (currentWristAngles.wristFlexionAngle > 0 || currentWristAngles.wristExtensionAngle > 0) {
+              const arcRadius = 50;
+              let startAngle = forearmAngle;
+              let endAngle = handAngle;
+              
+              // Ensure proper arc direction
+              if (Math.abs(endAngle - startAngle) > Math.PI) {
+                if (endAngle > startAngle) {
+                  endAngle -= 2 * Math.PI;
+                } else {
+                  endAngle += 2 * Math.PI;
+                }
+              }
               
               ctx.beginPath();
-              ctx.arc(wristX, wristY, arcRadius, startAngle, endAngle, angleArc < 0);
+              ctx.arc(wristX, wristY, arcRadius, startAngle, endAngle, false);
               
               if (currentWristAngles.wristFlexionAngle > 0) {
                 ctx.strokeStyle = '#ec4899'; // Pink for flexion
-                ctx.lineWidth = 3;
+                ctx.lineWidth = 4;
               } else if (currentWristAngles.wristExtensionAngle > 0) {
                 ctx.strokeStyle = '#f59e0b'; // Orange for extension
-                ctx.lineWidth = 3;
+                ctx.lineWidth = 4;
               }
               ctx.stroke();
+              
+              // Add angle value on the arc
+              const midAngle = (startAngle + endAngle) / 2;
+              const textRadius = arcRadius + 15;
+              const textX = wristX + Math.cos(midAngle) * textRadius;
+              const textY = wristY + Math.sin(midAngle) * textRadius;
+              
+              ctx.fillStyle = currentWristAngles.wristFlexionAngle > 0 ? '#ec4899' : '#f59e0b';
+              ctx.font = 'bold 14px Arial';
+              const angleText = currentWristAngles.wristFlexionAngle > 0 
+                ? `${currentWristAngles.wristFlexionAngle.toFixed(1)}°`
+                : `${currentWristAngles.wristExtensionAngle.toFixed(1)}°`;
+              ctx.fillText(angleText, textX - 15, textY);
             }
           } else {
             // Draw wrist-to-hand vector even without elbow
