@@ -824,59 +824,79 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
             ctx.fillStyle = '#ffffff';
             ctx.font = 'bold 12px Arial';
             ctx.fillText('ELBOW', elbowX - 25, elbowY - 15);
-          }
-        }
-        
-        // Draw wrist-to-hand vector
-        ctx.strokeStyle = '#f59e0b';
-        ctx.lineWidth = 3;
-        ctx.setLineDash([]);
-        ctx.beginPath();
-        ctx.moveTo(wristX, wristY);
-        ctx.lineTo(mcpX, mcpY);
-        ctx.stroke();
-        
-        // Highlight wrist point
-        ctx.fillStyle = '#ef4444';
-        ctx.beginPath();
-        ctx.arc(wristX, wristY, 8, 0, 2 * Math.PI);
-        ctx.fill();
-        
-        // Add wrist label
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 12px Arial';
-        ctx.fillText('WRIST', wristX - 20, wristY - 15);
-        
-        // Draw angle arc to visualize wrist flexion/extension
-        const elbowToWristVector = { x: wristX - elbowX, y: wristY - elbowY };
-        const wristToMcpVector = { x: mcpX - wristX, y: mcpY - wristY };
-        
-        // Calculate angle between forearm and hand vectors
-        const forearmAngle = Math.atan2(elbowToWristVector.y, elbowToWristVector.x);
-        const handAngle = Math.atan2(wristToMcpVector.y, wristToMcpVector.x);
-        let angleArc = handAngle - forearmAngle;
-        
-        // Normalize angle to [-π, π]
-        while (angleArc > Math.PI) angleArc -= 2 * Math.PI;
-        while (angleArc < -Math.PI) angleArc += 2 * Math.PI;
-        
-        // Draw angle arc if there's significant deviation
-        if (Math.abs(angleArc) > 0.1) { // Minimum threshold for arc display
-          const arcRadius = 40;
-          const startAngle = forearmAngle;
-          const endAngle = handAngle;
-          
-          ctx.beginPath();
-          ctx.arc(wristX, wristY, arcRadius, startAngle, endAngle, angleArc < 0);
-          
-          if (currentWristAngles.wristFlexionAngle > 0) {
-            ctx.strokeStyle = '#ec4899'; // Pink for flexion
+            
+            // Draw wrist-to-hand vector
+            ctx.strokeStyle = '#f59e0b';
             ctx.lineWidth = 3;
-          } else if (currentWristAngles.wristExtensionAngle > 0) {
-            ctx.strokeStyle = '#f59e0b'; // Orange for extension
+            ctx.setLineDash([]);
+            ctx.beginPath();
+            ctx.moveTo(wristX, wristY);
+            ctx.lineTo(mcpX, mcpY);
+            ctx.stroke();
+            
+            // Highlight wrist point
+            ctx.fillStyle = '#ef4444';
+            ctx.beginPath();
+            ctx.arc(wristX, wristY, 8, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            // Add wrist label
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 12px Arial';
+            ctx.fillText('WRIST', wristX - 20, wristY - 15);
+            
+            // Draw angle arc to visualize wrist flexion/extension
+            const wristToMcpVector = { x: mcpX - wristX, y: mcpY - wristY };
+            const elbowToWristVector = { x: poseWristX - elbowX, y: poseWristY - elbowY };
+            
+            // Calculate angle between forearm and hand vectors
+            const forearmAngle = Math.atan2(elbowToWristVector.y, elbowToWristVector.x);
+            const handAngle = Math.atan2(wristToMcpVector.y, wristToMcpVector.x);
+            let angleArc = handAngle - forearmAngle;
+            
+            // Normalize angle to [-π, π]
+            while (angleArc > Math.PI) angleArc -= 2 * Math.PI;
+            while (angleArc < -Math.PI) angleArc += 2 * Math.PI;
+            
+            // Draw angle arc if there's significant deviation
+            if (Math.abs(angleArc) > 0.1) { // Minimum threshold for arc display
+              const arcRadius = 40;
+              const startAngle = forearmAngle;
+              const endAngle = handAngle;
+              
+              ctx.beginPath();
+              ctx.arc(wristX, wristY, arcRadius, startAngle, endAngle, angleArc < 0);
+              
+              if (currentWristAngles.wristFlexionAngle > 0) {
+                ctx.strokeStyle = '#ec4899'; // Pink for flexion
+                ctx.lineWidth = 3;
+              } else if (currentWristAngles.wristExtensionAngle > 0) {
+                ctx.strokeStyle = '#f59e0b'; // Orange for extension
+                ctx.lineWidth = 3;
+              }
+              ctx.stroke();
+            }
+          } else {
+            // Draw wrist-to-hand vector even without elbow
+            ctx.strokeStyle = '#f59e0b';
             ctx.lineWidth = 3;
+            ctx.setLineDash([]);
+            ctx.beginPath();
+            ctx.moveTo(wristX, wristY);
+            ctx.lineTo(mcpX, mcpY);
+            ctx.stroke();
+            
+            // Highlight wrist point
+            ctx.fillStyle = '#ef4444';
+            ctx.beginPath();
+            ctx.arc(wristX, wristY, 8, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            // Add wrist label
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 12px Arial';
+            ctx.fillText('WRIST', wristX - 20, wristY - 15);
           }
-          ctx.stroke();
         }
         
         // Add angle indicator text near middle MCP - show flexion/extension angle
