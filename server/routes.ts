@@ -179,7 +179,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = parseInt(req.params.userId);
       const assessmentId = parseInt(req.params.assessmentId);
-      const { romData, repetitionData, qualityScore, handType } = req.body;
+      const { 
+        romData, 
+        repetitionData, 
+        qualityScore, 
+        handType,
+        wristFlexionAngle: reqWristFlexionAngle,
+        wristExtensionAngle: reqWristExtensionAngle,
+        maxWristFlexion: reqMaxWristFlexion,
+        maxWristExtension: reqMaxWristExtension
+      } = req.body;
       
       // Calculate ROM values from repetition data for trigger finger assessments
       let maxMcpAngle: number | null = null;
@@ -206,11 +215,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let pinkyFingerPip: number | null = null;
       let pinkyFingerDip: number | null = null;
       
-      // Wrist angle calculations
-      let wristFlexionAngle: number | null = null;
-      let wristExtensionAngle: number | null = null;
-      let maxWristFlexion: number | null = null;
-      let maxWristExtension: number | null = null;
+      // Wrist angle calculations - initialize with top-level request values
+      let wristFlexionAngle: number | null = reqWristFlexionAngle || null;
+      let wristExtensionAngle: number | null = reqWristExtensionAngle || null;
+      let maxWristFlexion: number | null = reqMaxWristFlexion || null;
+      let maxWristExtension: number | null = reqMaxWristExtension || null;
       
       if (repetitionData && Array.isArray(repetitionData)) {
         // Collect all motion frames for multi-finger ROM calculation
