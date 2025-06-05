@@ -727,8 +727,8 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
     
     // Draw wrist angle information for wrist assessments
     if (isWristAssessment && currentWristAngles) {
-      const wristBoxX = canvas.width - 280;
-      const wristBoxY = 20;
+      const wristBoxX = 20;
+      const wristBoxY = canvas.height - 200;
       const wristBoxWidth = 260;
       const wristBoxHeight = 180;
       
