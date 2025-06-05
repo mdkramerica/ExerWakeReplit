@@ -1,0 +1,50 @@
+You can find comprehensive information about MediaPipe Holistic through several official and community resources:
+
+---
+
+### 🧠 Official Documentation & Guides
+
+* **MediaPipe Holistic Landmarker Task Guide**
+  This guide provides detailed information on combining pose, face, and hand landmarkers to create a complete human body landmarker. It includes instructions for analyzing full-body gestures, poses, and actions using a machine learning model on a continuous stream of images. ([dataloop.ai][1])
+
+* **MediaPipe Solutions Guide**
+  Offers an overview of MediaPipe's suite of libraries and tools for applying AI and ML techniques in applications. It covers various solutions, including the Holistic model, and provides information on customizing and deploying these solutions across multiple platforms. ([ai.google.dev][2])
+
+---
+
+### 🧪 Code Repositories & Examples
+
+* **MediaPipe GitHub Repository**
+  The official repository contains the source code for MediaPipe, including the Holistic solution. You can explore the Python implementation and other platform-specific code here. ([gist.github.com][3])
+
+* **Full-Body Estimation Using MediaPipe Holistic**
+  A GitHub repository featuring a Jupyter Notebook that demonstrates how to use MediaPipe Holistic for body tracking. It's a practical example to understand the implementation details. ([github.com][4])
+
+---
+
+### 📰 Articles & Tutorials
+
+* **MediaPipe Holistic — Simultaneous Face, Hand, and Pose Prediction**
+  An in-depth blog post by Google Research explaining the architecture, capabilities, and performance of the MediaPipe Holistic model. It provides insights into how the model achieves real-time performance on mobile devices. ([research.google][5])
+
+* **Exploring the MediaPipe Holistic Model**
+  A Medium article that delves into the components of the Holistic model, including the pose, face, and hand sub-models. It discusses various applications and provides a Python script example for real-time landmark detection. ([medium.com][6])
+
+---
+
+### 📚 Academic Research
+
+* **Indian Sign Language Recognition Using MediaPipe Holistic**
+  A research paper that explores the use of MediaPipe Holistic for recognizing Indian Sign Language. It compares CNN and LSTM models for static and gesture sign languages, providing valuable insights into the model's capabilities in sign language recognition. ([arxiv.org][7])
+
+---
+
+These resources should provide a solid foundation for understanding and utilizing MediaPipe Holistic in your projects. If you have specific questions or need further assistance, feel free to ask!
+
+[1]: https://dataloop.ai/library/model/mediapipe_face-holistic/?utm_source=chatgpt.com "MediaPipe Holistic · Models - Dataloop"
+[2]: https://ai.google.dev/edge/mediapipe/solutions/guide?utm_source=chatgpt.com "MediaPipe Solutions guide | Google AI Edge - Gemini API"
+[3]: https://gist.github.com/wwwourstudio/b1060e743aba47209da09e829840b285?utm_source=chatgpt.com "MediaPipe - Holistic - GitHub Gist"
+[4]: https://github.com/nicknochnack/Full-Body-Estimation-using-Media-Pipe-Holistic?utm_source=chatgpt.com "nicknochnack/Full-Body-Estimation-using-Media-Pipe-Holistic"
+[5]: https://research.google/blog/mediapipe-holistic-simultaneous-face-hand-and-pose-prediction-on-device/?utm_source=chatgpt.com "MediaPipe Holistic — Simultaneous Face, Hand and Pose ..."
+[6]: https://medium.com/%40speaktoharisudhan/media-pipe-exploring-holistic-model-32b851901f8a?utm_source=chatgpt.com "Media Pipe- Exploring Holistic Model | by Harisudhan.S | Medium"
+[7]: https://arxiv.org/abs/2304.10256?utm_source=chatgpt.com "Indian Sign Language Recognition Using Mediapipe Holistic"
