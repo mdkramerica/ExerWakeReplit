@@ -86,49 +86,44 @@ function calculateWristAngleUsingVectors(
     middleMcp: { x: middleMcp.x.toFixed(3), y: middleMcp.y.toFixed(3), z: middleMcp.z.toFixed(3) }
   });
 
-  // CORRECTED VECTORS: Use pose elbow to hand wrist for forearm vector
-  // Forearm vector: from pose elbow TO hand wrist (handLandmark[0])
-  const forearmVector = {
+  // 2D APPROACH: Use only X and Y coordinates for sagittal plane movement
+  // This simplifies calculation and focuses on primary flexion/extension plane
+  const forearmVector2D = {
     x: wrist.x - elbow.x,
-    y: wrist.y - elbow.y,
-    z: wrist.z - elbow.z
+    y: wrist.y - elbow.y
   };
   
-  // Hand vector: from hand wrist TO middle MCP (handLandmark[9])
-  const handVector = {
+  const handVector2D = {
     x: middleMcp.x - wrist.x,
-    y: middleMcp.y - wrist.y,
-    z: middleMcp.z - wrist.z
+    y: middleMcp.y - wrist.y
   };
   
-  // CRITICAL: Normalize vectors first to ensure accurate angle calculation
-  const forearmLength = Math.sqrt(forearmVector.x**2 + forearmVector.y**2 + forearmVector.z**2);
-  const handLength = Math.sqrt(handVector.x**2 + handVector.y**2 + handVector.z**2);
+  // Calculate 2D vector lengths
+  const forearmLength = Math.sqrt(forearmVector2D.x**2 + forearmVector2D.y**2);
+  const handLength = Math.sqrt(handVector2D.x**2 + handVector2D.y**2);
   
   if (forearmLength === 0 || handLength === 0) {
     console.log('⚠️ Zero length vector, returning 0°');
     return 0;
   }
   
-  // Normalize the vectors
-  const normalizedForearm = {
-    x: forearmVector.x / forearmLength,
-    y: forearmVector.y / forearmLength,
-    z: forearmVector.z / forearmLength
+  // Normalize the 2D vectors
+  const normalizedForearm2D = {
+    x: forearmVector2D.x / forearmLength,
+    y: forearmVector2D.y / forearmLength
   };
   
-  const normalizedHand = {
-    x: handVector.x / handLength,
-    y: handVector.y / handLength,
-    z: handVector.z / handLength
+  const normalizedHand2D = {
+    x: handVector2D.x / handLength,
+    y: handVector2D.y / handLength
   };
   
-  // Calculate dot product using normalized vectors
-  const dotProduct = normalizedForearm.x * normalizedHand.x + normalizedForearm.y * normalizedHand.y + normalizedForearm.z * normalizedHand.z;
+  // Calculate 2D dot product using normalized vectors
+  const dotProduct = normalizedForearm2D.x * normalizedHand2D.x + normalizedForearm2D.y * normalizedHand2D.y;
   
-  console.log('🔍 Normalized vectors:', {
-    forearmNormalized: { x: normalizedForearm.x.toFixed(3), y: normalizedForearm.y.toFixed(3), z: normalizedForearm.z.toFixed(3) },
-    handNormalized: { x: normalizedHand.x.toFixed(3), y: normalizedHand.y.toFixed(3), z: normalizedHand.z.toFixed(3) }
+  console.log('🔍 2D Normalized vectors:', {
+    forearmNormalized2D: { x: normalizedForearm2D.x.toFixed(3), y: normalizedForearm2D.y.toFixed(3) },
+    handNormalized2D: { x: normalizedHand2D.x.toFixed(3), y: normalizedHand2D.y.toFixed(3) }
   });
   
   // For normalized vectors, cosAngle = dotProduct directly
