@@ -389,21 +389,31 @@ export function calculateElbowReferencedWristAngleWithForce(
         z: handWrist.z - elbow.z
       };
       
-      // Use cross product to determine if hand is flexed or extended
-      // Flexion = hand bent toward palm side, Extension = hand bent toward back
-      const crossProduct = elbowToWrist.x * wristToMcp.y - elbowToWrist.y * wristToMcp.x;
+      // VECTOR-BASED DIRECTIONAL DETERMINATION
+      // Use 3D cross product to determine if hand vector is above/below forearm vector
+      const crossProduct = {
+        x: elbowToWrist.y * wristToMcp.z - elbowToWrist.z * wristToMcp.y,
+        y: elbowToWrist.z * wristToMcp.x - elbowToWrist.x * wristToMcp.z,
+        z: elbowToWrist.x * wristToMcp.y - elbowToWrist.y * wristToMcp.x
+      };
       
-      if (wristAngle > 5) { // Only classify if there's meaningful deviation
-        if (crossProduct > 0) {
-          // Flexion movement
+      // Use Y component to determine direction relative to forearm baseline
+      // Positive Y = hand above forearm (extension), Negative Y = hand below forearm (flexion)
+      const isExtension = crossProduct.y > 0;
+      
+      console.log(`🎯 VECTOR DIRECTION - Cross product Y: ${crossProduct.y.toFixed(4)}, Direction: ${isExtension ? 'EXTENSION' : 'FLEXION'}`);
+      
+      if (wristAngle > 2) { // Classify even small deviations for precision
+        if (isExtension) {
+          // Extension: hand vector above forearm baseline
+          result.wristExtensionAngle = wristAngle;
+          result.wristFlexionAngle = 0;
+          console.log(`Wrist EXTENSION detected: ${wristAngle.toFixed(1)}° deviation above forearm`);
+        } else {
+          // Flexion: hand vector below forearm baseline
           result.wristFlexionAngle = wristAngle;
           result.wristExtensionAngle = 0;
-          console.log(`Wrist FLEXION detected: ${wristAngle.toFixed(1)}° deviation`);
-        } else {
-          // Extension movement  
-          result.wristFlexionAngle = 0;
-          result.wristExtensionAngle = wristAngle;
-          console.log(`Wrist EXTENSION detected: ${wristAngle.toFixed(1)}° deviation`);
+          console.log(`Wrist FLEXION detected: ${wristAngle.toFixed(1)}° deviation below forearm`);
         }
       } else {
         // Near neutral position
