@@ -796,39 +796,46 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
           // Use stored session hand type for consistent elbow tracking throughout replay
           const sessionHandType = frame.sessionHandType || frame.handedness || currentWristAngles.handType;
           
-          // FRAME-INDEPENDENT ELBOW SELECTION: Match calculation logic exactly
-          // Use proximity-based selection for each frame to eliminate directional dependency
+          // SESSION-LOCKED ELBOW SELECTION: Use same logic as calculation for consistency
+          // Extract session elbow selection from first frame to maintain throughout replay
           let elbowIndex: number;
           let wristIndex: number;
           
-          if (frame.landmarks && frame.landmarks[0] && frame.poseLandmarks[13] && frame.poseLandmarks[14]) {
-            const handWrist = frame.landmarks[0];
-            const leftElbow = frame.poseLandmarks[13];
-            const rightElbow = frame.poseLandmarks[14];
-            
-            // Calculate distances exactly as in calculation logic
-            const distToLeft = Math.sqrt(
-              Math.pow(handWrist.x - leftElbow.x, 2) + 
-              Math.pow(handWrist.y - leftElbow.y, 2) + 
-              Math.pow((handWrist.z || 0) - (leftElbow.z || 0), 2)
-            );
-            const distToRight = Math.sqrt(
-              Math.pow(handWrist.x - rightElbow.x, 2) + 
-              Math.pow(handWrist.y - rightElbow.y, 2) + 
-              Math.pow((handWrist.z || 0) - (rightElbow.z || 0), 2)
-            );
-            
-            const useLeftElbow = distToLeft < distToRight;
-            elbowIndex = useLeftElbow ? 13 : 14;
-            wristIndex = useLeftElbow ? 15 : 16;
-            
-            console.log(`REPLAY: Frame-independent elbow selection - Using ${useLeftElbow ? 'LEFT' : 'RIGHT'} elbow (L:${distToLeft.toFixed(3)}, R:${distToRight.toFixed(3)})`);
+          if ((frame as any).sessionElbowIndex !== undefined) {
+            // Use stored session selection if available
+            elbowIndex = (frame as any).sessionElbowIndex;
+            wristIndex = (frame as any).sessionWristIndex || ((frame as any).sessionElbowIndex === 13 ? 15 : 16);
+            console.log(`REPLAY: Using stored session elbow selection - index ${elbowIndex}`);
           } else {
-            // Fallback to hand type detection
-            const useRightHand = sessionHandType === 'RIGHT';
-            elbowIndex = useRightHand ? 14 : 13;
-            wristIndex = useRightHand ? 16 : 15;
-            console.log(`REPLAY: Fallback to hand type detection - ${sessionHandType}`);
+            // Calculate session selection using same logic as calculation
+            if (frame.landmarks && frame.landmarks[0] && frame.poseLandmarks[13] && frame.poseLandmarks[14]) {
+              const handWrist = frame.landmarks[0];
+              const leftElbow = frame.poseLandmarks[13];
+              const rightElbow = frame.poseLandmarks[14];
+              
+              const distToLeft = Math.sqrt(
+                Math.pow(handWrist.x - leftElbow.x, 2) + 
+                Math.pow(handWrist.y - leftElbow.y, 2) + 
+                Math.pow((handWrist.z || 0) - (leftElbow.z || 0), 2)
+              );
+              const distToRight = Math.sqrt(
+                Math.pow(handWrist.x - rightElbow.x, 2) + 
+                Math.pow(handWrist.y - rightElbow.y, 2) + 
+                Math.pow((handWrist.z || 0) - (rightElbow.z || 0), 2)
+              );
+              
+              const useLeftElbow = distToLeft < distToRight;
+              elbowIndex = useLeftElbow ? 13 : 14;
+              wristIndex = useLeftElbow ? 15 : 16;
+              
+              console.log(`REPLAY: Calculated session elbow - Using ${useLeftElbow ? 'LEFT' : 'RIGHT'} elbow (L:${distToLeft.toFixed(3)}, R:${distToRight.toFixed(3)})`);
+            } else {
+              // Fallback to hand type detection
+              const useRightHand = sessionHandType === 'RIGHT';
+              elbowIndex = useRightHand ? 14 : 13;
+              wristIndex = useRightHand ? 16 : 15;
+              console.log(`REPLAY: Fallback to hand type detection - ${sessionHandType}`);
+            }
           }
           
           const selectedElbow = frame.poseLandmarks[elbowIndex];

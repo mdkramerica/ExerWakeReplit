@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback, useState } from "react";
-import { calculateElbowReferencedWristAngle, calculateElbowReferencedWristAngleWithForce } from "@shared/elbow-wrist-calculator";
+import { calculateElbowReferencedWristAngle, calculateElbowReferencedWristAngleWithForce, resetRecordingSession } from "@shared/elbow-wrist-calculator";
 // import exerLogoPath from "@assets/exer-ai-logo-white.png";
 
 interface HolisticTrackerProps {
@@ -25,12 +25,13 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType,
 
   const isWristAssessment = assessmentType?.toLowerCase().includes('wrist');
 
-  // Reset hand type tracking when recording starts
+  // Reset hand type tracking and session state when recording starts
   useEffect(() => {
     if (isRecording) {
       lastHandTypeRef.current = 'UNKNOWN';
       handTypeConfidenceRef.current = 0;
-      console.log('Reset hand type tracking for new recording session');
+      resetRecordingSession(); // Clear elbow session lock for new recording
+      console.log('Reset hand type tracking and session state for new recording');
     }
   }, [isRecording]);
 

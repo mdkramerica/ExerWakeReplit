@@ -289,28 +289,36 @@ export function calculateElbowReferencedWristAngleWithForce(
   let wristIndex: number;
   let shoulderIndex: number;
   
-  // FRAME-INDEPENDENT ELBOW SELECTION: Calculate for each frame independently
-  // This prevents directional dependency where frame 137 gives different results
-  // when navigated from 136→137 vs 138→137
+  // SESSION-INITIALIZATION ELBOW LOCKING: Lock elbow at first valid frame
+  // This prevents directional dependency while maintaining visual stability
   
-  if (poseLandmarks[13] && poseLandmarks[14] && handLandmarks[0]) {
-    const distToLeftElbow = euclideanDistance3D(handLandmarks[0], poseLandmarks[13]);
-    const distToRightElbow = euclideanDistance3D(handLandmarks[0], poseLandmarks[14]);
-    
-    const useLeftElbow = distToLeftElbow < distToRightElbow;
-    elbowIndex = useLeftElbow ? 13 : 14;
-    wristIndex = useLeftElbow ? 15 : 16;
-    shoulderIndex = useLeftElbow ? 11 : 12;
-    
-    console.log(`🎯 FRAME-INDEPENDENT ELBOW: Using ${useLeftElbow ? 'LEFT' : 'RIGHT'} elbow (L:${distToLeftElbow.toFixed(3)}, R:${distToRightElbow.toFixed(3)})`);
-  } else {
-    // Fallback to hand type if proximity fails
-    const useLeftElbow = forceHandType === 'LEFT';
-    elbowIndex = useLeftElbow ? 13 : 14;
-    wristIndex = useLeftElbow ? 15 : 16;
-    shoulderIndex = useLeftElbow ? 11 : 12;
-    console.log(`🎯 FALLBACK ELBOW: Using ${forceHandType} based on hand type`);
+  if (!(global as any).recordingSessionElbowLocked) {
+    if (poseLandmarks[13] && poseLandmarks[14] && handLandmarks[0]) {
+      const distToLeftElbow = euclideanDistance3D(handLandmarks[0], poseLandmarks[13]);
+      const distToRightElbow = euclideanDistance3D(handLandmarks[0], poseLandmarks[14]);
+      
+      const useLeftElbow = distToLeftElbow < distToRightElbow;
+      (global as any).recordingSessionElbowIndex = useLeftElbow ? 13 : 14;
+      (global as any).recordingSessionWristIndex = useLeftElbow ? 15 : 16;
+      (global as any).recordingSessionShoulderIndex = useLeftElbow ? 11 : 12;
+      (global as any).recordingSessionElbowLocked = true;
+      
+      console.log(`🔒 RECORDING SESSION LOCKED: Using ${useLeftElbow ? 'LEFT' : 'RIGHT'} elbow for entire session (L:${distToLeftElbow.toFixed(3)}, R:${distToRightElbow.toFixed(3)})`);
+    } else {
+      // Fallback to hand type if proximity fails
+      const useLeftElbow = forceHandType === 'LEFT';
+      (global as any).recordingSessionElbowIndex = useLeftElbow ? 13 : 14;
+      (global as any).recordingSessionWristIndex = useLeftElbow ? 15 : 16;
+      (global as any).recordingSessionShoulderIndex = useLeftElbow ? 11 : 12;
+      (global as any).recordingSessionElbowLocked = true;
+      console.log(`🔒 RECORDING SESSION LOCKED: Using ${forceHandType} based on hand type`);
+    }
   }
+  
+  // Use locked session selection
+  elbowIndex = (global as any).recordingSessionElbowIndex;
+  wristIndex = (global as any).recordingSessionWristIndex;
+  shoulderIndex = (global as any).recordingSessionShoulderIndex;
 
   console.log(`🔍 Using landmark indices - elbow: ${elbowIndex}, wrist: ${wristIndex}, shoulder: ${shoulderIndex}`);
 
@@ -596,4 +604,23 @@ export function calculateMaxElbowWristAngles(
   }
 
   return maxResult;
+}
+
+export function resetRecordingSession() {
+  // Clear session state when starting a new recording
+  (global as any).recordingSessionElbowLocked = false;
+  (global as any).recordingSessionElbowIndex = undefined;
+  (global as any).recordingSessionWristIndex = undefined;
+  (global as any).recordingSessionShoulderIndex = undefined;
+  (global as any).lastWristAngle = undefined;
+  console.log('🔄 RECORDING SESSION RESET: Cleared all session state for new recording');
+}
+
+export function getRecordingSessionElbowSelection() {
+  return {
+    elbowIndex: (global as any).recordingSessionElbowIndex,
+    wristIndex: (global as any).recordingSessionWristIndex,
+    shoulderIndex: (global as any).recordingSessionShoulderIndex,
+    isLocked: (global as any).recordingSessionElbowLocked
+  };
 }
