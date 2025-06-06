@@ -272,53 +272,7 @@ export function calculateElbowReferencedWristAngleWithForce(
       result.confidence = 0.95;
       result.elbowDetected = true;
 
-      if (false) {
-        // Significant deviation from neutral - determine direction
-        const refMagnitude = Math.sqrt(referenceVector.x**2 + referenceVector.y**2 + referenceVector.z**2);
-        const measMagnitude = Math.sqrt(measurementVector.x**2 + measurementVector.y**2 + measurementVector.z**2);
-        
-        if (refMagnitude === 0 || measMagnitude === 0) {
-          return result; // Avoid division by zero
-        }
-        
-        const referenceNorm = {
-          x: referenceVector.x / refMagnitude,
-          y: referenceVector.y / refMagnitude,
-          z: referenceVector.z / refMagnitude
-        };
-        
-        const measurementNorm = {
-          x: measurementVector.x / measMagnitude,
-          y: measurementVector.y / measMagnitude,
-          z: measurementVector.z / measMagnitude
-        };
-        
-        const crossProduct = {
-          x: referenceNorm.y * measurementNorm.z - referenceNorm.z * measurementNorm.y,
-          y: referenceNorm.z * measurementNorm.x - referenceNorm.x * measurementNorm.z,
-          z: referenceNorm.x * measurementNorm.y - referenceNorm.y * measurementNorm.x
-        };
-        
-        // Determine direction based on camera coordinate system and hand type
-        // For left hand: Positive Y cross product indicates extension
-        // For right hand: Negative Y cross product indicates extension (mirrored)
-        const isExtension = forceHandType === 'LEFT' ? crossProduct.y > 0 : crossProduct.y < 0;
-        
-        if (isExtension) {
-          result.wristExtensionAngle = Math.min(angleDegrees, 70);
-          result.wristFlexionAngle = 0;
-          console.log(`Wrist extension: ${result.wristExtensionAngle.toFixed(1)}° (angle between vectors: ${angleDegrees.toFixed(1)}°)`);
-        } else {
-          result.wristFlexionAngle = Math.min(angleDegrees, 80);
-          result.wristExtensionAngle = 0;
-          console.log(`Wrist flexion: ${result.wristFlexionAngle.toFixed(1)}° (angle between vectors: ${angleDegrees.toFixed(1)}°)`);
-        }
-      } else {
-        // Neutral position - vectors are aligned
-        result.wristFlexionAngle = 0;
-        result.wristExtensionAngle = 0;
-        console.log(`Wrist neutral: ${angleDegrees.toFixed(1)}° deviation from alignment`);
-      }
+
     }
   }
 
@@ -475,7 +429,7 @@ export function calculateMaxElbowWristAngles(
   };
 
   for (const frame of motionFrames) {
-    const frameResult = calculateElbowReferencedWristAngleWithForce(frame.landmarks, frame.poseLandmarks);
+    const frameResult = calculateElbowReferencedWristAngleWithForce(frame.landmarks, frame.poseLandmarks, 'UNKNOWN');
     
     // Track maximum flexion and extension values from session
     if (frameResult.elbowDetected && frameResult.confidence > 0.8) {
@@ -500,11 +454,7 @@ export function calculateMaxElbowWristAngles(
       maxResult.forearmToHandAngle = frameResult.forearmToHandAngle;
     }
     
-    if (false && frameResult.confidence > maxResult.confidence) {
-      maxResult.handType = frameResult.handType;
-      maxResult.elbowDetected = frameResult.elbowDetected;
-      maxResult.confidence = frameResult.confidence;
-    }
+
 
     maxResult.wristFlexionAngle = Math.max(maxResult.wristFlexionAngle, frameResult.wristFlexionAngle);
     maxResult.wristExtensionAngle = Math.max(maxResult.wristExtensionAngle, frameResult.wristExtensionAngle);
