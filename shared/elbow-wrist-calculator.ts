@@ -418,26 +418,12 @@ export function calculateElbowReferencedWristAngleWithForce(
       
       console.log(`🎯 VECTOR DIRECTION - Cross product Y: ${crossProduct.y.toFixed(4)}, Direction: ${isExtension ? 'EXTENSION' : 'FLEXION'}`);
       
-      // PROPORTIONAL SCALING APPROACH
-      // Map the raw angle range (0-180°) to physiological wrist movement range
-      // Neutral position is around 90° (midpoint), scale deviations proportionally
+      // SIMPLE ANGLE CALCULATION
+      // Use the direct angle between forearm and hand vectors
+      // This provides intuitive results where larger angles = more bend
+      const correctedAngle = wristAngle;
       
-      let scaledAngle: number;
-      
-      if (wristAngle < 90) {
-        // Angles below 90° map to extension (0-90° range)
-        scaledAngle = (90 - wristAngle) * 0.8; // Scale factor for extension
-      } else {
-        // Angles above 90° map to flexion (90-180° range)  
-        scaledAngle = (wristAngle - 90) * 0.8; // Scale factor for flexion
-      }
-      
-      const deviationFromNeutral = scaledAngle;
-      
-      console.log(`🔍 PROPORTIONAL SCALING: Raw=${wristAngle.toFixed(1)}°, Scaled=${scaledAngle.toFixed(1)}°, Final=${deviationFromNeutral.toFixed(1)}°`);
-      
-      // Use the deviation as the actual wrist bend measurement
-      const correctedAngle = deviationFromNeutral;
+      console.log(`🔍 DIRECT ANGLE: ${wristAngle.toFixed(1)}° between forearm and hand vectors`);
       
       // Always assign corrected angles for responsive real-time display
       if (isExtension) {
