@@ -136,7 +136,7 @@ function calculateWristAngleUsingVectors(
   
   // Calculate the angle between vectors (0-180 degrees)
   const angleRadians = Math.acos(clampedCosAngle);
-  const angleDegrees = angleRadians * (180 / Math.PI);
+  let angleDegrees = angleRadians * (180 / Math.PI);
   
   // The calculated angle represents the acute angle between forearm and hand vectors
   // This should match exactly what we see visually on the canvas
@@ -149,18 +149,28 @@ function calculateWristAngleUsingVectors(
   console.log(`   Angle (deg): ${angleDegrees.toFixed(2)}`);
   console.log(`   Expected Visual: 30-50° for visible flexion`);
   
-  // Apply smoothing for stability - detect if angle jumps more than 20° from previous
-  // This prevents calculation artifacts from causing unrealistic jumps
-  if (Math.abs(angleDegrees - (global as any).lastWristAngle || 0) > 20 && (global as any).lastWristAngle) {
-    console.log(`⚠️ LARGE ANGLE JUMP DETECTED: ${(global as any).lastWristAngle?.toFixed(1)}° → ${angleDegrees.toFixed(1)}°`);
-    console.log(`   Using smoothed value to prevent calculation artifacts`);
-    const smoothedAngle = ((global as any).lastWristAngle + angleDegrees) / 2;
-    (global as any).lastWristAngle = smoothedAngle;
-    return smoothedAngle;
+  // Validate angle against expected physiological range and apply smoothing
+  let finalAngle = angleDegrees;
+  
+  if (finalAngle > 90) {
+    console.log(`⚠️ UNREALISTIC ANGLE DETECTED: ${finalAngle.toFixed(1)}° - clamping to 90°`);
+    finalAngle = 90; // Maximum physiological wrist flexion/extension
   }
   
-  (global as any).lastWristAngle = angleDegrees;
-  return angleDegrees;
+  // Apply temporal smoothing for stability
+  if ((global as any).lastWristAngle !== undefined) {
+    const angleDiff = Math.abs(finalAngle - (global as any).lastWristAngle);
+    if (angleDiff > 25) {
+      console.log(`⚠️ LARGE ANGLE JUMP: ${(global as any).lastWristAngle.toFixed(1)}° → ${finalAngle.toFixed(1)}° (${angleDiff.toFixed(1)}° change)`);
+      // Use weighted average for extreme jumps
+      const weight = 0.3; // 30% new value, 70% previous value
+      finalAngle = (global as any).lastWristAngle * (1 - weight) + finalAngle * weight;
+      console.log(`   Applied smoothing: ${finalAngle.toFixed(1)}°`);
+    }
+  }
+  
+  (global as any).lastWristAngle = finalAngle;
+  return finalAngle;
 }
 
 function calculateAngleBetweenVectors(
@@ -279,31 +289,39 @@ export function calculateElbowReferencedWristAngleWithForce(
     return result;
   }
 
-  // SESSION-STABLE ELBOW SELECTION: Determine the anatomically correct elbow once
-  // Use forced hand type but validate with coordinate position for accuracy
-  let elbowIndex = forceHandType === 'LEFT' ? POSE_LANDMARKS.LEFT_ELBOW : POSE_LANDMARKS.RIGHT_ELBOW;
-  let wristIndex = forceHandType === 'LEFT' ? POSE_LANDMARKS.LEFT_WRIST : POSE_LANDMARKS.RIGHT_WRIST;
-  let shoulderIndex = forceHandType === 'LEFT' ? POSE_LANDMARKS.LEFT_SHOULDER : POSE_LANDMARKS.RIGHT_SHOULDER;
+  // PROXIMITY-BASED STABLE SELECTION: Use closest elbow and lock for session consistency
+  let elbowIndex: number;
+  let wristIndex: number;
+  let shoulderIndex: number;
   
-  // Validate selection: check if hand is on anatomically correct side
-  if (poseLandmarks[13] && poseLandmarks[14] && handLandmarks[0]) {
-    const handX = handLandmarks[0].x;
-    const leftElbowX = poseLandmarks[13].x;
-    const rightElbowX = poseLandmarks[14].x;
-    
-    // For RIGHT hand: should be closer to LEFT side of screen (due to perspective)
-    // For LEFT hand: should be closer to RIGHT side of screen
-    const handOnRightSide = handX > 0.5;
-    const expectedRightHand = handOnRightSide;
-    
-    if ((forceHandType === 'RIGHT' && !expectedRightHand) || (forceHandType === 'LEFT' && expectedRightHand)) {
-      // Flip the selection if anatomically incorrect
-      elbowIndex = forceHandType === 'LEFT' ? POSE_LANDMARKS.RIGHT_ELBOW : POSE_LANDMARKS.LEFT_ELBOW;
-      wristIndex = forceHandType === 'LEFT' ? POSE_LANDMARKS.RIGHT_WRIST : POSE_LANDMARKS.LEFT_WRIST;
-      shoulderIndex = forceHandType === 'LEFT' ? POSE_LANDMARKS.RIGHT_SHOULDER : POSE_LANDMARKS.LEFT_SHOULDER;
-      console.log(`🔄 CORRECTED SELECTION: Flipped to anatomically correct elbow (hand at x=${handX.toFixed(3)})`);
+  // Store session elbow selection to prevent mid-assessment switching
+  if (!(global as any).sessionElbowLocked) {
+    if (poseLandmarks[13] && poseLandmarks[14] && handLandmarks[0]) {
+      const distToLeftElbow = euclideanDistance3D(handLandmarks[0], poseLandmarks[13]);
+      const distToRightElbow = euclideanDistance3D(handLandmarks[0], poseLandmarks[14]);
+      
+      const useLeftElbow = distToLeftElbow < distToRightElbow;
+      (global as any).sessionElbowIndex = useLeftElbow ? 13 : 14;
+      (global as any).sessionWristIndex = useLeftElbow ? 15 : 16;
+      (global as any).sessionShoulderIndex = useLeftElbow ? 11 : 12;
+      (global as any).sessionElbowLocked = true;
+      
+      console.log(`🔒 SESSION ELBOW LOCKED: Using ${useLeftElbow ? 'LEFT' : 'RIGHT'} elbow (dist diff: ${Math.abs(distToLeftElbow - distToRightElbow).toFixed(3)})`);
+    } else {
+      // Fallback to hand type if proximity fails
+      const useLeftElbow = forceHandType === 'LEFT';
+      (global as any).sessionElbowIndex = useLeftElbow ? 13 : 14;
+      (global as any).sessionWristIndex = useLeftElbow ? 15 : 16;
+      (global as any).sessionShoulderIndex = useLeftElbow ? 11 : 12;
+      (global as any).sessionElbowLocked = true;
+      console.log(`🔒 FALLBACK ELBOW LOCK: Using ${forceHandType} based on hand type`);
     }
   }
+  
+  // Use locked session selection
+  elbowIndex = (global as any).sessionElbowIndex;
+  wristIndex = (global as any).sessionWristIndex;
+  shoulderIndex = (global as any).sessionShoulderIndex;
 
   console.log(`🔍 Using landmark indices - elbow: ${elbowIndex}, wrist: ${wristIndex}, shoulder: ${shoulderIndex}`);
 
