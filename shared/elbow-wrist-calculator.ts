@@ -127,16 +127,27 @@ function calculateWristAngleUsingVectors(
     clampedCosAngle: clampedCosAngle.toFixed(3)
   });
   
-  // Return angle in degrees (neutral = 180°, flexion < 180°, extension > 180°)
+  // Calculate the angle between vectors (0-180 degrees)
   const angleRadians = Math.acos(clampedCosAngle);
   const angleDegrees = angleRadians * (180 / Math.PI);
   
-  console.log('🔍 Final angle result:', {
-    angleRadians: angleRadians.toFixed(3),
-    angleDegrees: angleDegrees.toFixed(1)
+  // For clinical wrist measurement, neutral position is when forearm and hand are aligned
+  // The vector angle directly represents the deviation from alignment
+  // Smaller angles = more flexion/extension, larger angles = closer to neutral
+  
+  // Convert to clinical scale where 180° = neutral, deviation = flexion/extension amount
+  // Since vector angle 0° = maximum deviation and 180° = aligned (neutral)
+  // We can directly use: deviation = 180° - vector_angle
+  const deviationFromNeutral = 180 - angleDegrees;
+  
+  console.log('🔍 Wrist angle calculation:', {
+    vectorAngle: angleDegrees.toFixed(1),
+    deviationFromNeutral: deviationFromNeutral.toFixed(1)
   });
   
-  return angleDegrees;
+  // Return the deviation amount (flexion/extension degree)
+  // This gives us the actual clinical measurement we want
+  return Math.max(0, deviationFromNeutral);
 }
 
 function calculateAngleBetweenVectors(
