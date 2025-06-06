@@ -121,10 +121,12 @@ function calculateWristAngleUsingVectors(
   // Calculate 2D dot product using normalized vectors
   const dotProduct = normalizedForearm2D.x * normalizedHand2D.x + normalizedForearm2D.y * normalizedHand2D.y;
   
-  console.log('🔍 2D Normalized vectors:', {
-    forearmNormalized2D: { x: normalizedForearm2D.x.toFixed(3), y: normalizedForearm2D.y.toFixed(3) },
-    handNormalized2D: { x: normalizedHand2D.x.toFixed(3), y: normalizedHand2D.y.toFixed(3) }
-  });
+  console.log('🔍 2D VECTOR DEBUG:');
+  console.log(`   Raw Forearm Vector: (${forearmVector2D.x.toFixed(3)}, ${forearmVector2D.y.toFixed(3)})`);
+  console.log(`   Raw Hand Vector: (${handVector2D.x.toFixed(3)}, ${handVector2D.y.toFixed(3)})`);
+  console.log(`   Normalized Forearm: (${normalizedForearm2D.x.toFixed(3)}, ${normalizedForearm2D.y.toFixed(3)})`);
+  console.log(`   Normalized Hand: (${normalizedHand2D.x.toFixed(3)}, ${normalizedHand2D.y.toFixed(3)})`);
+  console.log(`   Dot Product 2D: ${dotProduct.toFixed(6)}`);
   
   // For normalized vectors, cosAngle = dotProduct directly
   const cosAngle = dotProduct;
