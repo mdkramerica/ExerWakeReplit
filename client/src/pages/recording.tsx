@@ -389,6 +389,9 @@ export default function Recording() {
           wristAngles: frameWristAngles || data.wristAngles || null,
           handedness: sessionHandType !== 'UNKNOWN' ? sessionHandType : (data.lockedHandType || data.handType || "Right"),
           sessionHandType: sessionHandType !== 'UNKNOWN' ? sessionHandType : data.lockedHandType,
+          sessionElbowIndex: data.sessionElbowIndex,
+          sessionWristIndex: data.sessionWristIndex,
+          sessionElbowLocked: data.sessionElbowLocked,
           quality: data.trackingQuality === "Excellent" ? 90 : data.trackingQuality === "Good" ? 70 : 50
         };
         
