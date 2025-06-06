@@ -162,6 +162,7 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType 
       
       // Force the locked hand type for consistent calculation
       if (lastHandTypeRef.current !== 'UNKNOWN') {
+        console.log(`🎯 Calling wrist calculation with locked hand type: ${lastHandTypeRef.current}`);
         wristAngles = calculateElbowReferencedWristAngleWithForce(
           handLandmarks.map((landmark: any) => ({
             x: landmark.x,
@@ -176,7 +177,9 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType 
           })),
           lastHandTypeRef.current
         );
+        console.log(`🎯 Wrist calculation completed for ${lastHandTypeRef.current} hand`);
       } else {
+        console.log('⚠️ Using fallback detection - hand type not locked yet');
         wristAngles = currentDetection;
       }
       

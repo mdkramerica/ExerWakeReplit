@@ -255,11 +255,11 @@ export function calculateElbowReferencedWristAngleWithForce(
     return result;
   }
 
-  // Fix mirroring issue: For camera-mirrored views, invert the landmark selection
-  // When user shows LEFT hand, we need RIGHT pose landmarks due to camera mirroring
-  const elbowIndex = forceHandType === 'LEFT' ? POSE_LANDMARKS.RIGHT_ELBOW : POSE_LANDMARKS.LEFT_ELBOW;
-  const wristIndex = forceHandType === 'LEFT' ? POSE_LANDMARKS.RIGHT_WRIST : POSE_LANDMARKS.LEFT_WRIST;
-  const shoulderIndex = forceHandType === 'LEFT' ? POSE_LANDMARKS.RIGHT_SHOULDER : POSE_LANDMARKS.LEFT_SHOULDER;
+  // Correct hand-elbow matching: LEFT hand should use LEFT elbow landmarks
+  // Remove the mirroring inversion that was causing mismatched visualization
+  const elbowIndex = forceHandType === 'LEFT' ? POSE_LANDMARKS.LEFT_ELBOW : POSE_LANDMARKS.RIGHT_ELBOW;
+  const wristIndex = forceHandType === 'LEFT' ? POSE_LANDMARKS.LEFT_WRIST : POSE_LANDMARKS.RIGHT_WRIST;
+  const shoulderIndex = forceHandType === 'LEFT' ? POSE_LANDMARKS.LEFT_SHOULDER : POSE_LANDMARKS.RIGHT_SHOULDER;
 
   console.log(`🔍 Using landmark indices - elbow: ${elbowIndex}, wrist: ${wristIndex}, shoulder: ${shoulderIndex}`);
 
@@ -345,10 +345,10 @@ export function calculateElbowReferencedWristAngle(
     const handType = determineHandType(handLandmarks, poseLandmarks);
     result.handType = handType;
 
-    // Fix mirroring issue: For camera-mirrored views, invert the landmark selection
-    const elbowIndex = handType === 'LEFT' ? POSE_LANDMARKS.RIGHT_ELBOW : POSE_LANDMARKS.LEFT_ELBOW;
-    const wristIndex = handType === 'LEFT' ? POSE_LANDMARKS.RIGHT_WRIST : POSE_LANDMARKS.LEFT_WRIST;
-    const shoulderIndex = handType === 'LEFT' ? POSE_LANDMARKS.RIGHT_SHOULDER : POSE_LANDMARKS.LEFT_SHOULDER;
+    // Correct hand-elbow matching: LEFT hand should use LEFT elbow landmarks
+    const elbowIndex = handType === 'LEFT' ? POSE_LANDMARKS.LEFT_ELBOW : POSE_LANDMARKS.RIGHT_ELBOW;
+    const wristIndex = handType === 'LEFT' ? POSE_LANDMARKS.LEFT_WRIST : POSE_LANDMARKS.RIGHT_WRIST;
+    const shoulderIndex = handType === 'LEFT' ? POSE_LANDMARKS.LEFT_SHOULDER : POSE_LANDMARKS.RIGHT_SHOULDER;
 
     const elbow = poseLandmarks[elbowIndex];
     const poseWrist = poseLandmarks[wristIndex];
