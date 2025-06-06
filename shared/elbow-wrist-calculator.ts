@@ -410,8 +410,9 @@ export function calculateElbowReferencedWristAngleWithForce(
       };
       
       // Use Y component to determine direction relative to forearm baseline
-      // Positive Y = hand above forearm (extension), Negative Y = hand below forearm (flexion)
-      const isExtension = crossProduct.y > 0;
+      // Camera coordinate system: Y increases downward
+      // Negative Y = hand above forearm (extension), Positive Y = hand below forearm (flexion)
+      const isExtension = crossProduct.y < 0;
       
       console.log(`🎯 VECTOR DIRECTION - Cross product Y: ${crossProduct.y.toFixed(4)}, Direction: ${isExtension ? 'EXTENSION' : 'FLEXION'}`);
       
