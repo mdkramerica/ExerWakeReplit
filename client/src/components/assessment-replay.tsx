@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Play, Pause, RotateCcw, Download } from "lucide-react";
 import { calculateCurrentROM, calculateFingerROM, type JointAngles } from "@/lib/rom-calculator";
 import { calculateKapandjiScore, calculateMaxKapandjiScore, type KapandjiScore } from "@shared/kapandji-calculator";
-import { calculateElbowReferencedWristAngle, calculateElbowReferencedWristAngleWithForce, getRecordingSessionElbowSelection, type ElbowWristAngles } from "@shared/elbow-wrist-calculator";
+import { calculateElbowReferencedWristAngle, getRecordingSessionElbowSelection, type ElbowWristAngles } from "@shared/elbow-wrist-calculator";
 // Remove the import since we'll load the image directly
 
 interface ReplayData {
@@ -97,16 +97,10 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
         // Set frame to the one with the best score
         setCurrentFrame(0); // Start from beginning for Kapandji
       } else if (isWristAssessment) {
-        // Calculate wrist angles for all frames using baseline-corrected method
+        // Calculate wrist angles for all frames
         const wristAnglesAllFrames = replayData.map(frame => {
           if (frame.landmarks && frame.poseLandmarks) {
-            // Use the session hand type from stored data, defaulting to RIGHT
-            const handType: 'LEFT' | 'RIGHT' = (frame.sessionHandType === 'LEFT' || frame.sessionHandType === 'RIGHT') 
-              ? frame.sessionHandType 
-              : (frame.handedness === 'LEFT' || frame.handedness === 'RIGHT') 
-                ? frame.handedness 
-                : 'RIGHT';
-            return calculateElbowReferencedWristAngleWithForce(frame.landmarks, frame.poseLandmarks, handType);
+            return calculateElbowReferencedWristAngle(frame.landmarks, frame.poseLandmarks);
           }
           return null;
         }).filter(Boolean);
@@ -193,16 +187,9 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
           const currentKapandji = calculateKapandjiScore(frame.landmarks);
           setKapandjiScore(currentKapandji);
         } else if (isWristAssessment) {
-          // Calculate current wrist angles for this frame using baseline-corrected method
+          // Calculate current wrist angles for this frame
           if (frame.landmarks && frame.poseLandmarks) {
-            const handType: 'LEFT' | 'RIGHT' = (frame.sessionHandType === 'LEFT' || frame.sessionHandType === 'RIGHT') 
-              ? frame.sessionHandType 
-              : (frame.handedness === 'LEFT' || frame.handedness === 'RIGHT') 
-                ? frame.handedness 
-                : 'RIGHT';
-            console.log(`🔍 REPLAY DEBUG - Frame ${currentFrame}: sessionHandType=${frame.sessionHandType}, handedness=${frame.handedness}, using=${handType}`);
-            const currentWrist = calculateElbowReferencedWristAngleWithForce(frame.landmarks, frame.poseLandmarks, handType);
-            console.log(`🔍 REPLAY RESULT - Hand Type: ${currentWrist.handType}, Flexion: ${currentWrist.wristFlexionAngle}°, Extension: ${currentWrist.wristExtensionAngle}°`);
+            const currentWrist = calculateElbowReferencedWristAngle(frame.landmarks, frame.poseLandmarks);
             setCurrentWristAngles(currentWrist);
           }
         } else {

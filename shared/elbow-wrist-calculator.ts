@@ -26,8 +26,6 @@ let recordingSessionElbowIndex: number | undefined;
 let recordingSessionWristIndex: number | undefined;
 let recordingSessionShoulderIndex: number | undefined;
 let lastWristAngle: number | undefined;
-let sessionNeutralBaseline: number | undefined;
-let sessionAngleSamples: number[] = [];
 
 // MediaPipe Pose landmark indices
 const POSE_LANDMARKS = {
@@ -86,47 +84,50 @@ function calculateWristAngleUsingVectors(
     middleMcp: { x: middleMcp.x.toFixed(3), y: middleMcp.y.toFixed(3), z: middleMcp.z.toFixed(3) }
   });
 
-  // 2D APPROACH: Use only X and Y coordinates for sagittal plane movement
-  // This simplifies calculation and focuses on primary flexion/extension plane
-  const forearmVector2D = {
+  // CORRECTED VECTORS: Use pose elbow to hand wrist for forearm vector
+  // Forearm vector: from pose elbow TO hand wrist (handLandmark[0])
+  const forearmVector = {
     x: wrist.x - elbow.x,
-    y: wrist.y - elbow.y
+    y: wrist.y - elbow.y,
+    z: wrist.z - elbow.z
   };
   
-  const handVector2D = {
+  // Hand vector: from hand wrist TO middle MCP (handLandmark[9])
+  const handVector = {
     x: middleMcp.x - wrist.x,
-    y: middleMcp.y - wrist.y
+    y: middleMcp.y - wrist.y,
+    z: middleMcp.z - wrist.z
   };
   
-  // Calculate 2D vector lengths
-  const forearmLength = Math.sqrt(forearmVector2D.x**2 + forearmVector2D.y**2);
-  const handLength = Math.sqrt(handVector2D.x**2 + handVector2D.y**2);
+  // CRITICAL: Normalize vectors first to ensure accurate angle calculation
+  const forearmLength = Math.sqrt(forearmVector.x**2 + forearmVector.y**2 + forearmVector.z**2);
+  const handLength = Math.sqrt(handVector.x**2 + handVector.y**2 + handVector.z**2);
   
   if (forearmLength === 0 || handLength === 0) {
     console.log('⚠️ Zero length vector, returning 0°');
     return 0;
   }
   
-  // Normalize the 2D vectors
-  const normalizedForearm2D = {
-    x: forearmVector2D.x / forearmLength,
-    y: forearmVector2D.y / forearmLength
+  // Normalize the vectors
+  const normalizedForearm = {
+    x: forearmVector.x / forearmLength,
+    y: forearmVector.y / forearmLength,
+    z: forearmVector.z / forearmLength
   };
   
-  const normalizedHand2D = {
-    x: handVector2D.x / handLength,
-    y: handVector2D.y / handLength
+  const normalizedHand = {
+    x: handVector.x / handLength,
+    y: handVector.y / handLength,
+    z: handVector.z / handLength
   };
   
-  // Calculate 2D dot product using normalized vectors
-  const dotProduct = normalizedForearm2D.x * normalizedHand2D.x + normalizedForearm2D.y * normalizedHand2D.y;
+  // Calculate dot product using normalized vectors
+  const dotProduct = normalizedForearm.x * normalizedHand.x + normalizedForearm.y * normalizedHand.y + normalizedForearm.z * normalizedHand.z;
   
-  console.log('🔍 2D VECTOR DEBUG:');
-  console.log(`   Raw Forearm Vector: (${forearmVector2D.x.toFixed(3)}, ${forearmVector2D.y.toFixed(3)})`);
-  console.log(`   Raw Hand Vector: (${handVector2D.x.toFixed(3)}, ${handVector2D.y.toFixed(3)})`);
-  console.log(`   Normalized Forearm: (${normalizedForearm2D.x.toFixed(3)}, ${normalizedForearm2D.y.toFixed(3)})`);
-  console.log(`   Normalized Hand: (${normalizedHand2D.x.toFixed(3)}, ${normalizedHand2D.y.toFixed(3)})`);
-  console.log(`   Dot Product 2D: ${dotProduct.toFixed(6)}`);
+  console.log('🔍 Normalized vectors:', {
+    forearmNormalized: { x: normalizedForearm.x.toFixed(3), y: normalizedForearm.y.toFixed(3), z: normalizedForearm.z.toFixed(3) },
+    handNormalized: { x: normalizedHand.x.toFixed(3), y: normalizedHand.y.toFixed(3), z: normalizedHand.z.toFixed(3) }
+  });
   
   // For normalized vectors, cosAngle = dotProduct directly
   const cosAngle = dotProduct;
@@ -145,16 +146,12 @@ function calculateWristAngleUsingVectors(
   const vectorAngleRadians = Math.acos(clampedCosAngle);
   const vectorAngleDegrees = vectorAngleRadians * (180 / Math.PI);
   
-  // ANATOMICAL BASELINE CORRECTION
-  // The natural angle between forearm and hand vectors is ~135-150° in neutral position
-  // We need to calculate deviation from this baseline, not from 0°
-  const NEUTRAL_BASELINE_ANGLE = 140; // Typical anatomical neutral angle
+  // Convert to deflection angle: 180° = neutral, deviation gives actual bend
+  // This gives us the actual wrist bend angle that matches visual perception
+  let deflectionAngle = 180 - vectorAngleDegrees;
   
-  // Calculate deviation from neutral baseline
-  let deviationFromNeutral = Math.abs(vectorAngleDegrees - NEUTRAL_BASELINE_ANGLE);
-  
-  // For small deviations (near neutral), use the deviation directly
-  let angleDegrees = deviationFromNeutral;
+  // Use deflection angle as the final measurement
+  let angleDegrees = deflectionAngle;
   console.log('🔍 DETAILED VECTOR ANALYSIS:');
   console.log(`   Forearm Length: ${forearmLength.toFixed(4)}`);
   console.log(`   Hand Length: ${handLength.toFixed(4)}`);
@@ -162,10 +159,8 @@ function calculateWristAngleUsingVectors(
   console.log(`   Cos(Angle): ${cosAngle.toFixed(6)}`);
   console.log(`   Vector Angle (rad): ${vectorAngleRadians.toFixed(6)}`);
   console.log(`   Vector Angle (deg): ${vectorAngleDegrees.toFixed(2)}`);
-  console.log(`   Neutral Baseline: ${NEUTRAL_BASELINE_ANGLE}°`);
-  console.log(`   Deviation from Neutral: ${deviationFromNeutral.toFixed(2)}`);
-  console.log(`   Final Wrist Angle: ${angleDegrees.toFixed(2)}`);
-  console.log(`   Expected: 0° = neutral, 15-45° = visible bend`);
+  console.log(`   Deflection Angle (deg): ${deflectionAngle.toFixed(2)}`);
+  console.log(`   Expected Visual: 20-60° for visible flexion`);
   
   // Validate angle against expected physiological range and apply smoothing
   let finalAngle = angleDegrees;
@@ -409,30 +404,22 @@ export function calculateElbowReferencedWristAngleWithForce(
       };
       
       // Use Y component to determine direction relative to forearm baseline
-      // Camera coordinate system: Y increases downward
-      // Negative Y = hand above forearm (extension), Positive Y = hand below forearm (flexion)
-      const isExtension = crossProduct.y < 0;
+      // Positive Y = hand above forearm (extension), Negative Y = hand below forearm (flexion)
+      const isExtension = crossProduct.y > 0;
       
       console.log(`🎯 VECTOR DIRECTION - Cross product Y: ${crossProduct.y.toFixed(4)}, Direction: ${isExtension ? 'EXTENSION' : 'FLEXION'}`);
       
-      // SIMPLE ANGLE CALCULATION
-      // Use the direct angle between forearm and hand vectors
-      // This provides intuitive results where larger angles = more bend
-      const correctedAngle = wristAngle;
-      
-      console.log(`🔍 DIRECT ANGLE: ${wristAngle.toFixed(1)}° between forearm and hand vectors`);
-      
-      // Always assign corrected angles for responsive real-time display
+      // Always assign angles for responsive real-time display
       if (isExtension) {
         // Extension: hand vector above forearm baseline
-        result.wristExtensionAngle = correctedAngle;
+        result.wristExtensionAngle = wristAngle;
         result.wristFlexionAngle = 0;
-        console.log(`Wrist EXTENSION: ${correctedAngle.toFixed(1)}° deviation above forearm`);
+        console.log(`Wrist EXTENSION: ${wristAngle.toFixed(1)}° deviation above forearm`);
       } else {
         // Flexion: hand vector below forearm baseline
-        result.wristFlexionAngle = correctedAngle;
+        result.wristFlexionAngle = wristAngle;
         result.wristExtensionAngle = 0;
-        console.log(`Wrist FLEXION: ${correctedAngle.toFixed(1)}° deviation below forearm`);
+        console.log(`Wrist FLEXION: ${wristAngle.toFixed(1)}° deviation below forearm`);
       }
 
       // Set high confidence for successful calculation
@@ -638,8 +625,6 @@ export function resetRecordingSession() {
   recordingSessionWristIndex = undefined;
   recordingSessionShoulderIndex = undefined;
   lastWristAngle = undefined;
-  sessionNeutralBaseline = undefined;
-  sessionAngleSamples = [];
   console.log('🔄 RECORDING SESSION RESET: Cleared all session state for new recording');
 }
 
