@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback, useState } from "react";
-import { calculateElbowReferencedWristAngle, calculateElbowReferencedWristAngleWithForce, resetRecordingSession } from "@shared/elbow-wrist-calculator";
+import { calculateElbowReferencedWristAngle, calculateElbowReferencedWristAngleWithForce, resetRecordingSession, getRecordingSessionElbowSelection } from "@shared/elbow-wrist-calculator";
 // import exerLogoPath from "@assets/exer-ai-logo-white.png";
 
 interface HolisticTrackerProps {
@@ -226,7 +226,10 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType,
       });
     }
 
-    // Update parent component with tracking data
+    // Get session elbow selection to store with frame data
+    const sessionElbowData = getRecordingSessionElbowSelection();
+    
+    // Update parent component with tracking data including session elbow selection
     console.log('🔄 Sending update to parent with wrist angles:', wristAngles);
     onUpdate({
       handDetected,
@@ -245,7 +248,10 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType,
         visibility: landmark.visibility
       })),
       wristAngles,
-      lockedHandType: lastHandTypeRef.current
+      lockedHandType: lastHandTypeRef.current,
+      sessionElbowIndex: sessionElbowData.elbowIndex,
+      sessionWristIndex: sessionElbowData.wristIndex,
+      sessionElbowLocked: sessionElbowData.isLocked
     });
   }, [isWristAssessment, onUpdate]);
 

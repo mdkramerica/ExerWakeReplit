@@ -14,6 +14,9 @@ interface ReplayData {
   poseLandmarks?: Array<{x: number, y: number, z: number, visibility?: number}>;
   handedness: string;
   sessionHandType?: 'LEFT' | 'RIGHT' | 'UNKNOWN';
+  sessionElbowIndex?: number;
+  sessionWristIndex?: number;
+  sessionElbowLocked?: boolean;
   quality: number;
 }
 
@@ -802,12 +805,18 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
           let elbowIndex: number;
           let wristIndex: number;
           
-          if (sessionElbowData.isLocked && sessionElbowData.elbowIndex !== undefined) {
-            // Use the exact same session-locked selection from calculation
+          if (frame.sessionElbowLocked && frame.sessionElbowIndex !== undefined) {
+            // Use the stored session elbow selection from the recorded frame
+            elbowIndex = frame.sessionElbowIndex;
+            wristIndex = frame.sessionWristIndex || (frame.sessionElbowIndex === 13 ? 15 : 16);
+            const elbowSide = elbowIndex === 13 ? 'LEFT' : 'RIGHT';
+            console.log(`REPLAY: Using stored session elbow selection - ${elbowSide} elbow (index ${elbowIndex})`);
+          } else if (sessionElbowData.isLocked && sessionElbowData.elbowIndex !== undefined) {
+            // Fallback to current session state if frame data missing
             elbowIndex = sessionElbowData.elbowIndex;
             wristIndex = sessionElbowData.wristIndex || (sessionElbowData.elbowIndex === 13 ? 15 : 16);
             const elbowSide = elbowIndex === 13 ? 'LEFT' : 'RIGHT';
-            console.log(`REPLAY: Using session-locked elbow selection - ${elbowSide} elbow (index ${elbowIndex})`);
+            console.log(`REPLAY: Using current session elbow selection - ${elbowSide} elbow (index ${elbowIndex})`);
           } else {
             // Fallback: recalculate using same logic as calculation
             if (frame.landmarks && frame.landmarks[0] && frame.poseLandmarks[13] && frame.poseLandmarks[14]) {
