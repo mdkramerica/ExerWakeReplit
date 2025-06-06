@@ -177,8 +177,11 @@ export default function Recording() {
     if (recordingMotionDataRef.current.length > 0) {
       recordingMotionDataRef.current.forEach(frame => {
         if (frame.wristAngles) {
-          const frameFlexion = frame.wristAngles.flexionAngle || 0;
-          const frameExtension = frame.wristAngles.extensionAngle || 0;
+          // Use the new precise vector calculation field names
+          const frameFlexion = frame.wristAngles.wristFlexionAngle || frame.wristAngles.flexionAngle || 0;
+          const frameExtension = frame.wristAngles.wristExtensionAngle || frame.wristAngles.extensionAngle || 0;
+          
+          console.log(`Frame wrist angles: flexion=${frameFlexion.toFixed(1)}°, extension=${frameExtension.toFixed(1)}°`);
           
           // Track maximum values across all frames
           if (frameFlexion > maxWristFlexion) {
@@ -196,8 +199,8 @@ export default function Recording() {
 
     // Use current wrist angles if available
     if (wristAngles) {
-      currentFlexion = wristAngles.flexionAngle || 0;
-      currentExtension = wristAngles.extensionAngle || 0;
+      currentFlexion = wristAngles.wristFlexionAngle || wristAngles.flexionAngle || 0;
+      currentExtension = wristAngles.wristExtensionAngle || wristAngles.extensionAngle || 0;
       maxWristFlexion = Math.max(maxWristFlexion, currentFlexion);
       maxWristExtension = Math.max(maxWristExtension, currentExtension);
     }
