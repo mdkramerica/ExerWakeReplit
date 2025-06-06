@@ -881,7 +881,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
             ctx.font = 'bold 12px Arial';
             ctx.fillText('ELBOW', elbowX - 25, elbowY - 15);
             
-            // Draw wrist-to-hand vector
+            // Draw wrist-to-hand vector (hand vector)
             ctx.strokeStyle = '#f59e0b';
             ctx.lineWidth = 3;
             ctx.setLineDash([]);
@@ -889,6 +889,67 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
             ctx.moveTo(wristX, wristY);
             ctx.lineTo(mcpX, mcpY);
             ctx.stroke();
+            
+            // Draw infinite reference vectors as dashed yellow lines
+            // 1. Forearm vector: from elbow through hand wrist, extended infinitely
+            const forearmVector = {
+              x: wristX - elbowX,
+              y: wristY - elbowY
+            };
+            const forearmLength = Math.sqrt(forearmVector.x**2 + forearmVector.y**2);
+            
+            if (forearmLength > 0) {
+              const normalizedForearm = {
+                x: forearmVector.x / forearmLength,
+                y: forearmVector.y / forearmLength
+              };
+              
+              // Extend forearm line across entire canvas
+              const extensionLength = Math.max(canvas.width, canvas.height) * 2;
+              const forearmStartX = elbowX - normalizedForearm.x * extensionLength;
+              const forearmStartY = elbowY - normalizedForearm.y * extensionLength;
+              const forearmEndX = elbowX + normalizedForearm.x * extensionLength;
+              const forearmEndY = elbowY + normalizedForearm.y * extensionLength;
+              
+              ctx.strokeStyle = '#fbbf24'; // Yellow
+              ctx.lineWidth = 2;
+              ctx.setLineDash([8, 4]); // Dashed pattern
+              ctx.beginPath();
+              ctx.moveTo(forearmStartX, forearmStartY);
+              ctx.lineTo(forearmEndX, forearmEndY);
+              ctx.stroke();
+            }
+            
+            // 2. Hand vector: from wrist through middle MCP, extended infinitely
+            const handVector = {
+              x: mcpX - wristX,
+              y: mcpY - wristY
+            };
+            const handVectorLength = Math.sqrt(handVector.x**2 + handVector.y**2);
+            
+            if (handVectorLength > 0) {
+              const normalizedHand = {
+                x: handVector.x / handVectorLength,
+                y: handVector.y / handVectorLength
+              };
+              
+              // Extend hand line across entire canvas
+              const extensionLength = Math.max(canvas.width, canvas.height) * 2;
+              const handStartX = wristX - normalizedHand.x * extensionLength;
+              const handStartY = wristY - normalizedHand.y * extensionLength;
+              const handEndX = wristX + normalizedHand.x * extensionLength;
+              const handEndY = wristY + normalizedHand.y * extensionLength;
+              
+              ctx.strokeStyle = '#fbbf24'; // Yellow
+              ctx.lineWidth = 2;
+              ctx.setLineDash([6, 6]); // Different dash pattern for hand vector
+              ctx.beginPath();
+              ctx.moveTo(handStartX, handStartY);
+              ctx.lineTo(handEndX, handEndY);
+              ctx.stroke();
+            }
+            
+            ctx.setLineDash([]); // Reset dash pattern
             
             // Highlight wrist point
             ctx.fillStyle = '#ef4444';

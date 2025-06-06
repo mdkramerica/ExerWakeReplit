@@ -77,15 +77,15 @@ function calculateWristAngleUsingVectors(
     middleMcp: { x: middleMcp.x.toFixed(3), y: middleMcp.y.toFixed(3), z: middleMcp.z.toFixed(3) }
   });
 
-  // CORRECTED VECTORS: Calculate the angle exactly as shown visually
-  // Forearm vector: from elbow TO wrist (blue line direction)
+  // CORRECTED VECTORS: Use pose elbow to hand wrist for forearm vector
+  // Forearm vector: from pose elbow TO hand wrist (handLandmark[0])
   const forearmVector = {
     x: wrist.x - elbow.x,
     y: wrist.y - elbow.y,
     z: wrist.z - elbow.z
   };
   
-  // Hand vector: from wrist TO middle MCP (orange line direction)  
+  // Hand vector: from hand wrist TO middle MCP (handLandmark[9])
   const handVector = {
     x: middleMcp.x - wrist.x,
     y: middleMcp.y - wrist.y,
