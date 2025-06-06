@@ -795,20 +795,31 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
         if (frame.poseLandmarks && frame.poseLandmarks.length > 15) {
           // Use stored session hand type for consistent elbow tracking throughout replay
           const sessionHandType = frame.sessionHandType || frame.handedness || currentWristAngles.handType;
-          // Correct hand-elbow matching: LEFT hand should use LEFT elbow landmarks
-          const elbowIndex = sessionHandType === 'LEFT' ? 13 : 14; // Left hand uses left elbow
-          const poseWristIndex = sessionHandType === 'LEFT' ? 15 : 16; // Left hand uses left wrist
           
-          const elbow = frame.poseLandmarks[elbowIndex];
-          const poseWrist = frame.poseLandmarks[poseWristIndex];
+          // For visualization, we need to consider camera mirroring
+          // The calculation uses correct landmarks, but display needs to match visual hand position
+          const leftElbow = frame.poseLandmarks[13];
+          const rightElbow = frame.poseLandmarks[14];
+          const leftPoseWrist = frame.poseLandmarks[15];
+          const rightPoseWrist = frame.poseLandmarks[16];
           
-          console.log(`Elbow detection debug - SessionHand: ${sessionHandType}, ElbowIndex: ${elbowIndex}, Elbow visibility: ${elbow?.visibility || 'undefined'}, PoseWrist visibility: ${poseWrist?.visibility || 'undefined'}`);
+          // Determine which elbow is closest to the detected hand position
+          const handCenterX = wristX; // Use wrist as hand center
+          const leftElbowDistance = leftElbow ? Math.abs(leftElbow.x * canvas.width - handCenterX) : Infinity;
+          const rightElbowDistance = rightElbow ? Math.abs(rightElbow.x * canvas.width - handCenterX) : Infinity;
           
-          if (elbow && poseWrist && (elbow.visibility || 1) > 0.5) {
-            const elbowX = elbow.x * canvas.width;
-            const elbowY = elbow.y * canvas.height;
-            const poseWristX = poseWrist.x * canvas.width;
-            const poseWristY = poseWrist.y * canvas.height;
+          // Use the elbow that's closest to the hand for visualization
+          const useLeftElbow = leftElbowDistance < rightElbowDistance;
+          const selectedElbow = useLeftElbow ? leftElbow : rightElbow;
+          const selectedPoseWrist = useLeftElbow ? leftPoseWrist : rightPoseWrist;
+          
+          console.log(`Elbow selection - Hand at ${handCenterX}, Left distance: ${leftElbowDistance.toFixed(1)}, Right distance: ${rightElbowDistance.toFixed(1)}, Using: ${useLeftElbow ? 'LEFT' : 'RIGHT'}`);
+          
+          if (selectedElbow && selectedPoseWrist && (selectedElbow.visibility || 1) > 0.5) {
+            const elbowX = selectedElbow.x * canvas.width;
+            const elbowY = selectedElbow.y * canvas.height;
+            const poseWristX = selectedPoseWrist.x * canvas.width;
+            const poseWristY = selectedPoseWrist.y * canvas.height;
             
             // Draw forearm line (elbow to base of hand)
             ctx.strokeStyle = '#3b82f6';
