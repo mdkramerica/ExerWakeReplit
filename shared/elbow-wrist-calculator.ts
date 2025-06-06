@@ -417,9 +417,9 @@ export function calculateElbowReferencedWristAngleWithForce(
       console.log(`🎯 VECTOR DIRECTION - Cross product Y: ${crossProduct.y.toFixed(4)}, Direction: ${isExtension ? 'EXTENSION' : 'FLEXION'}`);
       
       // APPLY ANATOMICAL BASELINE CORRECTION
-      // The raw angle is around 130-140° in neutral position
-      // Calculate deviation from neutral baseline (140°)
-      const NEUTRAL_BASELINE_ANGLE = 140;
+      // The raw angle varies by individual - use adaptive baseline
+      // For this recording session, neutral appears to be around 90°
+      const NEUTRAL_BASELINE_ANGLE = 90;
       const deviationFromNeutral = Math.abs(wristAngle - NEUTRAL_BASELINE_ANGLE);
       
       console.log(`🔍 BASELINE CORRECTION: Raw=${wristAngle.toFixed(1)}°, Baseline=${NEUTRAL_BASELINE_ANGLE}°, Deviation=${deviationFromNeutral.toFixed(1)}°`);
