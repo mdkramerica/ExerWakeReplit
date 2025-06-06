@@ -429,7 +429,7 @@ export function calculateMaxElbowWristAngles(
   };
 
   for (const frame of motionFrames) {
-    const frameResult = calculateElbowReferencedWristAngleWithForce(frame.landmarks, frame.poseLandmarks || [], 'UNKNOWN');
+    const frameResult = calculateElbowReferencedWristAngleWithForce(frame.landmarks, frame.poseLandmarks || [], 'LEFT');
     
     // Track maximum flexion and extension values from session
     if (frameResult.elbowDetected && frameResult.confidence > 0.8) {

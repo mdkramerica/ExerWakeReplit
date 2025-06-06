@@ -180,7 +180,14 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType 
         wristAngles = currentDetection;
       }
       
-      console.log('Elbow-referenced wrist calculation:', wristAngles);
+      console.log('🔍 Wrist calculation result:', {
+        forearmToHandAngle: wristAngles?.forearmToHandAngle,
+        wristFlexionAngle: wristAngles?.wristFlexionAngle,
+        wristExtensionAngle: wristAngles?.wristExtensionAngle,
+        elbowDetected: wristAngles?.elbowDetected,
+        handType: wristAngles?.handType,
+        confidence: wristAngles?.confidence
+      });
     }
 
     // Update parent component with tracking data
