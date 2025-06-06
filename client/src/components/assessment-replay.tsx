@@ -627,8 +627,9 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
     ctx.font = '14px Arial';
     ctx.fillText(`Frame: ${frameIndex + 1}/${replayData.length}`, 10, 25);
     ctx.fillText(`Quality: ${Math.round(frame.quality)}%`, 10, 45);
-    // Display hand detection
-    ctx.fillText(`Hand: ${frame.handedness}`, 10, 65);
+    // Display hand detection using consistent hand type from wrist analysis
+    const displayHandType = frame.sessionHandType || currentWristAngles?.handType || frame.handedness || 'UNKNOWN';
+    ctx.fillText(`Hand: ${displayHandType}`, 10, 65);
 
 
 
