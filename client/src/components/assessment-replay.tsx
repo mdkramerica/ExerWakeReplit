@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Play, Pause, RotateCcw, Download } from "lucide-react";
 import { calculateCurrentROM, calculateFingerROM, type JointAngles } from "@/lib/rom-calculator";
 import { calculateKapandjiScore, calculateMaxKapandjiScore, type KapandjiScore } from "@shared/kapandji-calculator";
-import { calculateElbowReferencedWristAngle, getRecordingSessionElbowSelection, type ElbowWristAngles } from "@shared/elbow-wrist-calculator";
+import { calculateElbowReferencedWristAngle, calculateElbowReferencedWristAngleWithForce, getRecordingSessionElbowSelection, type ElbowWristAngles } from "@shared/elbow-wrist-calculator";
 // Remove the import since we'll load the image directly
 
 interface ReplayData {
@@ -97,10 +97,12 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
         // Set frame to the one with the best score
         setCurrentFrame(0); // Start from beginning for Kapandji
       } else if (isWristAssessment) {
-        // Calculate wrist angles for all frames
+        // Calculate wrist angles for all frames using baseline-corrected method
         const wristAnglesAllFrames = replayData.map(frame => {
           if (frame.landmarks && frame.poseLandmarks) {
-            return calculateElbowReferencedWristAngle(frame.landmarks, frame.poseLandmarks);
+            // Use the session hand type from stored data, defaulting to RIGHT
+            const handType = frame.sessionHandType || frame.handedness || 'RIGHT';
+            return calculateElbowReferencedWristAngleWithForce(frame.landmarks, frame.poseLandmarks, handType);
           }
           return null;
         }).filter(Boolean);
@@ -187,9 +189,10 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
           const currentKapandji = calculateKapandjiScore(frame.landmarks);
           setKapandjiScore(currentKapandji);
         } else if (isWristAssessment) {
-          // Calculate current wrist angles for this frame
+          // Calculate current wrist angles for this frame using baseline-corrected method
           if (frame.landmarks && frame.poseLandmarks) {
-            const currentWrist = calculateElbowReferencedWristAngle(frame.landmarks, frame.poseLandmarks);
+            const handType = frame.sessionHandType || frame.handedness || 'RIGHT';
+            const currentWrist = calculateElbowReferencedWristAngleWithForce(frame.landmarks, frame.poseLandmarks, handType);
             setCurrentWristAngles(currentWrist);
           }
         } else {
