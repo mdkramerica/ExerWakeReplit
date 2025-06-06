@@ -201,6 +201,13 @@ export default function Recording() {
       });
     }
 
+    // Use session maximum values as fallback
+    if (sessionMaxWristAngles) {
+      maxWristFlexion = Math.max(maxWristFlexion, sessionMaxWristAngles.maxWristFlexion || 0);
+      maxWristExtension = Math.max(maxWristExtension, sessionMaxWristAngles.maxWristExtension || 0);
+      console.log(`Session maximums used: Flexion=${sessionMaxWristAngles.maxWristFlexion}°, Extension=${sessionMaxWristAngles.maxWristExtension}°`);
+    }
+
     // Use current wrist angles if available
     if (wristAngles) {
       currentFlexion = wristAngles.wristFlexionAngle || wristAngles.flexionAngle || 0;
