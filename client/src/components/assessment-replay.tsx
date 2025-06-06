@@ -627,8 +627,8 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
     ctx.font = '14px Arial';
     ctx.fillText(`Frame: ${frameIndex + 1}/${replayData.length}`, 10, 25);
     ctx.fillText(`Quality: ${Math.round(frame.quality)}%`, 10, 45);
-    // Display hand detection using consistent hand type from wrist analysis
-    const displayHandType = frame.sessionHandType || currentWristAngles?.handType || frame.handedness || 'UNKNOWN';
+    // Display hand detection using hand type from current wrist analysis (priority order)
+    const displayHandType = currentWristAngles?.handType || frame.sessionHandType || frame.handedness || 'UNKNOWN';
     ctx.fillText(`Hand: ${displayHandType}`, 10, 65);
 
 
@@ -797,8 +797,8 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
         
         // Draw elbow and forearm line if pose landmarks available
         if (frame.poseLandmarks && frame.poseLandmarks.length > 15) {
-          // Use stored session hand type for consistent elbow tracking throughout replay
-          const sessionHandType = frame.sessionHandType || frame.handedness || currentWristAngles.handType;
+          // Use hand type from current wrist analysis for consistent elbow tracking
+          const sessionHandType = currentWristAngles?.handType || frame.sessionHandType || frame.handedness;
           
           // USE IDENTICAL SESSION-LOCKED ELBOW SELECTION: Match calculation exactly
           // Get the exact same elbow selection that was locked during recording
