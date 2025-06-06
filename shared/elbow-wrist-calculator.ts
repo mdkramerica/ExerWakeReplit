@@ -266,30 +266,30 @@ export function calculateElbowReferencedWristAngleWithForce(
     return result;
   }
 
-  // PROXIMITY-BASED FIX: Use the elbow closest to the detected hand regardless of hand type
-  // This accounts for any coordinate system confusion and ensures anatomically correct matching
-  let elbowIndex: number;
-  let wristIndex: number;
-  let shoulderIndex: number;
+  // SESSION-STABLE ELBOW SELECTION: Determine the anatomically correct elbow once
+  // Use forced hand type but validate with coordinate position for accuracy
+  let elbowIndex = forceHandType === 'LEFT' ? POSE_LANDMARKS.LEFT_ELBOW : POSE_LANDMARKS.RIGHT_ELBOW;
+  let wristIndex = forceHandType === 'LEFT' ? POSE_LANDMARKS.LEFT_WRIST : POSE_LANDMARKS.RIGHT_WRIST;
+  let shoulderIndex = forceHandType === 'LEFT' ? POSE_LANDMARKS.LEFT_SHOULDER : POSE_LANDMARKS.RIGHT_SHOULDER;
   
+  // Validate selection: check if hand is on anatomically correct side
   if (poseLandmarks[13] && poseLandmarks[14] && handLandmarks[0]) {
-    const distToLeftElbow = euclideanDistance3D(handLandmarks[0], poseLandmarks[13]);
-    const distToRightElbow = euclideanDistance3D(handLandmarks[0], poseLandmarks[14]);
+    const handX = handLandmarks[0].x;
+    const leftElbowX = poseLandmarks[13].x;
+    const rightElbowX = poseLandmarks[14].x;
     
-    // Use proximity to determine correct elbow, not hand type detection
-    const useLeftElbow = distToLeftElbow < distToRightElbow;
+    // For RIGHT hand: should be closer to LEFT side of screen (due to perspective)
+    // For LEFT hand: should be closer to RIGHT side of screen
+    const handOnRightSide = handX > 0.5;
+    const expectedRightHand = handOnRightSide;
     
-    elbowIndex = useLeftElbow ? POSE_LANDMARKS.LEFT_ELBOW : POSE_LANDMARKS.RIGHT_ELBOW;
-    wristIndex = useLeftElbow ? POSE_LANDMARKS.LEFT_WRIST : POSE_LANDMARKS.RIGHT_WRIST;
-    shoulderIndex = useLeftElbow ? POSE_LANDMARKS.LEFT_SHOULDER : POSE_LANDMARKS.RIGHT_SHOULDER;
-    
-    console.log(`🎯 PROXIMITY-BASED SELECTION: Using ${useLeftElbow ? 'LEFT' : 'RIGHT'} elbow (closer by ${Math.abs(distToLeftElbow - distToRightElbow).toFixed(3)})`);
-  } else {
-    // Fallback to hand type detection if proximity check fails
-    elbowIndex = forceHandType === 'LEFT' ? POSE_LANDMARKS.LEFT_ELBOW : POSE_LANDMARKS.RIGHT_ELBOW;
-    wristIndex = forceHandType === 'LEFT' ? POSE_LANDMARKS.LEFT_WRIST : POSE_LANDMARKS.RIGHT_WRIST;
-    shoulderIndex = forceHandType === 'LEFT' ? POSE_LANDMARKS.LEFT_SHOULDER : POSE_LANDMARKS.RIGHT_SHOULDER;
-    console.log(`⚠️ FALLBACK: Using hand type detection for elbow selection`);
+    if ((forceHandType === 'RIGHT' && !expectedRightHand) || (forceHandType === 'LEFT' && expectedRightHand)) {
+      // Flip the selection if anatomically incorrect
+      elbowIndex = forceHandType === 'LEFT' ? POSE_LANDMARKS.RIGHT_ELBOW : POSE_LANDMARKS.LEFT_ELBOW;
+      wristIndex = forceHandType === 'LEFT' ? POSE_LANDMARKS.RIGHT_WRIST : POSE_LANDMARKS.LEFT_WRIST;
+      shoulderIndex = forceHandType === 'LEFT' ? POSE_LANDMARKS.RIGHT_SHOULDER : POSE_LANDMARKS.LEFT_SHOULDER;
+      console.log(`🔄 CORRECTED SELECTION: Flipped to anatomically correct elbow (hand at x=${handX.toFixed(3)})`);
+    }
   }
 
   console.log(`🔍 Using landmark indices - elbow: ${elbowIndex}, wrist: ${wristIndex}, shoulder: ${shoulderIndex}`);
