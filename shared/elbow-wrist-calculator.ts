@@ -146,12 +146,10 @@ function calculateWristAngleUsingVectors(
   const vectorAngleRadians = Math.acos(clampedCosAngle);
   const vectorAngleDegrees = vectorAngleRadians * (180 / Math.PI);
   
-  // Convert to deflection angle: 180° = neutral, deviation gives actual bend
-  // This gives us the actual wrist bend angle that matches visual perception
-  let deflectionAngle = 180 - vectorAngleDegrees;
-  
-  // Use deflection angle as the final measurement
-  let angleDegrees = deflectionAngle;
+  // Use vector angle directly as wrist bend measurement
+  // 0° = vectors aligned (neutral), larger angles = more bend
+  // This correctly represents the deviation from neutral position
+  let angleDegrees = vectorAngleDegrees;
   console.log('🔍 DETAILED VECTOR ANALYSIS:');
   console.log(`   Forearm Length: ${forearmLength.toFixed(4)}`);
   console.log(`   Hand Length: ${handLength.toFixed(4)}`);
@@ -159,8 +157,8 @@ function calculateWristAngleUsingVectors(
   console.log(`   Cos(Angle): ${cosAngle.toFixed(6)}`);
   console.log(`   Vector Angle (rad): ${vectorAngleRadians.toFixed(6)}`);
   console.log(`   Vector Angle (deg): ${vectorAngleDegrees.toFixed(2)}`);
-  console.log(`   Deflection Angle (deg): ${deflectionAngle.toFixed(2)}`);
-  console.log(`   Expected Visual: 20-60° for visible flexion`);
+  console.log(`   Final Wrist Angle: ${angleDegrees.toFixed(2)}`);
+  console.log(`   Expected: 0° = neutral, 20-60° = visible bend`);
   
   // Validate angle against expected physiological range and apply smoothing
   let finalAngle = angleDegrees;
