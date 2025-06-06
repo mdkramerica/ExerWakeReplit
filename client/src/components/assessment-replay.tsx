@@ -796,24 +796,13 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
           // Use stored session hand type for consistent elbow tracking throughout replay
           const sessionHandType = frame.sessionHandType || frame.handedness || currentWristAngles.handType;
           
-          // For visualization, we need to consider camera mirroring
-          // The calculation uses correct landmarks, but display needs to match visual hand position
-          const leftElbow = frame.poseLandmarks[13];
-          const rightElbow = frame.poseLandmarks[14];
-          const leftPoseWrist = frame.poseLandmarks[15];
-          const rightPoseWrist = frame.poseLandmarks[16];
+          // Maintain consistent elbow selection throughout the session
+          // Use the detected hand type to determine correct elbow landmarks
+          const useRightHand = sessionHandType === 'RIGHT';
+          const selectedElbow = useRightHand ? frame.poseLandmarks[14] : frame.poseLandmarks[13]; // Right elbow (14) or Left elbow (13)
+          const selectedPoseWrist = useRightHand ? frame.poseLandmarks[16] : frame.poseLandmarks[15]; // Right wrist (16) or Left wrist (15)
           
-          // Determine which elbow is closest to the detected hand position
-          const handCenterX = wristX; // Use wrist as hand center
-          const leftElbowDistance = leftElbow ? Math.abs(leftElbow.x * canvas.width - handCenterX) : Infinity;
-          const rightElbowDistance = rightElbow ? Math.abs(rightElbow.x * canvas.width - handCenterX) : Infinity;
-          
-          // Use the elbow that's closest to the hand for visualization
-          const useLeftElbow = leftElbowDistance < rightElbowDistance;
-          const selectedElbow = useLeftElbow ? leftElbow : rightElbow;
-          const selectedPoseWrist = useLeftElbow ? leftPoseWrist : rightPoseWrist;
-          
-          console.log(`Elbow selection - Hand at ${handCenterX}, Left distance: ${leftElbowDistance.toFixed(1)}, Right distance: ${rightElbowDistance.toFixed(1)}, Using: ${useLeftElbow ? 'LEFT' : 'RIGHT'}`);
+          console.log(`Session-locked elbow selection - Hand: ${sessionHandType}, Using elbow: ${useRightHand ? 'RIGHT' : 'LEFT'} (index ${useRightHand ? 14 : 13})`);
           
           if (selectedElbow && selectedPoseWrist && (selectedElbow.visibility || 1) > 0.5) {
             const elbowX = selectedElbow.x * canvas.width;
