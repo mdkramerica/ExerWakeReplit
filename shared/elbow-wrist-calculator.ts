@@ -266,18 +266,52 @@ export function calculateElbowReferencedWristAngleWithForce(
     return result;
   }
 
-  // CORRECT FIX: MediaPipe provides actual anatomical coordinates (not mirrored)
-  // RIGHT hand should use RIGHT elbow landmarks for proper biomechanical calculation
-  // The canvas display may be mirrored for user viewing, but calculations use true coordinates
-  const elbowIndex = forceHandType === 'LEFT' ? POSE_LANDMARKS.LEFT_ELBOW : POSE_LANDMARKS.RIGHT_ELBOW;
-  const wristIndex = forceHandType === 'LEFT' ? POSE_LANDMARKS.LEFT_WRIST : POSE_LANDMARKS.RIGHT_WRIST;
-  const shoulderIndex = forceHandType === 'LEFT' ? POSE_LANDMARKS.LEFT_SHOULDER : POSE_LANDMARKS.RIGHT_SHOULDER;
+  // PROXIMITY-BASED FIX: Use the elbow closest to the detected hand regardless of hand type
+  // This accounts for any coordinate system confusion and ensures anatomically correct matching
+  let elbowIndex: number;
+  let wristIndex: number;
+  let shoulderIndex: number;
+  
+  if (poseLandmarks[13] && poseLandmarks[14] && handLandmarks[0]) {
+    const distToLeftElbow = euclideanDistance3D(handLandmarks[0], poseLandmarks[13]);
+    const distToRightElbow = euclideanDistance3D(handLandmarks[0], poseLandmarks[14]);
+    
+    // Use proximity to determine correct elbow, not hand type detection
+    const useLeftElbow = distToLeftElbow < distToRightElbow;
+    
+    elbowIndex = useLeftElbow ? POSE_LANDMARKS.LEFT_ELBOW : POSE_LANDMARKS.RIGHT_ELBOW;
+    wristIndex = useLeftElbow ? POSE_LANDMARKS.LEFT_WRIST : POSE_LANDMARKS.RIGHT_WRIST;
+    shoulderIndex = useLeftElbow ? POSE_LANDMARKS.LEFT_SHOULDER : POSE_LANDMARKS.RIGHT_SHOULDER;
+    
+    console.log(`🎯 PROXIMITY-BASED SELECTION: Using ${useLeftElbow ? 'LEFT' : 'RIGHT'} elbow (closer by ${Math.abs(distToLeftElbow - distToRightElbow).toFixed(3)})`);
+  } else {
+    // Fallback to hand type detection if proximity check fails
+    elbowIndex = forceHandType === 'LEFT' ? POSE_LANDMARKS.LEFT_ELBOW : POSE_LANDMARKS.RIGHT_ELBOW;
+    wristIndex = forceHandType === 'LEFT' ? POSE_LANDMARKS.LEFT_WRIST : POSE_LANDMARKS.RIGHT_WRIST;
+    shoulderIndex = forceHandType === 'LEFT' ? POSE_LANDMARKS.LEFT_SHOULDER : POSE_LANDMARKS.RIGHT_SHOULDER;
+    console.log(`⚠️ FALLBACK: Using hand type detection for elbow selection`);
+  }
 
   console.log(`🔍 Using landmark indices - elbow: ${elbowIndex}, wrist: ${wristIndex}, shoulder: ${shoulderIndex}`);
 
   const elbow = poseLandmarks[elbowIndex];
   const poseWrist = poseLandmarks[wristIndex];
   const shoulder = poseLandmarks[shoulderIndex];
+  
+  // DEBUG: Log all pose landmark positions to understand coordinate system
+  console.log(`🔍 COORDINATE DEBUG - Hand Type: ${forceHandType}`);
+  console.log(`Left Elbow (13): x=${poseLandmarks[13]?.x?.toFixed(3)}, y=${poseLandmarks[13]?.y?.toFixed(3)}`);
+  console.log(`Right Elbow (14): x=${poseLandmarks[14]?.x?.toFixed(3)}, y=${poseLandmarks[14]?.y?.toFixed(3)}`);
+  console.log(`Selected Elbow (${elbowIndex}): x=${elbow?.x?.toFixed(3)}, y=${elbow?.y?.toFixed(3)}`);
+  console.log(`Hand Wrist (0): x=${handLandmarks[0]?.x?.toFixed(3)}, y=${handLandmarks[0]?.y?.toFixed(3)}`);
+  
+  // Check if we're selecting the correct elbow based on proximity to hand
+  if (poseLandmarks[13] && poseLandmarks[14] && handLandmarks[0]) {
+    const distToLeftElbow = euclideanDistance3D(handLandmarks[0], poseLandmarks[13]);
+    const distToRightElbow = euclideanDistance3D(handLandmarks[0], poseLandmarks[14]);
+    console.log(`🔍 PROXIMITY CHECK - Distance to Left Elbow: ${distToLeftElbow.toFixed(3)}, Right Elbow: ${distToRightElbow.toFixed(3)}`);
+    console.log(`🔍 CLOSEST ELBOW: ${distToLeftElbow < distToRightElbow ? 'LEFT (13)' : 'RIGHT (14)'}`);
+  }
 
   console.log(`🔍 Pose landmarks availability:`, {
     elbow: { exists: !!elbow, visibility: elbow?.visibility || 'N/A' },

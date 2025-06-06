@@ -796,13 +796,41 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
           // Use stored session hand type for consistent elbow tracking throughout replay
           const sessionHandType = frame.sessionHandType || frame.handedness || currentWristAngles.handType;
           
-          // CORRECT FIX: Match anatomical coordinates (not mirrored)
-          // RIGHT hand uses RIGHT elbow landmarks for proper biomechanical alignment
-          const useRightHand = sessionHandType === 'RIGHT';
-          const selectedElbow = useRightHand ? frame.poseLandmarks[14] : frame.poseLandmarks[13]; // RIGHT hand uses RIGHT elbow (14)
-          const selectedPoseWrist = useRightHand ? frame.poseLandmarks[16] : frame.poseLandmarks[15]; // RIGHT hand uses RIGHT wrist (16)
+          // PROXIMITY-BASED FIX: Use the elbow closest to the hand regardless of hand type
+          // This ensures anatomically correct visualization matching the calculation logic
+          let selectedElbow, selectedPoseWrist;
           
-          console.log(`Session-locked elbow selection - Hand: ${sessionHandType}, Using elbow: ${useRightHand ? 'RIGHT' : 'LEFT'} (index ${useRightHand ? 14 : 13})`);
+          if (frame.landmarks && frame.landmarks[0] && frame.poseLandmarks[13] && frame.poseLandmarks[14]) {
+            const handWrist = frame.landmarks[0];
+            const leftElbow = frame.poseLandmarks[13];
+            const rightElbow = frame.poseLandmarks[14];
+            
+            // Calculate distances to determine closest elbow
+            const distToLeft = Math.sqrt(
+              Math.pow(handWrist.x - leftElbow.x, 2) + 
+              Math.pow(handWrist.y - leftElbow.y, 2) + 
+              Math.pow((handWrist.z || 0) - (leftElbow.z || 0), 2)
+            );
+            const distToRight = Math.sqrt(
+              Math.pow(handWrist.x - rightElbow.x, 2) + 
+              Math.pow(handWrist.y - rightElbow.y, 2) + 
+              Math.pow((handWrist.z || 0) - (rightElbow.z || 0), 2)
+            );
+            
+            const useLeftElbow = distToLeft < distToRight;
+            selectedElbow = useLeftElbow ? frame.poseLandmarks[13] : frame.poseLandmarks[14];
+            selectedPoseWrist = useLeftElbow ? frame.poseLandmarks[15] : frame.poseLandmarks[16];
+            
+            console.log(`REPLAY: Proximity-based elbow selection - Using ${useLeftElbow ? 'LEFT' : 'RIGHT'} elbow (dist: L=${distToLeft.toFixed(3)}, R=${distToRight.toFixed(3)})`);
+          } else {
+            // Fallback to hand type detection
+            const useRightHand = sessionHandType === 'RIGHT';
+            selectedElbow = useRightHand ? frame.poseLandmarks[14] : frame.poseLandmarks[13];
+            selectedPoseWrist = useRightHand ? frame.poseLandmarks[16] : frame.poseLandmarks[15];
+            console.log(`REPLAY: Fallback to hand type detection - ${sessionHandType}`);
+          }
+          
+          // Remove the problematic console log that references undefined variable
           
           if (selectedElbow && selectedPoseWrist && (selectedElbow.visibility || 1) > 0.5) {
             const elbowX = selectedElbow.x * canvas.width;
