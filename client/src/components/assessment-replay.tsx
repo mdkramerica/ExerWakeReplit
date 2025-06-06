@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Play, Pause, RotateCcw, Download } from "lucide-react";
 import { calculateCurrentROM, calculateFingerROM, type JointAngles } from "@/lib/rom-calculator";
 import { calculateKapandjiScore, calculateMaxKapandjiScore, type KapandjiScore } from "@shared/kapandji-calculator";
-import { calculateElbowReferencedWristAngle, type ElbowWristAngles } from "@shared/elbow-wrist-calculator";
+import { calculateElbowReferencedWristAngle, getRecordingSessionElbowSelection, type ElbowWristAngles } from "@shared/elbow-wrist-calculator";
 // Remove the import since we'll load the image directly
 
 interface ReplayData {
@@ -796,18 +796,20 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
           // Use stored session hand type for consistent elbow tracking throughout replay
           const sessionHandType = frame.sessionHandType || frame.handedness || currentWristAngles.handType;
           
-          // SESSION-LOCKED ELBOW SELECTION: Use same logic as calculation for consistency
-          // Extract session elbow selection from first frame to maintain throughout replay
+          // USE IDENTICAL SESSION-LOCKED ELBOW SELECTION: Match calculation exactly
+          // Get the exact same elbow selection that was locked during recording
+          const sessionElbowData = getRecordingSessionElbowSelection();
           let elbowIndex: number;
           let wristIndex: number;
           
-          if ((frame as any).sessionElbowIndex !== undefined) {
-            // Use stored session selection if available
-            elbowIndex = (frame as any).sessionElbowIndex;
-            wristIndex = (frame as any).sessionWristIndex || ((frame as any).sessionElbowIndex === 13 ? 15 : 16);
-            console.log(`REPLAY: Using stored session elbow selection - index ${elbowIndex}`);
+          if (sessionElbowData.isLocked && sessionElbowData.elbowIndex !== undefined) {
+            // Use the exact same session-locked selection from calculation
+            elbowIndex = sessionElbowData.elbowIndex;
+            wristIndex = sessionElbowData.wristIndex || (sessionElbowData.elbowIndex === 13 ? 15 : 16);
+            const elbowSide = elbowIndex === 13 ? 'LEFT' : 'RIGHT';
+            console.log(`REPLAY: Using session-locked elbow selection - ${elbowSide} elbow (index ${elbowIndex})`);
           } else {
-            // Calculate session selection using same logic as calculation
+            // Fallback: recalculate using same logic as calculation
             if (frame.landmarks && frame.landmarks[0] && frame.poseLandmarks[13] && frame.poseLandmarks[14]) {
               const handWrist = frame.landmarks[0];
               const leftElbow = frame.poseLandmarks[13];
@@ -828,13 +830,13 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
               elbowIndex = useLeftElbow ? 13 : 14;
               wristIndex = useLeftElbow ? 15 : 16;
               
-              console.log(`REPLAY: Calculated session elbow - Using ${useLeftElbow ? 'LEFT' : 'RIGHT'} elbow (L:${distToLeft.toFixed(3)}, R:${distToRight.toFixed(3)})`);
+              console.log(`REPLAY: Fallback calculation - Using ${useLeftElbow ? 'LEFT' : 'RIGHT'} elbow (L:${distToLeft.toFixed(3)}, R:${distToRight.toFixed(3)})`);
             } else {
-              // Fallback to hand type detection
+              // Final fallback to hand type detection
               const useRightHand = sessionHandType === 'RIGHT';
               elbowIndex = useRightHand ? 14 : 13;
               wristIndex = useRightHand ? 16 : 15;
-              console.log(`REPLAY: Fallback to hand type detection - ${sessionHandType}`);
+              console.log(`REPLAY: Final fallback to hand type detection - ${sessionHandType}`);
             }
           }
           

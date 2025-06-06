@@ -340,12 +340,20 @@ export function calculateElbowReferencedWristAngleWithForce(
   console.log(`Selected Elbow (${elbowIndex}): x=${elbow?.x?.toFixed(3)}, y=${elbow?.y?.toFixed(3)}`);
   console.log(`Hand Wrist (0): x=${handLandmarks[0]?.x?.toFixed(3)}, y=${handLandmarks[0]?.y?.toFixed(3)}`);
   
-  // Check if we're selecting the correct elbow based on proximity to hand
+  // VALIDATE ELBOW SELECTION: Ensure calculation and replay are using same elbow
   if (poseLandmarks[13] && poseLandmarks[14] && handLandmarks[0]) {
     const distToLeftElbow = euclideanDistance3D(handLandmarks[0], poseLandmarks[13]);
     const distToRightElbow = euclideanDistance3D(handLandmarks[0], poseLandmarks[14]);
-    console.log(`🔍 PROXIMITY CHECK - Distance to Left Elbow: ${distToLeftElbow.toFixed(3)}, Right Elbow: ${distToRightElbow.toFixed(3)}`);
-    console.log(`🔍 CLOSEST ELBOW: ${distToLeftElbow < distToRightElbow ? 'LEFT (13)' : 'RIGHT (14)'}`);
+    const closestElbow = distToLeftElbow < distToRightElbow ? 'LEFT' : 'RIGHT';
+    const closestElbowIndex = distToLeftElbow < distToRightElbow ? 13 : 14;
+    
+    console.log(`🔍 PROXIMITY CHECK - Distance to Left: ${distToLeftElbow.toFixed(3)}, Right: ${distToRightElbow.toFixed(3)}`);
+    console.log(`🔍 CLOSEST ELBOW: ${closestElbow} (${closestElbowIndex}) - Using elbow index: ${elbowIndex}`);
+    
+    // Alert if there's a mismatch between closest and selected
+    if (elbowIndex !== closestElbowIndex) {
+      console.warn(`⚠️ ELBOW MISMATCH: Selected ${elbowIndex} but closest is ${closestElbowIndex}`);
+    }
   }
 
   console.log(`🔍 Pose landmarks availability:`, {
