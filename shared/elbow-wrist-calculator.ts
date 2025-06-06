@@ -146,10 +146,16 @@ function calculateWristAngleUsingVectors(
   const vectorAngleRadians = Math.acos(clampedCosAngle);
   const vectorAngleDegrees = vectorAngleRadians * (180 / Math.PI);
   
-  // Use vector angle directly as wrist bend measurement
-  // 0° = vectors aligned (neutral), larger angles = more bend
-  // This correctly represents the deviation from neutral position
-  let angleDegrees = vectorAngleDegrees;
+  // ANATOMICAL BASELINE CORRECTION
+  // The natural angle between forearm and hand vectors is ~135-150° in neutral position
+  // We need to calculate deviation from this baseline, not from 0°
+  const NEUTRAL_BASELINE_ANGLE = 140; // Typical anatomical neutral angle
+  
+  // Calculate deviation from neutral baseline
+  let deviationFromNeutral = Math.abs(vectorAngleDegrees - NEUTRAL_BASELINE_ANGLE);
+  
+  // For small deviations (near neutral), use the deviation directly
+  let angleDegrees = deviationFromNeutral;
   console.log('🔍 DETAILED VECTOR ANALYSIS:');
   console.log(`   Forearm Length: ${forearmLength.toFixed(4)}`);
   console.log(`   Hand Length: ${handLength.toFixed(4)}`);
@@ -157,8 +163,10 @@ function calculateWristAngleUsingVectors(
   console.log(`   Cos(Angle): ${cosAngle.toFixed(6)}`);
   console.log(`   Vector Angle (rad): ${vectorAngleRadians.toFixed(6)}`);
   console.log(`   Vector Angle (deg): ${vectorAngleDegrees.toFixed(2)}`);
+  console.log(`   Neutral Baseline: ${NEUTRAL_BASELINE_ANGLE}°`);
+  console.log(`   Deviation from Neutral: ${deviationFromNeutral.toFixed(2)}`);
   console.log(`   Final Wrist Angle: ${angleDegrees.toFixed(2)}`);
-  console.log(`   Expected: 0° = neutral, 20-60° = visible bend`);
+  console.log(`   Expected: 0° = neutral, 15-45° = visible bend`);
   
   // Validate angle against expected physiological range and apply smoothing
   let finalAngle = angleDegrees;
