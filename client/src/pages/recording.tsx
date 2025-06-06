@@ -440,7 +440,14 @@ export default function Recording() {
               <div className="flex items-center space-x-4">
                 <Button
                   variant="outline"
-                  onClick={() => setLocation(`/assessment-list/${currentUser?.code || '000000'}`)}
+                  onClick={() => {
+                    // Force refresh query cache to ensure updated data
+                    queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+                    queryClient.invalidateQueries({ queryKey: ['/api/users/2/assessments'] });
+                    queryClient.invalidateQueries({ queryKey: ['/api/users/2/progress'] });
+                    queryClient.invalidateQueries({ queryKey: ['/api/users/2/history'] });
+                    setLocation(`/assessment-list/${currentUser?.code || '000000'}`);
+                  }}
                   className="flex items-center space-x-2"
                 >
                   <ArrowLeft className="w-4 h-4" />
