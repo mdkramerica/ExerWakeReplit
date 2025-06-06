@@ -409,23 +409,17 @@ export function calculateElbowReferencedWristAngleWithForce(
       
       console.log(`🎯 VECTOR DIRECTION - Cross product Y: ${crossProduct.y.toFixed(4)}, Direction: ${isExtension ? 'EXTENSION' : 'FLEXION'}`);
       
-      if (wristAngle > 2) { // Classify even small deviations for precision
-        if (isExtension) {
-          // Extension: hand vector above forearm baseline
-          result.wristExtensionAngle = wristAngle;
-          result.wristFlexionAngle = 0;
-          console.log(`Wrist EXTENSION detected: ${wristAngle.toFixed(1)}° deviation above forearm`);
-        } else {
-          // Flexion: hand vector below forearm baseline
-          result.wristFlexionAngle = wristAngle;
-          result.wristExtensionAngle = 0;
-          console.log(`Wrist FLEXION detected: ${wristAngle.toFixed(1)}° deviation below forearm`);
-        }
-      } else {
-        // Near neutral position
+      // Always assign angles for responsive real-time display
+      if (isExtension) {
+        // Extension: hand vector above forearm baseline
+        result.wristExtensionAngle = wristAngle;
         result.wristFlexionAngle = 0;
+        console.log(`Wrist EXTENSION: ${wristAngle.toFixed(1)}° deviation above forearm`);
+      } else {
+        // Flexion: hand vector below forearm baseline
+        result.wristFlexionAngle = wristAngle;
         result.wristExtensionAngle = 0;
-        console.log(`Wrist in NEUTRAL position: ${wristAngle.toFixed(1)}°`);
+        console.log(`Wrist FLEXION: ${wristAngle.toFixed(1)}° deviation below forearm`);
       }
 
       // Set high confidence for successful calculation
