@@ -6,9 +6,10 @@ interface HolisticTrackerProps {
   onUpdate: (data: any) => void;
   isRecording: boolean;
   assessmentType: string;
+  sessionMaxWristAngles?: any;
 }
 
-export default function HolisticTracker({ onUpdate, isRecording, assessmentType }: HolisticTrackerProps) {
+export default function HolisticTracker({ onUpdate, isRecording, assessmentType, sessionMaxWristAngles }: HolisticTrackerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const holisticRef = useRef<any>(null);

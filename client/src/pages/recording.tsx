@@ -311,7 +311,7 @@ export default function Recording() {
         setWristAngles(data.wristAngles);
         
         // Update session maximums for real-time display consistency
-        setSessionMaxWristAngles(prev => ({
+        setSessionMaxWristAngles((prev: any) => ({
           maxWristFlexion: Math.max(prev.maxWristFlexion, data.wristAngles.wristFlexionAngle || 0),
           maxWristExtension: Math.max(prev.maxWristExtension, data.wristAngles.wristExtensionAngle || 0)
         }));
