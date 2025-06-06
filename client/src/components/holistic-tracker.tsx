@@ -161,9 +161,40 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType,
         console.log(`🔍 Hand Detection - Current: ${currentDetection.handType}, Locked: ${lastHandTypeRef.current}, Confidence: ${currentDetection.confidence.toFixed(3)}`);
       }
       
-      // Ensure wrist angles always use the locked hand type for consistency
-      if (lastHandTypeRef.current !== 'UNKNOWN') {
-        console.log(`🎯 Calling wrist calculation with locked hand type: ${lastHandTypeRef.current}`);
+      // Force wrist angle calculation for wrist assessments
+      if (isWristAssessment && handLandmarks.length >= 21 && poseLandmarks.length > 16) {
+        // Use locked hand type if available, otherwise use current detection
+        const handTypeForCalculation = lastHandTypeRef.current !== 'UNKNOWN' ? lastHandTypeRef.current : currentDetection.handType;
+        
+        if (handTypeForCalculation !== 'UNKNOWN') {
+          console.log(`🎯 WRIST ASSESSMENT - Calling calculation with hand type: ${handTypeForCalculation}`);
+          wristAngles = calculateElbowReferencedWristAngleWithForce(
+            handLandmarks.map((landmark: any) => ({
+              x: landmark.x,
+              y: landmark.y,
+              z: landmark.z
+            })),
+            poseLandmarks.map((landmark: any) => ({
+              x: landmark.x,
+              y: landmark.y,
+              z: landmark.z,
+              visibility: landmark.visibility
+            })),
+            handTypeForCalculation
+          );
+          
+          // Ensure hand type is consistent
+          if (wristAngles) {
+            wristAngles.handType = handTypeForCalculation;
+            console.log(`✅ WRIST CALCULATION SUCCESS: Flexion=${wristAngles.wristFlexionAngle?.toFixed(1)}°, Extension=${wristAngles.wristExtensionAngle?.toFixed(1)}°`);
+          } else {
+            console.log(`❌ WRIST CALCULATION FAILED - returned null`);
+          }
+        } else {
+          console.log('⚠️ No hand type available for wrist calculation');
+        }
+      } else if (lastHandTypeRef.current !== 'UNKNOWN') {
+        // Regular calculation for non-wrist assessments
         wristAngles = calculateElbowReferencedWristAngleWithForce(
           handLandmarks.map((landmark: any) => ({
             x: landmark.x,
@@ -179,14 +210,9 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType,
           lastHandTypeRef.current
         );
         
-        // Override the calculated hand type with our locked type for display consistency
         if (wristAngles) {
           wristAngles.handType = lastHandTypeRef.current;
         }
-        console.log(`🎯 Wrist calculation completed for ${lastHandTypeRef.current} hand`);
-      } else {
-        console.log('⚠️ Using fallback detection - hand type not locked yet');
-        wristAngles = currentDetection;
       }
       
       console.log('🔍 Wrist calculation result:', {
