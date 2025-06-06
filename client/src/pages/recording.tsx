@@ -437,11 +437,21 @@ export default function Recording() {
           <div className="mb-8">
             <ProgressBar currentStep={3} totalSteps={3} />
             <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-semibold text-gray-900 mb-2">Recording Assessment</h2>
-                <p className="text-gray-800">
-                  Position your hand in the camera view and perform the {assessment.name.toLowerCase()} movement.
-                </p>
+              <div className="flex items-center space-x-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setLocation(`/assessment-list/${currentUser?.code || '000000'}`)}
+                  className="flex items-center space-x-2"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  <span>Back to Assessments</span>
+                </Button>
+                <div>
+                  <h2 className="text-2xl font-semibold text-gray-900 mb-2">Recording Assessment</h2>
+                  <p className="text-gray-800">
+                    Position your hand in the camera view and perform the {assessment.name.toLowerCase()} movement.
+                  </p>
+                </div>
               </div>
               <div className="text-right">
                 <div className="text-sm text-gray-800">Repetition</div>
