@@ -157,19 +157,14 @@ function calculateWristAngleUsingVectors(
     finalAngle = 90; // Maximum physiological wrist flexion/extension
   }
   
-  // Apply temporal smoothing for stability
-  if ((global as any).lastWristAngle !== undefined) {
-    const angleDiff = Math.abs(finalAngle - (global as any).lastWristAngle);
-    if (angleDiff > 25) {
-      console.log(`⚠️ LARGE ANGLE JUMP: ${(global as any).lastWristAngle.toFixed(1)}° → ${finalAngle.toFixed(1)}° (${angleDiff.toFixed(1)}° change)`);
-      // Use weighted average for extreme jumps
-      const weight = 0.3; // 30% new value, 70% previous value
-      finalAngle = (global as any).lastWristAngle * (1 - weight) + finalAngle * weight;
-      console.log(`   Applied smoothing: ${finalAngle.toFixed(1)}°`);
-    }
-  }
+  // DISABLE TEMPORAL SMOOTHING FOR FRAME-INDEPENDENT CALCULATIONS
+  // Temporal smoothing causes directional dependency - frame 137 gives different results
+  // when navigated from 136→137 vs 138→137 due to smoothing state contamination
   
+  // Store the raw calculation for debugging but don't apply smoothing during replay
   (global as any).lastWristAngle = finalAngle;
+  
+  console.log(`📊 FRAME-INDEPENDENT RESULT: ${finalAngle.toFixed(2)}° (no temporal smoothing applied)`);
   return finalAngle;
 }
 
@@ -294,34 +289,28 @@ export function calculateElbowReferencedWristAngleWithForce(
   let wristIndex: number;
   let shoulderIndex: number;
   
-  // Store session elbow selection to prevent mid-assessment switching
-  if (!(global as any).sessionElbowLocked) {
-    if (poseLandmarks[13] && poseLandmarks[14] && handLandmarks[0]) {
-      const distToLeftElbow = euclideanDistance3D(handLandmarks[0], poseLandmarks[13]);
-      const distToRightElbow = euclideanDistance3D(handLandmarks[0], poseLandmarks[14]);
-      
-      const useLeftElbow = distToLeftElbow < distToRightElbow;
-      (global as any).sessionElbowIndex = useLeftElbow ? 13 : 14;
-      (global as any).sessionWristIndex = useLeftElbow ? 15 : 16;
-      (global as any).sessionShoulderIndex = useLeftElbow ? 11 : 12;
-      (global as any).sessionElbowLocked = true;
-      
-      console.log(`🔒 SESSION ELBOW LOCKED: Using ${useLeftElbow ? 'LEFT' : 'RIGHT'} elbow (dist diff: ${Math.abs(distToLeftElbow - distToRightElbow).toFixed(3)})`);
-    } else {
-      // Fallback to hand type if proximity fails
-      const useLeftElbow = forceHandType === 'LEFT';
-      (global as any).sessionElbowIndex = useLeftElbow ? 13 : 14;
-      (global as any).sessionWristIndex = useLeftElbow ? 15 : 16;
-      (global as any).sessionShoulderIndex = useLeftElbow ? 11 : 12;
-      (global as any).sessionElbowLocked = true;
-      console.log(`🔒 FALLBACK ELBOW LOCK: Using ${forceHandType} based on hand type`);
-    }
-  }
+  // FRAME-INDEPENDENT ELBOW SELECTION: Calculate for each frame independently
+  // This prevents directional dependency where frame 137 gives different results
+  // when navigated from 136→137 vs 138→137
   
-  // Use locked session selection
-  elbowIndex = (global as any).sessionElbowIndex;
-  wristIndex = (global as any).sessionWristIndex;
-  shoulderIndex = (global as any).sessionShoulderIndex;
+  if (poseLandmarks[13] && poseLandmarks[14] && handLandmarks[0]) {
+    const distToLeftElbow = euclideanDistance3D(handLandmarks[0], poseLandmarks[13]);
+    const distToRightElbow = euclideanDistance3D(handLandmarks[0], poseLandmarks[14]);
+    
+    const useLeftElbow = distToLeftElbow < distToRightElbow;
+    elbowIndex = useLeftElbow ? 13 : 14;
+    wristIndex = useLeftElbow ? 15 : 16;
+    shoulderIndex = useLeftElbow ? 11 : 12;
+    
+    console.log(`🎯 FRAME-INDEPENDENT ELBOW: Using ${useLeftElbow ? 'LEFT' : 'RIGHT'} elbow (L:${distToLeftElbow.toFixed(3)}, R:${distToRightElbow.toFixed(3)})`);
+  } else {
+    // Fallback to hand type if proximity fails
+    const useLeftElbow = forceHandType === 'LEFT';
+    elbowIndex = useLeftElbow ? 13 : 14;
+    wristIndex = useLeftElbow ? 15 : 16;
+    shoulderIndex = useLeftElbow ? 11 : 12;
+    console.log(`🎯 FALLBACK ELBOW: Using ${forceHandType} based on hand type`);
+  }
 
   console.log(`🔍 Using landmark indices - elbow: ${elbowIndex}, wrist: ${wristIndex}, shoulder: ${shoulderIndex}`);
 
