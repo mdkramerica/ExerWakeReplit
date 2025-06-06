@@ -39,10 +39,26 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType 
     
     setIsInitializing(true);
     try {
-      const { Holistic, HAND_CONNECTIONS, POSE_CONNECTIONS } = await import('@mediapipe/holistic');
-      const { drawConnectors, drawLandmarks } = await import('@mediapipe/drawing_utils');
+      // Robust module loading with fallback
+      let HolisticClass, drawConnectors, drawLandmarks;
+      
+      try {
+        const holisticModule = await import('@mediapipe/holistic');
+        HolisticClass = holisticModule.Holistic || holisticModule.default?.Holistic;
+        
+        const drawingModule = await import('@mediapipe/drawing_utils');
+        drawConnectors = drawingModule.drawConnectors;
+        drawLandmarks = drawingModule.drawLandmarks;
+      } catch (importError) {
+        console.error('Failed to import MediaPipe modules:', importError);
+        throw new Error('MediaPipe modules not available');
+      }
 
-      const holisticInstance = new Holistic({
+      if (!HolisticClass) {
+        throw new Error('Holistic constructor not found');
+      }
+
+      const holisticInstance = new HolisticClass({
         locateFile: (file: string) => `https://cdn.jsdelivr.net/npm/@mediapipe/holistic/${file}`
       });
 

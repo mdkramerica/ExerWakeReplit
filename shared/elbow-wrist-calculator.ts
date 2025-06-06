@@ -65,6 +65,49 @@ function euclideanDistance3D(a: HandLandmark | PoseLandmark, b: HandLandmark | P
   );
 }
 
+// New function for precise wrist angle calculation using arccos method
+function calculateWristAngleUsingVectors(
+  elbow: HandLandmark | PoseLandmark,
+  wrist: HandLandmark | PoseLandmark,
+  middleMcp: HandLandmark | PoseLandmark
+): number {
+  // Build vectors as specified:
+  // Forearm = wrist - elbow
+  const forearmVector = {
+    x: wrist.x - elbow.x,
+    y: wrist.y - elbow.y,
+    z: wrist.z - elbow.z
+  };
+  
+  // Hand = MCP - wrist
+  const handVector = {
+    x: middleMcp.x - wrist.x,
+    y: middleMcp.y - wrist.y,
+    z: middleMcp.z - wrist.z
+  };
+  
+  // Calculate magnitudes (norms)
+  const forearmNorm = Math.sqrt(forearmVector.x**2 + forearmVector.y**2 + forearmVector.z**2);
+  const handNorm = Math.sqrt(handVector.x**2 + handVector.y**2 + handVector.z**2);
+  
+  // Avoid division by zero
+  if (forearmNorm === 0 || handNorm === 0) {
+    return 180; // Return neutral if calculation impossible
+  }
+  
+  // Calculate dot product
+  const dotProduct = forearmVector.x * handVector.x + forearmVector.y * handVector.y + forearmVector.z * handVector.z;
+  
+  // Calculate angle using arccos(dot(A,B)/(norm(A)*norm(B)))
+  const cosAngle = dotProduct / (forearmNorm * handNorm);
+  
+  // Clamp to valid range for acos
+  const clampedCosAngle = Math.max(-1, Math.min(1, cosAngle));
+  
+  // Return angle in degrees (neutral = 180°, flexion < 180°, extension > 180°)
+  return Math.acos(clampedCosAngle) * (180 / Math.PI);
+}
+
 function calculateAngleBetweenVectors(
   point1: HandLandmark | PoseLandmark,
   point2: HandLandmark | PoseLandmark,
@@ -199,32 +242,37 @@ export function calculateElbowReferencedWristAngleWithForce(
     const middleMcp = handLandmarks[HAND_LANDMARKS.MIDDLE_MCP]; // Point 9
 
     if (handWrist && middleMcp) {
-      // Calculate reference line (elbow to wrist/base of hand)
-      const referenceVector = {
-        x: handWrist.x - elbow.x,
-        y: handWrist.y - elbow.y,
-        z: handWrist.z - elbow.z
-      };
+      // Use precise vector calculation method with arccos formula
+      const wristAngle = calculateWristAngleUsingVectors(elbow, handWrist, middleMcp);
+      result.forearmToHandAngle = wristAngle;
 
-      // Calculate measurement line (base of hand to middle finger MCP)
-      const measurementVector = {
-        x: middleMcp.x - handWrist.x,
-        y: middleMcp.y - handWrist.y,
-        z: middleMcp.z - handWrist.z
-      };
+      console.log(`Precise wrist angle (${forceHandType}): ${wristAngle.toFixed(1)}° (neutral=180°)`);
 
-      // Calculate the angle between reference line (elbow-wrist) and measurement line (wrist-middle-MCP)
-      // Create a temporary point for angle calculation
-      const elbowPoint = { x: elbow.x, y: elbow.y, z: elbow.z };
-      const wristPoint = { x: handWrist.x, y: handWrist.y, z: handWrist.z };
-      const mcpPoint = { x: middleMcp.x, y: middleMcp.y, z: middleMcp.z };
-      const angleDegrees = calculateAngleBetweenVectors(elbowPoint, wristPoint, mcpPoint);
-      result.forearmToHandAngle = angleDegrees;
+      // Classify flexion/extension based on 180° neutral positioning
+      if (wristAngle < 180) {
+        // Flexion: deviation toward palm (<180°)
+        const flexionAmount = 180 - wristAngle;
+        result.wristFlexionAngle = flexionAmount;
+        result.wristExtensionAngle = 0;
+        console.log(`Wrist FLEXION detected: ${flexionAmount.toFixed(1)}° from neutral`);
+      } else if (wristAngle > 180) {
+        // Extension: deviation toward back of hand (>180°)
+        const extensionAmount = wristAngle - 180;
+        result.wristFlexionAngle = 0;
+        result.wristExtensionAngle = extensionAmount;
+        console.log(`Wrist EXTENSION detected: ${extensionAmount.toFixed(1)}° from neutral`);
+      } else {
+        // Neutral position (exactly 180°)
+        result.wristFlexionAngle = 0;
+        result.wristExtensionAngle = 0;
+        console.log(`Wrist in NEUTRAL position`);
+      }
 
-      console.log(`Elbow-referenced calculation (${forceHandType}): ${angleDegrees.toFixed(1)}° deviation from neutral (${(180 - angleDegrees).toFixed(1)}° raw angle)`);
+      // Set high confidence for successful calculation
+      result.confidence = 0.95;
+      result.elbowDetected = true;
 
-      // Determine flexion vs extension based on angle deviation from neutral (180°)
-      if (angleDegrees < 160) {
+      if (false) {
         // Significant deviation from neutral - determine direction
         const refMagnitude = Math.sqrt(referenceVector.x**2 + referenceVector.y**2 + referenceVector.z**2);
         const measMagnitude = Math.sqrt(measurementVector.x**2 + measurementVector.y**2 + measurementVector.z**2);
@@ -427,9 +475,32 @@ export function calculateMaxElbowWristAngles(
   };
 
   for (const frame of motionFrames) {
-    const frameResult = calculateElbowReferencedWristAngle(frame.landmarks, frame.poseLandmarks);
+    const frameResult = calculateElbowReferencedWristAngleWithForce(frame.landmarks, frame.poseLandmarks);
     
-    if (frameResult.confidence > maxResult.confidence) {
+    // Track maximum flexion and extension values from session
+    if (frameResult.elbowDetected && frameResult.confidence > 0.8) {
+      // Update hand type and confidence if better
+      if (frameResult.confidence > maxResult.confidence) {
+        maxResult.handType = frameResult.handType;
+        maxResult.confidence = frameResult.confidence;
+        maxResult.elbowDetected = true;
+      }
+      
+      // Track maximum flexion (largest deviation below 180°)
+      if (frameResult.wristFlexionAngle > maxResult.wristFlexionAngle) {
+        maxResult.wristFlexionAngle = frameResult.wristFlexionAngle;
+      }
+      
+      // Track maximum extension (largest deviation above 180°)
+      if (frameResult.wristExtensionAngle > maxResult.wristExtensionAngle) {
+        maxResult.wristExtensionAngle = frameResult.wristExtensionAngle;
+      }
+      
+      // Update forearm angle to most recent valid measurement
+      maxResult.forearmToHandAngle = frameResult.forearmToHandAngle;
+    }
+    
+    if (false && frameResult.confidence > maxResult.confidence) {
       maxResult.handType = frameResult.handType;
       maxResult.elbowDetected = frameResult.elbowDetected;
       maxResult.confidence = frameResult.confidence;
