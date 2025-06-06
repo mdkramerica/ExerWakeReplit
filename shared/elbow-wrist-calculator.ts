@@ -140,15 +140,26 @@ function calculateWristAngleUsingVectors(
   
   // The calculated angle represents the acute angle between forearm and hand vectors
   // This should match exactly what we see visually on the canvas
-  console.log('🔍 Final angle calculation:', {
-    dotProduct: dotProduct.toFixed(3),
-    cosAngle: cosAngle.toFixed(3),
-    angleRadians: angleRadians.toFixed(3),
-    angleDegrees: angleDegrees.toFixed(1),
-    visuallyExpected: '~30-40° for moderate flexion'
-  });
+  console.log('🔍 DETAILED VECTOR ANALYSIS:');
+  console.log(`   Forearm Length: ${forearmLength.toFixed(4)}`);
+  console.log(`   Hand Length: ${handLength.toFixed(4)}`);
+  console.log(`   Dot Product: ${dotProduct.toFixed(6)}`);
+  console.log(`   Cos(Angle): ${cosAngle.toFixed(6)}`);
+  console.log(`   Angle (rad): ${angleRadians.toFixed(6)}`);
+  console.log(`   Angle (deg): ${angleDegrees.toFixed(2)}`);
+  console.log(`   Expected Visual: 30-50° for visible flexion`);
   
-  // Return the calculated angle - this should match the visual angle
+  // Apply smoothing for stability - detect if angle jumps more than 20° from previous
+  // This prevents calculation artifacts from causing unrealistic jumps
+  if (Math.abs(angleDegrees - (global as any).lastWristAngle || 0) > 20 && (global as any).lastWristAngle) {
+    console.log(`⚠️ LARGE ANGLE JUMP DETECTED: ${(global as any).lastWristAngle?.toFixed(1)}° → ${angleDegrees.toFixed(1)}°`);
+    console.log(`   Using smoothed value to prevent calculation artifacts`);
+    const smoothedAngle = ((global as any).lastWristAngle + angleDegrees) / 2;
+    (global as any).lastWristAngle = smoothedAngle;
+    return smoothedAngle;
+  }
+  
+  (global as any).lastWristAngle = angleDegrees;
   return angleDegrees;
 }
 
@@ -338,7 +349,11 @@ export function calculateElbowReferencedWristAngleWithForce(
       const wristAngle = calculateWristAngleUsingVectors(elbow, handWrist, middleMcp);
       result.forearmToHandAngle = wristAngle;
 
-      console.log(`Precise wrist angle (${forceHandType}): ${wristAngle.toFixed(1)}° (neutral=0°)`);
+      console.log(`🔬 FRAME CALCULATION DETAILS for ${forceHandType} hand:`);
+      console.log(`   Elbow: (${elbow.x.toFixed(4)}, ${elbow.y.toFixed(4)}, ${elbow.z.toFixed(4)})`);
+      console.log(`   Wrist: (${handWrist.x.toFixed(4)}, ${handWrist.y.toFixed(4)}, ${handWrist.z.toFixed(4)})`);
+      console.log(`   MCP: (${middleMcp.x.toFixed(4)}, ${middleMcp.y.toFixed(4)}, ${middleMcp.z.toFixed(4)})`);
+      console.log(`   Calculated Angle: ${wristAngle.toFixed(1)}°`);
 
       // Store the raw angle for display
       result.forearmToHandAngle = wristAngle;
