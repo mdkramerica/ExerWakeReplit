@@ -296,30 +296,17 @@ export function calculateElbowReferencedWristAngleWithForce(
   let wristIndex: number;
   let shoulderIndex: number;
   
-  // SESSION-INITIALIZATION ELBOW LOCKING: Lock elbow at first valid frame
-  // This prevents directional dependency while maintaining visual stability
+  // ANATOMICAL ELBOW LOCKING: Lock elbow based on hand type for anatomical consistency
+  // RIGHT hand ALWAYS uses RIGHT elbow, LEFT hand ALWAYS uses LEFT elbow
   
   if (!recordingSessionElbowLocked) {
-    if (poseLandmarks[13] && poseLandmarks[14] && handLandmarks[0]) {
-      const distToLeftElbow = euclideanDistance3D(handLandmarks[0], poseLandmarks[13]);
-      const distToRightElbow = euclideanDistance3D(handLandmarks[0], poseLandmarks[14]);
-      
-      const useLeftElbow = distToLeftElbow < distToRightElbow;
-      recordingSessionElbowIndex = useLeftElbow ? 13 : 14;
-      recordingSessionWristIndex = useLeftElbow ? 15 : 16;
-      recordingSessionShoulderIndex = useLeftElbow ? 11 : 12;
-      recordingSessionElbowLocked = true;
-      
-      console.log(`🔒 RECORDING SESSION LOCKED: Using ${useLeftElbow ? 'LEFT' : 'RIGHT'} elbow for entire session (L:${distToLeftElbow.toFixed(3)}, R:${distToRightElbow.toFixed(3)})`);
-    } else {
-      // Fallback to hand type if proximity fails
-      const useLeftElbow = forceHandType === 'LEFT';
-      recordingSessionElbowIndex = useLeftElbow ? 13 : 14;
-      recordingSessionWristIndex = useLeftElbow ? 15 : 16;
-      recordingSessionShoulderIndex = useLeftElbow ? 11 : 12;
-      recordingSessionElbowLocked = true;
-      console.log(`🔒 RECORDING SESSION LOCKED: Using ${forceHandType} based on hand type`);
-    }
+    const useLeftElbow = forceHandType === 'LEFT';
+    recordingSessionElbowIndex = useLeftElbow ? 13 : 14;
+    recordingSessionWristIndex = useLeftElbow ? 15 : 16;
+    recordingSessionShoulderIndex = useLeftElbow ? 11 : 12;
+    recordingSessionElbowLocked = true;
+    
+    console.log(`🔒 ANATOMICAL SESSION LOCKED: ${forceHandType} hand uses ${useLeftElbow ? 'LEFT' : 'RIGHT'} elbow (index ${recordingSessionElbowIndex})`);
   }
   
   // Use locked session selection

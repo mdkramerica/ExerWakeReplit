@@ -805,48 +805,21 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
           let elbowIndex: number;
           let wristIndex: number;
           
+          // FORCE EXACT MATCH WITH CALCULATION: Use RIGHT elbow for RIGHT hand
           if (frame.sessionElbowLocked && frame.sessionElbowIndex !== undefined) {
             // Use the stored session elbow selection from the recorded frame
             elbowIndex = frame.sessionElbowIndex;
             wristIndex = frame.sessionWristIndex || (frame.sessionElbowIndex === 13 ? 15 : 16);
             const elbowSide = elbowIndex === 13 ? 'LEFT' : 'RIGHT';
             console.log(`REPLAY: Using stored session elbow selection - ${elbowSide} elbow (index ${elbowIndex})`);
-          } else if (sessionElbowData.isLocked && sessionElbowData.elbowIndex !== undefined) {
-            // Fallback to current session state if frame data missing
-            elbowIndex = sessionElbowData.elbowIndex;
-            wristIndex = sessionElbowData.wristIndex || (sessionElbowData.elbowIndex === 13 ? 15 : 16);
-            const elbowSide = elbowIndex === 13 ? 'LEFT' : 'RIGHT';
-            console.log(`REPLAY: Using current session elbow selection - ${elbowSide} elbow (index ${elbowIndex})`);
           } else {
-            // Fallback: recalculate using same logic as calculation
-            if (frame.landmarks && frame.landmarks[0] && frame.poseLandmarks[13] && frame.poseLandmarks[14]) {
-              const handWrist = frame.landmarks[0];
-              const leftElbow = frame.poseLandmarks[13];
-              const rightElbow = frame.poseLandmarks[14];
-              
-              const distToLeft = Math.sqrt(
-                Math.pow(handWrist.x - leftElbow.x, 2) + 
-                Math.pow(handWrist.y - leftElbow.y, 2) + 
-                Math.pow((handWrist.z || 0) - (leftElbow.z || 0), 2)
-              );
-              const distToRight = Math.sqrt(
-                Math.pow(handWrist.x - rightElbow.x, 2) + 
-                Math.pow(handWrist.y - rightElbow.y, 2) + 
-                Math.pow((handWrist.z || 0) - (rightElbow.z || 0), 2)
-              );
-              
-              const useLeftElbow = distToLeft < distToRight;
-              elbowIndex = useLeftElbow ? 13 : 14;
-              wristIndex = useLeftElbow ? 15 : 16;
-              
-              console.log(`REPLAY: Fallback calculation - Using ${useLeftElbow ? 'LEFT' : 'RIGHT'} elbow (L:${distToLeft.toFixed(3)}, R:${distToRight.toFixed(3)})`);
-            } else {
-              // Final fallback to hand type detection
-              const useRightHand = sessionHandType === 'RIGHT';
-              elbowIndex = useRightHand ? 14 : 13;
-              wristIndex = useRightHand ? 16 : 15;
-              console.log(`REPLAY: Final fallback to hand type detection - ${sessionHandType}`);
-            }
+            // DIRECT MAPPING: RIGHT hand ALWAYS uses RIGHT elbow (index 14), LEFT hand ALWAYS uses LEFT elbow (index 13)
+            // This ensures replay matches the calculation logic exactly
+            const useRightElbow = sessionHandType === 'RIGHT';
+            elbowIndex = useRightElbow ? 14 : 13; // RIGHT elbow (14) or LEFT elbow (13)
+            wristIndex = useRightElbow ? 16 : 15; // RIGHT wrist (16) or LEFT wrist (15)
+            
+            console.log(`REPLAY: DIRECT MAPPING - ${sessionHandType} hand uses ${useRightElbow ? 'RIGHT' : 'LEFT'} elbow (index ${elbowIndex})`);
           }
           
           const selectedElbow = frame.poseLandmarks[elbowIndex];
