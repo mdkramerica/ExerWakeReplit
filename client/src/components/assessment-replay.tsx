@@ -101,7 +101,11 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
         const wristAnglesAllFrames = replayData.map(frame => {
           if (frame.landmarks && frame.poseLandmarks) {
             // Use the session hand type from stored data, defaulting to RIGHT
-            const handType = frame.sessionHandType || frame.handedness || 'RIGHT';
+            const handType: 'LEFT' | 'RIGHT' = (frame.sessionHandType === 'LEFT' || frame.sessionHandType === 'RIGHT') 
+              ? frame.sessionHandType 
+              : (frame.handedness === 'LEFT' || frame.handedness === 'RIGHT') 
+                ? frame.handedness 
+                : 'RIGHT';
             return calculateElbowReferencedWristAngleWithForce(frame.landmarks, frame.poseLandmarks, handType);
           }
           return null;
@@ -191,8 +195,14 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
         } else if (isWristAssessment) {
           // Calculate current wrist angles for this frame using baseline-corrected method
           if (frame.landmarks && frame.poseLandmarks) {
-            const handType = frame.sessionHandType || frame.handedness || 'RIGHT';
+            const handType: 'LEFT' | 'RIGHT' = (frame.sessionHandType === 'LEFT' || frame.sessionHandType === 'RIGHT') 
+              ? frame.sessionHandType 
+              : (frame.handedness === 'LEFT' || frame.handedness === 'RIGHT') 
+                ? frame.handedness 
+                : 'RIGHT';
+            console.log(`🔍 REPLAY DEBUG - Frame ${currentFrame}: sessionHandType=${frame.sessionHandType}, handedness=${frame.handedness}, using=${handType}`);
             const currentWrist = calculateElbowReferencedWristAngleWithForce(frame.landmarks, frame.poseLandmarks, handType);
+            console.log(`🔍 REPLAY RESULT - Hand Type: ${currentWrist.handType}, Flexion: ${currentWrist.wristFlexionAngle}°, Extension: ${currentWrist.wristExtensionAngle}°`);
             setCurrentWristAngles(currentWrist);
           }
         } else {
