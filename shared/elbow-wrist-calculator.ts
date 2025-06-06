@@ -26,6 +26,8 @@ let recordingSessionElbowIndex: number | undefined;
 let recordingSessionWristIndex: number | undefined;
 let recordingSessionShoulderIndex: number | undefined;
 let lastWristAngle: number | undefined;
+let sessionNeutralBaseline: number | undefined;
+let sessionAngleSamples: number[] = [];
 
 // MediaPipe Pose landmark indices
 const POSE_LANDMARKS = {
@@ -416,13 +418,23 @@ export function calculateElbowReferencedWristAngleWithForce(
       
       console.log(`🎯 VECTOR DIRECTION - Cross product Y: ${crossProduct.y.toFixed(4)}, Direction: ${isExtension ? 'EXTENSION' : 'FLEXION'}`);
       
-      // APPLY ANATOMICAL BASELINE CORRECTION
-      // The raw angle varies by individual - use adaptive baseline
-      // For this recording session, neutral appears to be around 90°
-      const NEUTRAL_BASELINE_ANGLE = 90;
-      const deviationFromNeutral = Math.abs(wristAngle - NEUTRAL_BASELINE_ANGLE);
+      // PROPORTIONAL SCALING APPROACH
+      // Map the raw angle range (0-180°) to physiological wrist movement range
+      // Neutral position is around 90° (midpoint), scale deviations proportionally
       
-      console.log(`🔍 BASELINE CORRECTION: Raw=${wristAngle.toFixed(1)}°, Baseline=${NEUTRAL_BASELINE_ANGLE}°, Deviation=${deviationFromNeutral.toFixed(1)}°`);
+      let scaledAngle: number;
+      
+      if (wristAngle < 90) {
+        // Angles below 90° map to extension (0-90° range)
+        scaledAngle = (90 - wristAngle) * 0.8; // Scale factor for extension
+      } else {
+        // Angles above 90° map to flexion (90-180° range)  
+        scaledAngle = (wristAngle - 90) * 0.8; // Scale factor for flexion
+      }
+      
+      const deviationFromNeutral = scaledAngle;
+      
+      console.log(`🔍 PROPORTIONAL SCALING: Raw=${wristAngle.toFixed(1)}°, Scaled=${scaledAngle.toFixed(1)}°, Final=${deviationFromNeutral.toFixed(1)}°`);
       
       // Use the deviation as the actual wrist bend measurement
       const correctedAngle = deviationFromNeutral;
@@ -643,6 +655,8 @@ export function resetRecordingSession() {
   recordingSessionWristIndex = undefined;
   recordingSessionShoulderIndex = undefined;
   lastWristAngle = undefined;
+  sessionNeutralBaseline = undefined;
+  sessionAngleSamples = [];
   console.log('🔄 RECORDING SESSION RESET: Cleared all session state for new recording');
 }
 
