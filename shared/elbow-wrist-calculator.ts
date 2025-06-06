@@ -266,13 +266,12 @@ export function calculateElbowReferencedWristAngleWithForce(
     return result;
   }
 
-  // CRITICAL FIX: Account for camera mirroring in hand-elbow matching
-  // Camera shows mirrored view: LEFT hand appears on RIGHT side of screen
-  // MediaPipe landmarks are in camera coordinates, so we need to match correctly
-  // When user sees their LEFT hand (appears on right side), it's actually RIGHT landmarks in MediaPipe
-  const elbowIndex = forceHandType === 'LEFT' ? POSE_LANDMARKS.RIGHT_ELBOW : POSE_LANDMARKS.LEFT_ELBOW;
-  const wristIndex = forceHandType === 'LEFT' ? POSE_LANDMARKS.RIGHT_WRIST : POSE_LANDMARKS.LEFT_WRIST;
-  const shoulderIndex = forceHandType === 'LEFT' ? POSE_LANDMARKS.RIGHT_SHOULDER : POSE_LANDMARKS.LEFT_SHOULDER;
+  // CORRECT FIX: MediaPipe provides actual anatomical coordinates (not mirrored)
+  // RIGHT hand should use RIGHT elbow landmarks for proper biomechanical calculation
+  // The canvas display may be mirrored for user viewing, but calculations use true coordinates
+  const elbowIndex = forceHandType === 'LEFT' ? POSE_LANDMARKS.LEFT_ELBOW : POSE_LANDMARKS.RIGHT_ELBOW;
+  const wristIndex = forceHandType === 'LEFT' ? POSE_LANDMARKS.LEFT_WRIST : POSE_LANDMARKS.RIGHT_WRIST;
+  const shoulderIndex = forceHandType === 'LEFT' ? POSE_LANDMARKS.LEFT_SHOULDER : POSE_LANDMARKS.RIGHT_SHOULDER;
 
   console.log(`🔍 Using landmark indices - elbow: ${elbowIndex}, wrist: ${wristIndex}, shoulder: ${shoulderIndex}`);
 

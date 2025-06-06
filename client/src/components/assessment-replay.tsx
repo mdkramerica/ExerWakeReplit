@@ -796,13 +796,13 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
           // Use stored session hand type for consistent elbow tracking throughout replay
           const sessionHandType = frame.sessionHandType || frame.handedness || currentWristAngles.handType;
           
-          // CRITICAL FIX: Match the corrected calculation logic
-          // Camera mirroring: LEFT hand (appears on right) uses RIGHT landmarks
-          const useLeftHand = sessionHandType === 'LEFT';
-          const selectedElbow = useLeftHand ? frame.poseLandmarks[14] : frame.poseLandmarks[13]; // LEFT hand uses RIGHT elbow (14)
-          const selectedPoseWrist = useLeftHand ? frame.poseLandmarks[16] : frame.poseLandmarks[15]; // LEFT hand uses RIGHT wrist (16)
+          // CORRECT FIX: Match anatomical coordinates (not mirrored)
+          // RIGHT hand uses RIGHT elbow landmarks for proper biomechanical alignment
+          const useRightHand = sessionHandType === 'RIGHT';
+          const selectedElbow = useRightHand ? frame.poseLandmarks[14] : frame.poseLandmarks[13]; // RIGHT hand uses RIGHT elbow (14)
+          const selectedPoseWrist = useRightHand ? frame.poseLandmarks[16] : frame.poseLandmarks[15]; // RIGHT hand uses RIGHT wrist (16)
           
-          console.log(`Session-locked elbow selection - Hand: ${sessionHandType}, Using elbow: ${useLeftHand ? 'RIGHT' : 'LEFT'} (index ${useLeftHand ? 14 : 13})`);
+          console.log(`Session-locked elbow selection - Hand: ${sessionHandType}, Using elbow: ${useRightHand ? 'RIGHT' : 'LEFT'} (index ${useRightHand ? 14 : 13})`);
           
           if (selectedElbow && selectedPoseWrist && (selectedElbow.visibility || 1) > 0.5) {
             const elbowX = selectedElbow.x * canvas.width;
