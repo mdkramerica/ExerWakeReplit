@@ -796,30 +796,43 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
           // Use stored session hand type for consistent elbow tracking throughout replay
           const sessionHandType = frame.sessionHandType || frame.handedness || currentWristAngles.handType;
           
-          // SESSION-LOCKED ELBOW SELECTION: Use the same logic as calculation for consistency
-          // Determine elbow once and maintain throughout replay to prevent jumping
-          const useRightHand = sessionHandType === 'RIGHT';
-          let elbowIndex = useRightHand ? 14 : 13; // RIGHT elbow (14) or LEFT elbow (13)
-          let wristIndex = useRightHand ? 16 : 15; // RIGHT wrist (16) or LEFT wrist (15)
+          // FRAME-INDEPENDENT ELBOW SELECTION: Match calculation logic exactly
+          // Use proximity-based selection for each frame to eliminate directional dependency
+          let elbowIndex: number;
+          let wristIndex: number;
           
-          // Validate anatomical positioning to correct if needed
           if (frame.landmarks && frame.landmarks[0] && frame.poseLandmarks[13] && frame.poseLandmarks[14]) {
-            const handX = frame.landmarks[0].x;
-            const handOnRightSide = handX > 0.5;
-            const expectedRightHand = handOnRightSide;
+            const handWrist = frame.landmarks[0];
+            const leftElbow = frame.poseLandmarks[13];
+            const rightElbow = frame.poseLandmarks[14];
             
-            if ((useRightHand && !expectedRightHand) || (!useRightHand && expectedRightHand)) {
-              // Flip selection if anatomically incorrect
-              elbowIndex = useRightHand ? 13 : 14;
-              wristIndex = useRightHand ? 15 : 16;
-              console.log(`REPLAY: Corrected elbow selection for anatomical accuracy (hand at x=${handX.toFixed(3)})`);
-            }
+            // Calculate distances exactly as in calculation logic
+            const distToLeft = Math.sqrt(
+              Math.pow(handWrist.x - leftElbow.x, 2) + 
+              Math.pow(handWrist.y - leftElbow.y, 2) + 
+              Math.pow((handWrist.z || 0) - (leftElbow.z || 0), 2)
+            );
+            const distToRight = Math.sqrt(
+              Math.pow(handWrist.x - rightElbow.x, 2) + 
+              Math.pow(handWrist.y - rightElbow.y, 2) + 
+              Math.pow((handWrist.z || 0) - (rightElbow.z || 0), 2)
+            );
+            
+            const useLeftElbow = distToLeft < distToRight;
+            elbowIndex = useLeftElbow ? 13 : 14;
+            wristIndex = useLeftElbow ? 15 : 16;
+            
+            console.log(`REPLAY: Frame-independent elbow selection - Using ${useLeftElbow ? 'LEFT' : 'RIGHT'} elbow (L:${distToLeft.toFixed(3)}, R:${distToRight.toFixed(3)})`);
+          } else {
+            // Fallback to hand type detection
+            const useRightHand = sessionHandType === 'RIGHT';
+            elbowIndex = useRightHand ? 14 : 13;
+            wristIndex = useRightHand ? 16 : 15;
+            console.log(`REPLAY: Fallback to hand type detection - ${sessionHandType}`);
           }
           
           const selectedElbow = frame.poseLandmarks[elbowIndex];
           const selectedPoseWrist = frame.poseLandmarks[wristIndex];
-          
-          console.log(`REPLAY: Session-locked elbow - Hand: ${sessionHandType}, Using elbow index: ${elbowIndex}`);
           
           // Remove the problematic console log that references undefined variable
           
