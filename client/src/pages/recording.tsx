@@ -370,8 +370,11 @@ export default function Recording() {
         let frameWristAngles = null;
         if (assessment?.name?.toLowerCase().includes('wrist') || assessment?.name?.toLowerCase().includes('flexion') || assessment?.name?.toLowerCase().includes('extension')) {
           frameWristAngles = data.wristAngles; // Use the elbow-referenced calculation from holistic tracker
+          console.log(`🔍 RECORDING DEBUG - Frame wrist angles received:`, frameWristAngles);
           if (frameWristAngles) {
-            console.log(`Frame elbow-referenced wrist angles: Flexion=${frameWristAngles.wristFlexionAngle}°, Extension=${frameWristAngles.wristExtensionAngle}°, Hand=${frameWristAngles.handType}`);
+            console.log(`✅ Frame elbow-referenced wrist angles: Flexion=${frameWristAngles.wristFlexionAngle}°, Extension=${frameWristAngles.wristExtensionAngle}°, Hand=${frameWristAngles.handType}`);
+          } else {
+            console.log(`❌ No wrist angles received from holistic tracker during recording`);
           }
         }
         

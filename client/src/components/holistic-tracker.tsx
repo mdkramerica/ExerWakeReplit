@@ -200,6 +200,7 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType,
     }
 
     // Update parent component with tracking data
+    console.log('🔄 Sending update to parent with wrist angles:', wristAngles);
     onUpdate({
       handDetected,
       landmarksCount: handLandmarks.length,
