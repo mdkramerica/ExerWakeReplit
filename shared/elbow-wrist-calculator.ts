@@ -415,17 +415,28 @@ export function calculateElbowReferencedWristAngleWithForce(
       
       console.log(`🎯 VECTOR DIRECTION - Cross product Y: ${crossProduct.y.toFixed(4)}, Direction: ${isExtension ? 'EXTENSION' : 'FLEXION'}`);
       
-      // Always assign angles for responsive real-time display
+      // APPLY ANATOMICAL BASELINE CORRECTION
+      // The raw angle is around 130-140° in neutral position
+      // Calculate deviation from neutral baseline (140°)
+      const NEUTRAL_BASELINE_ANGLE = 140;
+      const deviationFromNeutral = Math.abs(wristAngle - NEUTRAL_BASELINE_ANGLE);
+      
+      console.log(`🔍 BASELINE CORRECTION: Raw=${wristAngle.toFixed(1)}°, Baseline=${NEUTRAL_BASELINE_ANGLE}°, Deviation=${deviationFromNeutral.toFixed(1)}°`);
+      
+      // Use the deviation as the actual wrist bend measurement
+      const correctedAngle = deviationFromNeutral;
+      
+      // Always assign corrected angles for responsive real-time display
       if (isExtension) {
         // Extension: hand vector above forearm baseline
-        result.wristExtensionAngle = wristAngle;
+        result.wristExtensionAngle = correctedAngle;
         result.wristFlexionAngle = 0;
-        console.log(`Wrist EXTENSION: ${wristAngle.toFixed(1)}° deviation above forearm`);
+        console.log(`Wrist EXTENSION: ${correctedAngle.toFixed(1)}° deviation above forearm`);
       } else {
         // Flexion: hand vector below forearm baseline
-        result.wristFlexionAngle = wristAngle;
+        result.wristFlexionAngle = correctedAngle;
         result.wristExtensionAngle = 0;
-        console.log(`Wrist FLEXION: ${wristAngle.toFixed(1)}° deviation below forearm`);
+        console.log(`Wrist FLEXION: ${correctedAngle.toFixed(1)}° deviation below forearm`);
       }
 
       // Set high confidence for successful calculation
