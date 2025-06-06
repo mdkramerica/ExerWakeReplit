@@ -41,6 +41,10 @@ export default function Recording() {
     pinky: { mcpAngle: 0, pipAngle: 0, dipAngle: 0, totalActiveRom: 0 }
   });
   const [wristAngles, setWristAngles] = useState<any>(null);
+  const [sessionMaxWristAngles, setSessionMaxWristAngles] = useState<any>({
+    maxWristFlexion: 0,
+    maxWristExtension: 0
+  });
   const [poseLandmarks, setPoseLandmarks] = useState<any[]>([]);
   const [sessionHandType, setSessionHandType] = useState<'LEFT' | 'RIGHT' | 'UNKNOWN'>('UNKNOWN');
   const [, setLocation] = useLocation();
@@ -301,38 +305,16 @@ export default function Recording() {
         setPoseLandmarks(data.poseLandmarks);
       }
       
-      // Calculate wrist angles from landmarks for wrist assessments
-      if (data.landmarks && data.landmarks.length >= 21 && (assessment?.name?.toLowerCase().includes('wrist') || assessment?.name?.toLowerCase().includes('flexion') || assessment?.name?.toLowerCase().includes('extension'))) {
-        try {
-          // Use elbow-referenced calculation if pose landmarks available
-          if (data.poseLandmarks && data.poseLandmarks.length > 16) {
-            const elbowResult = calculateElbowReferencedWristAngle(data.landmarks, data.poseLandmarks);
-            console.log('Elbow-referenced wrist calculation:', elbowResult);
-            
-            // Convert to legacy format for compatibility
-            const wristResult = {
-              flexionAngle: elbowResult.wristFlexionAngle,
-              extensionAngle: elbowResult.wristExtensionAngle,
-              maxFlexion: elbowResult.wristFlexionAngle,
-              maxExtension: elbowResult.wristExtensionAngle,
-              totalWristRom: elbowResult.wristFlexionAngle + elbowResult.wristExtensionAngle,
-              forearmToHandAngle: elbowResult.forearmToHandAngle,
-              elbowDetected: elbowResult.elbowDetected,
-              handType: elbowResult.handType,
-              confidence: elbowResult.confidence
-            };
-            setWristAngles(wristResult);
-          } else {
-            // Fallback to hand-only calculation
-            const wristResult = calculateWristAngles(data.landmarks, data.poseLandmarks);
-            console.log('Hand-only wrist calculation:', wristResult);
-            setWristAngles(wristResult);
-          }
-        } catch (error) {
-          console.warn('Wrist angle calculation error:', error);
-        }
-      } else if (data.wristAngles) {
+      // Use wrist angles directly from holistic tracker for consistency
+      if (data.wristAngles) {
+        console.log('Using wrist angles from holistic tracker:', data.wristAngles);
         setWristAngles(data.wristAngles);
+        
+        // Update session maximums for real-time display consistency
+        setSessionMaxWristAngles(prev => ({
+          maxWristFlexion: Math.max(prev.maxWristFlexion, data.wristAngles.wristFlexionAngle || 0),
+          maxWristExtension: Math.max(prev.maxWristExtension, data.wristAngles.wristExtensionAngle || 0)
+        }));
       }
       
       // Calculate real-time ROM for all fingers
@@ -477,6 +459,7 @@ export default function Recording() {
                   onUpdate={handleMediaPipeUpdate}
                   isRecording={isRecording}
                   assessmentType={assessment.name}
+                  sessionMaxWristAngles={sessionMaxWristAngles}
                 />
                 
                 {/* Recording indicator with countdown timer */}

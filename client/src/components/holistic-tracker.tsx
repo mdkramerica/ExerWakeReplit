@@ -160,7 +160,7 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType 
         console.log(`🔍 Hand Detection - Current: ${currentDetection.handType}, Locked: ${lastHandTypeRef.current}, Confidence: ${currentDetection.confidence.toFixed(3)}`);
       }
       
-      // Force the locked hand type for consistent calculation
+      // Ensure wrist angles always use the locked hand type for consistency
       if (lastHandTypeRef.current !== 'UNKNOWN') {
         console.log(`🎯 Calling wrist calculation with locked hand type: ${lastHandTypeRef.current}`);
         wristAngles = calculateElbowReferencedWristAngleWithForce(
@@ -177,6 +177,11 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType 
           })),
           lastHandTypeRef.current
         );
+        
+        // Override the calculated hand type with our locked type for display consistency
+        if (wristAngles) {
+          wristAngles.handType = lastHandTypeRef.current;
+        }
         console.log(`🎯 Wrist calculation completed for ${lastHandTypeRef.current} hand`);
       } else {
         console.log('⚠️ Using fallback detection - hand type not locked yet');
