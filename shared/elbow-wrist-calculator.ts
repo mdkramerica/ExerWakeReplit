@@ -71,6 +71,12 @@ function calculateWristAngleUsingVectors(
   wrist: HandLandmark | PoseLandmark,
   middleMcp: HandLandmark | PoseLandmark
 ): number {
+  console.log('🔍 Vector calculation input landmarks:', {
+    elbow: { x: elbow.x.toFixed(3), y: elbow.y.toFixed(3), z: elbow.z.toFixed(3) },
+    wrist: { x: wrist.x.toFixed(3), y: wrist.y.toFixed(3), z: wrist.z.toFixed(3) },
+    middleMcp: { x: middleMcp.x.toFixed(3), y: middleMcp.y.toFixed(3), z: middleMcp.z.toFixed(3) }
+  });
+
   // Build vectors as specified:
   // Forearm = wrist - elbow
   const forearmVector = {
@@ -86,12 +92,23 @@ function calculateWristAngleUsingVectors(
     z: middleMcp.z - wrist.z
   };
   
+  console.log('🔍 Calculated vectors:', {
+    forearmVector: { x: forearmVector.x.toFixed(3), y: forearmVector.y.toFixed(3), z: forearmVector.z.toFixed(3) },
+    handVector: { x: handVector.x.toFixed(3), y: handVector.y.toFixed(3), z: handVector.z.toFixed(3) }
+  });
+  
   // Calculate magnitudes (norms)
   const forearmNorm = Math.sqrt(forearmVector.x**2 + forearmVector.y**2 + forearmVector.z**2);
   const handNorm = Math.sqrt(handVector.x**2 + handVector.y**2 + handVector.z**2);
   
+  console.log('🔍 Vector magnitudes:', {
+    forearmNorm: forearmNorm.toFixed(3),
+    handNorm: handNorm.toFixed(3)
+  });
+  
   // Avoid division by zero
   if (forearmNorm === 0 || handNorm === 0) {
+    console.log('⚠️ Zero magnitude vector detected, returning neutral (180°)');
     return 180; // Return neutral if calculation impossible
   }
   
@@ -104,8 +121,22 @@ function calculateWristAngleUsingVectors(
   // Clamp to valid range for acos
   const clampedCosAngle = Math.max(-1, Math.min(1, cosAngle));
   
+  console.log('🔍 Angle calculation:', {
+    dotProduct: dotProduct.toFixed(3),
+    cosAngle: cosAngle.toFixed(3),
+    clampedCosAngle: clampedCosAngle.toFixed(3)
+  });
+  
   // Return angle in degrees (neutral = 180°, flexion < 180°, extension > 180°)
-  return Math.acos(clampedCosAngle) * (180 / Math.PI);
+  const angleRadians = Math.acos(clampedCosAngle);
+  const angleDegrees = angleRadians * (180 / Math.PI);
+  
+  console.log('🔍 Final angle result:', {
+    angleRadians: angleRadians.toFixed(3),
+    angleDegrees: angleDegrees.toFixed(1)
+  });
+  
+  return angleDegrees;
 }
 
 function calculateAngleBetweenVectors(
@@ -217,7 +248,10 @@ export function calculateElbowReferencedWristAngleWithForce(
     confidence: 0
   };
 
+  console.log(`🔍 Starting calculation - handLandmarks: ${handLandmarks?.length || 0}, poseLandmarks: ${poseLandmarks?.length || 0}, forceHandType: ${forceHandType}`);
+
   if (!handLandmarks || handLandmarks.length < 21 || !poseLandmarks || poseLandmarks.length <= 16) {
+    console.log('❌ Insufficient landmarks for calculation');
     return result;
   }
 
@@ -227,12 +261,22 @@ export function calculateElbowReferencedWristAngleWithForce(
   const wristIndex = forceHandType === 'LEFT' ? POSE_LANDMARKS.RIGHT_WRIST : POSE_LANDMARKS.LEFT_WRIST;
   const shoulderIndex = forceHandType === 'LEFT' ? POSE_LANDMARKS.RIGHT_SHOULDER : POSE_LANDMARKS.LEFT_SHOULDER;
 
+  console.log(`🔍 Using landmark indices - elbow: ${elbowIndex}, wrist: ${wristIndex}, shoulder: ${shoulderIndex}`);
+
   const elbow = poseLandmarks[elbowIndex];
   const poseWrist = poseLandmarks[wristIndex];
   const shoulder = poseLandmarks[shoulderIndex];
 
+  console.log(`🔍 Pose landmarks availability:`, {
+    elbow: { exists: !!elbow, visibility: elbow?.visibility || 'N/A' },
+    poseWrist: { exists: !!poseWrist, visibility: poseWrist?.visibility || 'N/A' },
+    shoulder: { exists: !!shoulder, visibility: shoulder?.visibility || 'N/A' }
+  });
+
   if (elbow && poseWrist && shoulder && 
       (elbow.visibility || 1) > 0.3 && (poseWrist.visibility || 1) > 0.3) {
+    
+    console.log('✅ Pose landmarks passed visibility check');
     
     result.elbowDetected = true;
     result.confidence = Math.min(elbow.visibility || 1, poseWrist.visibility || 1, shoulder.visibility || 1);
