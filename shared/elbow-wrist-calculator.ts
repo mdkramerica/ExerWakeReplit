@@ -266,11 +266,13 @@ export function calculateElbowReferencedWristAngleWithForce(
     return result;
   }
 
-  // Correct hand-elbow matching: LEFT hand should use LEFT elbow landmarks
-  // Remove the mirroring inversion that was causing mismatched visualization
-  const elbowIndex = forceHandType === 'LEFT' ? POSE_LANDMARKS.LEFT_ELBOW : POSE_LANDMARKS.RIGHT_ELBOW;
-  const wristIndex = forceHandType === 'LEFT' ? POSE_LANDMARKS.LEFT_WRIST : POSE_LANDMARKS.RIGHT_WRIST;
-  const shoulderIndex = forceHandType === 'LEFT' ? POSE_LANDMARKS.LEFT_SHOULDER : POSE_LANDMARKS.RIGHT_SHOULDER;
+  // CRITICAL FIX: Account for camera mirroring in hand-elbow matching
+  // Camera shows mirrored view: LEFT hand appears on RIGHT side of screen
+  // MediaPipe landmarks are in camera coordinates, so we need to match correctly
+  // When user sees their LEFT hand (appears on right side), it's actually RIGHT landmarks in MediaPipe
+  const elbowIndex = forceHandType === 'LEFT' ? POSE_LANDMARKS.RIGHT_ELBOW : POSE_LANDMARKS.LEFT_ELBOW;
+  const wristIndex = forceHandType === 'LEFT' ? POSE_LANDMARKS.RIGHT_WRIST : POSE_LANDMARKS.LEFT_WRIST;
+  const shoulderIndex = forceHandType === 'LEFT' ? POSE_LANDMARKS.RIGHT_SHOULDER : POSE_LANDMARKS.LEFT_SHOULDER;
 
   console.log(`🔍 Using landmark indices - elbow: ${elbowIndex}, wrist: ${wristIndex}, shoulder: ${shoulderIndex}`);
 
