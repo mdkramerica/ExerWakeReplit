@@ -639,8 +639,9 @@ export function resetRecordingSession() {
   recordingSessionElbowIndex = undefined;
   recordingSessionWristIndex = undefined;
   recordingSessionShoulderIndex = undefined;
+  recordingSessionHandType = undefined;
   lastWristAngle = undefined;
-  console.log('🔄 RECORDING SESSION RESET: Cleared all session state for new recording');
+  console.log('🔄 RECORDING SESSION RESET: Cleared all session state including handedness for new recording');
 }
 
 export function getRecordingSessionElbowSelection() {
