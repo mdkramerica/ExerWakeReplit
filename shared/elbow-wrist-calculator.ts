@@ -25,6 +25,7 @@ let recordingSessionElbowLocked = false;
 let recordingSessionElbowIndex: number | undefined;
 let recordingSessionWristIndex: number | undefined;
 let recordingSessionShoulderIndex: number | undefined;
+let recordingSessionHandType: 'LEFT' | 'RIGHT' | 'UNKNOWN' | undefined;
 let lastWristAngle: number | undefined;
 
 // MediaPipe Pose landmark indices
@@ -452,7 +453,21 @@ export function calculateElbowReferencedWristAngle(
 
   // Determine hand type and get corresponding pose landmarks
   if (poseLandmarks && poseLandmarks.length > 16) {
-    const handType = determineHandType(handLandmarks, poseLandmarks);
+    // Use session-locked handedness to prevent flipping during assessment
+    let handType: 'LEFT' | 'RIGHT' | 'UNKNOWN';
+    
+    if (!recordingSessionHandType) {
+      // First detection - determine and lock handedness for session
+      handType = determineHandType(handLandmarks, poseLandmarks);
+      if (handType !== 'UNKNOWN') {
+        recordingSessionHandType = handType;
+        console.log(`🔒 SESSION HANDEDNESS LOCKED: ${handType} hand detected and locked for assessment duration`);
+      }
+    } else {
+      // Use locked handedness for consistent tracking
+      handType = recordingSessionHandType;
+    }
+    
     result.handType = handType;
 
     // Correct hand-elbow matching: LEFT hand should use LEFT elbow landmarks
