@@ -7,7 +7,7 @@ export default function Footer() {
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="flex items-center space-x-6 mb-4 md:mb-0">
             <div className="text-sm text-gray-800">
-              © 2024 ROM Research Platform. HIPAA Compliant.
+              © 2025 ROM Research Platform. HIPAA Compliant.
             </div>
             <div className="flex items-center space-x-4 text-xs text-gray-800">
               <a href="#" className="hover:text-blue-600 transition-colors">Privacy Policy</a>
