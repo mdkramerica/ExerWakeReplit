@@ -85,7 +85,7 @@ export async function apiRequest(method: string, endpoint: string, data?: any) {
     throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
   }
   
-  return response;
+  return response.json();
 }
 
 export { makeRequest };

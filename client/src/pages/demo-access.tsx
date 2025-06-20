@@ -21,21 +21,14 @@ export default function DemoAccess() {
     setIsLoading(true);
     try {
       // Verify demo user exists and log them in
-      const response = await apiRequest('/api/users/verify-code', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: 'DEMO01' })
-      });
+      const response = await apiRequest('POST', '/api/users/verify-code', { code: 'DEMO01' });
 
       if (response.user) {
         // Set injury type if needed
         if (!response.user.injuryType) {
-          await apiRequest(`/api/users/${response.user.id}`, {
-            method: 'PATCH',
-            body: JSON.stringify({ 
-              injuryType: 'Carpal Tunnel',
-              isFirstTime: false
-            })
+          await apiRequest('PATCH', `/api/users/${response.user.id}`, { 
+            injuryType: 'Carpal Tunnel',
+            isFirstTime: false
           });
         }
         
@@ -53,19 +46,12 @@ export default function DemoAccess() {
     setIsLoading(true);
     try {
       // Verify demo user exists
-      const response = await apiRequest('/api/users/verify-code', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: 'DEMO01' })
-      });
+      const response = await apiRequest('POST', '/api/users/verify-code', { code: 'DEMO01' });
 
       if (response.user && !response.user.injuryType) {
-        await apiRequest(`/api/users/${response.user.id}`, {
-          method: 'PATCH',
-          body: JSON.stringify({ 
-            injuryType: 'Carpal Tunnel',
-            isFirstTime: false
-          })
+        await apiRequest('PATCH', `/api/users/${response.user.id}`, { 
+          injuryType: 'Carpal Tunnel',
+          isFirstTime: false
         });
       }
       
