@@ -24,6 +24,9 @@ import Footer from "@/components/footer";
 import ClinicalLogin from "@/pages/clinical-login";
 import ClinicalDashboard from "@/pages/clinical-dashboard";
 import ClinicalPatients from "@/pages/clinical-patients";
+import ClinicalAnalytics from "@/pages/clinical-analytics";
+import ClinicalAlerts from "@/pages/clinical-alerts";
+import PatientDetail from "@/pages/patient-detail";
 import ClinicalLayout from "@/components/clinical-layout";
 
 function ClinicalRoutes() {
@@ -38,8 +41,9 @@ function ClinicalRoutes() {
       <Switch>
         <Route path="/clinical/dashboard" component={ClinicalDashboard} />
         <Route path="/clinical/patients" component={ClinicalPatients} />
-        <Route path="/clinical/analytics" component={() => <div>Analytics Page (Coming Soon)</div>} />
-        <Route path="/clinical/alerts" component={() => <div>Alerts Page (Coming Soon)</div>} />
+        <Route path="/clinical/analytics" component={ClinicalAnalytics} />
+        <Route path="/clinical/patients/:id" component={PatientDetail} />
+        <Route path="/clinical/alerts" component={ClinicalAlerts} />
         <Route path="/clinical/cohorts" component={() => <div>Cohorts Page (Coming Soon)</div>} />
         <Route path="/clinical/reports" component={() => <div>Reports Page (Coming Soon)</div>} />
         <Route path="/clinical/settings" component={() => <div>Settings Page (Coming Soon)</div>} />
