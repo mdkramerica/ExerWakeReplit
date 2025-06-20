@@ -21,6 +21,7 @@ import {
   Home,
   Database,
   UserPlus,
+  LayoutDashboard,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
