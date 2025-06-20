@@ -42,6 +42,54 @@ main, section, article, .card, [data-testid="card"] {
   background-color: transparent !important;
 }
 
+/* Fix text visibility - ensure proper contrast */
+.text-muted-foreground {
+  color: rgb(107 114 128) !important;
+}
+
+.text-gray-600 {
+  color: rgb(75 85 99) !important;
+}
+
+.text-gray-500 {
+  color: rgb(107 114 128) !important;
+}
+
+/* Yellow text should be dark gray for readability */
+.text-yellow-600,
+.text-yellow-500,
+.text-amber-600,
+.text-amber-500 {
+  color: rgb(55 65 81) !important;
+}
+
+/* Ensure all text has good contrast */
+p, span, div, h1, h2, h3, h4, h5, h6 {
+  color: inherit;
+}
+
+/* Override any light text colors that might be hard to read */
+.text-yellow-50,
+.text-yellow-100,
+.text-yellow-200,
+.text-amber-50,
+.text-amber-100,
+.text-amber-200 {
+  color: rgb(55 65 81) !important;
+}
+
+/* Specific fix for the welcome message subtitle */
+.text-muted-foreground {
+  color: rgb(107 114 128) !important;
+  opacity: 1 !important;
+}
+
+/* Force dark text on light backgrounds */
+[class*="bg-white"] .text-muted-foreground,
+[class*="bg-gray-50"] .text-muted-foreground {
+  color: rgb(75 85 99) !important;
+}
+
 /* Restore only necessary backgrounds */
 body, #root {
   background-color: #f9fafb !important;

@@ -193,8 +193,8 @@ export default function ClinicalDashboard() {
                 </Alert>
               ) : recentPatients.length > 0 ? (
                 <div className="space-y-3">
-                  {recentPatients.map((patient) => (
-                    <div key={patient.id} className="flex items-center justify-between">
+                  {recentPatients.map((patient, index) => (
+                    <div key={`dashboard-patient-${patient.id}-${index}`} className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
                         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
                           {statusIcons[patient.status]}
@@ -254,7 +254,7 @@ export default function ClinicalDashboard() {
               ) : alerts && alerts.length > 0 ? (
                 <div className="space-y-3">
                   {alerts.slice(0, 3).map((alert) => (
-                    <div key={alert.id} className="rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-800 dark:bg-red-950">
+                    <div key={`alert-${alert.id}`} className="rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-800 dark:bg-red-950">
                       <div className="flex items-start justify-between">
                         <div className="flex">
                           <AlertTriangle className="h-4 w-4 text-red-500 mt-0.5" />
