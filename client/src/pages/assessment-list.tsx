@@ -236,7 +236,7 @@ export default function AssessmentList() {
                         </Button>
                         <Button
                           size="sm"
-                          onClick={() => navigate(`/assessment/${assessment.id}/video`)}
+                          onClick={() => navigate(`/assessment/${assessment.id}/video/${userCode}`)}
                           className="bg-green-600 hover:bg-green-700 text-white"
                         >
                           Redo Assessment
@@ -245,7 +245,7 @@ export default function AssessmentList() {
                     ) : assessment.id === nextAssessment?.id ? (
                       <Button
                         size="sm"
-                        onClick={() => navigate(`/assessment/${assessment.id}/video`)}
+                        onClick={() => navigate(`/assessment/${assessment.id}/video/${userCode}`)}
                         className="bg-blue-600 hover:bg-blue-700 text-white"
                       >
                         Start Assessment
