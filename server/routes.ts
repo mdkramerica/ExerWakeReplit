@@ -2,9 +2,376 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
-import { insertUserSchema, insertUserAssessmentSchema } from "@shared/schema";
+import { 
+  insertUserSchema, 
+  insertUserAssessmentSchema,
+  loginSchema,
+  insertCohortSchema,
+  insertPatientSchema,
+  insertAssessmentTypeSchema,
+  insertPatientAssessmentSchema,
+  insertAuditLogSchema
+} from "@shared/schema";
+
+// Authentication middleware
+const requireAuth = async (req: any, res: any, next: any) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith('Bearer ')) {
+    return res.status(401).json({ message: 'Authentication required' });
+  }
+  
+  const token = authHeader.substring(7);
+  try {
+    // Simple token validation (in production, use JWT)
+    const userId = parseInt(token);
+    const user = await storage.getClinicalUser(userId);
+    if (!user || !user.isActive) {
+      return res.status(401).json({ message: 'Invalid token' });
+    }
+    req.user = user;
+    next();
+  } catch (error) {
+    return res.status(401).json({ message: 'Invalid token' });
+  }
+};
+
+// Role-based access control
+const requireRole = (roles: string[]) => {
+  return (req: any, res: any, next: any) => {
+    if (!req.user || !roles.includes(req.user.role)) {
+      return res.status(403).json({ message: 'Insufficient permissions' });
+    }
+    next();
+  };
+};
+
+// Audit logging helper
+const auditLog = async (userId: number, action: string, targetEntity?: string, details?: any, req?: any) => {
+  await storage.createAuditLog({
+    userId,
+    action,
+    targetEntity,
+    details,
+    ipAddress: req?.ip,
+    userAgent: req?.get('User-Agent')
+  });
+};
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Clinical Dashboard Authentication
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      const { username, password } = loginSchema.parse(req.body);
+      const user = await storage.authenticateClinicalUser(username, password);
+      
+      if (!user) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+      
+      // Simple token (in production, use JWT)
+      const token = user.id.toString();
+      
+      await auditLog(user.id, "login", undefined, { username }, req);
+      
+      res.json({ 
+        token, 
+        user: { 
+          id: user.id, 
+          username: user.username, 
+          email: user.email, 
+          firstName: user.firstName, 
+          lastName: user.lastName, 
+          role: user.role 
+        } 
+      });
+    } catch (error) {
+      res.status(400).json({ message: "Invalid request format" });
+    }
+  });
+
+  // Clinical Dashboard - Cohort Management
+  app.get("/api/cohorts", requireAuth, async (req, res) => {
+    try {
+      const cohorts = await storage.getCohorts();
+      res.json(cohorts);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch cohorts" });
+    }
+  });
+
+  app.post("/api/cohorts", requireAuth, requireRole(['admin']), async (req, res) => {
+    try {
+      const cohortData = insertCohortSchema.parse(req.body);
+      const cohort = await storage.createCohort(cohortData);
+      
+      await auditLog(req.user.id, "cohort_create", `cohort_id:${cohort.id}`, cohortData, req);
+      
+      res.json(cohort);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid cohort data" });
+    }
+  });
+
+  app.put("/api/cohorts/:id", requireAuth, requireRole(['admin']), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = insertCohortSchema.partial().parse(req.body);
+      const cohort = await storage.updateCohort(id, updates);
+      
+      if (!cohort) {
+        return res.status(404).json({ message: "Cohort not found" });
+      }
+      
+      await auditLog(req.user.id, "cohort_update", `cohort_id:${id}`, updates, req);
+      
+      res.json(cohort);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid cohort data" });
+    }
+  });
+
+  // Clinical Dashboard - Patient Management
+  app.get("/api/patients", requireAuth, async (req, res) => {
+    try {
+      const clinicianId = req.user.role === 'clinician' ? req.user.id : undefined;
+      const patients = await storage.getPatients(clinicianId);
+      res.json(patients);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch patients" });
+    }
+  });
+
+  app.post("/api/patients", requireAuth, requireRole(['clinician', 'admin']), async (req, res) => {
+    try {
+      const patientData = insertPatientSchema.parse(req.body);
+      
+      // Auto-assign to current clinician if not specified
+      if (req.user.role === 'clinician' && !patientData.assignedClinicianId) {
+        patientData.assignedClinicianId = req.user.id;
+      }
+      
+      const patient = await storage.createPatient(patientData);
+      
+      await auditLog(req.user.id, "patient_create", `patient_id:${patient.id}`, patientData, req);
+      
+      res.json(patient);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid patient data" });
+    }
+  });
+
+  app.get("/api/patients/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const patient = await storage.getPatientWithDetails(id);
+      
+      if (!patient) {
+        return res.status(404).json({ message: "Patient not found" });
+      }
+      
+      // Check access permissions
+      if (req.user.role === 'clinician' && patient.assignedClinicianId !== req.user.id) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      await auditLog(req.user.id, "patient_access", `patient_id:${id}`, undefined, req);
+      
+      res.json(patient);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch patient" });
+    }
+  });
+
+  app.put("/api/patients/:id", requireAuth, requireRole(['clinician', 'admin']), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = insertPatientSchema.partial().parse(req.body);
+      
+      // Check access permissions
+      const existingPatient = await storage.getPatient(id);
+      if (!existingPatient) {
+        return res.status(404).json({ message: "Patient not found" });
+      }
+      
+      if (req.user.role === 'clinician' && existingPatient.assignedClinicianId !== req.user.id) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const patient = await storage.updatePatient(id, updates);
+      
+      await auditLog(req.user.id, "patient_update", `patient_id:${id}`, updates, req);
+      
+      res.json(patient);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid patient data" });
+    }
+  });
+
+  // Clinical Dashboard - Patient Assessments
+  app.get("/api/patients/:id/assessments", requireAuth, async (req, res) => {
+    try {
+      const patientId = parseInt(req.params.id);
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;
+      
+      // Check access permissions
+      const patient = await storage.getPatient(patientId);
+      if (!patient) {
+        return res.status(404).json({ message: "Patient not found" });
+      }
+      
+      if (req.user.role === 'clinician' && patient.assignedClinicianId !== req.user.id) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const assessments = await storage.getPatientAssessments(patientId, limit);
+      res.json(assessments);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch assessments" });
+    }
+  });
+
+  app.post("/api/patients/:id/assessments", requireAuth, requireRole(['clinician', 'admin']), async (req, res) => {
+    try {
+      const patientId = parseInt(req.params.id);
+      const assessmentData = insertPatientAssessmentSchema.parse({
+        ...req.body,
+        patientId,
+        clinicianId: req.user.id
+      });
+      
+      // Check access permissions
+      const patient = await storage.getPatient(patientId);
+      if (!patient) {
+        return res.status(404).json({ message: "Patient not found" });
+      }
+      
+      if (req.user.role === 'clinician' && patient.assignedClinicianId !== req.user.id) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const assessment = await storage.createPatientAssessment(assessmentData);
+      
+      await auditLog(req.user.id, "assessment_create", `patient_id:${patientId}`, assessmentData, req);
+      
+      res.json(assessment);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid assessment data" });
+    }
+  });
+
+  // Clinical Dashboard - Cohort Analytics
+  app.get("/api/cohorts/:id/analytics", requireAuth, async (req, res) => {
+    try {
+      const cohortId = parseInt(req.params.id);
+      const analytics = await storage.getCohortAnalytics(cohortId);
+      
+      if (!analytics) {
+        return res.status(404).json({ message: "Cohort not found or no data available" });
+      }
+      
+      res.json(analytics);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch cohort analytics" });
+    }
+  });
+
+  app.get("/api/cohorts/:id/assessments", requireAuth, async (req, res) => {
+    try {
+      const cohortId = parseInt(req.params.id);
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 500;
+      
+      // For researchers, return de-identified data
+      const assessments = await storage.getCohortAssessments(cohortId, limit);
+      
+      if (req.user.role === 'researcher') {
+        // Remove identifying information for researchers
+        const deidentifiedAssessments = assessments.map(assessment => ({
+          ...assessment,
+          patientId: null,
+          clinicianId: null,
+          notes: null,
+          rawData: null
+        }));
+        res.json(deidentifiedAssessments);
+      } else {
+        res.json(assessments);
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch cohort assessments" });
+    }
+  });
+
+  // Clinical Dashboard - Outlier Alerts
+  app.get("/api/alerts", requireAuth, async (req, res) => {
+    try {
+      const patientId = req.query.patientId ? parseInt(req.query.patientId as string) : undefined;
+      const alerts = await storage.getOutlierAlerts(patientId);
+      res.json(alerts);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch alerts" });
+    }
+  });
+
+  app.put("/api/alerts/:id/resolve", requireAuth, requireRole(['clinician', 'admin']), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.resolveOutlierAlert(id);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Alert not found" });
+      }
+      
+      await auditLog(req.user.id, "alert_resolve", `alert_id:${id}`, undefined, req);
+      
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to resolve alert" });
+    }
+  });
+
+  // Clinical Dashboard - Data Export
+  app.post("/api/export", requireAuth, async (req, res) => {
+    try {
+      const { exportType, filters } = z.object({
+        exportType: z.enum(['patient_data', 'cohort_data']),
+        filters: z.any().optional()
+      }).parse(req.body);
+      
+      // Generate download URL (expires in 15 minutes)
+      const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+      const downloadUrl = `/api/export/download/${Math.random().toString(36).substring(2)}`;
+      
+      const exportRequest = await storage.createDataExport({
+        requestedBy: req.user.id,
+        exportType,
+        filters,
+        downloadUrl,
+        expiresAt
+      });
+      
+      await auditLog(req.user.id, "data_export", `export_id:${exportRequest.id}`, { exportType, filters }, req);
+      
+      res.json({ 
+        exportId: exportRequest.id,
+        downloadUrl: exportRequest.downloadUrl,
+        expiresAt: exportRequest.expiresAt
+      });
+    } catch (error) {
+      res.status(400).json({ message: "Invalid export request" });
+    }
+  });
+
+  // Assessment Types
+  app.get("/api/assessment-types", requireAuth, async (req, res) => {
+    try {
+      const assessmentTypes = await storage.getAssessmentTypes();
+      res.json(assessmentTypes);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch assessment types" });
+    }
+  });
+
+  // Legacy routes for backward compatibility
   // User routes
   app.post("/api/users/verify-code", async (req, res) => {
     try {

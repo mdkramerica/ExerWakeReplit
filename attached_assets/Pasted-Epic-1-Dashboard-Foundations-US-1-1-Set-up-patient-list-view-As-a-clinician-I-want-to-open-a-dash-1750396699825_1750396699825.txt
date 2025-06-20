@@ -1,0 +1,127 @@
+Epic 1 – Dashboard Foundations
+US-1.1 Set up patient list view
+As a clinician, I want to open a dashboard that lists every patient I’m assigned to so that I can quickly choose whose data to review.
+Acceptance Criteria
+
+Secure login shows only patients linked to the signed-in clinician
+
+Table columns: Patient ID, name/alias, injury type, last assessment date, status icon (e.g., ⬆ improving, ➖ stable, ⬇ declining)
+
+Click row → navigates to that patient’s trend view
+
+List sortable by any column and filterable by injury type or status
+
+US-1.2 Define injury-type cohorts
+As a system admin, I want injuries mapped to standardized cohort tags (e.g., “Carpal Tunnel”, “Post-op Flexor Tendon”) so cohort dashboards aggregate correctly.
+Acceptance Criteria
+
+CRUD interface for cohort definitions
+
+Each assessment record must contain a cohort tag (auto-inherited from initial diagnosis, editable by clinicians)
+
+Validation prevents “unknown” cohorts
+
+Epic 2 – Individual Patient Trend Views
+US-2.1 Render per-assessment time-series charts
+As a clinician, I want line charts showing each assessment’s TAM, Kapandji, and wrist flex/extend angles over time so I can see healing trajectories.
+Acceptance Criteria
+
+X-axis: assessment timestamp; Y-axis: metric value
+
+Toggle lines on/off (checkboxes)
+
+Hover tooltip shows date, raw value, % change from baseline
+
+Vertical guideline on hover synchronizes across all charts
+
+US-2.2 Cumulative progress indicator
+As a clinician, I need a single “% of normal ROM” gauge that updates each time an assessment is completed.
+Acceptance Criteria
+
+Formula: (current metric ÷ population normal) × 100, rounded to nearest whole %
+
+Color-coded zones (red < 60 %, yellow 60-85 %, green > 85 %)
+
+Baseline is first assessment unless clinician re-sets it
+
+US-2.3 Session comparison overlay
+As a clinician, I can overlay two chosen assessments to visually compare ROM changes.
+Acceptance Criteria
+
+Date picker (A vs B)
+
+Dashed line = earlier session, solid line = later session
+
+Numeric delta badge auto-computed for each metric
+
+Epic 3 – Cohort Analytics
+US-3.1 Aggregate cohort metrics
+As a clinician, I want averaged trend lines for a cohort so I can benchmark my patient against peers.
+Acceptance Criteria
+
+Line = cohort mean; shaded band = ±1 SD
+
+Patient’s personal line plotted in bold for context
+
+Cohort size (n) displayed; hide if n < 5 for privacy
+
+US-3.2 Outlier detection alert
+As a clinician, I am alerted when a patient’s recovery deviates > 2 SD below cohort mean for two consecutive assessments.
+Acceptance Criteria
+
+Background task flags deviations nightly
+
+Red badge appears on patient card and sends optional email summary
+
+Epic 4 – Filtering, Export, & Drill-Down
+US-4.1 Advanced filters panel
+As a clinician, I can filter dashboard data by date range, assessment type, cohort, and device confidence score threshold.
+Acceptance Criteria
+
+Multi-select chips; “Apply” re-queries backend
+
+State preserved on page reload (URL params)
+
+US-4.2 CSV/JSON export
+As a clinician, I can export a patient’s or cohort’s raw assessment data for research.
+Acceptance Criteria
+
+Export respects current filters
+
+Download link expires after 15 min for security
+
+Epic 5 – Security & Permissions
+US-5.1 Role-based access control
+As an admin, I need ROLES (Clinician, Researcher, Admin) with distinct permissions.
+Acceptance Criteria
+
+Clinician → only own patients
+
+Researcher → de-identified cohort data
+
+Admin → all data and user management
+
+US-5.2 Audit logging
+As compliance officer, I want every data export or permission change logged.
+Acceptance Criteria
+
+Log fields: user, action, timestamp, target entity
+
+Immutable storage, exportable for HIPAA audits
+
+Epic 6 – Performance & UX Polish
+US-6.1 Lazy-load charts
+As a user, charts load quickly even with large datasets.
+Acceptance Criteria
+
+Fetch only visible date window (infinite scroll or pagination)
+
+< 2 s render time for 1-year dataset (≈ 100 assessments)
+
+US-6.2 Mobile-responsive layout
+As a clinician on tablet, I can comfortably view dashboards.
+Acceptance Criteria
+
+Breakpoints: ≥ 1024 px (desktop grid), 768-1023 px (two-column), < 768 px (single-column swipe)
+
+Charts pinch-zoom enabled
