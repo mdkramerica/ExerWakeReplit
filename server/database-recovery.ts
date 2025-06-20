@@ -228,7 +228,9 @@ export class RecoveryStorage {
   }
 
   async getUserById(id: number) {
-    return await this.activeStorage.getUserById(id);
+    const result = await this.activeStorage.getUserById(id);
+    console.log(`RecoveryStorage getUserById(${id}) returning:`, result ? 'found' : 'not found');
+    return result;
   }
 
   async createUser(userData: any) {

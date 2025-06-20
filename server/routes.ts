@@ -626,6 +626,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get user by ID
+  app.get("/api/users/:userId", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const user = await storage.getUserById(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      res.json({ user });
+    } catch (error) {
+      res.status(400).json({ message: "Invalid user ID" });
+    }
+  });
+
   // User assessment routes
   app.get("/api/users/:userId/assessments", async (req, res) => {
     try {
