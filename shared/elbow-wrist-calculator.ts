@@ -414,14 +414,14 @@ export function calculateElbowReferencedWristAngleWithForce(
       // Always assign angles for responsive real-time display
       if (isExtension) {
         // Extension: hand bent backward (away from forearm)
-        result.wristExtensionAngle = Math.min(wristAngle, 70); // Cap at clinical maximum
+        result.wristExtensionAngle = wristAngle;
         result.wristFlexionAngle = 0;
-        console.log(`Wrist EXTENSION: ${result.wristExtensionAngle.toFixed(1)}° (raw: ${wristAngle.toFixed(1)}°)`);
+        console.log(`Wrist EXTENSION: ${result.wristExtensionAngle.toFixed(1)}°`);
       } else {
         // Flexion: hand bent forward (toward forearm)
-        result.wristFlexionAngle = Math.min(wristAngle, 80); // Cap at clinical maximum
+        result.wristFlexionAngle = wristAngle;
         result.wristExtensionAngle = 0;
-        console.log(`Wrist FLEXION: ${result.wristFlexionAngle.toFixed(1)}° (raw: ${wristAngle.toFixed(1)}°)`);
+        console.log(`Wrist FLEXION: ${result.wristFlexionAngle.toFixed(1)}°`);
       }
 
       // Set high confidence for successful calculation
@@ -556,11 +556,11 @@ export function calculateElbowReferencedWristAngle(
             const isExtension = handType === 'LEFT' ? crossProduct.y < 0 : crossProduct.y > 0;
             
             if (isExtension) {
-              result.wristExtensionAngle = Math.min(angleDegrees, 70);
+              result.wristExtensionAngle = angleDegrees;
               result.wristFlexionAngle = 0;
               console.log(`Wrist extension: ${result.wristExtensionAngle.toFixed(1)}° (angle between vectors: ${angleDegrees.toFixed(1)}°)`);
             } else {
-              result.wristFlexionAngle = Math.min(angleDegrees, 80);
+              result.wristFlexionAngle = angleDegrees;
               result.wristExtensionAngle = 0;
               console.log(`Wrist flexion: ${result.wristFlexionAngle.toFixed(1)}° (angle between vectors: ${angleDegrees.toFixed(1)}°)`);
             }
