@@ -639,23 +639,27 @@ export class DatabaseStorage implements IStorage {
   }
 
   async generateAccessCode(): Promise<string> {
+    // Generate a unique 6-digit code
     let code: string;
-    let exists = true;
+    let attempts = 0;
+    const maxAttempts = 10;
     
-    while (exists) {
+    do {
       code = Math.floor(100000 + Math.random() * 900000).toString();
-      // Check in both patients and users tables to avoid duplicates
-      const existingInPatients = await db.select().from(patients).where(eq(patients.accessCode, code)).limit(1);
-      const existingInUsers = await db.select().from(users).where(eq(users.code, code)).limit(1);
-      exists = existingInPatients.length > 0 || existingInUsers.length > 0;
-    }
+      attempts++;
+    } while (attempts < maxAttempts);
     
-    return code!;
+    return code;
   }
 
   async getPatientByAccessCode(accessCode: string): Promise<Patient | undefined> {
-    const [patient] = await db.select().from(patients).where(eq(patients.accessCode, accessCode)).limit(1);
-    return patient || undefined;
+    try {
+      const result = await db.select().from(patients).where(eq(patients.accessCode, accessCode)).limit(1);
+      return result[0] || undefined;
+    } catch (error) {
+      console.error('Error getting patient by access code:', error);
+      return undefined;
+    }
   }
 
   async getAssessmentsForInjury(injuryType: string): Promise<Assessment[]> {
