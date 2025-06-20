@@ -305,8 +305,13 @@ export default function Recording() {
     setTrackingQuality(data.trackingQuality);
     setHandPosition(data.handPosition);
     
-    // Update detected hand type and maintain session consistency
-    if (data.handType) {
+    // Update detected hand type from MediaPipe detection
+    if (data.detectedHandSide && data.detectedHandSide !== 'UNKNOWN') {
+      setDetectedHandType(data.detectedHandSide);
+    }
+    
+    // Also use calculated hand type if available
+    if (data.handType && data.handType !== 'UNKNOWN') {
       setDetectedHandType(data.handType);
     }
     
@@ -314,6 +319,9 @@ export default function Recording() {
     if (data.lockedHandType && data.lockedHandType !== 'UNKNOWN' && sessionHandType === 'UNKNOWN') {
       setSessionHandType(data.lockedHandType);
       console.log(`🔒 Session locked to ${data.lockedHandType} hand`);
+    } else if (data.detectedHandSide && data.detectedHandSide !== 'UNKNOWN' && sessionHandType === 'UNKNOWN') {
+      setSessionHandType(data.detectedHandSide);
+      console.log(`🔒 Session locked to ${data.detectedHandSide} hand from MediaPipe detection`);
     }
     
     // Store current landmarks and pose data for recording
@@ -400,8 +408,8 @@ export default function Recording() {
           })),
           poseLandmarks: data.poseLandmarks || [],
           wristAngles: frameWristAngles || data.wristAngles || null,
-          handedness: sessionHandType !== 'UNKNOWN' ? sessionHandType : (data.lockedHandType || data.handType || "Right"),
-          sessionHandType: sessionHandType !== 'UNKNOWN' ? sessionHandType : data.lockedHandType,
+          handedness: sessionHandType !== 'UNKNOWN' ? sessionHandType : (data.lockedHandType || data.detectedHandSide || data.handType || "UNKNOWN"),
+          sessionHandType: sessionHandType !== 'UNKNOWN' ? sessionHandType : (data.lockedHandType || data.detectedHandSide),
           sessionElbowIndex: data.sessionElbowIndex,
           sessionWristIndex: data.sessionWristIndex,
           sessionElbowLocked: data.sessionElbowLocked,
