@@ -68,7 +68,7 @@ export default function ClinicalAnalytics() {
   });
 
   // Process assessment data for charts
-  const processedData = assessments?.reduce((acc, assessment) => {
+  const processedData = assessments?.reduce((acc: any, assessment: any) => {
     const month = new Date(assessment.assessmentDate).toLocaleDateString('en-US', { 
       year: 'numeric', 
       month: 'short' 
@@ -84,10 +84,10 @@ export default function ClinicalAnalytics() {
       };
     }
     
-    if (assessment.tamScore) acc[month].tamScores.push(assessment.tamScore);
-    if (assessment.kapandjiScore) acc[month].kapandjiScores.push(assessment.kapandjiScore);
-    if (assessment.wristFlexionAngle) acc[month].wristFlexionScores.push(assessment.wristFlexionAngle);
-    if (assessment.percentOfNormalRom) acc[month].romPercentages.push(assessment.percentOfNormalRom);
+    if (assessment.tamScore) acc[month].tamScores.push(Number(assessment.tamScore));
+    if (assessment.kapandjiScore) acc[month].kapandjiScores.push(Number(assessment.kapandjiScore));
+    if (assessment.wristFlexionAngle) acc[month].wristFlexionScores.push(Number(assessment.wristFlexionAngle));
+    if (assessment.percentOfNormalRom) acc[month].romPercentages.push(Number(assessment.percentOfNormalRom));
     
     return acc;
   }, {} as Record<string, any>) || {};
@@ -95,20 +95,24 @@ export default function ClinicalAnalytics() {
   const chartData = Object.values(processedData).map((month: any) => ({
     month: month.month,
     avgTamScore: month.tamScores.length > 0 ? 
-      month.tamScores.reduce((a: number, b: number) => a + b, 0) / month.tamScores.length : 0,
+      Math.round((month.tamScores.reduce((a: number, b: number) => a + b, 0) / month.tamScores.length) * 10) / 10 : null,
     avgKapandjiScore: month.kapandjiScores.length > 0 ? 
-      month.kapandjiScores.reduce((a: number, b: number) => a + b, 0) / month.kapandjiScores.length : 0,
+      Math.round((month.kapandjiScores.reduce((a: number, b: number) => a + b, 0) / month.kapandjiScores.length) * 10) / 10 : null,
     avgWristFlexion: month.wristFlexionScores.length > 0 ? 
-      month.wristFlexionScores.reduce((a: number, b: number) => a + b, 0) / month.wristFlexionScores.length : 0,
+      Math.round((month.wristFlexionScores.reduce((a: number, b: number) => a + b, 0) / month.wristFlexionScores.length) * 10) / 10 : null,
     avgRomPercent: month.romPercentages.length > 0 ? 
-      month.romPercentages.reduce((a: number, b: number) => a + b, 0) / month.romPercentages.length : 0,
+      Math.round((month.romPercentages.reduce((a: number, b: number) => a + b, 0) / month.romPercentages.length) * 10) / 10 : null,
     patientCount: Math.max(
       month.tamScores.length,
       month.kapandjiScores.length,
       month.wristFlexionScores.length,
       month.romPercentages.length
     ),
-  })).sort((a, b) => new Date(a.month).getTime() - new Date(b.month).getTime());
+  })).sort((a, b) => {
+    const dateA = new Date(a.month + ' 1');
+    const dateB = new Date(b.month + ' 1');
+    return dateA.getTime() - dateB.getTime();
+  });
 
   const handleExportData = async () => {
     try {
@@ -278,7 +282,12 @@ export default function ClinicalAnalytics() {
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="month" />
                       <YAxis />
-                      <Tooltip />
+                      <Tooltip 
+                        formatter={(value: any, name: string) => [
+                          value !== null ? value : 'No data', 
+                          name
+                        ]}
+                      />
                       <Legend />
                       <Line 
                         type="monotone" 
@@ -286,6 +295,7 @@ export default function ClinicalAnalytics() {
                         stroke="#8884d8" 
                         name="TAM Score"
                         strokeWidth={2}
+                        connectNulls={false}
                       />
                       <Line 
                         type="monotone" 
@@ -293,6 +303,7 @@ export default function ClinicalAnalytics() {
                         stroke="#82ca9d" 
                         name="Kapandji Score"
                         strokeWidth={2}
+                        connectNulls={false}
                       />
                     </LineChart>
                   </ResponsiveContainer>
