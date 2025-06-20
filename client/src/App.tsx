@@ -27,6 +27,7 @@ import ClinicalPatients from "@/pages/clinical-patients";
 import ClinicalAnalytics from "@/pages/clinical-analytics";
 import ClinicalAlerts from "@/pages/clinical-alerts";
 import PatientDetail from "@/pages/patient-detail";
+import StudyEnrollment from "@/pages/study-enrollment";
 import ClinicalLayout from "@/components/clinical-layout";
 
 function ClinicalRoutes() {
@@ -44,6 +45,7 @@ function ClinicalRoutes() {
         <Route path="/clinical/analytics" component={ClinicalAnalytics} />
         <Route path="/clinical/patients/:id" component={PatientDetail} />
         <Route path="/clinical/alerts" component={ClinicalAlerts} />
+        <Route path="/clinical/study/enroll" component={StudyEnrollment} />
         <Route path="/clinical/cohorts" component={() => <div>Cohorts Page (Coming Soon)</div>} />
         <Route path="/clinical/reports" component={() => <div>Reports Page (Coming Soon)</div>} />
         <Route path="/clinical/settings" component={() => <div>Settings Page (Coming Soon)</div>} />

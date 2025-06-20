@@ -11,6 +11,8 @@ import {
   outlierAlerts,
   auditLogs,
   dataExports,
+  quickDashResponses,
+  studyVisits,
   type User, 
   type InsertUser,
   type Assessment,
@@ -36,6 +38,10 @@ import {
   type InsertAuditLog,
   type DataExport,
   type InsertDataExport,
+  type QuickDashResponse,
+  type InsertQuickDashResponse,
+  type StudyVisit,
+  type InsertStudyVisit,
   type CohortAnalytics
 } from "@shared/schema";
 import { db } from "./db";
