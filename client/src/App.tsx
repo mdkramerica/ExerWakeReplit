@@ -55,27 +55,21 @@ function ClinicalRoutes() {
 
 function LegacyRoutes() {
   return (
-    <div className="min-h-screen bg-white">
-      <Header />
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Switch>
-          <Route path="/" component={Landing} />
-          <Route path="/overview" component={Overview} />
-          <Route path="/injury-selection" component={InjurySelection} />
-          <Route path="/assessments" component={AssessmentList} />
-          <Route path="/assessment-list/:code" component={AssessmentList} />
-          <Route path="/assessment/:id/video" component={VideoInstruction} />
-          <Route path="/assessment/:id/record" component={Recording} />
-          <Route path="/assessment-results/:code/:userAssessmentId" component={AssessmentResults} />
-          <Route path="/wrist-results/:userCode/:userAssessmentId" component={WristResults} />
-          <Route path="/joint-test" component={JointTest} />
-          <Route path="/shared/:token" component={SharedAssessment} />
-          <Route path="/thank-you" component={ThankYou} />
-          <Route component={NotFound} />
-        </Switch>
-      </main>
-      <Footer />
-    </div>
+    <Switch>
+      <Route path="/" component={Landing} />
+      <Route path="/overview" component={Overview} />
+      <Route path="/injury-selection" component={InjurySelection} />
+      <Route path="/assessments" component={AssessmentList} />
+      <Route path="/assessment-list/:code" component={AssessmentList} />
+      <Route path="/assessment/:id/video" component={VideoInstruction} />
+      <Route path="/assessment/:id/record" component={Recording} />
+      <Route path="/assessment-results/:code/:userAssessmentId" component={AssessmentResults} />
+      <Route path="/wrist-results/:userCode/:userAssessmentId" component={WristResults} />
+      <Route path="/joint-test" component={JointTest} />
+      <Route path="/shared/:token" component={SharedAssessment} />
+      <Route path="/thank-you" component={ThankYou} />
+      <Route component={NotFound} />
+    </Switch>
   );
 }
 
@@ -87,7 +81,13 @@ function Router() {
       </Route>
       <Route path="/clinical/login" component={ClinicalLogin} />
       <Route>
-        <LegacyRoutes />
+        <div className="min-h-screen bg-white">
+          <Header />
+          <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <LegacyRoutes />
+          </main>
+          <Footer />
+        </div>
       </Route>
     </Switch>
   );
