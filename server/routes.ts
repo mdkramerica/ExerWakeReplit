@@ -1101,7 +1101,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const found = userAssessments.find(ua => ua.id === userAssessmentId);
           if (found) {
             userAssessment = found;
-            user = await storage.getUser(userId);
+            user = await storage.getUserById(userId);
             break;
           }
         } catch (e) {

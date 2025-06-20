@@ -62,13 +62,36 @@ export default function WristResults() {
     );
   }
 
+  console.log('Wrist Results data received:', resultsData);
+  
   const results = resultsData as WristResultsData;
-  if (!results) return null;
+  if (!results) {
+    console.log('No results data available');
+    return <div className="p-4">No results data available</div>;
+  }
 
   const { userAssessment, assessment, user } = results;
   
   // Handle cases where assessment might not be loaded yet
   if (!assessment || !userAssessment || !user) {
+    console.log('Missing data:', { assessment: !!assessment, userAssessment: !!userAssessment, user: !!user });
+    console.log('Full results object:', results);
+    
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <h2 className="text-xl font-semibold mb-4">Loading Assessment Results...</h2>
+            <div className="space-y-2 text-sm text-gray-600">
+              <p>Assessment: {assessment ? '✓' : '✗'}</p>
+              <p>User Assessment: {userAssessment ? '✓' : '✗'}</p>
+              <p>User: {user ? '✓' : '✗'}</p>
+              <p className="mt-4">Raw data available: {JSON.stringify(results, null, 2).substring(0, 200)}...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
         <div className="max-w-4xl mx-auto">
@@ -88,9 +111,18 @@ export default function WristResults() {
   const normalFlexionRange = [0, 80];
   const normalExtensionRange = [0, 70];
   
-  // Ensure numeric conversion for database values
-  const maxFlexion = Number(userAssessment.maxWristFlexion) || 0;
-  const maxExtension = Number(userAssessment.maxWristExtension) || 0;
+  // Ensure numeric conversion for database values - handle different field names
+  const maxFlexion = Number(userAssessment.maxWristFlexion || userAssessment.wristFlexionAngle) || 0;
+  const maxExtension = Number(userAssessment.maxWristExtension || userAssessment.wristExtensionAngle) || 0;
+  
+  console.log('Wrist angle values:', {
+    maxWristFlexion: userAssessment.maxWristFlexion,
+    maxWristExtension: userAssessment.maxWristExtension,
+    wristFlexionAngle: userAssessment.wristFlexionAngle,
+    wristExtensionAngle: userAssessment.wristExtensionAngle,
+    finalMaxFlexion: maxFlexion,
+    finalMaxExtension: maxExtension
+  });
   
   const flexionPercentage = Math.min((maxFlexion / normalFlexionRange[1]) * 100, 100);
   const extensionPercentage = Math.min((maxExtension / normalExtensionRange[1]) * 100, 100);
