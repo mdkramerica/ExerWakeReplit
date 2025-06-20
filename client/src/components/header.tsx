@@ -1,7 +1,7 @@
 import { Shield, LogOut } from "lucide-react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import exerLogoPath from "@assets/exer-logo.png";
+import exerLogoPath from "@assets/ExerLogoColor_1750399504621.png";
 
 export default function Header() {
   const [location, setLocation] = useLocation();
