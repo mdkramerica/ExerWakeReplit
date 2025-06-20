@@ -155,17 +155,35 @@ export class PersistentMemoryStorage {
       { name: 'Trigger Finger', description: 'Stenosing tenosynovitis affecting finger flexion' }
     ];
 
-    // Create demo user
-    const demoUser = {
-      id: 1,
-      code: 'DEMO01',
-      createdAt: new Date(),
-      isFirstTime: false,
-      injuryType: 'Carpal Tunnel'
-    };
+    // Create demo user and test users
+    const predefinedUsers = [
+      {
+        id: 1,
+        code: 'DEMO01',
+        createdAt: new Date(),
+        isFirstTime: false,
+        injuryType: 'Carpal Tunnel'
+      },
+      {
+        id: 2,
+        code: 'TEST01',
+        createdAt: new Date(),
+        isFirstTime: true,
+        injuryType: null
+      },
+      {
+        id: 3,
+        code: 'ADMIN1',
+        createdAt: new Date(),
+        isFirstTime: true,
+        injuryType: null
+      }
+    ];
     
-    this.users.set(1, demoUser);
-    this.userByCode.set('DEMO01', demoUser);
+    predefinedUsers.forEach(user => {
+      this.users.set(user.id, user);
+      this.userByCode.set(user.code, user);
+    });
 
     // Create sample completed assessments for demonstration
     const sampleAssessments = [
@@ -241,6 +259,14 @@ export class PersistentMemoryStorage {
   }
 
   async createUser(userData: any): Promise<any> {
+    // Only allow creation of users with valid access codes
+    const validCodes = ['DEMO01', 'TEST01', 'ADMIN1']; // Define valid access codes
+    
+    if (!validCodes.includes(userData.code)) {
+      console.log(`Persistent storage createUser rejected invalid code: ${userData.code}`);
+      return null;
+    }
+    
     const newUser = {
       id: Math.max(...Array.from(this.users.keys())) + 1,
       ...userData,
