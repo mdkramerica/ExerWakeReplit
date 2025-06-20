@@ -117,18 +117,12 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <div className="min-h-screen bg-white">
-          <Header />
-          <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div style={{ 
-              '--current-user': JSON.stringify(currentUser),
-              '--update-user': updateUser,
-              '--clear-user': clearUser
-            } as any}>
-              <Router />
-            </div>
-          </main>
-          <Footer />
+        <div style={{ 
+          '--current-user': JSON.stringify(currentUser),
+          '--update-user': updateUser,
+          '--clear-user': clearUser
+        } as any}>
+          <Router />
         </div>
         <Toaster />
       </TooltipProvider>
