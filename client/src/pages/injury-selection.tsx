@@ -35,18 +35,31 @@ export default function InjurySelection() {
 
   const updateUserMutation = useMutation({
     mutationFn: async ({ injuryType }: { injuryType: string }) => {
-      const response = await apiRequest("PATCH", `/api/users/${currentUser.id}`, { 
-        injuryType,
-        isFirstTime: false 
+      const response = await fetch(`/api/users/${currentUser.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          injuryType,
+          isFirstTime: false 
+        }),
       });
+      
+      if (!response.ok) {
+        throw new Error('Failed to update user');
+      }
+      
       return response.json();
     },
     onSuccess: (data) => {
+      console.log('User updated successfully:', data);
       sessionStorage.setItem('currentUser', JSON.stringify(data.user));
       setCurrentUser(data.user);
-      setLocation("/assessments");
+      setLocation(`/assessment-list/${data.user.code}`);
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Update user error:', error);
       toast({
         title: "Error",
         description: "Failed to save injury type. Please try again.",
@@ -113,9 +126,9 @@ export default function InjurySelection() {
           </div>
 
           <div className="grid md:grid-cols-2 gap-4 mb-8">
-            {injuryTypes.map((injury) => (
+            {injuryTypes.map((injury, index) => (
               <button
-                key={injury.id}
+                key={injury.name || index}
                 onClick={() => handleInjurySelect(injury.name)}
                 className={`p-6 border-2 rounded-xl transition-all duration-200 text-left group ${
                   selectedInjury === injury.name
