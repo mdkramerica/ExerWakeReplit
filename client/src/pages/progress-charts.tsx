@@ -266,6 +266,7 @@ export default function ProgressCharts() {
                           />
                           <YAxis 
                             label={{ value: `ROM (${unit})`, angle: -90, position: 'insideLeft' }}
+                            domain={[0, Math.max(300, target + 50)]}
                           />
                           <Tooltip content={<CustomTooltip assessmentName={assessmentName} />} />
                           <ReferenceLine 
@@ -285,6 +286,22 @@ export default function ProgressCharts() {
                                 padding: '2px 4px',
                                 border: '1px solid #059669',
                                 borderRadius: '4px'
+                              }
+                            }}
+                          />
+                          <ReferenceLine 
+                            y={270} 
+                            stroke="#059669" 
+                            strokeDasharray="10 5"
+                            strokeWidth={4}
+                            label={{ 
+                              value: "Target: 270°", 
+                              position: "topRight",
+                              offset: 10,
+                              style: { 
+                                fill: '#059669', 
+                                fontWeight: 'bold', 
+                                fontSize: '14px'
                               }
                             }}
                           />

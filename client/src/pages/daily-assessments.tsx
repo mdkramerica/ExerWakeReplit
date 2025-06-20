@@ -96,9 +96,9 @@ export default function DailyAssessments() {
               </CardDescription>
             </div>
             <div className="text-right">
-              <div className="text-2xl font-bold">Day {progress?.studyDay || 1}</div>
+              <div className="text-2xl font-bold">Day {currentDay}</div>
               <div className="text-sm text-muted-foreground">
-                {progress?.daysRemaining || 0} days remaining
+                {daysRemaining} days remaining
               </div>
             </div>
           </div>
