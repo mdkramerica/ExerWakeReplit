@@ -88,7 +88,7 @@ export default function Landing() {
                 onChange={handleCodeChange}
                 maxLength={6}
                 className="text-center text-2xl font-mono tracking-widest bg-white border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="000000 or DEMO01"
+                placeholder="000000"
                 disabled={verifyCodeMutation.isPending}
               />
               <p className="text-xs text-gray-800 mt-2 flex items-center">
@@ -119,9 +119,7 @@ export default function Landing() {
                 Browse All Assessments
               </Button>
             </Link>
-            <div className="text-xs text-gray-600">
-              Or try demo code: <span className="font-mono font-semibold">DEMO01</span>
-            </div>
+
           </div>
           
           <div className="mt-8 pt-6 border-t border-gray-200">
