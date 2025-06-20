@@ -17,6 +17,7 @@ export class PersistentMemoryStorage {
   private injuryTypes: any[] = [];
   private clinicalUsers = new Map<number, any>();
   private clinicalUsersByUsername = new Map<string, any>();
+  private patients = new Map<number, any>();
   private nextUserAssessmentId = 1;
   private dataDir = './data';
   private dataFile = path.join(this.dataDir, 'storage.json');
