@@ -1,0 +1,58 @@
+Prospective Study Design + App Data & Dashboard Enhancements
+(weekly follow-up through post-op Day 84)
+
+1 Study Blueprint (HAND-HEAL Study)
+Component	Design Details
+Primary Objective	Quantify longitudinal recovery of active range-of-motion (ROM) in the hand & wrist after surgery, using the app’s AI measurements.
+Secondary Objectives	(1) Compare recovery slopes between injury types (cohorts). (2) Identify early-change predictors of Day-84 outcome. (3) Validate app ROM against goniometer in a 10 % subsample.
+Hypotheses	H1: Mean TAM, Kapandji, and wrist flex/extend values improve significantly week-over-week (baseline → Day 84). H2: Recovery slope differs by injury cohort. H3: Week-4 slope predicts ≥ 85 % normal ROM at Day 84.
+Design	Multicenter, prospective cohort; baseline within 7 days post-surgery; weekly measurements (±2 days) to post-op Day 84.
+Cohorts (examples)	• Carpal-tunnel release • Flexor-tendon repair • Distal-radius ORIF • Thumb UCL repair • Trigger-finger release
+Inclusion / Exclusion	Adults 18–75; no prior ipsilateral upper-limb pathology; smartphone access; able to consent. Exclude neurological disorders altering ROM, infection, revision surgery.
+Outcome Measures	Primary – Composite “% Normal ROM” (TAM_<u>Index–Pinky</u> + Kapandji + Wrist Flex/Ext) vs population normals. Secondary – individual metrics, pain (VAS), QuickDASH.
+Follow-up Schedule	Baseline ⟶ weekly (wk 1-12: Days 7, 14, … 84).
+Sample-size Rationale	Detect 10° TAM change (SD 15°, ρ = 0.5, α 0.05, power 80 %) ⇒ 18 pts/ cohort; +20 % attrition ⇒ 25/ cohort (≈125 total).
+Statistical Plan	• Linear mixed-effects (time × cohort) • Slope analysis (Weeks 1-4 vs Day 84) • Bonferroni for multiple metrics • Missing-data LMM handles attrition.
+Ethics / Compliance	IRB approval; e-consent inside app; HIPAA-compliant storage; de-identified export for analysis; DSMB for safety.
+
+2 Data-Element Mapping & App Gaps
+Domain	Captured Now	Needed for Study	App Modifications
+Demographics	—	Age, sex, hand dominance, occupation	Add Patient-Profile form (one-time)
+Surgical Details	—	Date, procedure code, laterality, surgeon ID	Add Surgery Info fields (mandatory at enrollment)
+Injury Cohort Tag	✔ (diagnosis)	Locked to cohort list	Validation on entry
+ROM Metrics	✔ TAM, Kapandji, Wrist Angles, confidence	Same	—
+Session Metadata	✔ Timestamp, FPS, sidedness	Need post-op day auto-calc	Client calculates from surgery date
+Pain & PROMs	—	VAS (0-10), QuickDASH (11 items) weekly	In-app questionnaire after ROM capture
+Adherence Data	Partial (session count)	Need missed-visit flag	Scheduler + push-reminder, auto-mark “missed” if no data in window
+Goniometer Validation Sub-study	—	Manual angle entries for 10 % subsample	Hidden “Clin-Measured” input accessible to trained staff
+Consent / IRB Docs	—	Signed e-consent PDF	Store blob in patient record
+Audit Trail	✔ partial	Full export + access logs	Extend logging to new forms & exports
+
+3 Clinician & Study-Coordinator Dashboards – User Stories
+Epic A – Study Oversight
+ID	User Story	Acceptance Criteria
+A-1	As a study coordinator, I see an overview card for each cohort (enrolled / target, % complete).	Real-time counts; red if < 80 % of projected enrollment pace.
+A-2	I can view a weekly heat-map of completed vs missed visits for every participant.	Rows = patients, cols = week 0-12; clickable cell → session details.
+A-3	I receive an alert when > 10 % of a cohort misses two consecutive weeks.	Email + dashboard banner; alert auto-clears when adherence recovers.
+
+Epic B – Longitudinal Analytics
+ID	User Story	Acceptance Criteria
+B-1	As a clinician, I open a “Cohort Trends” page showing mean ± SD lines for each ROM metric across weeks 0-12.	Toggle cohorts; patient’s own line overlaid when selected.
+B-2	I can stratify trend plots by sex or age decade.	Filter pills update charts instantly; sample-size badge shown.
+B-3	I view a slope-vs-outcome scatter plot (Week 4 change vs Day 84 % Normal) with regression line.	Hover → patient ID, cohort, values; R² displayed.
+
+Epic C – Data Quality & Validation
+ID	User Story	Acceptance Criteria
+C-1	Analysts can download a de-identified CSV of study data with one click.	Export respects role-based access; link expires 15 min.
+C-2	Coordinators see a bar chart of average landmark-confidence per week.	Red bar when mean confidence < 0.80.
+C-3	Clinicians in the validation arm can enter goniometer angles and see Bland-Altman plots comparing app vs manual.	Limits-of-agreement lines auto-drawn; printable PDF.
+
+Epic D – Participant Engagement
+ID	User Story	Acceptance Criteria
+D-1	Patients get automated push reminders 24 h before each weekly window.	Snooze/opt-out options; adherence logged.
+D-2	If a session uploads with low confidence (< 0.6), patient sees real-time coaching tips and is prompted to retake.	New attempt flagged as “repeat” to analysts.
+
+Epic E – Security & Compliance (Study Layer)
+ID	User Story	Acceptance Criteria
+E-1	Audit logs include every PROM change, export, or role change with timestamp & user.	Immutable storage; downloadable for IRB.
+E-2	De-identification toggle removes DOB and replaces Patient ID with UUID in exports.	Confirmed by unit test.

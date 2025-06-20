@@ -26,16 +26,31 @@ export const cohorts = pgTable("cohorts", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Patients assigned to clinicians
+// Patients assigned to clinicians (PHI-free design)
 export const patients = pgTable("patients", {
   id: serial("id").primaryKey(),
-  patientId: text("patient_id").notNull().unique(), // External patient identifier
-  alias: text("alias").notNull(), // Patient name/alias for display
+  patientId: text("patient_id").notNull().unique(), // External patient identifier (PT001, PT002...)
+  alias: text("alias").notNull(), // De-identified display name
   cohortId: integer("cohort_id").references(() => cohorts.id),
   assignedClinicianId: integer("assigned_clinician_id").references(() => clinicalUsers.id),
   status: text("status").notNull().default("stable"), // "improving", "stable", "declining"
+  
+  // Study demographics (de-identified)
+  ageGroup: text("age_group"), // "18-25", "26-35", "36-45", "46-55", "56-65", "66-75"
+  sex: text("sex"), // "M", "F", "Other"
+  handDominance: text("hand_dominance"), // "Left", "Right", "Ambidextrous"
+  occupationCategory: text("occupation_category"), // "Office Work", "Manual Labor", "Healthcare", "Education", "Retail", "Other"
+  
+  // Surgery details (for study tracking)
+  surgeryDate: timestamp("surgery_date"), // For post-op day calculations only
+  procedureCode: text("procedure_code"), // Standardized procedure codes
+  laterality: text("laterality"), // "Left", "Right", "Bilateral"
+  surgeonId: text("surgeon_id"), // De-identified surgeon identifier
+  
   isActive: boolean("is_active").default(true),
   baselineAssessmentId: integer("baseline_assessment_id"), // Reference to first assessment
+  enrolledInStudy: boolean("enrolled_in_study").default(false),
+  studyEnrollmentDate: timestamp("study_enrollment_date"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -99,6 +114,15 @@ export const patientAssessments = pgTable("patient_assessments", {
   // Raw data storage
   rawData: jsonb("raw_data"),
   notes: text("notes"),
+  
+  // Study-specific fields
+  postOpDay: integer("post_op_day"), // Calculated from surgery date
+  studyWeek: integer("study_week"), // Week 0-12 of study
+  vasScore: integer("vas_score"), // Pain VAS 0-10
+  quickDashScore: numeric("quick_dash_score", { precision: 5, scale: 2 }), // QuickDASH score
+  missedVisit: boolean("missed_visit").default(false),
+  retakeFlag: boolean("retake_flag").default(false), // If retaken due to low confidence
+  
   isCompleted: boolean("is_completed").default(false),
   completedAt: timestamp("completed_at"),
 });
@@ -249,6 +273,56 @@ export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({
 });
 
 export const insertDataExportSchema = createInsertSchema(dataExports).omit({
+  id: true,
+  createdAt: true,
+});
+
+// QuickDASH questionnaire responses (study-specific)
+export const quickDashResponses = pgTable("quick_dash_responses", {
+  id: serial("id").primaryKey(),
+  patientId: integer("patient_id").references(() => patients.id).notNull(),
+  assessmentId: integer("assessment_id").references(() => patientAssessments.id),
+  postOpDay: integer("post_op_day").notNull(),
+  studyWeek: integer("study_week").notNull(),
+  
+  // QuickDASH 11 items (scored 1-5)
+  q1_difficulty_opening_jar: integer("q1_difficulty_opening_jar"),
+  q2_difficulty_writing: integer("q2_difficulty_writing"),
+  q3_difficulty_turning_key: integer("q3_difficulty_turning_key"),
+  q4_difficulty_preparing_meal: integer("q4_difficulty_preparing_meal"),
+  q5_difficulty_pushing_door: integer("q5_difficulty_pushing_door"),
+  q6_difficulty_placing_object: integer("q6_difficulty_placing_object"),
+  q7_arm_shoulder_hand_pain: integer("q7_arm_shoulder_hand_pain"),
+  q8_arm_shoulder_hand_pain_activity: integer("q8_arm_shoulder_hand_pain_activity"),
+  q9_tingling_arm_shoulder_hand: integer("q9_tingling_arm_shoulder_hand"),
+  q10_weakness_arm_shoulder_hand: integer("q10_weakness_arm_shoulder_hand"),
+  q11_stiffness_arm_shoulder_hand: integer("q11_stiffness_arm_shoulder_hand"),
+  
+  totalScore: numeric("total_score", { precision: 5, scale: 2 }),
+  completedAt: timestamp("completed_at").defaultNow(),
+});
+
+// Study visit schedule and adherence tracking
+export const studyVisits = pgTable("study_visits", {
+  id: serial("id").primaryKey(),
+  patientId: integer("patient_id").references(() => patients.id).notNull(),
+  scheduledWeek: integer("scheduled_week").notNull(),
+  scheduledDate: timestamp("scheduled_date").notNull(),
+  windowStart: timestamp("window_start").notNull(),
+  windowEnd: timestamp("window_end").notNull(),
+  visitStatus: text("visit_status").notNull().default("scheduled"),
+  completedAt: timestamp("completed_at"),
+  assessmentId: integer("assessment_id").references(() => patientAssessments.id),
+  reminderSent: boolean("reminder_sent").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertQuickDashResponseSchema = createInsertSchema(quickDashResponses).omit({
+  id: true,
+  completedAt: true,
+});
+
+export const insertStudyVisitSchema = createInsertSchema(studyVisits).omit({
   id: true,
   createdAt: true,
 });
