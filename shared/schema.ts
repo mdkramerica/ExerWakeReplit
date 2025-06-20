@@ -172,8 +172,12 @@ export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   code: text("code").notNull().unique(),
   injuryType: text("injury_type"),
+  firstName: text("first_name"),
+  lastName: text("last_name"),
+  email: text("email"),
   createdAt: timestamp("created_at").defaultNow(),
   isFirstTime: boolean("is_first_time").default(true),
+  isActive: boolean("is_active").default(true),
 });
 
 export const assessments = pgTable("assessments", {
