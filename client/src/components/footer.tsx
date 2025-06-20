@@ -13,6 +13,7 @@ export default function Footer() {
               <a href="#" className="hover:text-blue-600 transition-colors">Privacy Policy</a>
               <a href="#" className="hover:text-blue-600 transition-colors">Terms of Service</a>
               <a href="#" className="hover:text-blue-600 transition-colors">Support</a>
+              <a href="/clinical/login" className="hover:text-blue-600 transition-colors font-medium">Clinical Portal</a>
             </div>
           </div>
           <div className="flex items-center space-x-4 text-sm text-gray-800">
