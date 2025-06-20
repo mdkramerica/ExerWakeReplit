@@ -404,23 +404,24 @@ export function calculateElbowReferencedWristAngleWithForce(
         z: elbowToWrist.x * wristToMcp.y - elbowToWrist.y * wristToMcp.x
       };
       
-      // Use Y component to determine direction relative to forearm baseline
-      // Positive Y = hand above forearm (extension), Negative Y = hand below forearm (flexion)
-      const isExtension = crossProduct.y > 0;
+      // CORRECTED FLEXION/EXTENSION CLASSIFICATION
+      // For LEFT hand: Negative Y cross product indicates extension (hand bent backward)
+      // For RIGHT hand: Positive Y cross product indicates extension (hand bent backward)
+      const isExtension = forceHandType === 'LEFT' ? crossProduct.y < 0 : crossProduct.y > 0;
       
-      console.log(`🎯 VECTOR DIRECTION - Cross product Y: ${crossProduct.y.toFixed(4)}, Direction: ${isExtension ? 'EXTENSION' : 'FLEXION'}`);
+      console.log(`🎯 CORRECTED DIRECTION - Cross product Y: ${crossProduct.y.toFixed(4)}, Hand: ${forceHandType}, Direction: ${isExtension ? 'EXTENSION' : 'FLEXION'}`);
       
       // Always assign angles for responsive real-time display
       if (isExtension) {
-        // Extension: hand vector above forearm baseline
-        result.wristExtensionAngle = wristAngle;
+        // Extension: hand bent backward (away from forearm)
+        result.wristExtensionAngle = Math.min(wristAngle, 70); // Cap at clinical maximum
         result.wristFlexionAngle = 0;
-        console.log(`Wrist EXTENSION: ${wristAngle.toFixed(1)}° deviation above forearm`);
+        console.log(`Wrist EXTENSION: ${result.wristExtensionAngle.toFixed(1)}° (raw: ${wristAngle.toFixed(1)}°)`);
       } else {
-        // Flexion: hand vector below forearm baseline
-        result.wristFlexionAngle = wristAngle;
+        // Flexion: hand bent forward (toward forearm)
+        result.wristFlexionAngle = Math.min(wristAngle, 80); // Cap at clinical maximum
         result.wristExtensionAngle = 0;
-        console.log(`Wrist FLEXION: ${wristAngle.toFixed(1)}° deviation below forearm`);
+        console.log(`Wrist FLEXION: ${result.wristFlexionAngle.toFixed(1)}° (raw: ${wristAngle.toFixed(1)}°)`);
       }
 
       // Set high confidence for successful calculation
@@ -549,10 +550,10 @@ export function calculateElbowReferencedWristAngle(
               z: referenceNorm.x * measurementNorm.y - referenceNorm.y * measurementNorm.x
             };
             
-            // Determine direction based on camera coordinate system and hand type
-            // For left hand: Positive Y cross product indicates extension
-            // For right hand: Negative Y cross product indicates extension (mirrored)
-            const isExtension = handType === 'LEFT' ? crossProduct.y > 0 : crossProduct.y < 0;
+            // CORRECTED: Determine direction based on camera coordinate system and hand type
+            // For left hand: Negative Y cross product indicates extension (hand bent backward)
+            // For right hand: Positive Y cross product indicates extension (hand bent backward)
+            const isExtension = handType === 'LEFT' ? crossProduct.y < 0 : crossProduct.y > 0;
             
             if (isExtension) {
               result.wristExtensionAngle = Math.min(angleDegrees, 70);
@@ -600,8 +601,8 @@ export function calculateMaxElbowWristAngles(
   for (const frame of motionFrames) {
     const frameResult = calculateElbowReferencedWristAngleWithForce(frame.landmarks, frame.poseLandmarks || [], 'LEFT');
     
-    // Track maximum flexion and extension values from session
-    if (frameResult.elbowDetected && frameResult.confidence > 0.8) {
+    // Track all maximum values regardless of confidence for session tracking
+    if (frameResult.elbowDetected) {
       // Update hand type and confidence if better
       if (frameResult.confidence > maxResult.confidence) {
         maxResult.handType = frameResult.handType;
@@ -609,26 +610,14 @@ export function calculateMaxElbowWristAngles(
         maxResult.elbowDetected = true;
       }
       
-      // Track maximum flexion (largest deviation below 180°)
-      if (frameResult.wristFlexionAngle > maxResult.wristFlexionAngle) {
-        maxResult.wristFlexionAngle = frameResult.wristFlexionAngle;
-      }
-      
-      // Track maximum extension (largest deviation above 180°)
-      if (frameResult.wristExtensionAngle > maxResult.wristExtensionAngle) {
-        maxResult.wristExtensionAngle = frameResult.wristExtensionAngle;
-      }
-      
-      // Update forearm angle to most recent valid measurement
-      maxResult.forearmToHandAngle = frameResult.forearmToHandAngle;
+      // Always track maximum flexion and extension values
+      maxResult.wristFlexionAngle = Math.max(maxResult.wristFlexionAngle, frameResult.wristFlexionAngle);
+      maxResult.wristExtensionAngle = Math.max(maxResult.wristExtensionAngle, frameResult.wristExtensionAngle);
+      maxResult.forearmToHandAngle = Math.max(maxResult.forearmToHandAngle, frameResult.forearmToHandAngle);
     }
-    
-
-
-    maxResult.wristFlexionAngle = Math.max(maxResult.wristFlexionAngle, frameResult.wristFlexionAngle);
-    maxResult.wristExtensionAngle = Math.max(maxResult.wristExtensionAngle, frameResult.wristExtensionAngle);
-    maxResult.forearmToHandAngle = Math.max(maxResult.forearmToHandAngle, frameResult.forearmToHandAngle);
   }
+
+  console.log(`Session maximums calculated: Flexion=${maxResult.wristFlexionAngle.toFixed(1)}°, Extension=${maxResult.wristExtensionAngle.toFixed(1)}°, Raw=${maxResult.forearmToHandAngle.toFixed(1)}°`);
 
   return maxResult;
 }
