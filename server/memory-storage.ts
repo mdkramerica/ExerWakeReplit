@@ -201,9 +201,11 @@ export class MemoryStorage {
   }
 
   async getUserAssessments(userId: number): Promise<any[]> {
-    return Array.from(this.userAssessments.values())
+    const assessments = Array.from(this.userAssessments.values())
       .filter(ua => ua.userId === userId)
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    console.log(`Memory storage getUserAssessments(${userId}) returning:`, assessments.length, 'assessments');
+    return assessments;
   }
 
   async getUserProgress(userId: number): Promise<any> {
