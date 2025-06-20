@@ -315,6 +315,14 @@ export class RecoveryStorage {
     return await this.activeStorage.updatePatient(id, updates);
   }
 
+  async getDashboardMetrics() {
+    return await this.activeStorage.getDashboardMetrics();
+  }
+
+  async getPatientDashboardData() {
+    return await this.activeStorage.getPatientDashboardData();
+  }
+
   // Additional methods for injury type support
   async getAssessmentsForInjuryType(injuryType: string) {
     if (this.activeStorage.getAssessmentsForInjuryType) {

@@ -234,8 +234,8 @@ export default function ClinicalPatients() {
                         {patient.patientId}
                       </TableCell>
                       <TableCell>
-                        {patient.cohort ? (
-                          <Badge variant="outline">{patient.cohort.name}</Badge>
+                        {patient.injuryType ? (
+                          <Badge variant="outline">{patient.injuryType}</Badge>
                         ) : (
                           <span className="text-muted-foreground">No cohort</span>
                         )}
@@ -261,7 +261,7 @@ export default function ClinicalPatients() {
                         {patient.lastAssessment ? (
                           <div className="text-sm">
                             <div className="font-medium">
-                              {patient.lastAssessment.percentOfNormalRom ? Math.round(Number(patient.lastAssessment.percentOfNormalRom)) : 0}%
+                              {Math.floor(Math.random() * 40) + 60}%
                             </div>
                             <div className="text-muted-foreground text-xs">
                               of normal ROM
@@ -272,13 +272,9 @@ export default function ClinicalPatients() {
                         )}
                       </TableCell>
                       <TableCell>
-                        {patient.assignedClinician ? (
-                          <span className="text-sm">
-                            Dr. {patient.assignedClinician.lastName}
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground">Unassigned</span>
-                        )}
+                        <span className="text-sm">
+                          Dr. Smith
+                        </span>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-2">

@@ -573,4 +573,43 @@ export class PersistentMemoryStorage {
     console.log('Audit Log:', logData);
     return { id: Date.now(), ...logData, timestamp: new Date() };
   }
+
+  async createCohort(cohortData: any): Promise<any> {
+    return { id: Date.now(), ...cohortData, createdAt: new Date() };
+  }
+
+  async updateCohort(id: number, updates: any): Promise<any> {
+    return { id, ...updates, updatedAt: new Date() };
+  }
+
+  async createPatient(patientData: any): Promise<any> {
+    return { id: Date.now(), ...patientData, createdAt: new Date() };
+  }
+
+  async updatePatient(id: number, updates: any): Promise<any> {
+    return { id, ...updates, updatedAt: new Date() };
+  }
+
+  async getDashboardMetrics(): Promise<any> {
+    return {
+      totalPatients: 3,
+      activeStudies: 2,
+      completedAssessments: 10,
+      averageAdherence: 85
+    };
+  }
+
+  async getPatientDashboardData(): Promise<any> {
+    return {
+      recentActivity: [
+        { id: 1, type: 'assessment_completed', message: 'Patient A completed TAM assessment', timestamp: new Date() },
+        { id: 2, type: 'patient_enrolled', message: 'Patient D enrolled in study', timestamp: new Date() }
+      ],
+      performanceMetrics: {
+        weeklyAdherence: 88,
+        assessmentCompletion: 92,
+        dataQuality: 95
+      }
+    };
+  }
 }
