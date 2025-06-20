@@ -574,6 +574,75 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(assessments).where(eq(assessments.isActive, true));
   }
 
+  // Patient enrollment methods
+  async checkEligibility(patientId: number, cohortId: number): Promise<{ eligible: boolean; reasons: string[] }> {
+    // Basic eligibility criteria - can be expanded based on requirements
+    const patient = await db.select().from(patients).where(eq(patients.id, patientId)).limit(1);
+    const cohort = await db.select().from(cohorts).where(eq(cohorts.id, cohortId)).limit(1);
+    
+    if (!patient.length || !cohort.length) {
+      return { eligible: false, reasons: ['Patient or cohort not found'] };
+    }
+    
+    const reasons: string[] = [];
+    
+    // Check if already enrolled in another study
+    if (patient[0].enrolledInStudy && patient[0].cohortId !== cohortId) {
+      reasons.push('Patient already enrolled in another study');
+    }
+    
+    // Check enrollment status
+    if (patient[0].enrollmentStatus === 'excluded') {
+      reasons.push('Patient previously excluded from studies');
+    }
+    
+    if (patient[0].enrollmentStatus === 'withdrawn') {
+      reasons.push('Patient previously withdrew from studies');
+    }
+    
+    return { eligible: reasons.length === 0, reasons };
+  }
+
+  async enrollPatient(enrollment: PatientEnrollment): Promise<Patient> {
+    const { eligible } = await this.checkEligibility(enrollment.patientId, enrollment.cohortId);
+    
+    if (!eligible) {
+      throw new Error('Patient is not eligible for enrollment');
+    }
+    
+    const [updatedPatient] = await db
+      .update(patients)
+      .set({
+        enrollmentStatus: enrollment.enrollmentStatus,
+        cohortId: enrollment.cohortId,
+        enrolledInStudy: enrollment.enrollmentStatus === 'enrolled',
+        enrolledDate: enrollment.enrollmentStatus === 'enrolled' ? new Date() : null,
+        eligibilityNotes: enrollment.eligibilityNotes,
+      })
+      .where(eq(patients.id, enrollment.patientId))
+      .returning();
+    
+    return updatedPatient;
+  }
+
+  async generateAccessCode(): Promise<string> {
+    let code: string;
+    let exists = true;
+    
+    while (exists) {
+      code = Math.floor(100000 + Math.random() * 900000).toString();
+      const existing = await db.select().from(patients).where(eq(patients.accessCode, code)).limit(1);
+      exists = existing.length > 0;
+    }
+    
+    return code!;
+  }
+
+  async getPatientByAccessCode(accessCode: string): Promise<Patient | undefined> {
+    const [patient] = await db.select().from(patients).where(eq(patients.accessCode, accessCode)).limit(1);
+    return patient || undefined;
+  }
+
   async getAssessmentsForInjury(injuryType: string): Promise<Assessment[]> {
     const allAssessments = await db.select().from(assessments).where(eq(assessments.isActive, true));
     

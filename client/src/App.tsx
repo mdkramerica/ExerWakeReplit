@@ -47,6 +47,7 @@ function ClinicalRoutes() {
       <Switch>
         <Route path="/clinical/dashboard" component={ClinicalDashboard} />
         <Route path="/clinical/patients" component={ClinicalPatients} />
+        <Route path="/clinical/patient-enrollment" component={PatientEnrollment} />
         <Route path="/clinical/analytics" component={ClinicalAnalytics} />
         <Route path="/clinical/patients/:id" component={PatientDetail} />
         <Route path="/clinical/alerts" component={ClinicalAlerts} />

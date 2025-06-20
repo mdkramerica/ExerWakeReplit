@@ -20,6 +20,7 @@ import {
   AlertTriangle,
   Home,
   Database,
+  UserPlus,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -30,6 +31,7 @@ interface ClinicalLayoutProps {
 const navigation = [
   { name: 'Dashboard', href: '/clinical/dashboard', icon: Home, roles: ['clinician', 'admin', 'researcher'] },
   { name: 'Patients', href: '/clinical/patients', icon: Users, roles: ['clinician', 'admin'] },
+  { name: 'Patient Enrollment', href: '/clinical/patient-enrollment', icon: UserPlus, roles: ['clinician', 'admin'] },
   { name: 'Analytics', href: '/clinical/analytics', icon: BarChart3, roles: ['clinician', 'admin', 'researcher'] },
   { name: 'Longitudinal Analytics', href: '/clinical/study/analytics', icon: Activity, roles: ['clinician', 'admin', 'researcher'] },
   { name: 'Predictive Modeling', href: '/clinical/study/predictions', icon: BarChart3, roles: ['researcher', 'admin'] },
