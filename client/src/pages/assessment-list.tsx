@@ -161,6 +161,48 @@ export default function AssessmentList() {
 
   return (
     <div className="max-w-4xl mx-auto">
+      {/* Central Navigation Hub */}
+      <Card className="medical-card mb-6">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                {getInjuryIcon(userData?.user?.injuryType)}
+                Your Recovery Dashboard
+              </CardTitle>
+              <p className="text-muted-foreground mt-1">
+                Track your progress and complete assessments for {userData?.user?.injuryType || 'your condition'}
+              </p>
+            </div>
+            <Badge variant="outline" className="text-sm">
+              Code: {userCode}
+            </Badge>
+          </div>
+          
+          {/* Central Navigation Buttons */}
+          <div className="flex flex-wrap gap-3 mt-4 pt-4 border-t">
+            <Link href="/daily-assessments">
+              <Button variant="default" size="sm">
+                <Calendar className="h-4 w-4 mr-2" />
+                Daily Assessments
+              </Button>
+            </Link>
+            <Link href="/progress">
+              <Button variant="outline" size="sm">
+                <TrendingUp className="h-4 w-4 mr-2" />
+                Progress Charts
+              </Button>
+            </Link>
+            <Link href={`/assessment-list/${userCode}`}>
+              <Button variant="outline" size="sm">
+                <CheckCircle className="h-4 w-4 mr-2" />
+                All Assessments
+              </Button>
+            </Link>
+          </div>
+        </CardHeader>
+      </Card>
+
       <Card className="medical-card">
         <CardHeader>
           <div className="flex items-center justify-between">
