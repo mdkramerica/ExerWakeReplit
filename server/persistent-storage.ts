@@ -316,7 +316,68 @@ export class PersistentMemoryStorage {
 
   // API Methods with auto-save
   async getAssessments(): Promise<any[]> {
-    return Array.from(this.assessments.values()).filter(a => a.isActive);
+    return [
+      { 
+        id: 1, 
+        name: 'TAM (Total Active Motion)', 
+        description: 'Measures finger range of motion', 
+        duration: 300, 
+        orderIndex: 1, 
+        isActive: true, 
+        instructions: 'Follow finger movements shown on screen', 
+        videoUrl: null, 
+        repetitions: 5,
+        injuryTypes: ['Trigger Finger', 'Carpal Tunnel', 'Distal Radius Fracture', 'CMC Arthroplasty', 'Metacarpal ORIF', 'Phalanx Fracture']
+      },
+      { 
+        id: 2, 
+        name: 'Kapandji Score', 
+        description: 'Thumb opposition assessment', 
+        duration: 180, 
+        orderIndex: 2, 
+        isActive: true, 
+        instructions: 'Touch thumb to fingertips as shown', 
+        videoUrl: null, 
+        repetitions: 1,
+        injuryTypes: ['Carpal Tunnel', 'Distal Radius Fracture', 'CMC Arthroplasty']
+      },
+      { 
+        id: 3, 
+        name: 'Wrist Flexion/Extension', 
+        description: 'Wrist range of motion measurement', 
+        duration: 240, 
+        orderIndex: 3, 
+        isActive: true, 
+        instructions: 'Move wrist up and down as demonstrated', 
+        videoUrl: null, 
+        repetitions: 3,
+        injuryTypes: ['Carpal Tunnel', 'Distal Radius Fracture', 'CMC Arthroplasty']
+      },
+      { 
+        id: 4, 
+        name: 'Forearm Pronation/Supination', 
+        description: 'Forearm rotation assessment', 
+        duration: 200, 
+        orderIndex: 4, 
+        isActive: true, 
+        instructions: 'Rotate forearm as shown in demonstration', 
+        videoUrl: null, 
+        repetitions: 3,
+        injuryTypes: ['Carpal Tunnel', 'Distal Radius Fracture', 'CMC Arthroplasty']
+      },
+      { 
+        id: 5, 
+        name: 'Wrist Radial/Ulnar Deviation', 
+        description: 'Side-to-side wrist movement', 
+        duration: 220, 
+        orderIndex: 5, 
+        isActive: true, 
+        instructions: 'Move wrist side to side following the guide', 
+        videoUrl: null, 
+        repetitions: 3,
+        injuryTypes: ['Carpal Tunnel', 'Distal Radius Fracture', 'CMC Arthroplasty']
+      }
+    ];
   }
 
   async getAssessment(id: number): Promise<any> {
@@ -426,7 +487,14 @@ export class PersistentMemoryStorage {
   }
 
   async getInjuryTypes(): Promise<any[]> {
-    return this.injuryTypes;
+    return [
+      { name: 'Trigger Finger', description: 'Finger tendon disorder', assessmentCount: 1 },
+      { name: 'Carpal Tunnel', description: 'Nerve compression in the wrist', assessmentCount: 5 },
+      { name: 'Distal Radius Fracture', description: 'Broken wrist bone', assessmentCount: 5 },
+      { name: 'CMC Arthroplasty', description: 'Thumb joint replacement', assessmentCount: 5 },
+      { name: 'Metacarpal ORIF', description: 'Hand bone surgical repair', assessmentCount: 1 },
+      { name: 'Phalanx Fracture', description: 'Finger bone fracture', assessmentCount: 1 }
+    ];
   }
 
   // Clinical Authentication Methods

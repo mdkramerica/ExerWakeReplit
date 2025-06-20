@@ -1,188 +1,291 @@
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
+import { Calendar, Clock, Users, TrendingUp, Activity, Hand, Zap, Wrench, Stethoscope, Heart } from "lucide-react";
 import { Link } from "wouter";
-import { getInjuryIcon } from "@/components/medical-icons";
+
+const injuryConditions = [
+  {
+    name: 'Trigger Finger',
+    description: 'Finger tendon disorder',
+    assessments: ['TAM'],
+    icon: <Hand className="h-5 w-5" />,
+    color: 'bg-blue-100 text-blue-800',
+    assessmentCount: 1
+  },
+  {
+    name: 'Carpal Tunnel',
+    description: 'Nerve compression in the wrist',
+    assessments: ['TAM', 'Kapandji', 'F/E', 'P/S', 'R/U'],
+    icon: <Zap className="h-5 w-5" />,
+    color: 'bg-purple-100 text-purple-800',
+    assessmentCount: 5
+  },
+  {
+    name: 'Distal Radius Fracture',
+    description: 'Broken wrist bone',
+    assessments: ['TAM', 'Kapandji', 'F/E', 'P/S', 'R/U'],
+    icon: <Activity className="h-5 w-5" />,
+    color: 'bg-green-100 text-green-800',
+    assessmentCount: 5
+  },
+  {
+    name: 'CMC Arthroplasty',
+    description: 'Thumb joint replacement',
+    assessments: ['TAM', 'Kapandji', 'F/E', 'P/S', 'R/U'],
+    icon: <Wrench className="h-5 w-5" />,
+    color: 'bg-orange-100 text-orange-800',
+    assessmentCount: 5
+  },
+  {
+    name: 'Metacarpal ORIF',
+    description: 'Hand bone surgical repair',
+    assessments: ['TAM'],
+    icon: <Stethoscope className="h-5 w-5" />,
+    color: 'bg-red-100 text-red-800',
+    assessmentCount: 1
+  },
+  {
+    name: 'Phalanx Fracture',
+    description: 'Finger bone fracture',
+    assessments: ['TAM'],
+    icon: <Heart className="h-5 w-5" />,
+    color: 'bg-yellow-100 text-yellow-800',
+    assessmentCount: 1
+  }
+];
+
+const assessmentMap = {
+  'TAM': {
+    name: 'TAM (Total Active Motion)',
+    description: 'Measures finger range of motion',
+    duration: 300,
+    id: 1
+  },
+  'Kapandji': {
+    name: 'Kapandji Score',
+    description: 'Thumb opposition assessment',
+    duration: 180,
+    id: 2
+  },
+  'F/E': {
+    name: 'Wrist Flexion/Extension',
+    description: 'Wrist range of motion measurement',
+    duration: 240,
+    id: 3
+  },
+  'P/S': {
+    name: 'Forearm Pronation/Supination',
+    description: 'Forearm rotation assessment',
+    duration: 200,
+    id: 4
+  },
+  'R/U': {
+    name: 'Wrist Radial/Ulnar Deviation',
+    description: 'Side-to-side wrist movement',
+    duration: 220,
+    id: 5
+  }
+};
 
 export default function Overview() {
-  // Fetch all injury types
-  const { data: injuryTypesData } = useQuery({
-    queryKey: ['/api/injury-types']
+  const { data: assessments } = useQuery({
+    queryKey: ["/api/assessments"],
   });
 
-  // Fetch all assessments
-  const { data: assessmentsData } = useQuery({
-    queryKey: ['/api/assessments']
+  const { data: progress } = useQuery({
+    queryKey: ["/api/users/1/progress"],
   });
 
-  const injuryTypes = injuryTypesData?.injuryTypes || [];
-  const assessments = assessmentsData?.assessments || [];
+  const { data: user } = useQuery({
+    queryKey: ["/api/users/by-code/DEMO01"],
+  });
 
-  // Group assessments by injury type based on the assessment mapping
-  const getAssessmentsForInjury = (injuryName: string) => {
-    const injuryAssessmentMap: Record<string, string[]> = {
-      "Trigger Finger": ["TAM (Total Active Motion)"],
-      "Carpal Tunnel": ["TAM (Total Active Motion)", "Kapandji Score", "Wrist Flexion/Extension", "Forearm Pronation/Supination", "Wrist Radial/Ulnar Deviation"],
-      "Distal Radius Fracture": ["TAM (Total Active Motion)", "Kapandji Score", "Wrist Flexion/Extension", "Forearm Pronation/Supination", "Wrist Radial/Ulnar Deviation"],
-      "CMC Arthroplasty": ["TAM (Total Active Motion)", "Kapandji Score", "Wrist Flexion/Extension", "Forearm Pronation/Supination", "Wrist Radial/Ulnar Deviation"],
-      "Metacarpal ORIF": ["TAM (Total Active Motion)"],
-      "Phalanx Fracture": ["TAM (Total Active Motion)"],
-      "Radial Head Replacement": ["TAM (Total Active Motion)", "Kapandji Score", "Wrist Flexion/Extension", "Forearm Pronation/Supination", "Wrist Radial/Ulnar Deviation"],
-      "Terrible Triad Injury": ["TAM (Total Active Motion)", "Kapandji Score", "Wrist Flexion/Extension", "Forearm Pronation/Supination", "Wrist Radial/Ulnar Deviation"],
-      "Dupuytren's Contracture": ["TAM (Total Active Motion)"],
-      "Flexor Tendon Injury": ["TAM (Total Active Motion)"],
-      "Extensor Tendon Injury": ["TAM (Total Active Motion)"]
-    };
-
-    const requiredAssessments = injuryAssessmentMap[injuryName] || ["TAM (Total Active Motion)"];
-    return assessments.filter((assessment: any) => 
-      assessment.isActive && requiredAssessments.includes(assessment.name)
-    );
-  };
+  const userInjuryType = user?.user?.injuryType || 'Carpal Tunnel';
+  const userCondition = injuryConditions.find(c => c.name === userInjuryType);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-6xl mx-auto">
-          {/* Demo Banner */}
-          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-blue-900">Demo Mode Available</h3>
-                <p className="text-blue-700">Use access code <strong>DEMO01</strong> to test all assessments</p>
-              </div>
-              <Link href="/demo">
-                <Button variant="outline" className="bg-blue-600 text-white hover:bg-blue-700">
-                  Start Demo
-                </Button>
-              </Link>
-            </div>
-          </div>
-
-          {/* All Assessments Section */}
-          <div className="mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6">Available Assessments</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {assessments.map((assessment: any) => (
-                <Card key={assessment.id} className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <CardTitle className="text-lg">{assessment.name}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-600 mb-4">{assessment.description}</p>
-                    <div className="flex gap-2">
-                      <Link href="/demo">
-                        <Button className="flex-1">
-                          Demo Assessment
-                        </Button>
-                      </Link>
-                      {assessment.videoUrl && (
-                        <Button variant="outline" size="sm">
-                          View Instructions
-                        </Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-
-          {/* Header */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-6">
-              <Link href="/">
-                <Button variant="outline" className="flex items-center gap-2">
-                  ← Back to Home
-                </Button>
-              </Link>
-            </div>
-
-            <div className="text-center">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                Assessment Overview
-              </h1>
-              <p className="text-gray-600">
-                Complete assessment coverage by injury type
-              </p>
-            </div>
-          </div>
-
-          {/* Injury Types and Assessments */}
-          <div className="space-y-8">
-            {injuryTypes.map((injuryType: any) => {
-              const assessmentsForInjury = getAssessmentsForInjury(injuryType.name);
-              const InjuryIcon = getInjuryIcon(injuryType.name);
-
-              return (
-                <Card key={injuryType.id} className="border border-gray-200">
-                  <CardHeader className="bg-gray-50 border-b border-gray-200">
-                    <CardTitle className="text-xl font-semibold text-gray-900 flex items-center gap-3">
-                      <InjuryIcon className="w-8 h-8 text-blue-600" />
-                      {injuryType.name}
-                      <Badge variant="outline" className="ml-auto">
-                        {assessmentsForInjury.length} assessments
-                      </Badge>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-6">
-                    {assessmentsForInjury.length > 0 ? (
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {assessmentsForInjury.map((assessment: any) => (
-                          <div
-                            key={assessment.id}
-                            className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
-                          >
-                            <div className="flex items-start justify-between mb-3">
-                              <h3 className="font-medium text-gray-900 text-sm">
-                                {assessment.name}
-                              </h3>
-                              <Badge variant="outline" className="text-xs">
-                                {assessment.duration}s
-                              </Badge>
-                            </div>
-                            
-                            <p className="text-gray-600 text-xs mb-4 line-clamp-2">
-                              {assessment.description}
-                            </p>
-                            
-                            <div className="flex items-center justify-between">
-                              <span className="text-xs text-gray-500">
-                                Order: {assessment.orderIndex}
-                              </span>
-                              
-                              <Link href={`/assessment/${assessment.id}/video`}>
-                                <Button 
-                                  size="sm" 
-                                  className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1"
-                                >
-                                  Start Assessment
-                                </Button>
-                              </Link>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-8 text-gray-500">
-                        <p>No assessments available for this injury type</p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-
-          {/* Footer Note */}
-          <div className="mt-12 text-center">
-            <p className="text-sm text-gray-500">
-              All assessments are available for each injury type. Complete assessments in any order.
-            </p>
-          </div>
-        </div>
+    <div className="container mx-auto py-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold tracking-tight">Assessment Overview</h1>
+        <p className="text-muted-foreground">
+          Track your progress and complete assessments for your recovery journey.
+        </p>
       </div>
+
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Progress</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{progress?.percentage || 0}%</div>
+            <p className="text-xs text-muted-foreground">
+              {progress?.completed || 0} of {progress?.total || 0} assessments completed
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Your Condition</CardTitle>
+            <Activity className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-lg font-bold">{userInjuryType}</div>
+            <p className="text-xs text-muted-foreground">
+              {userCondition?.assessmentCount || 0} assessments required
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">This Week</CardTitle>
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">2</div>
+            <p className="text-xs text-muted-foreground">assessments completed</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Average Time</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">4.2</div>
+            <p className="text-xs text-muted-foreground">minutes per assessment</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Tabs defaultValue="your-assessments" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="your-assessments">Your Assessments</TabsTrigger>
+          <TabsTrigger value="all-conditions">All Conditions</TabsTrigger>
+          <TabsTrigger value="assessment-library">Assessment Library</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="your-assessments" className="space-y-6">
+          {userCondition && (
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-md ${userCondition.color}`}>
+                    {userCondition.icon}
+                  </div>
+                  <div>
+                    <CardTitle>{userCondition.name}</CardTitle>
+                    <CardDescription>{userCondition.description}</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Progress</span>
+                    <span className="text-sm text-muted-foreground">
+                      {progress?.completed || 0} of {userCondition.assessmentCount} completed
+                    </span>
+                  </div>
+                  <Progress value={(progress?.completed || 0) / userCondition.assessmentCount * 100} />
+                  
+                  <div className="grid gap-3">
+                    {userCondition.assessments.map((assessmentCode) => {
+                      const assessment = assessmentMap[assessmentCode];
+                      return (
+                        <div key={assessmentCode} className="flex items-center justify-between p-4 border rounded-lg">
+                          <div className="space-y-1">
+                            <h3 className="font-medium">{assessment.name}</h3>
+                            <p className="text-sm text-muted-foreground">{assessment.description}</p>
+                            <Badge variant="outline">
+                              {Math.floor(assessment.duration / 60)} min
+                            </Badge>
+                          </div>
+                          <Link href={`/assessment/${assessment.id}`}>
+                            <Button>Start Assessment</Button>
+                          </Link>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        <TabsContent value="all-conditions" className="space-y-6">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {injuryConditions.map((condition) => (
+              <Card key={condition.name}>
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-md ${condition.color}`}>
+                      {condition.icon}
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">{condition.name}</CardTitle>
+                      <CardDescription>{condition.description}</CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Required Assessments</span>
+                      <Badge variant="secondary">{condition.assessmentCount}</Badge>
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {condition.assessments.map((assessment) => (
+                        <Badge key={assessment} variant="outline" className="text-xs">
+                          {assessment}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="assessment-library" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Complete Assessment Library</CardTitle>
+              <CardDescription>
+                All available assessments for hand and wrist rehabilitation
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4">
+                {Object.entries(assessmentMap).map(([code, assessment]) => (
+                  <div key={code} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-medium">{assessment.name}</h3>
+                        <Badge variant="secondary">{code}</Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{assessment.description}</p>
+                      <Badge variant="outline">
+                        {Math.floor(assessment.duration / 60)} min
+                      </Badge>
+                    </div>
+                    <Link href={`/assessment/${assessment.id}`}>
+                      <Button variant="outline">Start Assessment</Button>
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
