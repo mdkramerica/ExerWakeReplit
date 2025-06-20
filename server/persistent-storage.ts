@@ -758,4 +758,35 @@ export class PersistentMemoryStorage {
       }
     };
   }
+
+  async checkEligibility(patientId: number, cohortId: number): Promise<{ eligible: boolean; reasons: string[] }> {
+    const patient = this.patients.get(patientId);
+    
+    if (!patient) {
+      return { eligible: false, reasons: ['Patient not found'] };
+    }
+
+    const reasons: string[] = [];
+    
+    // Check if already enrolled in another study
+    if (patient.enrolledInStudy && patient.cohortId && patient.cohortId !== cohortId) {
+      reasons.push('Patient already enrolled in another study');
+    }
+    
+    // Check enrollment status
+    if (patient.enrollmentStatus === 'excluded') {
+      reasons.push('Patient previously excluded from studies');
+    }
+    
+    if (patient.enrollmentStatus === 'withdrawn') {
+      reasons.push('Patient previously withdrew from studies');
+    }
+
+    // Check if patient is active
+    if (patient.isActive === false) {
+      reasons.push('Patient account is inactive');
+    }
+
+    return { eligible: reasons.length === 0, reasons };
+  }
 }

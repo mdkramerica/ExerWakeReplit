@@ -333,6 +333,15 @@ export class RecoveryStorage {
     return await this.activeStorage.getPatientDashboardData();
   }
 
+  async checkEligibility(patientId: number, cohortId: number) {
+    if (this.activeStorage.checkEligibility) {
+      return await this.activeStorage.checkEligibility(patientId, cohortId);
+    }
+    
+    // Fallback basic eligibility check
+    return { eligible: true, reasons: [] };
+  }
+
   // Additional methods for injury type support
   async getAssessmentsForInjuryType(injuryType: string) {
     if (this.activeStorage.getAssessmentsForInjuryType) {
