@@ -218,9 +218,9 @@ export default function ClinicalAnalytics() {
                   <Activity className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{analytics.avgTamScore?.toFixed(1) || 'N/A'}</div>
+                  <div className="text-2xl font-bold">{analytics.avgTamScore ? Number(analytics.avgTamScore).toFixed(1) : 'N/A'}</div>
                   <p className="text-xs text-muted-foreground">
-                    ±{analytics.stdDevTamScore?.toFixed(1) || 'N/A'} std dev
+                    ±{analytics.stdDevTamScore ? Number(analytics.stdDevTamScore).toFixed(1) : 'N/A'} std dev
                   </p>
                 </CardContent>
               </Card>
@@ -231,9 +231,9 @@ export default function ClinicalAnalytics() {
                   <TrendingUp className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{analytics.avgKapandjiScore?.toFixed(1) || 'N/A'}</div>
+                  <div className="text-2xl font-bold">{analytics.avgKapandjiScore ? Number(analytics.avgKapandjiScore).toFixed(1) : 'N/A'}</div>
                   <p className="text-xs text-muted-foreground">
-                    ±{analytics.stdDevKapandjiScore?.toFixed(1) || 'N/A'} std dev
+                    ±{analytics.stdDevKapandjiScore ? Number(analytics.stdDevKapandjiScore).toFixed(1) : 'N/A'} std dev
                   </p>
                 </CardContent>
               </Card>
@@ -244,9 +244,9 @@ export default function ClinicalAnalytics() {
                   <BarChart3 className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{analytics.avgWristFlexion?.toFixed(1) || 'N/A'}°</div>
+                  <div className="text-2xl font-bold">{analytics.avgWristFlexion ? Number(analytics.avgWristFlexion).toFixed(1) : 'N/A'}°</div>
                   <p className="text-xs text-muted-foreground">
-                    ±{analytics.stdDevWristFlexion?.toFixed(1) || 'N/A'}° std dev
+                    ±{analytics.stdDevWristFlexion ? Number(analytics.stdDevWristFlexion).toFixed(1) : 'N/A'}° std dev
                   </p>
                 </CardContent>
               </Card>

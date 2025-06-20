@@ -261,7 +261,7 @@ export default function ClinicalPatients() {
                         {patient.lastAssessment ? (
                           <div className="text-sm">
                             <div className="font-medium">
-                              {Math.round(patient.lastAssessment.percentOfNormalRom)}%
+                              {patient.lastAssessment.percentOfNormalRom ? Math.round(Number(patient.lastAssessment.percentOfNormalRom)) : 0}%
                             </div>
                             <div className="text-muted-foreground text-xs">
                               of normal ROM
