@@ -27,6 +27,16 @@ export default function DailyAssessments() {
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
+  const injuryType = user?.user?.injuryType;
+  
+  // Calculate days remaining
+  const studyDuration = injuryType === 'Trigger Finger' || injuryType === 'Metacarpal ORIF' || injuryType === 'Phalanx Fracture' ? 28 : 84;
+  const createdDate = new Date(user?.user?.createdAt || Date.now());
+  const currentDate = new Date();
+  const daysSinceStart = Math.floor((currentDate.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24));
+  const daysRemaining = Math.max(0, studyDuration - daysSinceStart);
+  const currentDay = daysSinceStart + 1;
+
   const assessments = todaysAssessments?.assessments || [];
 
   const getStatusColor = (status: string) => {
