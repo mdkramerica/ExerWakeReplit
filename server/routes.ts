@@ -599,8 +599,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/assessments", async (req, res) => {
     try {
       const assessments = await storage.getAssessments();
+      console.log('API /assessments returning:', assessments.length, 'assessments');
       res.json({ assessments });
     } catch (error) {
+      console.error('Failed to fetch assessments:', error);
       res.status(500).json({ message: "Failed to fetch assessments" });
     }
   });

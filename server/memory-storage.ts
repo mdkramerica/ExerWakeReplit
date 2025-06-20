@@ -143,7 +143,22 @@ export class MemoryStorage {
   }
 
   async getUserByCode(code: string): Promise<any> {
-    return this.userByCode.get(code);
+    const user = this.userByCode.get(code);
+    console.log(`Memory storage getUserByCode(${code}) returning:`, user ? 'found' : 'not found');
+    return user;
+  }
+
+  async createUser(userData: any): Promise<any> {
+    const newUser = {
+      id: Math.max(...Array.from(this.users.keys())) + 1,
+      ...userData,
+      createdAt: new Date(),
+      isFirstTime: true
+    };
+    this.users.set(newUser.id, newUser);
+    this.userByCode.set(newUser.code, newUser);
+    console.log(`Memory storage createUser created user with code: ${newUser.code}`);
+    return newUser;
   }
 
   async getUserById(id: number): Promise<any> {
