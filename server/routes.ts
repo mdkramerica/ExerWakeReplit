@@ -136,21 +136,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/patients", requireAuth, requireRole(['clinician', 'admin']), async (req, res) => {
     try {
-      const patientData = insertPatientSchema.parse(req.body);
+      const patientData = {
+        ...req.body,
+        assignedClinicianId: req.user.id,
+        accessCode: Math.floor(100000 + Math.random() * 900000).toString(),
+        isActive: true,
+        enrolledInStudy: false,
+        enrollmentStatus: 'pending'
+      };
       
-      // Auto-assign to current clinician if not specified
-      if (req.user.role === 'clinician' && !patientData.assignedClinicianId) {
-        patientData.assignedClinicianId = req.user.id;
-      }
-      
+      console.log('Creating patient with data:', patientData);
       const patient = await storage.createPatient(patientData);
+      console.log('Created patient:', patient);
       
       await auditLog(req.user.id, "patient_create", `patient_id:${patient.id}`, patientData, req);
       
       res.json(patient);
     } catch (error) {
       console.error('Patient creation error:', error);
-      res.status(400).json({ message: "Invalid patient data" });
+      res.status(400).json({ message: "Failed to create patient" });
     }
   });
 
@@ -192,9 +196,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const patientId = parseInt(req.params.id);
       const cohortId = parseInt(req.params.cohortId);
       
+      console.log(`Checking eligibility for patient ${patientId}, cohort ${cohortId}`);
       const eligibility = await storage.checkEligibility(patientId, cohortId);
+      console.log(`Eligibility result:`, eligibility);
       res.json(eligibility);
     } catch (error) {
+      console.error("Eligibility check error:", error);
       res.status(500).json({ message: "Failed to check eligibility" });
     }
   });

@@ -729,7 +729,20 @@ export class PersistentMemoryStorage {
   }
 
   async createPatient(patientData: any): Promise<any> {
-    return { id: Date.now(), ...patientData, createdAt: new Date() };
+    const patient = { 
+      id: Date.now(), 
+      ...patientData, 
+      createdAt: new Date(),
+      isActive: true,
+      enrolledInStudy: false,
+      enrollmentStatus: 'pending'
+    };
+    
+    // Store in patients map for eligibility checks
+    this.patients.set(patient.id, patient);
+    await this.saveToFile();
+    
+    return patient;
   }
 
   async updatePatient(id: number, updates: any): Promise<any> {
