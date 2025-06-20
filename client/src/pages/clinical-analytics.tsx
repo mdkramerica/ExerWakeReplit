@@ -91,6 +91,11 @@ export default function ClinicalAnalytics() {
     
     return acc;
   }, {} as Record<string, any>) || {};
+  
+  // Debug logging
+  console.log('Assessments data:', assessments?.slice(0, 3));
+  console.log('Processed data:', processedData);
+  console.log('Chart data:', Object.values(processedData).slice(0, 3));
 
   const chartData = Object.values(processedData).map((month: any) => ({
     month: month.month,
@@ -331,12 +336,22 @@ export default function ClinicalAnalytics() {
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="month" />
                       <YAxis />
-                      <Tooltip />
+                      <Tooltip 
+                        formatter={(value: any, name: string) => [
+                          value !== null ? value : 'No data', 
+                          name
+                        ]}
+                      />
                       <Legend />
                       <Bar 
-                        dataKey="avgRomPercent" 
+                        dataKey="avgWristFlexion" 
                         fill="#8884d8" 
-                        name="% of Normal ROM"
+                        name="Wrist Flexion (°)"
+                      />
+                      <Bar 
+                        dataKey="avgRomPercent" 
+                        fill="#82ca9d" 
+                        name="ROM %"
                       />
                     </BarChart>
                   </ResponsiveContainer>
