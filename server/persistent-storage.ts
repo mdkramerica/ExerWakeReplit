@@ -857,4 +857,40 @@ export class PersistentMemoryStorage {
     
     return updatedPatient;
   }
+
+  async getTodaysAssessments(userId: number): Promise<any> {
+    const user = this.users.get(userId);
+    if (!user) {
+      return { assessments: [] };
+    }
+
+    const userAssessments = this.userAssessments.get(userId) || [];
+    const today = new Date().toDateString();
+
+    // Get all assessments for user's injury type
+    let availableAssessments = [];
+    if (user.injuryType) {
+      availableAssessments = await this.getAssessmentsForInjuryType(user.injuryType);
+    } else {
+      availableAssessments = Array.from(this.assessments.values());
+    }
+
+    // Mark assessments as completed if done today
+    const assessmentsWithStatus = availableAssessments.map(assessment => {
+      const todayCompletion = userAssessments.find(ua => 
+        ua.assessmentId === assessment.id && 
+        new Date(ua.completedAt).toDateString() === today
+      );
+
+      return {
+        ...assessment,
+        isCompleted: !!todayCompletion,
+        completedAt: todayCompletion?.completedAt,
+        status: todayCompletion ? 'completed' : 'due_today',
+        userAssessmentId: todayCompletion?.id
+      };
+    });
+
+    return { assessments: assessmentsWithStatus };
+  }
 }

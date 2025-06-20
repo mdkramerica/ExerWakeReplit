@@ -373,4 +373,11 @@ export class RecoveryStorage {
     }
     return await this.activeStorage.getInjuryTypes?.() || [];
   }
+
+  async getTodaysAssessments(userId: number) {
+    if (this.activeStorage.getTodaysAssessments) {
+      return await this.activeStorage.getTodaysAssessments(userId);
+    }
+    return { assessments: [] };
+  }
 }
