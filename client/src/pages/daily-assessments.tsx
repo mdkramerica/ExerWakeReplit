@@ -7,23 +7,26 @@ import { Calendar, Clock, CheckCircle, AlertCircle, TrendingUp } from "lucide-re
 import { Link } from "wouter";
 
 export default function DailyAssessments() {
+  // Get user code from sessionStorage or URL
+  const storedUser = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
+  const userCode = storedUser.code || localStorage.getItem('currentUserCode') || 'DEMO01';
+  const userId = storedUser.id || 1;
+
   const { data: user } = useQuery({
-    queryKey: ["/api/users/by-code/DEMO01"],
+    queryKey: [`/api/users/by-code/${userCode}`],
   });
 
   const { data: progress } = useQuery({
-    queryKey: ["/api/users/1/progress"],
-    enabled: !!user,
+    queryKey: [`/api/users/${userId}/progress`],
+    enabled: !!userId,
   });
 
   const { data: todaysAssessments } = useQuery({
-    queryKey: ["/api/users/1/assessments/today"],
-    enabled: !!user,
+    queryKey: [`/api/users/${userId}/assessments/today`],
+    enabled: !!userId,
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
-  const userId = user?.user?.id || 1;
-  const userCode = user?.user?.code || 'DEMO01';
   const assessments = todaysAssessments?.assessments || [];
 
   const getStatusColor = (status: string) => {
