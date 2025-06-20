@@ -48,6 +48,14 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
   const [selectedDigit, setSelectedDigit] = useState<'INDEX' | 'MIDDLE' | 'RING' | 'PINKY'>('INDEX');
   const [allDigitsROM, setAllDigitsROM] = useState<{[key: string]: JointAngles} | null>(null);
   const [kapandjiScore, setKapandjiScore] = useState<KapandjiScore | null>(null);
+
+  // Get assessment data for hand type information
+  const { data: assessmentData } = useQuery({
+    queryKey: [`/api/user-assessments/${userAssessmentId}/details`],
+    enabled: !!userAssessmentId
+  });
+  
+  const userAssessment = (assessmentData as any)?.userAssessment;
   const [isDragging, setIsDragging] = useState(false);
   const [maxTAMFrame, setMaxTAMFrame] = useState<number>(0);
   const [minTAMFrame, setMinTAMFrame] = useState<number>(0);
@@ -649,13 +657,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
     
     // If still unknown, determine from assessment metadata or overall session
     if (!displayHandType || displayHandType === 'UNKNOWN') {
-      // First try to get from query data (userAssessment)
-      const { data: assessmentData } = useQuery({
-        queryKey: [`/api/user-assessments/${userAssessmentId}/details`],
-        enabled: !!userAssessmentId
-      });
-      
-      const userAssessment = (assessmentData as any)?.userAssessment;
+      // First try to get from assessment data
       if (userAssessment?.handType && userAssessment.handType !== 'UNKNOWN') {
         displayHandType = userAssessment.handType;
       } else {
