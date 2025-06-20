@@ -113,9 +113,19 @@ export default function WristResults() {
   const normalFlexionRange = [0, 80];
   const normalExtensionRange = [0, 70];
   
-  // Ensure numeric conversion for database values - handle different field names
-  const maxFlexion = Number(userAssessment.maxWristFlexion || userAssessment.wristFlexionAngle) || 0;
-  const maxExtension = Number(userAssessment.maxWristExtension || userAssessment.wristExtensionAngle) || 0;
+  // Enhanced field checking for wrist angle data from different sources
+  const maxFlexion = Number(
+    userAssessment.maxWristFlexion || 
+    userAssessment.wristFlexionAngle ||
+    (userAssessment.repetitionData && userAssessment.repetitionData[0]?.maxWristFlexion) ||
+    0
+  );
+  const maxExtension = Number(
+    userAssessment.maxWristExtension || 
+    userAssessment.wristExtensionAngle ||
+    (userAssessment.repetitionData && userAssessment.repetitionData[0]?.maxWristExtension) ||
+    0
+  );
   
   console.log('Wrist angle values:', {
     maxWristFlexion: userAssessment.maxWristFlexion,

@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { calculateCurrentROM, calculateMaxROM, type JointAngles } from "@/lib/rom-calculator";
 import { calculateFingerROM } from "@shared/rom-calculator";
 import { calculateWristAngles } from "@shared/wrist-calculator";
-import { calculateElbowReferencedWristAngle } from "@shared/elbow-wrist-calculator";
+import { calculateElbowReferencedWristAngle, calculateMaxElbowWristAngles } from "@shared/elbow-wrist-calculator";
 
 export default function Recording() {
   const { id, code } = useParams();
@@ -185,51 +185,18 @@ export default function Recording() {
       ? calculateMaxROM(recordingMotionDataRef.current) 
       : maxROM;
 
-    // Extract wrist angle data from motion frames
-    let maxWristFlexion = 0;
-    let maxWristExtension = 0;
-    let currentFlexion = 0;
-    let currentExtension = 0;
+    // Calculate session maximum wrist angles using proper calculation
+    const sessionMaxWristAngles = calculateMaxElbowWristAngles(recordingMotionDataRef.current);
+    
+    let maxWristFlexion = sessionMaxWristAngles.wristFlexionAngle || 0;
+    let maxWristExtension = sessionMaxWristAngles.wristExtensionAngle || 0;
+    
+    // Use the most recent wrist angles for current values
+    const latestMotionData = recordingMotionDataRef.current[recordingMotionDataRef.current.length - 1];
+    const currentFlexion = latestMotionData?.wristAngles?.wristFlexionAngle || 0;
+    const currentExtension = latestMotionData?.wristAngles?.wristExtensionAngle || 0;
 
-    if (recordingMotionDataRef.current.length > 0) {
-      recordingMotionDataRef.current.forEach(frame => {
-        if (frame.wristAngles) {
-          // Use the new precise vector calculation field names
-          const frameFlexion = frame.wristAngles.wristFlexionAngle || frame.wristAngles.flexionAngle || 0;
-          const frameExtension = frame.wristAngles.wristExtensionAngle || frame.wristAngles.extensionAngle || 0;
-          
-          console.log(`Frame wrist angles: flexion=${frameFlexion.toFixed(1)}°, extension=${frameExtension.toFixed(1)}°`);
-          
-          // Track maximum values across all frames
-          if (frameFlexion > maxWristFlexion) {
-            maxWristFlexion = frameFlexion;
-            currentFlexion = frameFlexion;
-          }
-          
-          if (frameExtension > maxWristExtension) {
-            maxWristExtension = frameExtension;
-            currentExtension = frameExtension;
-          }
-        }
-      });
-    }
-
-    // Use session maximum values as fallback
-    if (sessionMaxWristAngles) {
-      maxWristFlexion = Math.max(maxWristFlexion, sessionMaxWristAngles.maxWristFlexion || 0);
-      maxWristExtension = Math.max(maxWristExtension, sessionMaxWristAngles.maxWristExtension || 0);
-      console.log(`Session maximums used: Flexion=${sessionMaxWristAngles.maxWristFlexion}°, Extension=${sessionMaxWristAngles.maxWristExtension}°`);
-    }
-
-    // Use current wrist angles if available
-    if (wristAngles) {
-      currentFlexion = wristAngles.wristFlexionAngle || wristAngles.flexionAngle || 0;
-      currentExtension = wristAngles.wristExtensionAngle || wristAngles.extensionAngle || 0;
-      maxWristFlexion = Math.max(maxWristFlexion, currentFlexion);
-      maxWristExtension = Math.max(maxWristExtension, currentExtension);
-    }
-
-    console.log(`Wrist angles extracted: Current Flexion=${currentFlexion}°, Current Extension=${currentExtension}°, Max Flexion=${maxWristFlexion}°, Max Extension=${maxWristExtension}°`);
+    console.log(`Wrist angles extracted: Current Flexion=${currentFlexion.toFixed(1)}°, Current Extension=${currentExtension.toFixed(1)}°, Session Max Flexion=${maxWristFlexion.toFixed(1)}°, Session Max Extension=${maxWristExtension.toFixed(1)}°`);
 
     // Calculate actual duration from motion data timestamps
     const actualDuration = recordingMotionDataRef.current.length > 0 
