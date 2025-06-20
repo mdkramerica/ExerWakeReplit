@@ -46,6 +46,7 @@ export const patients = pgTable("patients", {
   procedureCode: text("procedure_code"), // Standardized procedure codes
   laterality: text("laterality"), // "Left", "Right", "Bilateral"
   surgeonId: text("surgeon_id"), // De-identified surgeon identifier
+  injuryType: text("injury_type"), // Specific injury classification
   
   isActive: boolean("is_active").default(true),
   baselineAssessmentId: integer("baseline_assessment_id"), // Reference to first assessment

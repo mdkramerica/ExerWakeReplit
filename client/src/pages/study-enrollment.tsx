@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { z } from 'zod';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,6 +28,7 @@ const studyEnrollmentSchema = z.object({
   // Surgery details
   surgeryDate: z.string().min(1, "Surgery date is required"),
   procedureCode: z.string().min(1, "Procedure code is required"),
+  injuryType: z.string().min(1, "Injury type is required"),
   laterality: z.enum(["Left", "Right", "Bilateral"]),
   surgeonId: z.string().min(1, "Surgeon ID is required"),
 });
@@ -59,6 +60,7 @@ export default function StudyEnrollment() {
       procedureCode: '',
       laterality: 'Right',
       surgeonId: '',
+      injuryType: '',
     },
   });
 
@@ -94,13 +96,12 @@ export default function StudyEnrollment() {
     enrollPatientMutation.mutate(data);
   };
 
-  const cohorts: Cohort[] = [
-    { id: 1, name: "Carpal Tunnel", description: "Carpal tunnel release surgery" },
-    { id: 2, name: "Distal Radius Fracture", description: "Distal radius fracture repair" },
-    { id: 3, name: "Trigger Finger", description: "Trigger finger release" },
-    { id: 4, name: "Flexor Tendon Injury", description: "Flexor tendon repair" },
-    { id: 5, name: "CMC Arthroplasty", description: "Thumb CMC joint arthroplasty" },
-  ];
+  // Fetch cohorts from API instead of hardcoding
+  const { data: cohortsData } = useQuery({
+    queryKey: ['/api/cohorts']
+  });
+
+  const cohorts: Cohort[] = cohortsData || [];
 
   return (
     <div className="space-y-6">
@@ -362,6 +363,36 @@ export default function StudyEnrollment() {
                         <FormControl>
                           <Input placeholder="SURG001" {...field} />
                         </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="injuryType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Injury Type</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select injury type" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="Trigger Finger">Trigger Finger</SelectItem>
+                            <SelectItem value="Carpal Tunnel">Carpal Tunnel</SelectItem>
+                            <SelectItem value="Distal Radius Fracture">Distal Radius Fracture</SelectItem>
+                            <SelectItem value="CMC Arthroplasty">CMC Arthroplasty</SelectItem>
+                            <SelectItem value="Metacarpal ORIF">Metacarpal ORIF</SelectItem>
+                            <SelectItem value="Phalanx Fracture">Phalanx Fracture</SelectItem>
+                            <SelectItem value="Radial Head Replacement">Radial Head Replacement</SelectItem>
+                            <SelectItem value="Terrible Triad Injury">Terrible Triad Injury</SelectItem>
+                            <SelectItem value="Dupuytren's Contracture">Dupuytren's Contracture</SelectItem>
+                            <SelectItem value="Flexor Tendon Injury">Flexor Tendon Injury</SelectItem>
+                            <SelectItem value="Extensor Tendon Injury">Extensor Tendon Injury</SelectItem>
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
