@@ -1279,7 +1279,8 @@ async function initializeDatabase() {
   }
 }
 
-export const storage = new DatabaseStorage();
+// Use MemStorage temporarily due to database connection issues
+export const storage = new MemStorage();
 
 // Initialize database on startup
 initializeDatabase();
