@@ -423,6 +423,9 @@ export class PersistentMemoryStorage {
     const patientWithCode = Array.from(this.patients.values()).find(p => p.accessCode === userData.code);
     if (patientWithCode && patientWithCode.injuryType) {
       injuryType = patientWithCode.injuryType;
+      console.log(`Found patient record for code ${userData.code} with injury type: ${injuryType}`);
+    } else {
+      console.log(`No patient record found for code ${userData.code}, checked ${this.patients.size} patients`);
     }
     
     const newUser = {
