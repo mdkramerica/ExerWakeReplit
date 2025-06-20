@@ -166,13 +166,17 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType,
           });
           
           handsInstance.onResults((results: any) => {
-            // Convert hands results to holistic format
-            const holisticResults = {
+            try {
+              // Convert hands results to holistic format
+              const holisticResults = {
               leftHandLandmarks: results.multiHandedness?.[0]?.label === 'Left' ? results.multiHandLandmarks?.[0] : null,
               rightHandLandmarks: results.multiHandedness?.[0]?.label === 'Right' ? results.multiHandLandmarks?.[0] : null,
               poseLandmarks: null // No pose data available
             };
             processHolisticResults(holisticResults);
+            } catch (error) {
+              console.warn('Hands fallback processing error:', error);
+            }
           });
           
           holisticRef.current = handsInstance;
@@ -223,9 +227,11 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType,
 
     // Calculate wrist angles using elbow reference only during recording
     let wristAngles = null;
+    let currentDetection: any = null;
+    
     if (isRecording && isWristAssessment && handLandmarks.length > 0) {
       // First get the initial hand type detection
-      const currentDetection = calculateElbowReferencedWristAngle(
+      currentDetection = calculateElbowReferencedWristAngle(
         handLandmarks.map((landmark: any) => ({
           x: landmark.x,
           y: landmark.y,
@@ -259,15 +265,15 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType,
       }
       
       // Secondary locking for valid detections
-      if (currentDetection.handType !== 'UNKNOWN' && lastHandTypeRef.current === 'UNKNOWN') {
+      if (currentDetection && currentDetection.handType !== 'UNKNOWN' && lastHandTypeRef.current === 'UNKNOWN') {
         lastHandTypeRef.current = currentDetection.handType;
         handTypeConfidenceRef.current = 1;
         console.log(`🔒 DETECTION LOCKED onto ${currentDetection.handType} hand`);
       }
       
       // Debug logging to track detection issues
-      if (currentDetection.handType !== 'UNKNOWN' || lastHandTypeRef.current !== 'UNKNOWN') {
-        console.log(`🔍 Hand Detection - Current: ${currentDetection.handType}, Locked: ${lastHandTypeRef.current}, Confidence: ${currentDetection.confidence.toFixed(3)}`);
+      if ((currentDetection && currentDetection.handType !== 'UNKNOWN') || lastHandTypeRef.current !== 'UNKNOWN') {
+        console.log(`🔍 Hand Detection - Current: ${currentDetection?.handType || 'UNKNOWN'}, Locked: ${lastHandTypeRef.current}, Confidence: ${currentDetection?.confidence?.toFixed(3) || '0'}`);
       }
       
       // Force wrist angle calculation for wrist assessments
@@ -302,9 +308,10 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType,
         } else {
           console.log('⚠️ No hand type available for wrist calculation');
         }
-      } else if (lastHandTypeRef.current !== 'UNKNOWN') {
-        // Regular calculation for non-wrist assessments
-        wristAngles = calculateElbowReferencedWristAngleWithForce(
+    } else if (handLandmarks.length > 0 && poseLandmarks.length > 0) {
+      // For non-wrist assessments or when not recording, still do basic detection
+      try {
+        currentDetection = calculateElbowReferencedWristAngle(
           handLandmarks.map((landmark: any) => ({
             x: landmark.x,
             y: landmark.y,
@@ -315,14 +322,13 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType,
             y: landmark.y,
             z: landmark.z,
             visibility: landmark.visibility
-          })),
-          lastHandTypeRef.current
+          }))
         );
-        
-        if (wristAngles) {
-          wristAngles.handType = lastHandTypeRef.current;
-        }
+      } catch (error) {
+        console.warn('Basic hand detection failed:', error);
+        currentDetection = { handType: 'UNKNOWN', confidence: 0 };
       }
+    }
       
       console.log('🔍 Wrist calculation result:', {
         forearmToHandAngle: wristAngles?.forearmToHandAngle,
@@ -339,30 +345,52 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType,
     
     // Update parent component with tracking data including session elbow selection
     console.log('🔄 Sending update to parent with wrist angles:', wristAngles);
-    onUpdate({
-      handDetected,
-      landmarksCount: handLandmarks.length,
-      trackingQuality,
-      handPosition: handDetected ? "Holistic-tracked" : "Detecting",
-      landmarks: handLandmarks.map((landmark: any) => ({
-        x: landmark.x,
-        y: landmark.y,
-        z: landmark.z
-      })),
-      poseLandmarks: poseLandmarks.map((landmark: any) => ({
-        x: landmark.x,
-        y: landmark.y,
-        z: landmark.z,
-        visibility: landmark.visibility
-      })),
-      wristAngles,
-      handType: currentDetection?.handType || 'UNKNOWN',
-      lockedHandType: lastHandTypeRef.current,
-      detectedHandSide: results.leftHandLandmarks ? 'LEFT' : (results.rightHandLandmarks ? 'RIGHT' : 'UNKNOWN'),
-      sessionElbowIndex: sessionElbowData.elbowIndex,
-      sessionWristIndex: sessionElbowData.wristIndex,
-      sessionElbowLocked: sessionElbowData.isLocked
-    });
+    
+    try {
+      onUpdate({
+        handDetected,
+        landmarksCount: handLandmarks.length,
+        trackingQuality,
+        handPosition: handDetected ? "Holistic-tracked" : "Detecting",
+        landmarks: handLandmarks.map((landmark: any) => ({
+          x: landmark.x,
+          y: landmark.y,
+          z: landmark.z
+        })),
+        poseLandmarks: poseLandmarks.map((landmark: any) => ({
+          x: landmark.x,
+          y: landmark.y,
+          z: landmark.z,
+          visibility: landmark.visibility
+        })),
+        wristAngles,
+        handType: currentDetection?.handType || 'UNKNOWN',
+        lockedHandType: lastHandTypeRef.current,
+        detectedHandSide: results.leftHandLandmarks ? 'LEFT' : (results.rightHandLandmarks ? 'RIGHT' : 'UNKNOWN'),
+        sessionElbowIndex: sessionElbowData.elbowIndex,
+        sessionWristIndex: sessionElbowData.wristIndex,
+        sessionElbowLocked: sessionElbowData.isLocked
+      });
+    } catch (error) {
+      console.warn('Holistic processing error:', error);
+      
+      // Fallback data to prevent undefined errors
+      onUpdate({
+        handDetected: false,
+        landmarksCount: 0,
+        trackingQuality: "Poor",
+        handPosition: "Error",
+        landmarks: [],
+        poseLandmarks: [],
+        wristAngles: null,
+        handType: 'UNKNOWN',
+        lockedHandType: lastHandTypeRef.current,
+        detectedHandSide: 'UNKNOWN',
+        sessionElbowIndex: undefined,
+        sessionWristIndex: undefined,
+        sessionElbowLocked: false
+      });
+    }
   }, [isWristAssessment, onUpdate]);
 
   // Initialize camera and start processing
