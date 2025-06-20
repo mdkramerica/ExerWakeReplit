@@ -177,6 +177,23 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
     }
   }, [replayData, selectedDigit, isKapandjiAssessment]);
 
+  // Auto-start playback when replay data is loaded
+  useEffect(() => {
+    if (replayData.length > 0 && !isPlaying) {
+      // Start from beginning for better user experience
+      setCurrentFrame(0);
+      
+      // Draw the initial frame immediately
+      setTimeout(() => {
+        drawFrame(0);
+        // Start autoplay after ensuring canvas is rendered
+        setTimeout(() => {
+          setIsPlaying(true);
+        }, 800);
+      }, 200);
+    }
+  }, [replayData.length]); // Remove currentFrame dependency to avoid loops
+
   // Update current ROM/Kapandji when frame or digit selection changes
   useEffect(() => {
     if (replayData.length > 0 && currentFrame < replayData.length) {
@@ -1134,6 +1151,13 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
   useEffect(() => {
     drawFrame(currentFrame);
   }, [currentFrame]);
+
+  // Draw initial frame when canvas is ready
+  useEffect(() => {
+    if (replayData.length > 0) {
+      drawFrame(currentFrame);
+    }
+  }, [replayData, canvasRef.current]);
 
   const handlePlay = () => setIsPlaying(!isPlaying);
   const handleReset = () => {
