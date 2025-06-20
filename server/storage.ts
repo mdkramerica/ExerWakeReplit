@@ -123,6 +123,7 @@ export interface IStorage {
   generateShareToken(userAssessmentId: number): Promise<string>;
   getInjuryTypes(): Promise<InjuryType[]>;
   createInjuryType(injuryType: InsertInjuryType): Promise<InjuryType>;
+  resetUserAssessments(userId: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -918,6 +919,10 @@ export class DatabaseStorage implements IStorage {
       .values(insertInjuryType)
       .returning();
     return injuryType;
+  }
+
+  async resetUserAssessments(userId: number): Promise<void> {
+    await db.delete(userAssessments).where(eq(userAssessments.userId, userId));
   }
 }
 

@@ -503,6 +503,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Legacy routes for backward compatibility
+  // Demo reset endpoint
+  app.post("/api/demo/reset", async (req, res) => {
+    try {
+      // Reset demo user's assessments and progress
+      const demoUser = await storage.getUserByCode('DEMO01');
+      if (!demoUser) {
+        return res.status(404).json({ message: "Demo user not found" });
+      }
+
+      // Delete all user assessments for demo user
+      await storage.resetUserAssessments(demoUser.id);
+
+      res.json({ message: "Demo data reset successfully" });
+    } catch (error) {
+      console.error('Demo reset error:', error);
+      res.status(500).json({ message: "Failed to reset demo data" });
+    }
+  });
+
   // User routes
   app.post("/api/users/verify-code", async (req, res) => {
     try {

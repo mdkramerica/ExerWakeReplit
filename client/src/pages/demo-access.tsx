@@ -9,6 +9,8 @@ import { apiRequest } from "@/lib/queryClient";
 export default function DemoAccess() {
   const [, setLocation] = useLocation();
   const [isLoading, setIsLoading] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+  const { toast } = useToast();
 
   // Fetch all assessments for demo display
   const { data: assessmentsData } = useQuery({
@@ -64,6 +66,26 @@ export default function DemoAccess() {
     }
   };
 
+  const handleResetDemo = async () => {
+    setIsResetting(true);
+    try {
+      const response = await apiRequest('POST', '/api/demo/reset');
+      toast({
+        title: "Demo Reset Complete",
+        description: "All demo data has been cleared. You can now start fresh demonstrations.",
+      });
+    } catch (error) {
+      console.error('Demo reset failed:', error);
+      toast({
+        title: "Reset Failed",
+        description: "Failed to reset demo data. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
@@ -74,6 +96,22 @@ export default function DemoAccess() {
             <p className="text-lg text-gray-600">
               Experience all assessments using demo user: <strong>DEMO01</strong>
             </p>
+            
+            {/* Reset Demo Button */}
+            <div className="mt-4">
+              <Button
+                onClick={handleResetDemo}
+                disabled={isResetting}
+                variant="outline"
+                className="text-red-600 border-red-200 hover:bg-red-50"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                {isResetting ? "Resetting..." : "Reset Demo Data"}
+              </Button>
+              <p className="text-sm text-gray-500 mt-2">
+                Clear all demo progress to start fresh demonstrations
+              </p>
+            </div>
           </div>
 
           {/* Quick Access Options */}
