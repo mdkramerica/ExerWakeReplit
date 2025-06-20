@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ScatterPlot, Scatter, BarChart, Bar } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ScatterChart, Scatter, BarChart, Bar } from 'recharts';
 import { TrendingUp, Users, Calendar, Activity, Target, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 
 interface Patient {
@@ -389,7 +389,7 @@ export default function LongitudinalAnalytics() {
             <CardContent>
               <div className="h-96">
                 <ResponsiveContainer width="100%" height="100%">
-                  <ScatterPlot>
+                  <ScatterChart data={outcomePredictors}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis 
                       dataKey="baselineRom" 
@@ -402,8 +402,8 @@ export default function LongitudinalAnalytics() {
                       label={{ value: 'ROM Improvement (%)', angle: -90, position: 'insideLeft' }}
                     />
                     <Tooltip cursor={{ strokeDasharray: '3 3' }} />
-                    <Scatter name="Patients" data={outcomePredictors} fill="#8884d8" />
-                  </ScatterPlot>
+                    <Scatter name="Patients" fill="#8884d8" />
+                  </ScatterChart>
                 </ResponsiveContainer>
               </div>
             </CardContent>

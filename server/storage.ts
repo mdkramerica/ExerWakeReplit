@@ -486,6 +486,63 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return exportRequest || undefined;
   }
+
+  // Research analytics methods
+  async getAllStudyAssessments(): Promise<PatientAssessment[]> {
+    return await db
+      .select()
+      .from(patientAssessments)
+      .innerJoin(patients, eq(patientAssessments.patientId, patients.id))
+      .where(eq(patients.enrolledInStudy, true))
+      .orderBy(desc(patientAssessments.assessmentDate));
+  }
+
+  async getOutcomeData(): Promise<any[]> {
+    // Get baseline and 12-week outcome data for predictive modeling
+    const baselineData = await db
+      .select()
+      .from(patientAssessments)
+      .innerJoin(patients, eq(patientAssessments.patientId, patients.id))
+      .where(
+        and(
+          eq(patients.enrolledInStudy, true),
+          eq(patientAssessments.studyWeek, 0)
+        )
+      );
+    
+    const outcomeData = await db
+      .select()
+      .from(patientAssessments)
+      .innerJoin(patients, eq(patientAssessments.patientId, patients.id))
+      .where(
+        and(
+          eq(patients.enrolledInStudy, true),
+          sql`${patientAssessments.studyWeek} >= 12`
+        )
+      );
+    
+    // Combine baseline and outcome data
+    return baselineData.map(baseline => {
+      const outcome = outcomeData.find(o => o.patient_assessments.patientId === baseline.patient_assessments.patientId);
+      return {
+        patientId: baseline.patients.patientId,
+        ageGroup: baseline.patients.ageGroup,
+        sex: baseline.patients.sex,
+        handDominance: baseline.patients.handDominance,
+        injuryType: baseline.patients.injuryType,
+        occupationCategory: baseline.patients.occupationCategory,
+        baselineRom: baseline.patient_assessments.percentOfNormalRom,
+        baselinePain: baseline.patient_assessments.vasScore,
+        baselineFunction: baseline.patient_assessments.quickDashScore,
+        outcomeRom: outcome?.patient_assessments.percentOfNormalRom,
+        outcomePain: outcome?.patient_assessments.vasScore,
+        outcomeFunction: outcome?.patient_assessments.quickDashScore,
+        romImprovement: outcome ? (outcome.patient_assessments.percentOfNormalRom || 0) - (baseline.patient_assessments.percentOfNormalRom || 0) : null,
+        painReduction: outcome ? (baseline.patient_assessments.vasScore || 0) - (outcome.patient_assessments.vasScore || 0) : null,
+        functionImprovement: outcome ? (baseline.patient_assessments.quickDashScore || 0) - (outcome.patient_assessments.quickDashScore || 0) : null,
+      };
+    }).filter(data => data.outcomeRom !== undefined);
+  }
   async getUser(id: number): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user || undefined;
