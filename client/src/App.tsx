@@ -81,7 +81,9 @@ function LegacyRoutes() {
       <Route path="/assessment-list/:code" component={AssessmentList} />
       <Route path="/demo" component={DemoAccess} />
       <Route path="/assessment/:id/video" component={VideoInstruction} />
+      <Route path="/assessment/:id/video/:code" component={VideoInstruction} />
       <Route path="/assessment/:id/record" component={Recording} />
+      <Route path="/assessment/:id/record/:code" component={Recording} />
       <Route path="/assessment-results/:code/:userAssessmentId" component={AssessmentResults} />
       <Route path="/wrist-results/:userCode/:userAssessmentId" component={WristResults} />
       <Route path="/joint-test" component={JointTest} />

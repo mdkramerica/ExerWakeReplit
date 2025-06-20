@@ -8,7 +8,7 @@ import ProgressBar from "@/components/progress-bar";
 import { apiRequest } from "@/lib/queryClient";
 
 export default function VideoInstruction() {
-  const { id } = useParams();
+  const { id, code } = useParams();
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [videoWatched, setVideoWatched] = useState(false);
   const [, setLocation] = useLocation();
@@ -17,10 +17,23 @@ export default function VideoInstruction() {
     const savedUser = sessionStorage.getItem('currentUser');
     if (savedUser) {
       setCurrentUser(JSON.parse(savedUser));
+    } else if (code) {
+      // If we have a code parameter, try to verify and set the user
+      fetch(`/api/users/by-code/${code}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.user) {
+            setCurrentUser(data.user);
+            sessionStorage.setItem('currentUser', JSON.stringify(data.user));
+          } else {
+            setLocation("/");
+          }
+        })
+        .catch(() => setLocation("/"));
     } else {
       setLocation("/");
     }
-  }, [setLocation]);
+  }, [setLocation, code]);
 
   const { data: assessmentData, isLoading } = useQuery({
     queryKey: [`/api/assessments/${id}`],
@@ -41,11 +54,13 @@ export default function VideoInstruction() {
 
   const handleProceedToRecording = () => {
     startAssessmentMutation.mutate();
-    setLocation(`/assessment/${id}/record`);
+    const recordUrl = code ? `/assessment/${id}/record/${code}` : `/assessment/${id}/record`;
+    setLocation(recordUrl);
   };
 
   const handleBack = () => {
-    setLocation("/assessments");
+    const backUrl = code ? `/assessment-list/${code}` : "/assessments";
+    setLocation(backUrl);
   };
 
   if (isLoading) {

@@ -14,7 +14,7 @@ import { calculateWristAngles } from "@shared/wrist-calculator";
 import { calculateElbowReferencedWristAngle } from "@shared/elbow-wrist-calculator";
 
 export default function Recording() {
-  const { id } = useParams();
+  const { id, code } = useParams();
   const queryClient = useQueryClient();
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [currentRepetition, setCurrentRepetition] = useState(1);
@@ -56,10 +56,23 @@ export default function Recording() {
       const user = JSON.parse(savedUser);
       console.log('Loaded user from sessionStorage:', user);
       setCurrentUser(user);
+    } else if (code) {
+      // If we have a code parameter, try to verify and set the user
+      fetch(`/api/users/by-code/${code}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.user) {
+            setCurrentUser(data.user);
+            sessionStorage.setItem('currentUser', JSON.stringify(data.user));
+          } else {
+            setLocation("/");
+          }
+        })
+        .catch(() => setLocation("/"));
     } else {
       setLocation("/");
     }
-  }, [setLocation]);
+  }, [setLocation, code]);
 
   const { data: assessmentData } = useQuery({
     queryKey: [`/api/assessments/${id}`],
