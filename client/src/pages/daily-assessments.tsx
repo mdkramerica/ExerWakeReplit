@@ -56,10 +56,30 @@ export default function DailyAssessments() {
   return (
     <div className="container mx-auto py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">Daily Assessments</h1>
-        <p className="text-muted-foreground">
-          Complete your daily assessments to track your recovery progress
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Daily Assessments</h1>
+            <p className="text-muted-foreground">
+              Complete your daily assessments to track your recovery progress
+            </p>
+          </div>
+          
+          {/* Navigation Hub */}
+          <div className="flex gap-2">
+            <Link href={`/assessment-list/${userCode}`}>
+              <Button variant="outline" size="sm">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Dashboard
+              </Button>
+            </Link>
+            <Link href="/progress">
+              <Button variant="outline" size="sm">
+                <TrendingUp className="h-4 w-4 mr-2" />
+                View Progress
+              </Button>
+            </Link>
+          </div>
+        </div>
       </div>
 
       {/* Study Progress Card */}
