@@ -1095,17 +1095,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Find the user assessment and user data
       let userAssessment = null;
       let user = null;
-      for (let userId = 1; userId <= 100; userId++) {
-        try {
-          const userAssessments = await storage.getUserAssessments(userId);
-          const found = userAssessments.find(ua => ua.id === userAssessmentId);
-          if (found) {
-            userAssessment = found;
-            user = await storage.getUserById(userId);
-            break;
+      
+      // Try direct lookup first via getUserAssessmentById
+      try {
+        userAssessment = await storage.getUserAssessmentById(userAssessmentId);
+        if (userAssessment) {
+          user = await storage.getUserById(userAssessment.userId);
+        }
+      } catch (e) {
+        // Fallback to searching through all users
+        for (let userId = 1; userId <= 100; userId++) {
+          try {
+            const userAssessments = await storage.getUserAssessments(userId);
+            const found = userAssessments.find(ua => ua.id === userAssessmentId);
+            if (found) {
+              userAssessment = found;
+              user = await storage.getUserById(userId);
+              break;
+            }
+          } catch (e) {
+            continue;
           }
-        } catch (e) {
-          continue;
         }
       }
       

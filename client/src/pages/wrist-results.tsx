@@ -41,10 +41,12 @@ export default function WristResults() {
     }
   }, []);
 
-  const { data: resultsData, isLoading } = useQuery({
+  const { data: resultsData, isLoading, error } = useQuery({
     queryKey: [`/api/user-assessments/${userAssessmentId}/details`],
     enabled: !!userAssessmentId,
   });
+
+  console.log('Query state:', { isLoading, error, userAssessmentId, hasData: !!resultsData });
 
   if (isLoading) {
     return (

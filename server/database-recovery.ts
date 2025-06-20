@@ -1,5 +1,6 @@
 // Database recovery system with fallback to memory storage
 import { MemoryStorage } from './memory-storage';
+import { PersistentMemoryStorage } from './persistent-storage';
 import { db } from './db';
 import { sql } from 'drizzle-orm';
 
@@ -9,8 +10,8 @@ export class RecoveryStorage {
 
   constructor() {
     setTimeout(() => this.initializeStorage(), 0);
-    // Initialize with memory storage immediately
-    this.activeStorage = new MemoryStorage();
+    // Initialize with persistent memory storage immediately
+    this.activeStorage = new PersistentMemoryStorage();
     this.isUsingMemory = true;
   }
 
@@ -30,8 +31,8 @@ export class RecoveryStorage {
       await this.ensureDemoData();
       
     } catch (error) {
-      console.log('Database connection failed, using MemoryStorage with complete demo data');
-      this.activeStorage = new MemoryStorage();
+      console.log('Database connection failed, using PersistentMemoryStorage with complete demo data');
+      this.activeStorage = new PersistentMemoryStorage();
       this.isUsingMemory = true;
     }
   }
@@ -136,8 +137,8 @@ export class RecoveryStorage {
         await this.restoreDemoUser();
       }
     } catch (error) {
-      console.log('Failed to ensure demo data, falling back to memory storage');
-      this.activeStorage = new MemoryStorage();
+      console.log('Failed to ensure demo data, falling back to persistent memory storage');
+      this.activeStorage = new PersistentMemoryStorage();
       this.isUsingMemory = true;
     }
   }
