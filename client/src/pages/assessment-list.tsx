@@ -132,6 +132,14 @@ export default function AssessmentList() {
   const sortedAssessments = [...assessments].sort((a, b) => a.orderIndex - b.orderIndex);
   const nextAssessment = sortedAssessments.find(a => !a.isCompleted);
   const allCompleted = assessments.length > 0 && assessments.every(a => a.isCompleted);
+  
+  // Calculate days remaining based on study duration
+  const studyDuration = injuryType === 'Trigger Finger' || injuryType === 'Metacarpal ORIF' || injuryType === 'Phalanx Fracture' ? 28 : 84;
+  const createdDate = new Date(userData.user.createdAt);
+  const currentDate = new Date();
+  const daysSinceStart = Math.floor((currentDate.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24));
+  const daysRemaining = Math.max(0, studyDuration - daysSinceStart);
+  const currentDay = daysSinceStart + 1;
 
   if (showReplay) {
     // Check if it's the new format with ID:NAME or just a value

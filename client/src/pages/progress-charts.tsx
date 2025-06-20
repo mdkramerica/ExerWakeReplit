@@ -270,9 +270,23 @@ export default function ProgressCharts() {
                           <Tooltip content={<CustomTooltip assessmentName={assessmentName} />} />
                           <ReferenceLine 
                             y={target} 
-                            stroke="#10b981" 
-                            strokeDasharray="5 5"
-                            label={{ value: "Target ROM", position: "right" }}
+                            stroke="#059669" 
+                            strokeDasharray="10 5"
+                            strokeWidth={4}
+                            label={{ 
+                              value: `Target: ${target}°`, 
+                              position: "topRight", 
+                              offset: 10,
+                              style: { 
+                                fill: '#059669', 
+                                fontWeight: 'bold', 
+                                fontSize: '14px',
+                                backgroundColor: '#ffffff',
+                                padding: '2px 4px',
+                                border: '1px solid #059669',
+                                borderRadius: '4px'
+                              }
+                            }}
                           />
                           <Line 
                             type="monotone" 
