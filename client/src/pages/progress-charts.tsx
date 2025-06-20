@@ -159,6 +159,14 @@ export default function ProgressCharts() {
     ['TAM (Total Active Motion)', 'Index Finger TAM', 'Middle Finger TAM', 'Ring Finger TAM', 'Pinky Finger TAM'] :
     assessmentTypes;
 
+  // Calculate days remaining based on study duration
+  const studyDuration = injuryType === 'Trigger Finger' || injuryType === 'Metacarpal ORIF' || injuryType === 'Phalanx Fracture' ? 28 : 84;
+  const createdDate = new Date(userCode === 'DEMO01' ? '2025-06-01' : userData?.user?.createdAt || Date.now());
+  const currentDate = new Date();
+  const daysSinceStart = Math.floor((currentDate.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24));
+  const daysRemaining = Math.max(0, studyDuration - daysSinceStart);
+  const currentDay = daysSinceStart + 1;
+
   return (
     <div className="container mx-auto py-8">
       <div className="mb-8">
