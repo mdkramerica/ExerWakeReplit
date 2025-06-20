@@ -113,12 +113,15 @@ export default function Landing() {
             </Button>
           </form>
           
-          <div className="mt-6 text-center">
+          <div className="mt-6 text-center space-y-3">
             <Link href="/overview">
-              <Button variant="outline" className="text-blue-600 border-blue-200 hover:bg-blue-50">
+              <Button variant="outline" className="w-full text-blue-600 border-blue-200 hover:bg-blue-50">
                 Browse All Assessments
               </Button>
             </Link>
+            <div className="text-xs text-gray-600">
+              Or try demo code: <span className="font-mono font-semibold">DEMO123</span>
+            </div>
           </div>
           
           <div className="mt-8 pt-6 border-t border-gray-200">
