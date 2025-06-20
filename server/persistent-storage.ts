@@ -626,9 +626,12 @@ export class PersistentMemoryStorage {
   // Clinical Dashboard Methods (basic implementations)
   async getCohorts(): Promise<any[]> {
     return [
-      { id: 1, name: 'Carpal Tunnel Study', patientCount: 25, status: 'active' },
-      { id: 2, name: 'Tennis Elbow Research', patientCount: 18, status: 'active' },
-      { id: 3, name: 'Trigger Finger Analysis', patientCount: 12, status: 'completed' }
+      { id: 1, name: 'Trigger Finger Study', description: 'Finger tendon disorder research', patientCount: 25, status: 'active' },
+      { id: 2, name: 'Carpal Tunnel Study', description: 'Nerve compression in the wrist research', patientCount: 32, status: 'active' },
+      { id: 3, name: 'Distal Radius Fracture Study', description: 'Broken wrist bone recovery research', patientCount: 28, status: 'active' },
+      { id: 4, name: 'CMC Arthroplasty Study', description: 'Thumb joint replacement research', patientCount: 20, status: 'active' },
+      { id: 5, name: 'Metacarpal ORIF Study', description: 'Hand bone surgical repair research', patientCount: 15, status: 'active' },
+      { id: 6, name: 'Phalanx Fracture Study', description: 'Finger bone fracture research', patientCount: 18, status: 'active' }
     ];
   }
 
