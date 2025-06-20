@@ -8,7 +8,10 @@ export class RecoveryStorage {
   private isUsingMemory = false;
 
   constructor() {
-    this.initializeStorage();
+    setTimeout(() => this.initializeStorage(), 0);
+    // Initialize with memory storage immediately
+    this.activeStorage = new MemoryStorage();
+    this.isUsingMemory = true;
   }
 
   private async initializeStorage() {
@@ -66,8 +69,8 @@ export class RecoveryStorage {
       },
       
       async updateUser(id: number, updates: any) {
-        const setClauses = Object.keys(updates).map(key => `${key} = ${updates[key]}`).join(', ');
-        const result = await db.execute(sql`UPDATE users SET ${sql.raw(setClauses)} WHERE id = ${id} RETURNING *`);
+        const setValues = Object.entries(updates).map(([key, value]) => `${key} = '${value}'`).join(', ');
+        const result = await db.execute(sql.raw(`UPDATE users SET ${setValues} WHERE id = ${id} RETURNING *`));
         return result.rows[0];
       },
       
@@ -81,8 +84,8 @@ export class RecoveryStorage {
       },
       
       async updateUserAssessment(id: number, updates: any) {
-        const setClauses = Object.keys(updates).map(key => `${key} = ${updates[key]}`).join(', ');
-        const result = await db.execute(sql`UPDATE user_assessments SET ${sql.raw(setClauses)} WHERE id = ${id} RETURNING *`);
+        const setValues = Object.entries(updates).map(([key, value]) => `${key} = '${value}'`).join(', ');
+        const result = await db.execute(sql.raw(`UPDATE user_assessments SET ${setValues} WHERE id = ${id} RETURNING *`));
         return result.rows[0];
       },
       

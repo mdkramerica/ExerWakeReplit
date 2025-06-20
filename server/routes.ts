@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { RecoveryStorage } from "./database-recovery";
 import { z } from "zod";
 import { 
   insertUserSchema, 
