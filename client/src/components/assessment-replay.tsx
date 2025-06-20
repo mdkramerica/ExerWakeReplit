@@ -114,10 +114,16 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
         }).filter(Boolean);
         
         if (wristAnglesAllFrames.length > 0) {
-          // Find maximum wrist angles
-          const maxFlexion = Math.max(...wristAnglesAllFrames.map(w => w!.wristFlexionAngle));
-          const maxExtension = Math.max(...wristAnglesAllFrames.map(w => w!.wristExtensionAngle));
-          const maxForearmAngle = Math.max(...wristAnglesAllFrames.map(w => w!.forearmToHandAngle));
+          // Find maximum wrist angles - ensure no artificial caps
+          const flexionAngles = wristAnglesAllFrames.map(w => w!.wristFlexionAngle).filter(angle => angle > 0);
+          const extensionAngles = wristAnglesAllFrames.map(w => w!.wristExtensionAngle).filter(angle => angle > 0);
+          const forearmAngles = wristAnglesAllFrames.map(w => w!.forearmToHandAngle);
+          
+          const maxFlexion = flexionAngles.length > 0 ? Math.max(...flexionAngles) : 0;
+          const maxExtension = extensionAngles.length > 0 ? Math.max(...extensionAngles) : 0;
+          const maxForearmAngle = Math.max(...forearmAngles);
+          
+          console.log(`Replay wrist analysis - Max Flexion: ${maxFlexion.toFixed(1)}°, Max Extension: ${maxExtension.toFixed(1)}°, Frames analyzed: ${wristAnglesAllFrames.length}`);
           
           setMaxWristAngles({
             forearmToHandAngle: maxForearmAngle,

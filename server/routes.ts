@@ -784,10 +784,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             rep.motionData.forEach((frame: any) => {
               if (frame.wristAngles) {
                 const frameWristAngles = frame.wristAngles;
-                if (frameWristAngles.wristFlexionAngle !== undefined && frameWristAngles.wristFlexionAngle > 0) {
+                // Remove the > 0 filter to capture all calculated angles, including small ones
+                if (frameWristAngles.wristFlexionAngle !== undefined && frameWristAngles.wristFlexionAngle !== null) {
                   wristFlexionAngle = Math.max(wristFlexionAngle || 0, frameWristAngles.wristFlexionAngle);
                 }
-                if (frameWristAngles.wristExtensionAngle !== undefined && frameWristAngles.wristExtensionAngle > 0) {
+                if (frameWristAngles.wristExtensionAngle !== undefined && frameWristAngles.wristExtensionAngle !== null) {
                   wristExtensionAngle = Math.max(wristExtensionAngle || 0, frameWristAngles.wristExtensionAngle);
                 }
               }
@@ -795,14 +796,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         });
         
-        // Update max wrist values based on extracted data
-        if (wristFlexionAngle !== null && wristFlexionAngle > 0) {
+        // Update max wrist values based on extracted data - remove artificial > 0 filtering
+        if (wristFlexionAngle !== null && wristFlexionAngle !== undefined) {
           maxWristFlexion = Math.max(maxWristFlexion || 0, wristFlexionAngle);
-          console.log(`Final maxWristFlexion: ${maxWristFlexion}`);
+          console.log(`Final maxWristFlexion: ${maxWristFlexion}° (from recorded angles)`);
         }
-        if (wristExtensionAngle !== null && wristExtensionAngle > 0) {
+        if (wristExtensionAngle !== null && wristExtensionAngle !== undefined) {
           maxWristExtension = Math.max(maxWristExtension || 0, wristExtensionAngle);
-          console.log(`Final maxWristExtension: ${maxWristExtension}`);
+          console.log(`Final maxWristExtension: ${maxWristExtension}° (from recorded angles)`);
         }
         
         // Calculate max ROM for all fingers if motion data exists
