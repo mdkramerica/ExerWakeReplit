@@ -244,13 +244,11 @@ export default function Recording() {
       timestamp: new Date().toISOString(),
       motionData: [...recordingMotionDataRef.current], // Use ref data for immediate access
       romData: finalMaxROM, // Include ROM calculations
-      wristFlexionAngle: maxWristFlexion, // Use maximum values for wrist assessments
-      wristExtensionAngle: maxWristExtension,
+      wristFlexionAngle: currentFlexion,
+      wristExtensionAngle: currentExtension,
       maxWristFlexion: maxWristFlexion,
       maxWristExtension: maxWristExtension
     };
-    
-    console.log(`Repetition data created with wrist angles: Flexion=${maxWristFlexion}°, Extension=${maxWristExtension}°, Motion frames=${repetitionData.motionData.length}`);
 
     const newRecordedData = [...recordedData, repetitionData];
     setRecordedData(newRecordedData);

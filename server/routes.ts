@@ -752,30 +752,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
           
           // Extract wrist angle data from repetition data
-          console.log(`Processing repetition ${rep.repetition} for wrist angles:`, {
+          console.log(`Processing repetition data for wrist angles:`, {
             wristFlexionAngle: rep.wristFlexionAngle,
             wristExtensionAngle: rep.wristExtensionAngle,
             maxWristFlexion: rep.maxWristFlexion,
-            maxWristExtension: rep.maxWristExtension,
-            motionDataLength: rep.motionData?.length || 0
+            maxWristExtension: rep.maxWristExtension
           });
           
-          // Use the maximum values from repetition data
-          if (rep.wristFlexionAngle !== undefined && rep.wristFlexionAngle > 0) {
+          if (rep.wristFlexionAngle !== undefined) {
             wristFlexionAngle = Math.max(wristFlexionAngle || 0, rep.wristFlexionAngle);
-            console.log(`Updated wristFlexionAngle: ${wristFlexionAngle}°`);
+            console.log(`Updated wristFlexionAngle: ${wristFlexionAngle}`);
           }
-          if (rep.wristExtensionAngle !== undefined && rep.wristExtensionAngle > 0) {
+          if (rep.wristExtensionAngle !== undefined) {
             wristExtensionAngle = Math.max(wristExtensionAngle || 0, rep.wristExtensionAngle);
-            console.log(`Updated wristExtensionAngle: ${wristExtensionAngle}°`);
+            console.log(`Updated wristExtensionAngle: ${wristExtensionAngle}`);
           }
-          if (rep.maxWristFlexion !== undefined && rep.maxWristFlexion > 0) {
+          if (rep.maxWristFlexion !== undefined) {
             maxWristFlexion = Math.max(maxWristFlexion || 0, rep.maxWristFlexion);
-            console.log(`Updated maxWristFlexion: ${maxWristFlexion}°`);
+            console.log(`Updated maxWristFlexion: ${maxWristFlexion}`);
           }
-          if (rep.maxWristExtension !== undefined && rep.maxWristExtension > 0) {
+          if (rep.maxWristExtension !== undefined) {
             maxWristExtension = Math.max(maxWristExtension || 0, rep.maxWristExtension);
-            console.log(`Updated maxWristExtension: ${maxWristExtension}°`);
+            console.log(`Updated maxWristExtension: ${maxWristExtension}`);
           }
           
           // Collect motion data for all finger calculations and extract wrist angle data
