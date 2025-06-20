@@ -6,6 +6,7 @@ interface StorageData {
   userAssessments: Array<{ id: number; [key: string]: any }>;
   assessments: Array<{ id: number; [key: string]: any }>;
   injuryTypes: Array<{ [key: string]: any }>;
+  clinicalUsers: Array<{ id: number; [key: string]: any }>;
 }
 
 export class PersistentMemoryStorage {
@@ -14,6 +15,8 @@ export class PersistentMemoryStorage {
   private userAssessments = new Map<number, any>();
   private assessments = new Map<number, any>();
   private injuryTypes: any[] = [];
+  private clinicalUsers = new Map<number, any>();
+  private clinicalUsersByUsername = new Map<string, any>();
   private nextUserAssessmentId = 1;
   private dataDir = './data';
   private dataFile = path.join(this.dataDir, 'storage.json');
@@ -62,7 +65,17 @@ export class PersistentMemoryStorage {
       // Restore injury types
       this.injuryTypes = parsed.injuryTypes || [];
       
-      console.log(`Loaded ${parsed.users.length} users, ${parsed.userAssessments.length} user assessments, ${parsed.assessments.length} assessments`);
+      // Restore clinical users
+      this.clinicalUsers = new Map();
+      this.clinicalUsersByUsername = new Map();
+      if (parsed.clinicalUsers) {
+        parsed.clinicalUsers.forEach(user => {
+          this.clinicalUsers.set(user.id, user);
+          this.clinicalUsersByUsername.set(user.username, user);
+        });
+      }
+      
+      console.log(`Loaded ${parsed.users.length} users, ${parsed.userAssessments.length} user assessments, ${parsed.assessments.length} assessments, ${parsed.clinicalUsers?.length || 0} clinical users`);
     } catch (error) {
       throw new Error('Failed to load data file');
     }
@@ -74,7 +87,8 @@ export class PersistentMemoryStorage {
         users: Array.from(this.users.values()),
         userAssessments: Array.from(this.userAssessments.values()),
         assessments: Array.from(this.assessments.values()),
-        injuryTypes: this.injuryTypes
+        injuryTypes: this.injuryTypes,
+        clinicalUsers: Array.from(this.clinicalUsers.values())
       };
       
       await fs.writeFile(this.dataFile, JSON.stringify(data, null, 2));
@@ -240,7 +254,51 @@ export class PersistentMemoryStorage {
       this.nextUserAssessmentId = Math.max(this.nextUserAssessmentId, assessment.id + 1);
     });
 
-    console.log('Memory storage initialized with 5 assessments and sample completed data');
+    // Create clinical users for dashboard access
+    const clinicalUsers = [
+      {
+        id: 1,
+        username: 'admin',
+        password: 'admin123',
+        email: 'admin@clinic.com',
+        firstName: 'Admin',
+        lastName: 'User',
+        role: 'admin',
+        isActive: true,
+        createdAt: new Date()
+      },
+      {
+        id: 2,
+        username: 'dr.smith',
+        password: 'password123',
+        email: 'dr.smith@clinic.com',
+        firstName: 'Dr. John',
+        lastName: 'Smith',
+        role: 'clinician',
+        isActive: true,
+        createdAt: new Date()
+      },
+      {
+        id: 3,
+        username: 'researcher1',
+        password: 'research123',
+        email: 'researcher@clinic.com',
+        firstName: 'Research',
+        lastName: 'Staff',
+        role: 'researcher',
+        isActive: true,
+        createdAt: new Date()
+      }
+    ];
+
+    this.clinicalUsers = new Map();
+    this.clinicalUsersByUsername = new Map();
+    clinicalUsers.forEach(user => {
+      this.clinicalUsers.set(user.id, user);
+      this.clinicalUsersByUsername.set(user.username, user);
+    });
+
+    console.log('Memory storage initialized with 5 assessments, sample completed data, and 3 clinical users');
   }
 
   // API Methods with auto-save
@@ -356,5 +414,72 @@ export class PersistentMemoryStorage {
 
   async getInjuryTypes(): Promise<any[]> {
     return this.injuryTypes;
+  }
+
+  // Clinical Authentication Methods
+  async authenticateClinicalUser(username: string, password: string): Promise<any> {
+    const user = this.clinicalUsersByUsername.get(username);
+    if (user && user.password === password && user.isActive) {
+      console.log(`Clinical authentication successful for user: ${username}`);
+      return user;
+    }
+    console.log(`Clinical authentication failed for user: ${username}`);
+    return null;
+  }
+
+  async getClinicalUser(id: number): Promise<any> {
+    return this.clinicalUsers.get(id);
+  }
+
+  async getClinicalUserByUsername(username: string): Promise<any> {
+    return this.clinicalUsersByUsername.get(username);
+  }
+
+  async createClinicalUser(userData: any): Promise<any> {
+    const newUser = {
+      id: this.clinicalUsers.size > 0 ? Math.max(...Array.from(this.clinicalUsers.keys())) + 1 : 1,
+      ...userData,
+      createdAt: new Date(),
+      isActive: true
+    };
+    this.clinicalUsers.set(newUser.id, newUser);
+    this.clinicalUsersByUsername.set(newUser.username, newUser);
+    await this.saveToFile();
+    return newUser;
+  }
+
+  async updateClinicalUser(id: number, updates: any): Promise<any> {
+    const user = this.clinicalUsers.get(id);
+    if (user) {
+      const updatedUser = { ...user, ...updates };
+      this.clinicalUsers.set(id, updatedUser);
+      this.clinicalUsersByUsername.set(updatedUser.username, updatedUser);
+      await this.saveToFile();
+      return updatedUser;
+    }
+    return null;
+  }
+
+  // Clinical Dashboard Methods (basic implementations)
+  async getCohorts(): Promise<any[]> {
+    return [
+      { id: 1, name: 'Carpal Tunnel Study', patientCount: 25, status: 'active' },
+      { id: 2, name: 'Tennis Elbow Research', patientCount: 18, status: 'active' },
+      { id: 3, name: 'Trigger Finger Analysis', patientCount: 12, status: 'completed' }
+    ];
+  }
+
+  async getPatients(): Promise<any[]> {
+    return [
+      { id: 1, patientId: 'PT001', alias: 'Patient A', status: 'improving', lastAssessment: new Date() },
+      { id: 2, patientId: 'PT002', alias: 'Patient B', status: 'stable', lastAssessment: new Date() },
+      { id: 3, patientId: 'PT003', alias: 'Patient C', status: 'declining', lastAssessment: new Date() }
+    ];
+  }
+
+  async createAuditLog(logData: any): Promise<any> {
+    // Simple audit log implementation
+    console.log('Audit Log:', logData);
+    return { id: Date.now(), ...logData, timestamp: new Date() };
   }
 }
