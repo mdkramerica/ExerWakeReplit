@@ -160,6 +160,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Study enrollment endpoint
+  app.post("/api/patients/enroll-study", requireAuth, requireRole(['clinician', 'admin']), async (req, res) => {
+    try {
+      const enrollmentData = insertPatientSchema.parse({
+        ...req.body,
+        assignedClinicianId: req.user.id,
+        enrolledInStudy: true,
+        studyEnrollmentDate: new Date(),
+      });
+      
+      const patient = await storage.createPatient(enrollmentData);
+      
+      // Create baseline study visit schedule (weeks 0-12)
+      if (enrollmentData.surgeryDate) {
+        const surgeryDate = new Date(enrollmentData.surgeryDate);
+        for (let week = 0; week <= 12; week++) {
+          const scheduledDate = new Date(surgeryDate);
+          scheduledDate.setDate(scheduledDate.getDate() + (week * 7));
+          
+          const windowStart = new Date(scheduledDate);
+          windowStart.setDate(windowStart.getDate() - 2);
+          
+          const windowEnd = new Date(scheduledDate);
+          windowEnd.setDate(windowEnd.getDate() + 2);
+          
+          await storage.createStudyVisit({
+            patientId: patient.id,
+            scheduledWeek: week,
+            scheduledDate,
+            windowStart,
+            windowEnd,
+            visitStatus: 'scheduled',
+          });
+        }
+      }
+      
+      await auditLog(req.user.id, "study_enrollment", `patient_id:${patient.id}`, enrollmentData, req);
+      
+      res.json(patient);
+    } catch (error) {
+      console.error('Study enrollment error:', error);
+      res.status(400).json({ message: "Failed to enroll patient in study" });
+    }
+  });
+
   app.get("/api/patients/:id", requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id);

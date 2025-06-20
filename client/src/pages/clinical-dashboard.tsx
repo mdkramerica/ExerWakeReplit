@@ -95,12 +95,20 @@ export default function ClinicalDashboard() {
           </p>
         </div>
         {hasRole(['clinician', 'admin']) && (
-          <Link href="/clinical/patients/new">
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Patient
-            </Button>
-          </Link>
+          <div className="flex space-x-2">
+            <Link href="/clinical/study/enroll">
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Enroll in Study
+              </Button>
+            </Link>
+            <Link href="/clinical/patients/new">
+              <Button variant="outline">
+                <Plus className="mr-2 h-4 w-4" />
+                Add Patient
+              </Button>
+            </Link>
+          </div>
         )}
       </div>
 
