@@ -248,9 +248,9 @@ export default function ClinicalPatients() {
                       <TableCell>
                         {patient.lastAssessment ? (
                           <div className="text-sm">
-                            <div>{format(new Date(patient.lastAssessment.assessmentDate), 'MMM d, yyyy')}</div>
+                            <div>{format(new Date(patient.lastAssessment), 'MMM d, yyyy')}</div>
                             <div className="text-muted-foreground text-xs">
-                              {patient.assessmentCount} total assessments
+                              {patient.assessmentCount || 0} total assessments
                             </div>
                           </div>
                         ) : (

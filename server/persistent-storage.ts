@@ -490,10 +490,81 @@ export class PersistentMemoryStorage {
   }
 
   async getPatients(): Promise<any[]> {
+    const now = new Date();
+    const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+    
     return [
-      { id: 1, patientId: 'PT001', alias: 'Patient A', status: 'improving', lastAssessment: new Date() },
-      { id: 2, patientId: 'PT002', alias: 'Patient B', status: 'stable', lastAssessment: new Date() },
-      { id: 3, patientId: 'PT003', alias: 'Patient C', status: 'declining', lastAssessment: new Date() }
+      { 
+        id: 1, 
+        patientId: 'PT001', 
+        alias: 'Patient A', 
+        status: 'improving', 
+        lastAssessment: now.toISOString(),
+        assessmentCount: 5,
+        ageGroup: '45-54',
+        sex: 'F',
+        handDominance: 'RIGHT',
+        injuryType: 'Carpal Tunnel',
+        enrollmentDate: twoWeeksAgo.toISOString(),
+        cohortId: 1
+      },
+      { 
+        id: 2, 
+        patientId: 'PT002', 
+        alias: 'Patient B', 
+        status: 'stable', 
+        lastAssessment: lastWeek.toISOString(),
+        assessmentCount: 3,
+        ageGroup: '35-44',
+        sex: 'M',
+        handDominance: 'LEFT',
+        injuryType: 'Tennis Elbow',
+        enrollmentDate: twoWeeksAgo.toISOString(),
+        cohortId: 2
+      },
+      { 
+        id: 3, 
+        patientId: 'PT003', 
+        alias: 'Patient C', 
+        status: 'declining', 
+        lastAssessment: twoWeeksAgo.toISOString(),
+        assessmentCount: 2,
+        ageGroup: '55-64',
+        sex: 'F',
+        handDominance: 'RIGHT',
+        injuryType: 'Trigger Finger',
+        enrollmentDate: twoWeeksAgo.toISOString(),
+        cohortId: 3
+      }
+    ];
+  }
+
+  async getAlerts(): Promise<any[]> {
+    const now = new Date();
+    const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+    
+    return [
+      {
+        id: 1,
+        patientId: 'PT003',
+        patientAlias: 'Patient C',
+        severity: 'critical',
+        type: 'declining_performance',
+        message: 'Patient showing significant decrease in ROM scores over last 2 assessments',
+        createdAt: oneHourAgo.toISOString(),
+        isResolved: false
+      },
+      {
+        id: 2,
+        patientId: 'PT002',
+        patientAlias: 'Patient B',
+        severity: 'warning',
+        type: 'missed_assessment',
+        message: 'Patient has not completed assessment in 7 days',
+        createdAt: now.toISOString(),
+        isResolved: false
+      }
     ];
   }
 

@@ -291,8 +291,28 @@ export class RecoveryStorage {
     return await this.activeStorage.getPatients();
   }
 
+  async getAlerts() {
+    return await this.activeStorage.getAlerts();
+  }
+
   async createAuditLog(logData: any) {
     return await this.activeStorage.createAuditLog(logData);
+  }
+
+  async createCohort(cohortData: any) {
+    return await this.activeStorage.createCohort(cohortData);
+  }
+
+  async updateCohort(id: number, updates: any) {
+    return await this.activeStorage.updateCohort(id, updates);
+  }
+
+  async createPatient(patientData: any) {
+    return await this.activeStorage.createPatient(patientData);
+  }
+
+  async updatePatient(id: number, updates: any) {
+    return await this.activeStorage.updatePatient(id, updates);
   }
 
   // Additional methods for injury type support

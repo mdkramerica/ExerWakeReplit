@@ -108,47 +108,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/cohorts", requireAuth, requireRole(['admin']), async (req, res) => {
-    try {
-      const cohortData = insertCohortSchema.parse(req.body);
-      const cohort = await storage.createCohort(cohortData);
-      
-      await auditLog(req.user.id, "cohort_create", `cohort_id:${cohort.id}`, cohortData, req);
-      
-      res.json(cohort);
-    } catch (error) {
-      res.status(400).json({ message: "Invalid cohort data" });
-    }
-  });
-
-  app.put("/api/cohorts/:id", requireAuth, requireRole(['admin']), async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const updates = insertCohortSchema.partial().parse(req.body);
-      const cohort = await storage.updateCohort(id, updates);
-      
-      if (!cohort) {
-        return res.status(404).json({ message: "Cohort not found" });
-      }
-      
-      await auditLog(req.user.id, "cohort_update", `cohort_id:${id}`, updates, req);
-      
-      res.json(cohort);
-    } catch (error) {
-      res.status(400).json({ message: "Invalid cohort data" });
-    }
-  });
-
   // Clinical Dashboard - Patient Management
   app.get("/api/patients", requireAuth, async (req, res) => {
     try {
-      const clinicianId = req.user.role === 'clinician' ? req.user.id : undefined;
-      const patients = await storage.getPatients(clinicianId);
+      const patients = await storage.getPatients();
       res.json(patients);
     } catch (error) {
+      console.error('Failed to fetch patients:', error);
       res.status(500).json({ message: "Failed to fetch patients" });
     }
   });
+
+  // Clinical Dashboard - Alerts
+  app.get("/api/alerts", requireAuth, async (req, res) => {
+    try {
+      const alerts = await storage.getAlerts();
+      res.json(alerts);
+    } catch (error) {
+      console.error('Failed to fetch alerts:', error);
+      res.status(500).json({ message: "Failed to fetch alerts" });
+    }
+  });
+
+
+
+
 
   app.post("/api/patients", requireAuth, requireRole(['clinician', 'admin']), async (req, res) => {
     try {
