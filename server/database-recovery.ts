@@ -335,10 +335,12 @@ export class RecoveryStorage {
   async getInjuryTypes() {
     if (this.isUsingMemory) {
       return [
-        { name: 'Carpal Tunnel', description: 'Median nerve compression requiring comprehensive assessment' },
-        { name: 'Tennis Elbow', description: 'Lateral epicondylitis affecting forearm and wrist' },
-        { name: 'Golfer\'s Elbow', description: 'Medial epicondylitis affecting grip and wrist motion' },
-        { name: 'Trigger Finger', description: 'Stenosing tenosynovitis affecting finger flexion' }
+        { name: 'Trigger Finger', description: 'Finger tendon disorder' },
+        { name: 'Carpal Tunnel', description: 'Nerve compression in the wrist' },
+        { name: 'Distal Radius Fracture', description: 'Broken wrist bone' },
+        { name: 'CMC Arthroplasty', description: 'Thumb joint replacement' },
+        { name: 'Metacarpal ORIF', description: 'Hand bone surgical repair' },
+        { name: 'Phalanx Fracture', description: 'Finger bone fracture' }
       ];
     }
     return await this.activeStorage.getInjuryTypes?.() || [];
