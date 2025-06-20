@@ -28,6 +28,7 @@ import ClinicalAnalytics from "@/pages/clinical-analytics";
 import ClinicalAlerts from "@/pages/clinical-alerts";
 import PatientDetail from "@/pages/patient-detail";
 import StudyEnrollment from "@/pages/study-enrollment";
+import PatientEnrollment from "@/pages/patient-enrollment";
 import StudyCohortOverview from "@/pages/study-cohort-overview";
 import LongitudinalAnalytics from "@/pages/longitudinal-analytics";
 import PredictiveModeling from "@/pages/predictive-modeling";

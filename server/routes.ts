@@ -10,7 +10,8 @@ import {
   insertPatientSchema,
   insertAssessmentTypeSchema,
   insertPatientAssessmentSchema,
-  insertAuditLogSchema
+  insertAuditLogSchema,
+  patientEnrollmentSchema
 } from "@shared/schema";
 
 // Authentication middleware
@@ -156,7 +157,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(patient);
     } catch (error) {
+      console.error('Patient creation error:', error);
       res.status(400).json({ message: "Invalid patient data" });
+    }
+  });
+
+  // Patient Enrollment endpoints
+  app.get("/api/patients/:id/eligibility/:cohortId", requireAuth, async (req, res) => {
+    try {
+      const patientId = parseInt(req.params.id);
+      const cohortId = parseInt(req.params.cohortId);
+      
+      const eligibility = await storage.checkEligibility(patientId, cohortId);
+      res.json(eligibility);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to check eligibility" });
+    }
+  });
+
+  app.post("/api/patients/:id/enroll", requireAuth, requireRole(['admin', 'clinician']), async (req, res) => {
+    try {
+      const patientId = parseInt(req.params.id);
+      const enrollmentData = patientEnrollmentSchema.parse({
+        ...req.body,
+        patientId
+      });
+      
+      const patient = await storage.enrollPatient(enrollmentData);
+      
+      await auditLog(req.user.id, "patient_enroll", `patient_id:${patient.id}`, enrollmentData, req);
+      
+      res.json(patient);
+    } catch (error) {
+      console.error('Enrollment error:', error);
+      res.status(400).json({ message: error instanceof Error ? error.message : "Enrollment failed" });
+    }
+  });
+
+  app.get("/api/patients/access-code/:code", async (req, res) => {
+    try {
+      const { code } = req.params;
+      
+      if (!code || code.length !== 6) {
+        return res.status(400).json({ message: "Invalid access code format" });
+      }
+      
+      const patient = await storage.getPatientByAccessCode(code);
+      
+      if (!patient) {
+        return res.status(404).json({ message: "Patient not found" });
+      }
+      
+      res.json({ patient });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch patient" });
     }
   });
 

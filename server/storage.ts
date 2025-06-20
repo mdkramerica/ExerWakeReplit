@@ -70,6 +70,12 @@ export interface IStorage {
   updatePatient(id: number, updates: Partial<Patient>): Promise<Patient | undefined>;
   deletePatient(id: number): Promise<boolean>;
   
+  // Patient enrollment
+  checkEligibility(patientId: number, cohortId: number): Promise<{ eligible: boolean; reasons: string[] }>;
+  enrollPatient(enrollment: any): Promise<Patient>;
+  generateAccessCode(): Promise<string>;
+  getPatientByAccessCode(accessCode: string): Promise<Patient | undefined>;
+  
   // Assessment Type methods
   getAssessmentTypes(): Promise<AssessmentType[]>;
   getAssessmentType(id: number): Promise<AssessmentType | undefined>;
