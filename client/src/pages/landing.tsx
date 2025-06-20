@@ -17,9 +17,22 @@ export default function Landing() {
   const verifyCodeMutation = useMutation({
     mutationFn: async (code: string) => {
       console.log('Attempting to verify code:', code);
-      const response = await apiRequest("POST", "/api/users/verify-code", { code });
+      console.log('Making API request:', { method: 'POST', url: '/api/users/verify-code', data: { code } });
+      const response = await fetch('/api/users/verify-code', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ code }),
+      });
+      console.log('API response status:', response.status);
       const data = await response.json();
-      console.log('Verification response:', data);
+      console.log('API response data:', data);
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Verification failed');
+      }
+      
       return data;
     },
     onSuccess: (data) => {
