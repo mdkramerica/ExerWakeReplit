@@ -773,12 +773,15 @@ export class PersistentMemoryStorage {
   }
 
   async checkEligibility(patientId: number, cohortId: number): Promise<{ eligible: boolean; reasons: string[] }> {
+    console.log(`Looking for patient ${patientId} in patients map with ${this.patients.size} entries`);
     const patient = this.patients.get(patientId);
     
     if (!patient) {
+      console.log(`Patient ${patientId} not found in patients map`);
       return { eligible: false, reasons: ['Patient not found'] };
     }
 
+    console.log(`Found patient:`, patient);
     const reasons: string[] = [];
     
     // Check if already enrolled in another study
@@ -800,6 +803,8 @@ export class PersistentMemoryStorage {
       reasons.push('Patient account is inactive');
     }
 
-    return { eligible: reasons.length === 0, reasons };
+    const result = { eligible: reasons.length === 0, reasons };
+    console.log(`Eligibility result:`, result);
+    return result;
   }
 }
