@@ -167,12 +167,14 @@ export class PersistentMemoryStorage {
       this.assessments.set(assessment.id, assessment);
     });
 
-    // Create injury types
+    // Create injury types matching overview page exactly
     this.injuryTypes = [
-      { name: 'Carpal Tunnel', description: 'Median nerve compression requiring comprehensive assessment' },
-      { name: 'Tennis Elbow', description: 'Lateral epicondylitis affecting forearm and wrist' },
-      { name: 'Golfer\'s Elbow', description: 'Medial epicondylitis affecting grip and wrist motion' },
-      { name: 'Trigger Finger', description: 'Stenosing tenosynovitis affecting finger flexion' }
+      { name: 'Trigger Finger', description: 'Finger tendon disorder' },
+      { name: 'Carpal Tunnel', description: 'Nerve compression in the wrist' },
+      { name: 'Distal Radius Fracture', description: 'Broken wrist bone' },
+      { name: 'CMC Arthroplasty', description: 'Thumb joint replacement' },
+      { name: 'Metacarpal ORIF', description: 'Hand bone surgical repair' },
+      { name: 'Phalanx Fracture', description: 'Finger bone fracture' }
     ];
 
     // Create demo user and test users with study tracking
@@ -507,6 +509,7 @@ export class PersistentMemoryStorage {
 
   async getAssessmentsForInjuryType(injuryType: string): Promise<any[]> {
     const allAssessments = await this.getAssessments();
+    // Assessment mapping based on overview page data
     const injuryAssessmentMap: Record<string, string[]> = {
       "Trigger Finger": ["TAM (Total Active Motion)"],
       "Carpal Tunnel": ["TAM (Total Active Motion)", "Kapandji Score", "Wrist Flexion/Extension", "Forearm Pronation/Supination", "Wrist Radial/Ulnar Deviation"],
