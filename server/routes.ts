@@ -675,16 +675,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = parseInt(req.params.userId);
       const assessmentId = parseInt(req.params.assessmentId);
       
-      // Check if user assessment already exists
-      let userAssessment = await storage.getUserAssessment(userId, assessmentId);
-      
-      if (!userAssessment) {
-        userAssessment = await storage.createUserAssessment({
-          userId,
-          assessmentId,
-          isCompleted: false
-        });
+      // Get the assessment to include its name
+      const assessment = await storage.getAssessment(assessmentId);
+      if (!assessment) {
+        return res.status(404).json({ message: 'Assessment not found' });
       }
+
+      // Create new user assessment
+      const userAssessment = await storage.createUserAssessment({
+        userId,
+        assessmentId,
+        assessmentName: assessment.name,
+        isCompleted: false
+      });
       
       res.json({ userAssessment });
     } catch (error) {
