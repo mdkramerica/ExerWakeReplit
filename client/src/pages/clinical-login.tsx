@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useLocation } from 'wouter';
+import { useLocation, Link } from 'wouter';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/lib/auth';
-import { Loader2, Stethoscope } from 'lucide-react';
+import { Loader2, Stethoscope, ArrowLeft } from 'lucide-react';
 
 const loginSchema = z.object({
   username: z.string().min(1, 'Username is required'),
@@ -48,6 +48,17 @@ export default function ClinicalLogin() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
+      {/* Back to Home Button - Fixed Position */}
+      <Link href="/">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="fixed top-4 left-4 flex items-center gap-2 z-10"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Home
+        </Button>
+      </Link>
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <div className="flex items-center justify-center mb-4">
