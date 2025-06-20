@@ -34,11 +34,11 @@ const targetROM = {
     'Wrist Radial/Ulnar Deviation': 28
   },
   'Metacarpal ORIF': {
-    'TAM (Total Active Motion)': 260,
-    'Index Finger TAM': 260,
-    'Middle Finger TAM': 260,
-    'Ring Finger TAM': 260,
-    'Pinky Finger TAM': 260
+    'TAM (Total Active Motion)': 270,
+    'Index Finger TAM': 270,
+    'Middle Finger TAM': 270,
+    'Ring Finger TAM': 270,
+    'Pinky Finger TAM': 270
   },
   'Phalanx Fracture': {
     'TAM (Total Active Motion)': 260
@@ -86,7 +86,7 @@ export default function ProgressCharts() {
   // Process data for charts
   const getChartData = (assessmentName: string): ChartDataPoint[] => {
     const relevantHistory = userHistory.filter(h => h.assessmentName === 'TAM (Total Active Motion)');
-    const target = targetROM[injuryType]?.[assessmentName] || 260;
+    const target = targetROM[injuryType]?.[assessmentName] || 270;
     
     return relevantHistory.map(item => {
       // Calculate post-op day
