@@ -16,10 +16,14 @@ export default function Landing() {
 
   const verifyCodeMutation = useMutation({
     mutationFn: async (code: string) => {
+      console.log('Attempting to verify code:', code);
       const response = await apiRequest("POST", "/api/users/verify-code", { code });
-      return response.json();
+      const data = await response.json();
+      console.log('Verification response:', data);
+      return data;
     },
     onSuccess: (data) => {
+      console.log('Verification successful:', data);
       // Store user data in sessionStorage
       sessionStorage.setItem('currentUser', JSON.stringify(data.user));
       // Store user code in localStorage for redirect logic
@@ -31,7 +35,8 @@ export default function Landing() {
         setLocation(`/assessment-list/${data.user.code}`);
       }
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Verification error:', error);
       toast({
         title: "Invalid Code",
         description: "Please check your 6-digit access code and try again.",

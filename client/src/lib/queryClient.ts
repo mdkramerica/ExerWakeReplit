@@ -56,4 +56,34 @@ export const queryClient = new QueryClient({
   },
 });
 
-export { makeRequest as apiRequest };
+// Export a compatible apiRequest function for landing page
+export async function apiRequest(method: string, endpoint: string, data?: any) {
+  const baseUrl = import.meta.env.VITE_API_URL || '';
+  
+  const config: RequestInit = {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  };
+
+  if (data) {
+    config.body = JSON.stringify(data);
+  }
+
+  console.log('Making API request:', { method, url: `${baseUrl}${endpoint}`, data });
+
+  const response = await fetch(`${baseUrl}${endpoint}`, config);
+  
+  console.log('API response status:', response.status);
+  
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('API error response:', errorText);
+    throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+  }
+  
+  return response;
+}
+
+export { makeRequest };
