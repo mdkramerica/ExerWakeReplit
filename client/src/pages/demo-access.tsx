@@ -24,7 +24,7 @@ export default function DemoAccess() {
       const response = await apiRequest('/api/users/verify-code', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: 'DEMO123' })
+        body: JSON.stringify({ code: 'DEMO01' })
       });
 
       if (response.user) {
@@ -40,7 +40,7 @@ export default function DemoAccess() {
         }
         
         // Navigate to assessment list
-        setLocation(`/assessment-list/DEMO123`);
+        setLocation(`/assessment-list/DEMO01`);
       }
     } catch (error) {
       console.error('Demo login failed:', error);
@@ -56,7 +56,7 @@ export default function DemoAccess() {
       const response = await apiRequest('/api/users/verify-code', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: 'DEMO123' })
+        body: JSON.stringify({ code: 'DEMO01' })
       });
 
       if (response.user && !response.user.injuryType) {
@@ -86,7 +86,7 @@ export default function DemoAccess() {
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-4">Demo Access</h1>
             <p className="text-lg text-gray-600">
-              Experience all assessments using demo user: <strong>DEMO123</strong>
+              Experience all assessments using demo user: <strong>DEMO01</strong>
             </p>
           </div>
 
