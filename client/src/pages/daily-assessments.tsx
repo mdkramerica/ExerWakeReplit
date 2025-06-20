@@ -113,7 +113,7 @@ export default function DailyAssessments() {
             </div>
             <Progress value={progress?.percentage || 0} />
             <div className="flex items-center justify-between text-sm">
-              <span>Study Duration: {progress?.totalStudyDays || 28} days</span>
+              <span>Study Duration: {studyDuration} days</span>
               <Link href="/progress">
                 <Button variant="outline" size="sm">
                   <TrendingUp className="h-4 w-4 mr-2" />
