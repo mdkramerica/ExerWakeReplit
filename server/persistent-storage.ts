@@ -175,28 +175,37 @@ export class PersistentMemoryStorage {
       { name: 'Trigger Finger', description: 'Stenosing tenosynovitis affecting finger flexion' }
     ];
 
-    // Create demo user and test users
+    // Create demo user and test users with study tracking
     const predefinedUsers = [
       {
         id: 1,
         code: 'DEMO01',
-        createdAt: new Date(),
+        createdAt: new Date('2025-06-20T18:24:59.559Z'),
         isFirstTime: false,
-        injuryType: 'Carpal Tunnel'
+        injuryType: 'Carpal Tunnel',
+        studyStartDate: new Date('2025-06-20T18:24:59.559Z'),
+        studyDurationDays: 28,
+        studyEndDate: new Date('2025-07-18T18:24:59.559Z')
       },
       {
         id: 2,
         code: 'TEST01',
-        createdAt: new Date(),
+        createdAt: new Date('2025-06-19T10:30:00.000Z'),
         isFirstTime: true,
-        injuryType: null
+        injuryType: 'Trigger Finger',
+        studyStartDate: new Date('2025-06-19T10:30:00.000Z'),
+        studyDurationDays: 28,
+        studyEndDate: new Date('2025-07-17T10:30:00.000Z')
       },
       {
         id: 3,
         code: 'ADMIN1',
-        createdAt: new Date(),
+        createdAt: new Date('2025-06-18T14:15:30.000Z'),
         isFirstTime: true,
-        injuryType: null
+        injuryType: 'Distal Radius Fracture',
+        studyStartDate: new Date('2025-06-18T14:15:30.000Z'),
+        studyDurationDays: 84,
+        studyEndDate: new Date('2025-09-10T14:15:30.000Z')
       }
     ];
     
@@ -205,7 +214,7 @@ export class PersistentMemoryStorage {
       this.userByCode.set(user.code, user);
     });
 
-    // Create sample completed assessments for demonstration
+    // Create sample completed assessments with daily completion tracking
     const sampleAssessments = [
       {
         id: 6,
@@ -213,13 +222,16 @@ export class PersistentMemoryStorage {
         assessmentId: 3,
         sessionNumber: 1,
         isCompleted: true,
-        completedAt: new Date().toISOString(),
+        completedAt: new Date('2025-06-20T18:24:59.559Z'),
+        completedOn: '2025-06-20',
+        postOpDay: 1,
         qualityScore: 95,
         maxWristFlexion: 65,
         maxWristExtension: 58,
         wristFlexionAngle: 65,
         wristExtensionAngle: 58,
         handType: 'LEFT',
+        shareToken: 'share_wrist_123',
         romData: {
           assessmentId: "3",
           repetitionsCompleted: 1,
@@ -241,11 +253,15 @@ export class PersistentMemoryStorage {
         assessmentId: 2,
         sessionNumber: 1,
         isCompleted: true,
-        completedAt: new Date().toISOString(),
+        completedAt: new Date('2025-06-19T15:30:00.000Z'),
+        completedOn: '2025-06-19',
+        postOpDay: 0,
         qualityScore: 88,
+        totalActiveRom: 8,
         kapandjiScore: 8,
         maxThumbOpposition: 85,
         handType: 'LEFT',
+        shareToken: 'share_kapandji_456',
         romData: {
           assessmentId: "2",
           repetitionsCompleted: 1,
@@ -463,27 +479,83 @@ export class PersistentMemoryStorage {
 
   async getUserProgress(userId: number): Promise<any> {
     const user = this.users.get(userId);
-    if (!user) return { completed: 0, total: 0, percentage: 0 };
+    if (!user) return { completed: 0, total: 0, percentage: 0, studyDay: 0, daysRemaining: 0 };
 
     const userAssessments = await this.getUserAssessments(userId);
-    const completedAssessments = userAssessments.filter(ua => ua.completedAt);
+    const today = new Date().toISOString().split('T')[0];
+    const completedToday = userAssessments.filter(ua => ua.completedOn === today);
     
     const totalAssessments = user.injuryType 
       ? await this.getAssessmentsForInjuryType(user.injuryType)
       : await this.getAssessments();
 
+    // Calculate study progress
+    const studyStartDate = new Date(user.studyStartDate || user.createdAt);
+    const currentDate = new Date();
+    const studyDay = Math.floor((currentDate.getTime() - studyStartDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    const daysRemaining = Math.max(0, (user.studyDurationDays || 28) - studyDay + 1);
+
     return {
-      completed: completedAssessments.length,
+      completed: completedToday.length,
       total: totalAssessments.length,
-      percentage: Math.round((completedAssessments.length / totalAssessments.length) * 100)
+      percentage: totalAssessments.length > 0 ? Math.round((completedToday.length / totalAssessments.length) * 100) : 0,
+      studyDay: Math.max(1, studyDay),
+      daysRemaining,
+      totalStudyDays: user.studyDurationDays || 28
     };
   }
 
   async getAssessmentsForInjuryType(injuryType: string): Promise<any[]> {
-    // For now, return all assessments regardless of injury type
-    const assessments = await this.getAssessments();
+    const allAssessments = await this.getAssessments();
+    const injuryAssessmentMap: Record<string, string[]> = {
+      "Trigger Finger": ["TAM (Total Active Motion)"],
+      "Carpal Tunnel": ["TAM (Total Active Motion)", "Kapandji Score", "Wrist Flexion/Extension", "Forearm Pronation/Supination", "Wrist Radial/Ulnar Deviation"],
+      "Distal Radius Fracture": ["TAM (Total Active Motion)", "Kapandji Score", "Wrist Flexion/Extension", "Forearm Pronation/Supination", "Wrist Radial/Ulnar Deviation"],
+      "CMC Arthroplasty": ["TAM (Total Active Motion)", "Kapandji Score", "Wrist Flexion/Extension", "Forearm Pronation/Supination", "Wrist Radial/Ulnar Deviation"],
+      "Metacarpal ORIF": ["TAM (Total Active Motion)"],
+      "Phalanx Fracture": ["TAM (Total Active Motion)"]
+    };
+
+    const requiredAssessments = injuryAssessmentMap[injuryType] || ["TAM (Total Active Motion)"];
+    const assessments = allAssessments.filter(assessment => 
+      requiredAssessments.includes(assessment.name)
+    );
+    
     console.log(`Persistent storage getAssessmentsForInjuryType(${injuryType}) returning:`, assessments.length, 'assessments');
     return assessments;
+  }
+
+  async getTodaysAssessments(userId: number): Promise<any[]> {
+    const user = this.users.get(userId);
+    if (!user) return [];
+
+    const today = new Date().toISOString().split('T')[0];
+    const assessments = await this.getAssessmentsForInjuryType(user.injuryType || 'Carpal Tunnel');
+    const userAssessments = await this.getUserAssessments(userId);
+    
+    const completedToday = userAssessments.filter(ua => ua.completedOn === today);
+    
+    return assessments.map(assessment => {
+      const completedAssessment = completedToday.find(ua => ua.assessmentId === assessment.id);
+      return {
+        ...assessment,
+        status: completedAssessment ? 'completed' : 'due_today',
+        completedAt: completedAssessment?.completedAt,
+        lastScore: completedAssessment?.totalActiveRom || completedAssessment?.wristFlexionAngle || null,
+        lastUserAssessmentId: completedAssessment?.id
+      };
+    });
+  }
+
+  async canCompleteAssessment(userId: number, assessmentId: number): Promise<boolean> {
+    const today = new Date().toISOString().split('T')[0];
+    const userAssessments = await this.getUserAssessments(userId);
+    
+    const completedToday = userAssessments.some(ua => 
+      ua.assessmentId === assessmentId && ua.completedOn === today
+    );
+    
+    return !completedToday;
   }
 
   async getInjuryTypes(): Promise<any[]> {
