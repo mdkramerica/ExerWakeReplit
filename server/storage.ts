@@ -1184,9 +1184,17 @@ export class MemStorage implements IStorage {
 // Initialize the database with default data
 async function initializeDatabase() {
   try {
-    // Check if data already exists
-    const existingInjuryTypes = await db.select().from(injuryTypes);
-    const existingAssessments = await db.select().from(assessments);
+    console.log('Initializing database...');
+    // Check if data already exists with timeout
+    const existingInjuryTypes = await Promise.race([
+      db.select().from(injuryTypes),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Query timeout')), 10000))
+    ]) as any[];
+    
+    const existingAssessments = await Promise.race([
+      db.select().from(assessments),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Query timeout')), 10000))
+    ]) as any[];
 
     if (existingInjuryTypes.length === 0) {
       // Initialize medical injury types based on clinical requirements
