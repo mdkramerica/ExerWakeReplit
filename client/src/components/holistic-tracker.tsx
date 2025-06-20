@@ -1,6 +1,15 @@
 import { useEffect, useRef, useCallback, useState } from "react";
 import { calculateElbowReferencedWristAngle, calculateElbowReferencedWristAngleWithForce, resetRecordingSession, getRecordingSessionElbowSelection } from "@shared/elbow-wrist-calculator";
-// import exerLogoPath from "@assets/exer-ai-logo-white.png";
+
+// MediaPipe type declarations for window object
+declare global {
+  interface Window {
+    Holistic: any;
+    Hands: any;
+    drawConnectors: any;
+    drawLandmarks: any;
+  }
+}
 
 interface HolisticTrackerProps {
   onUpdate: (data: any) => void;
@@ -35,33 +44,88 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType,
     }
   }, [isRecording]);
 
+  // CDN fallback loader
+  const loadMediaPipeFromCDN = async (): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/@mediapipe/holistic/holistic.js';
+      script.onload = () => {
+        // Wait a bit for the script to initialize
+        setTimeout(() => {
+          if ((window as any).Holistic) {
+            resolve();
+          } else {
+            reject(new Error('Holistic not available after CDN load'));
+          }
+        }, 500);
+      };
+      script.onerror = () => reject(new Error('Failed to load MediaPipe from CDN'));
+      document.head.appendChild(script);
+    });
+  };
+
   // Initialize MediaPipe Holistic once
   const initializeHolistic = useCallback(async () => {
     if (isInitializing || holisticInitialized) return;
     
     setIsInitializing(true);
     try {
-      // Robust module loading with fallback
-      let HolisticClass, drawConnectors, drawLandmarks;
+      // Check if we're in a browser environment
+      if (typeof window === 'undefined') {
+        throw new Error('MediaPipe requires browser environment');
+      }
+
+      // Wait for MediaPipe to be available (preloaded scripts or dynamic import)
+      let attempts = 0;
+      const maxAttempts = 15;
       
-      try {
-        const holisticModule = await import('@mediapipe/holistic');
-        HolisticClass = holisticModule.Holistic || holisticModule.default?.Holistic;
+      while (attempts < maxAttempts) {
+        // Check if already available from preloaded scripts
+        if ((window as any).Holistic) {
+          console.log('MediaPipe Holistic found from preloaded scripts');
+          break;
+        }
         
-        const drawingModule = await import('@mediapipe/drawing_utils');
-        drawConnectors = drawingModule.drawConnectors;
-        drawLandmarks = drawingModule.drawLandmarks;
-      } catch (importError) {
-        console.error('Failed to import MediaPipe modules:', importError);
-        throw new Error('MediaPipe modules not available');
+        // Try dynamic import for local development
+        if (attempts < 5) {
+          try {
+            const [holisticModule, drawingModule] = await Promise.all([
+              import('@mediapipe/holistic').catch(() => null),
+              import('@mediapipe/drawing_utils').catch(() => null)
+            ]);
+            
+            if (holisticModule?.Holistic) {
+              (window as any).Holistic = holisticModule.Holistic;
+              if (drawingModule?.drawConnectors) {
+                (window as any).drawConnectors = drawingModule.drawConnectors;
+                (window as any).drawLandmarks = drawingModule.drawLandmarks;
+              }
+              console.log('MediaPipe Holistic loaded via dynamic import');
+              break;
+            }
+          } catch (importError) {
+            console.warn(`Dynamic import attempt ${attempts + 1} failed:`, importError);
+          }
+        }
+        
+        attempts++;
+        await new Promise(resolve => setTimeout(resolve, 200));
       }
 
-      if (!HolisticClass) {
-        throw new Error('Holistic constructor not found');
+      if (!(window as any).Holistic) {
+        throw new Error('MediaPipe Holistic unavailable. Please refresh the page and ensure stable internet connection.');
       }
 
-      const holisticInstance = new HolisticClass({
-        locateFile: (file: string) => `https://cdn.jsdelivr.net/npm/@mediapipe/holistic/${file}`
+      const holisticInstance = new (window as any).Holistic({
+        locateFile: (file: string) => {
+          // Use multiple CDN fallbacks
+          const cdnUrls = [
+            `https://cdn.jsdelivr.net/npm/@mediapipe/holistic/${file}`,
+            `https://unpkg.com/@mediapipe/holistic/${file}`,
+            `/node_modules/@mediapipe/holistic/${file}`
+          ];
+          return cdnUrls[0]; // Primary CDN
+        }
       });
 
       holisticInstance.setOptions({
@@ -80,15 +144,59 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType,
 
       holisticRef.current = holisticInstance;
       setHolisticInitialized(true);
-      console.log('MediaPipe Holistic initialized for comprehensive tracking');
+      console.log('MediaPipe Holistic initialized successfully');
       
     } catch (error) {
       console.error('Holistic initialization failed:', error);
       setHolisticInitialized(false);
+      
+      // Fallback to hand-only tracking if available
+      try {
+        if ((window as any).Hands) {
+          console.log('Falling back to Hands-only tracking');
+          const handsInstance = new (window as any).Hands({
+            locateFile: (file: string) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+          });
+          
+          handsInstance.setOptions({
+            maxNumHands: 1,
+            modelComplexity: 1,
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5
+          });
+          
+          handsInstance.onResults((results: any) => {
+            // Convert hands results to holistic format
+            const holisticResults = {
+              leftHandLandmarks: results.multiHandedness?.[0]?.label === 'Left' ? results.multiHandLandmarks?.[0] : null,
+              rightHandLandmarks: results.multiHandedness?.[0]?.label === 'Right' ? results.multiHandLandmarks?.[0] : null,
+              poseLandmarks: null // No pose data available
+            };
+            processHolisticResults(holisticResults);
+          });
+          
+          holisticRef.current = handsInstance;
+          setHolisticInitialized(true);
+          console.log('Hands fallback initialized');
+        } else {
+          // Final fallback - show error message to user
+          console.error('Neither Holistic nor Hands tracking available');
+          onUpdate({
+            error: 'Camera tracking unavailable. Please refresh the page and ensure you have a stable internet connection.',
+            trackingAvailable: false
+          });
+        }
+      } catch (fallbackError) {
+        console.error('Fallback initialization also failed:', fallbackError);
+        onUpdate({
+          error: 'Camera tracking initialization failed. Please refresh the page.',
+          trackingAvailable: false
+        });
+      }
     } finally {
       setIsInitializing(false);
     }
-  }, [isInitializing, holisticInitialized, isRecording]);
+  }, [isInitializing, holisticInitialized]);
 
   // Process holistic results only during recording
   const processHolisticResults = useCallback((results: any) => {
