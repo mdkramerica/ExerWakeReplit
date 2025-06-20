@@ -67,7 +67,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/login", async (req, res) => {
     try {
       const { username, password } = loginSchema.parse(req.body);
+      console.log(`Login attempt for username: ${username}`);
+      
       const user = await storage.authenticateClinicalUser(username, password);
+      console.log(`Authentication result:`, user ? 'success' : 'failed');
       
       if (!user) {
         return res.status(401).json({ message: "Invalid credentials" });
@@ -90,6 +93,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } 
       });
     } catch (error) {
+      console.error('Login error:', error);
       res.status(400).json({ message: "Invalid request format" });
     }
   });
