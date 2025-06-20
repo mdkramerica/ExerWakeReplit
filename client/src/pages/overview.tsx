@@ -45,6 +45,50 @@ export default function Overview() {
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
+          {/* Demo Banner */}
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-blue-900">Demo Mode Available</h3>
+                <p className="text-blue-700">Use access code <strong>DEMO123</strong> to test all assessments</p>
+              </div>
+              <Link href="/demo">
+                <Button variant="outline" className="bg-blue-600 text-white hover:bg-blue-700">
+                  Start Demo
+                </Button>
+              </Link>
+            </div>
+          </div>
+
+          {/* All Assessments Section */}
+          <div className="mb-8">
+            <h2 className="text-3xl font-bold text-gray-900 mb-6">Available Assessments</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {assessments.map((assessment: any) => (
+                <Card key={assessment.id} className="hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <CardTitle className="text-lg">{assessment.name}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-600 mb-4">{assessment.description}</p>
+                    <div className="flex gap-2">
+                      <Link href="/demo">
+                        <Button className="flex-1">
+                          Demo Assessment
+                        </Button>
+                      </Link>
+                      {assessment.videoUrl && (
+                        <Button variant="outline" size="sm">
+                          View Instructions
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+
           {/* Header */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-6">
