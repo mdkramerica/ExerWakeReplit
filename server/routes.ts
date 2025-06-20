@@ -162,6 +162,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Dashboard API endpoints
+  app.get("/api/patients/dashboard", requireAuth, async (req, res) => {
+    try {
+      const dashboardData = await storage.getPatientDashboardData();
+      res.json(dashboardData);
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+      res.status(500).json({ message: "Failed to fetch dashboard data" });
+    }
+  });
+
+  app.get("/api/dashboard/metrics", requireAuth, async (req, res) => {
+    try {
+      const metrics = await storage.getDashboardMetrics();
+      res.json(metrics);
+    } catch (error) {
+      console.error("Error fetching dashboard metrics:", error);
+      res.status(500).json({ message: "Failed to fetch dashboard metrics" });
+    }
+  });
+
+  app.get("/api/patients/:id/assessments", requireAuth, async (req, res) => {
+    try {
+      const patientId = parseInt(req.params.id);
+      const assessments = await storage.getPatientAssessmentHistory(patientId);
+      res.json({ assessments });
+    } catch (error) {
+      console.error("Error fetching patient assessments:", error);
+      res.status(500).json({ message: "Failed to fetch patient assessments" });
+    }
+  });
+
   // Patient Enrollment endpoints
   app.get("/api/patients/:id/eligibility/:cohortId", requireAuth, async (req, res) => {
     try {

@@ -31,6 +31,7 @@ interface ClinicalLayoutProps {
 const navigation = [
   { name: 'Dashboard', href: '/clinical/dashboard', icon: Home, roles: ['clinician', 'admin', 'researcher'] },
   { name: 'Patients', href: '/clinical/patients', icon: Users, roles: ['clinician', 'admin'] },
+  { name: 'Patient Dashboard', href: '/clinical/patient-dashboard', icon: LayoutDashboard, roles: ['clinician', 'admin', 'researcher'] },
   { name: 'Patient Enrollment', href: '/clinical/patient-enrollment', icon: UserPlus, roles: ['clinician', 'admin'] },
   { name: 'Analytics', href: '/clinical/analytics', icon: BarChart3, roles: ['clinician', 'admin', 'researcher'] },
   { name: 'Longitudinal Analytics', href: '/clinical/study/analytics', icon: Activity, roles: ['clinician', 'admin', 'researcher'] },
