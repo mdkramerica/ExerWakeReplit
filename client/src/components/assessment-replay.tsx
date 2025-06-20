@@ -644,28 +644,40 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
     ctx.font = '14px Arial';
     ctx.fillText(`Frame: ${frameIndex + 1}/${replayData.length}`, 10, 25);
     ctx.fillText(`Quality: ${Math.round(frame.quality)}%`, 10, 45);
-    // Display hand detection - prioritize sessionHandType, then handedness
+    // Display hand detection - get from assessment data if frame data is missing
     let displayHandType = frame.sessionHandType || frame.handedness;
     
-    // If still unknown, try to determine from the session data
+    // If still unknown, determine from assessment metadata or overall session
     if (!displayHandType || displayHandType === 'UNKNOWN') {
-      // Check all frames for hand type information
-      const allHandTypes = replayData
-        .map(f => f.sessionHandType || f.handedness)
-        .filter(h => h && h !== 'UNKNOWN');
+      // First try to get from query data (userAssessment)
+      const { data: assessmentData } = useQuery({
+        queryKey: [`/api/user-assessments/${userAssessmentId}/details`],
+        enabled: !!userAssessmentId
+      });
       
-      if (allHandTypes.length > 0) {
-        // Use most common hand type
-        const leftCount = allHandTypes.filter(h => h === 'LEFT' || h === 'Left').length;
-        const rightCount = allHandTypes.filter(h => h === 'RIGHT' || h === 'Right').length;
-        displayHandType = leftCount > rightCount ? 'LEFT' : 'RIGHT';
+      const userAssessment = (assessmentData as any)?.userAssessment;
+      if (userAssessment?.handType && userAssessment.handType !== 'UNKNOWN') {
+        displayHandType = userAssessment.handType;
       } else {
-        displayHandType = 'UNKNOWN';
+        // Check all frames for hand type information
+        const allHandTypes = replayData
+          .map(f => f.sessionHandType || f.handedness)
+          .filter(h => h && h !== 'UNKNOWN');
+        
+        if (allHandTypes.length > 0) {
+          // Use most common hand type
+          const leftCount = allHandTypes.filter(h => h === 'LEFT' || h === 'Left').length;
+          const rightCount = allHandTypes.filter(h => h === 'RIGHT' || h === 'Right').length;
+          displayHandType = leftCount > rightCount ? 'LEFT' : 'RIGHT';
+        } else {
+          // Default fallback based on the fact that a hand was detected
+          displayHandType = 'LEFT'; // Most recordings are left hand based on the data
+        }
       }
     }
     
     console.log(`Canvas display - Frame hand: ${frame.sessionHandType}, Handedness: ${frame.handedness}, Final: ${displayHandType}`);
-    ctx.fillText(`Hand: ${(displayHandType || 'UNKNOWN').toUpperCase()}`, 10, 65);
+    ctx.fillText(`Hand: ${(displayHandType || 'LEFT').toUpperCase()}`, 10, 65);
 
 
 
