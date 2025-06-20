@@ -114,16 +114,20 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
         }).filter(Boolean);
         
         if (wristAnglesAllFrames.length > 0) {
-          // Find maximum wrist angles - ensure no artificial caps
-          const flexionAngles = wristAnglesAllFrames.map(w => w!.wristFlexionAngle).filter(angle => angle > 0);
-          const extensionAngles = wristAnglesAllFrames.map(w => w!.wristExtensionAngle).filter(angle => angle > 0);
-          const forearmAngles = wristAnglesAllFrames.map(w => w!.forearmToHandAngle);
+          // Find maximum wrist angles - capture all positive angles
+          const allFlexionAngles = wristAnglesAllFrames.map(w => w!.wristFlexionAngle).filter(angle => !isNaN(angle) && angle >= 0);
+          const allExtensionAngles = wristAnglesAllFrames.map(w => w!.wristExtensionAngle).filter(angle => !isNaN(angle) && angle >= 0);
+          const allForearmAngles = wristAnglesAllFrames.map(w => w!.forearmToHandAngle).filter(angle => !isNaN(angle));
           
-          const maxFlexion = flexionAngles.length > 0 ? Math.max(...flexionAngles) : 0;
-          const maxExtension = extensionAngles.length > 0 ? Math.max(...extensionAngles) : 0;
-          const maxForearmAngle = Math.max(...forearmAngles);
+          const maxFlexion = allFlexionAngles.length > 0 ? Math.max(...allFlexionAngles) : 0;
+          const maxExtension = allExtensionAngles.length > 0 ? Math.max(...allExtensionAngles) : 0;
+          const maxForearmAngle = allForearmAngles.length > 0 ? Math.max(...allForearmAngles) : 0;
           
-          console.log(`Replay wrist analysis - Max Flexion: ${maxFlexion.toFixed(1)}°, Max Extension: ${maxExtension.toFixed(1)}°, Frames analyzed: ${wristAnglesAllFrames.length}`);
+          console.log(`REPLAY MAXIMUM ANALYSIS:`);
+          console.log(`  - Flexion angles found: ${allFlexionAngles.length}, Max: ${maxFlexion.toFixed(1)}°`);
+          console.log(`  - Extension angles found: ${allExtensionAngles.length}, Max: ${maxExtension.toFixed(1)}°`);
+          console.log(`  - Total frames analyzed: ${wristAnglesAllFrames.length}`);
+          console.log(`  - Raw angle range: ${Math.min(...allForearmAngles).toFixed(1)}° to ${maxForearmAngle.toFixed(1)}°`);
           
           setMaxWristAngles({
             forearmToHandAngle: maxForearmAngle,
