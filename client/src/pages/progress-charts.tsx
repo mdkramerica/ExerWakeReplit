@@ -34,10 +34,14 @@ const targetROM = {
     'Wrist Radial/Ulnar Deviation': 28
   },
   'Metacarpal ORIF': {
-    'TAM (Total Active Motion)': 250
+    'TAM (Total Active Motion)': 260,
+    'Index Finger TAM': 260,
+    'Middle Finger TAM': 260,
+    'Ring Finger TAM': 260,
+    'Pinky Finger TAM': 260
   },
   'Phalanx Fracture': {
-    'TAM (Total Active Motion)': 240
+    'TAM (Total Active Motion)': 260
   }
 };
 
@@ -49,26 +53,31 @@ interface ChartDataPoint {
 }
 
 export default function ProgressCharts() {
+  // Get user code from sessionStorage
+  const storedUser = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
+  const userCode = storedUser.code || localStorage.getItem('currentUserCode') || 'DEMO01';
+  const userId = storedUser.id || 1;
+
   const { data: user } = useQuery({
-    queryKey: ["/api/users/by-code/DEMO01"],
+    queryKey: [`/api/users/by-code/${userCode}`],
   });
 
   const { data: progress } = useQuery({
-    queryKey: ["/api/users/1/progress"],
-    enabled: !!user,
+    queryKey: [`/api/users/${userId}/progress`],
+    enabled: !!userId,
   });
 
   const { data: history } = useQuery({
-    queryKey: ["/api/users/1/history"],
-    enabled: !!user,
+    queryKey: [`/api/users/${userId}/history`],
+    enabled: !!userId,
   });
 
   const { data: assessments } = useQuery({
-    queryKey: ["/api/users/1/assessments"],
-    enabled: !!user,
+    queryKey: [`/api/users/${userId}/assessments`],
+    enabled: !!userId,
   });
 
-  const userId = user?.user?.id || 1;
+  const actualUserId = user?.user?.id || userId;
   const injuryType = user?.user?.injuryType || 'Carpal Tunnel';
   const studyStartDate = user?.user?.studyStartDate || user?.user?.createdAt;
   const userHistory = history?.history || [];
@@ -76,8 +85,8 @@ export default function ProgressCharts() {
 
   // Process data for charts
   const getChartData = (assessmentName: string): ChartDataPoint[] => {
-    const relevantHistory = userHistory.filter(h => h.assessmentName === assessmentName);
-    const target = targetROM[injuryType]?.[assessmentName] || 100;
+    const relevantHistory = userHistory.filter(h => h.assessmentName === 'TAM (Total Active Motion)');
+    const target = targetROM[injuryType]?.[assessmentName] || 260;
     
     return relevantHistory.map(item => {
       // Calculate post-op day
@@ -87,10 +96,18 @@ export default function ProgressCharts() {
       
       // Get the appropriate value based on assessment type
       let value = 0;
-      if (assessmentName.includes('TAM')) {
-        value = item.totalActiveRom || 0;
+      if (assessmentName === 'TAM (Total Active Motion)') {
+        value = parseFloat(item.totalActiveRom) || 0;
+      } else if (assessmentName === 'Index Finger TAM') {
+        value = parseFloat(item.indexFingerRom) || 0;
+      } else if (assessmentName === 'Middle Finger TAM') {
+        value = parseFloat(item.middleFingerRom) || 0;
+      } else if (assessmentName === 'Ring Finger TAM') {
+        value = parseFloat(item.ringFingerRom) || 0;
+      } else if (assessmentName === 'Pinky Finger TAM') {
+        value = parseFloat(item.pinkyFingerRom) || 0;
       } else if (assessmentName.includes('Kapandji')) {
-        value = item.totalActiveRom || 0; // Kapandji score stored in totalActiveRom
+        value = parseFloat(item.totalActiveRom) || 0;
       } else if (assessmentName.includes('Flexion/Extension')) {
         value = (item.wristFlexionAngle || 0) + (item.wristExtensionAngle || 0);
       } else if (assessmentName.includes('Pronation/Supination')) {
@@ -186,16 +203,21 @@ export default function ProgressCharts() {
       </div>
 
       {/* Progress Charts */}
-      <Tabs defaultValue={assessmentTypes[0]} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5">
-          {assessmentTypes.map((assessmentName) => (
+      <Tabs defaultValue={displayAssessments[0]} className="space-y-6">
+        <TabsList className={`grid w-full ${showDigitBreakdown ? 'grid-cols-5' : 'grid-cols-2 lg:grid-cols-5'}`}>
+          {displayAssessments.map((assessmentName) => (
             <TabsTrigger key={assessmentName} value={assessmentName} className="text-xs">
-              {assessmentName.replace(' (Total Active Motion)', '').replace('Wrist ', '').replace('Forearm ', '')}
+              {assessmentName
+                .replace(' (Total Active Motion)', '')
+                .replace('Wrist ', '')
+                .replace('Forearm ', '')
+                .replace(' Finger TAM', '')
+                .replace('TAM', 'Total')}
             </TabsTrigger>
           ))}
         </TabsList>
 
-        {assessmentTypes.map((assessmentName) => {
+        {displayAssessments.map((assessmentName) => {
           const chartData = getChartData(assessmentName);
           const target = targetROM[injuryType]?.[assessmentName] || 100;
           const unit = assessmentName.includes('Kapandji') ? '' : '°';
