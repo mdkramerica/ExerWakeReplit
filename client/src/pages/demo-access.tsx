@@ -23,6 +23,7 @@ export default function DemoAccess() {
       // Verify demo user exists and log them in
       const response = await apiRequest('/api/users/verify-code', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: 'DEMO123' })
       });
 
@@ -54,6 +55,7 @@ export default function DemoAccess() {
       // Verify demo user exists
       const response = await apiRequest('/api/users/verify-code', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: 'DEMO123' })
       });
 

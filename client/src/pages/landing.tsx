@@ -50,7 +50,7 @@ export default function Landing() {
     if (code.length !== 6) {
       toast({
         title: "Invalid Code Format",
-        description: "Access code must be exactly 6 digits.",
+        description: "Access code must be exactly 6 characters.",
         variant: "destructive",
       });
       return;
@@ -59,7 +59,7 @@ export default function Landing() {
   };
 
   const handleCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, "").slice(0, 6);
+    const value = e.target.value.replace(/[^0-9A-Za-z]/g, '').slice(0, 6).toUpperCase();
     setCode(value);
   };
 
@@ -88,7 +88,7 @@ export default function Landing() {
                 onChange={handleCodeChange}
                 maxLength={6}
                 className="text-center text-2xl font-mono tracking-widest bg-white border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="000000"
+                placeholder="000000 or DEMO01"
                 disabled={verifyCodeMutation.isPending}
               />
               <p className="text-xs text-gray-800 mt-2 flex items-center">
@@ -100,7 +100,7 @@ export default function Landing() {
             <Button 
               type="submit" 
               className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-              disabled={verifyCodeMutation.isPending || code.length !== 6}
+              disabled={verifyCodeMutation.isPending || (code.length !== 6 && code !== 'DEMO01')}
             >
               {verifyCodeMutation.isPending ? (
                 "Verifying..."
@@ -120,7 +120,7 @@ export default function Landing() {
               </Button>
             </Link>
             <div className="text-xs text-gray-600">
-              Or try demo code: <span className="font-mono font-semibold">DEMO123</span>
+              Or try demo code: <span className="font-mono font-semibold">DEMO01</span>
             </div>
           </div>
           

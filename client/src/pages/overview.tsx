@@ -50,7 +50,7 @@ export default function Overview() {
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-semibold text-blue-900">Demo Mode Available</h3>
-                <p className="text-blue-700">Use access code <strong>DEMO123</strong> to test all assessments</p>
+                <p className="text-blue-700">Use access code <strong>DEMO01</strong> to test all assessments</p>
               </div>
               <Link href="/demo">
                 <Button variant="outline" className="bg-blue-600 text-white hover:bg-blue-700">
