@@ -1,0 +1,100 @@
+Polished Prompt for Your Dev Team (Replit Repo)
+Objective
+Enhance the Hand & Wrist Assessment app so that every patient signs in with a one-time code linked to an injury cohort, completes all required assessments once per day, and sees clear progress charts that include a “normal-ROM” target line.
+
+Key Requirements
+
+Patient Login Flow
+
+Accept a single-use code; map it to patient ID & injury type.
+
+Persist an authenticated session (JWT) and route the patient to /assessments.
+
+Assessment List Page
+
+Show all active assessments (TAM digits, Kapandji, wrist flex/ext).
+
+Badge each one as Due Today / Completed / Locked.
+
+Prevent multiple submissions per calendar day.
+
+Daily Completion Logic
+
+On successful capture, store a completed_on date.
+
+Midnight UTC job (or cron in Replit) unlocks the next day’s tasks.
+
+Progress Charts
+
+One chart per assessment type:
+
+X-axis = Post-op Day (or Day 0 = first capture).
+
+Y-axis = Degrees (or Kapandji score).
+
+Target line: fetch default “normal” from injury-type table; allow clinician override per patient.
+
+Tooltip shows raw value, Δ from baseline, Δ from target.
+
+Normal-ROM Management
+
+Defaults seeded per injury type.
+
+Clinician dashboard field target_rom overrides default for a patient/metric.
+
+API returns the effective target to the chart component.
+
+Deliverables
+
+Updated backend (auth endpoints, code → cohort mapping, daily-completion model, target-ROM logic).
+
+React/Vue components (AssessmentList, ProgressChart).
+
+Migration script for default normal-ROM table.
+
+Full test coverage & CI passing.
+
+Agile user stories (below).
+
+Agile User Stories & Acceptance Criteria
+Epic	ID	Story	Acceptance Criteria
+1 – Patient Authentication			
+1.1	As a patient, I enter my unique code and click “Login” to access my assessments.	• POST /auth/code with {code} returns JWT, patient ID, injury type.
+• Invalid/used codes return 401.
+• Success redirects to /assessments.
+1.2	As a dev, I need single-use codes to auto-expire after first login.	• codes table has used_at timestamp.
+• Subsequent attempts with same code fail.
+2 – Assessment List (Daily Workflow)			
+2.1	As a patient, I see a list of today’s required assessments and their status.	• API /assessments/today returns array {type, status}.
+• Status logic: Completed if record exists with completed_on = today (patient TZ), else Due Today.
+2.2	As a patient, I cannot submit the same assessment twice in one day.	• Backend rejects duplicate POST; UI disables button after success.
+2.3	As a patient, I receive a confirmation toast after finishing each assessment.	• Toast shows metric value and “Saved”.
+3 – Progress Visualization			
+3.1	As a patient, I can tap “View Progress” and see a line chart for each metric.	• Chart library renders X = day number, Y = value.
+• Target line drawn at target_rom.
+• Minimum 6 fps mobile rendering.
+3.2	As a patient, hovering/tapping a point shows date, value, % of target.	• Tooltip format Day 14 • 78° • 86 % of target.
+4 – Target ROM Management			
+4.1	As a clinician, I can view and edit the target ROM for any patient metric.	• UI field defaults to injury-type value.
+• PATCH /patients/:id/target_rom updates db and invalidates cache.
+4.2	As a patient, my chart updates immediately after clinician changes my target.	• WS or SSE pushes new target to open sessions.
+5 – Compliance & Analytics			
+5.1	As an admin, I can download a CSV of daily-completion rates.	• GET /reports/completion?start=YYYY-MM-DD.
+5.2	As QA, I need unit tests covering code-login, daily-completion lock, and target-ROM calc at ≥ 90 %.	• Jest coverage report ≥ 90 % lines/branches.
+
+Technical Notes
+Backend
+
+Node/Express ➜ add loginByCode() controller, JWT with 24 h TTL.
+
+New tables: login_codes, target_rom_overrides.
+
+Cron (Replit Secrets + cron-job.org or @replit/workers) marks daily roll-over.
+
+Frontend (React + Vite)
+
+AssessmentList.tsx – pulls /assessments/today, shows chips.
+
+ProgressChart.tsx – Victory or Chart.js; props {data, target}.
+
+Context provider for JWT & patient info.

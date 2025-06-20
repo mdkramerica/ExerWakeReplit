@@ -17,6 +17,8 @@ import WristResults from "@/pages/wrist-results";
 import JointTest from "@/pages/joint-test";
 import SharedAssessment from "@/pages/shared-assessment";
 import Overview from "@/pages/overview";
+import DailyAssessments from "@/pages/daily-assessments";
+import ProgressCharts from "@/pages/progress-charts";
 import Header from "@/components/header";
 import Footer from "@/components/footer";
 
@@ -76,8 +78,10 @@ function LegacyRoutes() {
     <Switch>
       <Route path="/" component={Landing} />
       <Route path="/overview" component={Overview} />
+      <Route path="/assessments" component={DailyAssessments} />
+      <Route path="/daily-assessments" component={DailyAssessments} />
+      <Route path="/progress" component={ProgressCharts} />
       <Route path="/injury-selection" component={InjurySelection} />
-      <Route path="/assessments" component={AssessmentList} />
       <Route path="/assessment-list/:code" component={AssessmentList} />
       <Route path="/demo" component={DemoAccess} />
       <Route path="/assessment/:id/video" component={VideoInstruction} />
