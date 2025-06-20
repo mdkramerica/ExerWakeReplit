@@ -94,9 +94,8 @@ function Router() {
   return (
     <Switch>
       <Route path="/clinical/login" component={ClinicalLogin} />
-      <Route path="/clinical/:rest*">
-        <ClinicalRoutes />
-      </Route>
+      <Route path="/clinical" component={ClinicalRoutes} />
+      <Route path="/clinical/:rest*" component={ClinicalRoutes} />
       <Route>
         <div className="min-h-screen bg-white">
           <Header />
