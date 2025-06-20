@@ -39,8 +39,7 @@ class AuthService {
   async login(credentials: LoginRequest): Promise<AuthResponse> {
     console.log('Attempting login with credentials:', { username: credentials.username });
     
-    const response = await apiRequest('POST', '/api/auth/login', credentials);
-    const data: AuthResponse = await response.json();
+    const data: AuthResponse = await apiRequest('POST', '/api/auth/login', credentials);
     
     console.log('Login successful:', data);
     this.setAuth(data.token, data.user);
