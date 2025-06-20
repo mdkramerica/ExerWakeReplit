@@ -47,7 +47,8 @@ function ClinicalRoutes() {
         <Route path="/clinical/cohorts" component={() => <div>Cohorts Page (Coming Soon)</div>} />
         <Route path="/clinical/reports" component={() => <div>Reports Page (Coming Soon)</div>} />
         <Route path="/clinical/settings" component={() => <div>Settings Page (Coming Soon)</div>} />
-        <Route component={() => <ClinicalDashboard />} />
+        <Route path="/clinical" component={ClinicalDashboard} />
+        <Route component={ClinicalDashboard} />
       </Switch>
     </ClinicalLayout>
   );
@@ -76,10 +77,10 @@ function LegacyRoutes() {
 function Router() {
   return (
     <Switch>
-      <Route path="/clinical" nest>
+      <Route path="/clinical/login" component={ClinicalLogin} />
+      <Route path="/clinical/:rest*">
         <ClinicalRoutes />
       </Route>
-      <Route path="/clinical/login" component={ClinicalLogin} />
       <Route>
         <div className="min-h-screen bg-white">
           <Header />
