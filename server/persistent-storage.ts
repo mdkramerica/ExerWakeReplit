@@ -416,17 +416,26 @@ export class PersistentMemoryStorage {
       return null;
     }
     
+    // Check if user has a corresponding patient record with injury type
+    let injuryType = userData.injuryType || null;
+    
+    // Look for patient record by access code to get injury type
+    const patientWithCode = Array.from(this.patients.values()).find(p => p.accessCode === userData.code);
+    if (patientWithCode && patientWithCode.injuryType) {
+      injuryType = patientWithCode.injuryType;
+    }
+    
     const newUser = {
       id: this.users.size > 0 ? Math.max(...Array.from(this.users.keys())) + 1 : 1,
       ...userData,
+      injuryType,
       createdAt: new Date(),
-      isFirstTime: true,
-      injuryType: null
+      isFirstTime: true
     };
     this.users.set(newUser.id, newUser);
     this.userByCode.set(newUser.code, newUser);
     await this.saveToFile();
-    console.log(`Persistent storage createUser created user with code: ${newUser.code}`);
+    console.log(`Persistent storage createUser created user with code: ${newUser.code}, injury type: ${injuryType}`);
     return newUser;
   }
 
@@ -627,13 +636,25 @@ export class PersistentMemoryStorage {
   // Clinical Dashboard Methods (basic implementations)
   async getCohorts(): Promise<any[]> {
     return [
-      { id: 1, name: 'Trigger Finger Study', description: 'Finger tendon disorder research', patientCount: 25, status: 'active' },
-      { id: 2, name: 'Carpal Tunnel Study', description: 'Nerve compression in the wrist research', patientCount: 32, status: 'active' },
-      { id: 3, name: 'Distal Radius Fracture Study', description: 'Broken wrist bone recovery research', patientCount: 28, status: 'active' },
-      { id: 4, name: 'CMC Arthroplasty Study', description: 'Thumb joint replacement research', patientCount: 20, status: 'active' },
-      { id: 5, name: 'Metacarpal ORIF Study', description: 'Hand bone surgical repair research', patientCount: 15, status: 'active' },
-      { id: 6, name: 'Phalanx Fracture Study', description: 'Finger bone fracture research', patientCount: 18, status: 'active' }
+      { id: 1, name: 'Trigger Finger Study', description: 'Finger tendon disorder research', patientCount: 25, status: 'active', injuryType: 'Trigger Finger' },
+      { id: 2, name: 'Carpal Tunnel Study', description: 'Nerve compression in the wrist research', patientCount: 32, status: 'active', injuryType: 'Carpal Tunnel' },
+      { id: 3, name: 'Distal Radius Fracture Study', description: 'Broken wrist bone recovery research', patientCount: 28, status: 'active', injuryType: 'Distal Radius Fracture' },
+      { id: 4, name: 'CMC Arthroplasty Study', description: 'Thumb joint replacement research', patientCount: 20, status: 'active', injuryType: 'CMC Arthroplasty' },
+      { id: 5, name: 'Metacarpal ORIF Study', description: 'Hand bone surgical repair research', patientCount: 15, status: 'active', injuryType: 'Metacarpal ORIF' },
+      { id: 6, name: 'Phalanx Fracture Study', description: 'Finger bone fracture research', patientCount: 18, status: 'active', injuryType: 'Phalanx Fracture' }
     ];
+  }
+
+  private getCohortInjuryType(cohortId: number): string | null {
+    const cohortMap = {
+      1: 'Trigger Finger',
+      2: 'Carpal Tunnel', 
+      3: 'Distal Radius Fracture',
+      4: 'CMC Arthroplasty',
+      5: 'Metacarpal ORIF',
+      6: 'Phalanx Fracture'
+    };
+    return cohortMap[cohortId] || null;
   }
 
   async getPatients(): Promise<any[]> {
@@ -730,9 +751,12 @@ export class PersistentMemoryStorage {
   }
 
   async createPatient(patientData: any): Promise<any> {
+    const injuryType = this.getCohortInjuryType(patientData.cohortId);
+    
     const patient = { 
       id: Date.now(), 
       ...patientData, 
+      injuryType,
       createdAt: new Date(),
       isActive: true,
       enrolledInStudy: false,
