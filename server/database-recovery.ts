@@ -261,25 +261,38 @@ export class RecoveryStorage {
     return await this.activeStorage.getUserProgress(userId);
   }
 
-  // Clinical methods (fallback to no-op)
-  async authenticateClinicalUser() {
-    if (this.isUsingMemory) return null;
-    return await this.activeStorage.authenticateClinicalUser?.() || null;
+  // Clinical methods
+  async authenticateClinicalUser(username: string, password: string) {
+    console.log(`RecoveryStorage authenticateClinicalUser(${username})`);
+    return await this.activeStorage.authenticateClinicalUser(username, password);
+  }
+
+  async getClinicalUser(id: number) {
+    return await this.activeStorage.getClinicalUser(id);
+  }
+
+  async getClinicalUserByUsername(username: string) {
+    return await this.activeStorage.getClinicalUserByUsername(username);
+  }
+
+  async createClinicalUser(userData: any) {
+    return await this.activeStorage.createClinicalUser(userData);
+  }
+
+  async updateClinicalUser(id: number, updates: any) {
+    return await this.activeStorage.updateClinicalUser(id, updates);
   }
 
   async getCohorts() {
-    if (this.isUsingMemory) return [];
-    return await this.activeStorage.getCohorts?.() || [];
+    return await this.activeStorage.getCohorts();
   }
 
   async getPatients() {
-    if (this.isUsingMemory) return [];
-    return await this.activeStorage.getPatients?.() || [];
+    return await this.activeStorage.getPatients();
   }
 
-  async createAuditLog() {
-    if (this.isUsingMemory) return null;
-    return await this.activeStorage.createAuditLog?.() || null;
+  async createAuditLog(logData: any) {
+    return await this.activeStorage.createAuditLog(logData);
   }
 
   // Additional methods for injury type support

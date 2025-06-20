@@ -75,6 +75,12 @@ export class PersistentMemoryStorage {
         });
       }
       
+      // If no clinical users found, create default ones
+      if (this.clinicalUsers.size === 0) {
+        console.log('No clinical users found in storage, creating defaults...');
+        this.createDefaultClinicalUsers();
+      }
+      
       console.log(`Loaded ${parsed.users.length} users, ${parsed.userAssessments.length} user assessments, ${parsed.assessments.length} assessments, ${parsed.clinicalUsers?.length || 0} clinical users`);
     } catch (error) {
       throw new Error('Failed to load data file');
@@ -254,7 +260,15 @@ export class PersistentMemoryStorage {
       this.nextUserAssessmentId = Math.max(this.nextUserAssessmentId, assessment.id + 1);
     });
 
-    // Create clinical users for dashboard access
+    // Initialize clinical users
+    this.clinicalUsers = new Map();
+    this.clinicalUsersByUsername = new Map();
+    this.createDefaultClinicalUsers();
+
+    console.log('Memory storage initialized with 5 assessments, sample completed data, and 3 clinical users');
+  }
+
+  private createDefaultClinicalUsers() {
     const clinicalUsers = [
       {
         id: 1,
@@ -291,14 +305,13 @@ export class PersistentMemoryStorage {
       }
     ];
 
-    this.clinicalUsers = new Map();
-    this.clinicalUsersByUsername = new Map();
     clinicalUsers.forEach(user => {
       this.clinicalUsers.set(user.id, user);
       this.clinicalUsersByUsername.set(user.username, user);
     });
-
-    console.log('Memory storage initialized with 5 assessments, sample completed data, and 3 clinical users');
+    
+    // Save to file immediately
+    this.saveToFile().catch(console.error);
   }
 
   // API Methods with auto-save
@@ -418,7 +431,14 @@ export class PersistentMemoryStorage {
 
   // Clinical Authentication Methods
   async authenticateClinicalUser(username: string, password: string): Promise<any> {
+    console.log(`PersistentMemoryStorage authenticateClinicalUser(${username})`);
+    console.log(`Available clinical users:`, Array.from(this.clinicalUsersByUsername.keys()));
     const user = this.clinicalUsersByUsername.get(username);
+    console.log(`Found user:`, user ? 'yes' : 'no');
+    if (user) {
+      console.log(`Password match:`, user.password === password);
+      console.log(`User active:`, user.isActive);
+    }
     if (user && user.password === password && user.isActive) {
       console.log(`Clinical authentication successful for user: ${username}`);
       return user;
