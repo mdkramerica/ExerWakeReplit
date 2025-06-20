@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Clock, Play, Eye, Calendar, History, RotateCcw } from "lucide-react";
+import { CheckCircle, Clock, Play, Eye, Calendar, History, RotateCcw, TrendingUp } from "lucide-react";
 import { useLocation, Link } from "wouter";
 import AssessmentReplay from "@/components/assessment-replay";
 import { getInjuryIcon } from "@/components/medical-icons";

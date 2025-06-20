@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Calendar, Clock, CheckCircle, AlertCircle, TrendingUp } from "lucide-react";
+import { Calendar, Clock, CheckCircle, AlertCircle, TrendingUp, Activity, ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
 
 export default function DailyAssessments() {

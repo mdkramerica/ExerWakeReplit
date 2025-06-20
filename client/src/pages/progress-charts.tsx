@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
-import { TrendingUp, Calendar, Target, ArrowLeft } from "lucide-react";
+import { TrendingUp, Calendar, Target, ArrowLeft, Activity } from "lucide-react";
 import { Link } from "wouter";
 
 // Target ROM values by injury type and assessment
