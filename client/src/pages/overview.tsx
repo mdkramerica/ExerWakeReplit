@@ -206,7 +206,7 @@ export default function Overview() {
                               {Math.floor(assessment.duration / 60)} min
                             </Badge>
                           </div>
-                          <Link href={`/assessment/${assessment.id}`}>
+                          <Link href={`/assessment/${assessment.id}/video/DEMO01`}>
                             <Button>Start Assessment</Button>
                           </Link>
                         </div>
@@ -276,7 +276,7 @@ export default function Overview() {
                         {Math.floor(assessment.duration / 60)} min
                       </Badge>
                     </div>
-                    <Link href={`/assessment/${assessment.id}`}>
+                    <Link href={`/assessment/${assessment.id}/video/DEMO01`}>
                       <Button variant="outline">Start Assessment</Button>
                     </Link>
                   </div>
