@@ -644,9 +644,28 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
     ctx.font = '14px Arial';
     ctx.fillText(`Frame: ${frameIndex + 1}/${replayData.length}`, 10, 25);
     ctx.fillText(`Quality: ${Math.round(frame.quality)}%`, 10, 45);
-    // Display hand detection using hand type from current wrist analysis (priority order)
-    const displayHandType = currentWristAngles?.handType || frame.sessionHandType || frame.handedness || 'UNKNOWN';
-    ctx.fillText(`Hand: ${displayHandType}`, 10, 65);
+    // Display hand detection - prioritize sessionHandType, then handedness
+    let displayHandType = frame.sessionHandType || frame.handedness;
+    
+    // If still unknown, try to determine from the session data
+    if (!displayHandType || displayHandType === 'UNKNOWN') {
+      // Check all frames for hand type information
+      const allHandTypes = replayData
+        .map(f => f.sessionHandType || f.handedness)
+        .filter(h => h && h !== 'UNKNOWN');
+      
+      if (allHandTypes.length > 0) {
+        // Use most common hand type
+        const leftCount = allHandTypes.filter(h => h === 'LEFT' || h === 'Left').length;
+        const rightCount = allHandTypes.filter(h => h === 'RIGHT' || h === 'Right').length;
+        displayHandType = leftCount > rightCount ? 'LEFT' : 'RIGHT';
+      } else {
+        displayHandType = 'UNKNOWN';
+      }
+    }
+    
+    console.log(`Canvas display - Frame hand: ${frame.sessionHandType}, Handedness: ${frame.handedness}, Final: ${displayHandType}`);
+    ctx.fillText(`Hand: ${(displayHandType || 'UNKNOWN').toUpperCase()}`, 10, 65);
 
 
 

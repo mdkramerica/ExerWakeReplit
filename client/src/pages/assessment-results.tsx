@@ -143,6 +143,30 @@ export default function AssessmentResults() {
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
+                
+                {/* Assessment Information */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div>
+                      <span className="font-medium text-gray-700">Quality Score:</span>
+                      <span className="ml-2 text-gray-900">{userAssessment.qualityScore || 'N/A'}%</span>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700">Hand Used:</span>
+                      <span className="ml-2 text-gray-900">{userAssessment.handType || 'Unknown'}</span>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700">Session:</span>
+                      <span className="ml-2 text-gray-900">{userAssessment.sessionNumber || 1}</span>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700">Date:</span>
+                      <span className="ml-2 text-gray-900">
+                        {userAssessment.completedAt ? new Date(userAssessment.completedAt).toLocaleDateString() : 'N/A'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
 
                 {/* Kapandji Specific Scoring */}
                 {isKapandjiAssessment && (

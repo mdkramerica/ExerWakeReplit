@@ -356,7 +356,9 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType,
         visibility: landmark.visibility
       })),
       wristAngles,
+      handType: currentDetection?.handType || 'UNKNOWN',
       lockedHandType: lastHandTypeRef.current,
+      detectedHandSide: results.leftHandLandmarks ? 'LEFT' : (results.rightHandLandmarks ? 'RIGHT' : 'UNKNOWN'),
       sessionElbowIndex: sessionElbowData.elbowIndex,
       sessionWristIndex: sessionElbowData.wristIndex,
       sessionElbowLocked: sessionElbowData.isLocked

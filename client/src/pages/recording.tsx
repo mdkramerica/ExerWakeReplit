@@ -278,11 +278,15 @@ export default function Recording() {
 
     console.log(`Completing assessment with ${finalRecordedData.length} repetitions:`, finalRecordedData);
 
+    // Determine final hand type from session or detected type
+    const finalHandType = sessionHandType !== 'UNKNOWN' ? sessionHandType : detectedHandType;
+    console.log(`Completing assessment with hand type: ${finalHandType} (session: ${sessionHandType}, detected: ${detectedHandType})`);
+    
     completeAssessmentMutation.mutate({
       romData,
       repetitionData: finalRecordedData,
       qualityScore: romData.averageQuality,
-      handType: detectedHandType
+      handType: finalHandType || 'UNKNOWN'
     });
   };
 
@@ -323,6 +327,9 @@ export default function Recording() {
       setSessionHandType(data.detectedHandSide);
       console.log(`🔒 Session locked to ${data.detectedHandSide} hand from MediaPipe detection`);
     }
+    
+    // Log current hand type status for debugging
+    console.log(`Hand type status - Session: ${sessionHandType}, Detected: ${detectedHandType}, From Data: ${data.detectedHandSide || data.handType}`);
     
     // Store current landmarks and pose data for recording
     if (data.landmarks && data.landmarks.length > 0) {
