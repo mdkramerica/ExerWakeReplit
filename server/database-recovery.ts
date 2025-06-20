@@ -342,6 +342,15 @@ export class RecoveryStorage {
     return { eligible: true, reasons: [] };
   }
 
+  async enrollPatient(enrollmentData: any) {
+    if (this.activeStorage.enrollPatient) {
+      return await this.activeStorage.enrollPatient(enrollmentData);
+    }
+    
+    // Fallback enrollment
+    return { id: enrollmentData.patientId, ...enrollmentData, enrolledAt: new Date() };
+  }
+
   // Additional methods for injury type support
   async getAssessmentsForInjuryType(injuryType: string) {
     if (this.activeStorage.getAssessmentsForInjuryType) {

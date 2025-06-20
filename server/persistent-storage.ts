@@ -808,4 +808,26 @@ export class PersistentMemoryStorage {
     console.log(`Eligibility result:`, result);
     return result;
   }
+
+  async enrollPatient(enrollmentData: any): Promise<any> {
+    const patient = this.patients.get(enrollmentData.patientId);
+    
+    if (!patient) {
+      throw new Error('Patient not found');
+    }
+
+    const updatedPatient = {
+      ...patient,
+      enrolledInStudy: true,
+      enrollmentStatus: enrollmentData.enrollmentStatus,
+      cohortId: enrollmentData.cohortId,
+      eligibilityNotes: enrollmentData.eligibilityNotes,
+      studyEnrollmentDate: new Date()
+    };
+
+    this.patients.set(enrollmentData.patientId, updatedPatient);
+    await this.saveToFile();
+    
+    return updatedPatient;
+  }
 }
