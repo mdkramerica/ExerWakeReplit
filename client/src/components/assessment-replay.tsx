@@ -756,8 +756,9 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
       // Highlight thumb tip (landmark 4) when touching targets
       if (currentKapandji.maxScore > 0 && frame.landmarks[4]) {
         const thumbTip = frame.landmarks[4];
-        // Apply mirroring correction for proper alignment
-        const thumbX = (1 - thumbTip.x) * canvas.width;
+        
+        // Use proper coordinates without extra mirroring since landmarks are already in correct space
+        const thumbX = thumbTip.x * canvas.width;
         const thumbY = thumbTip.y * canvas.height;
         
         // Static highlight circle
