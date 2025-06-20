@@ -376,6 +376,23 @@ export type AuditLog = typeof auditLogs.$inferSelect;
 export type InsertDataExport = z.infer<typeof insertDataExportSchema>;
 export type DataExport = typeof dataExports.$inferSelect;
 
+// Enrollment specific schemas
+export const enrollmentEligibilitySchema = z.object({
+  patientId: z.number(),
+  cohortId: z.number(),
+  eligibilityNotes: z.string().optional(),
+});
+
+export const patientEnrollmentSchema = z.object({
+  patientId: z.number(),
+  cohortId: z.number(),
+  enrollmentStatus: z.enum(['screening', 'enrolled', 'excluded', 'withdrawn']),
+  eligibilityNotes: z.string().optional(),
+});
+
+export type EnrollmentEligibility = z.infer<typeof enrollmentEligibilitySchema>;
+export type PatientEnrollment = z.infer<typeof patientEnrollmentSchema>;
+
 // Legacy types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;

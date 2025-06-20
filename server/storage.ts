@@ -270,9 +270,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createPatient(insertPatient: InsertPatient): Promise<Patient> {
+    // Generate access code if not provided
+    const accessCode = insertPatient.accessCode || await this.generateAccessCode();
+    
     const [patient] = await db
       .insert(patients)
-      .values(insertPatient)
+      .values({
+        ...insertPatient,
+        accessCode,
+        enrollmentStatus: insertPatient.enrollmentStatus || 'screening'
+      })
       .returning();
     return patient;
   }
