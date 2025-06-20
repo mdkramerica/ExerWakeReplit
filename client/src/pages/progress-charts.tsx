@@ -161,7 +161,7 @@ export default function ProgressCharts() {
 
   // Calculate days remaining based on study duration
   const studyDuration = injuryType === 'Trigger Finger' || injuryType === 'Metacarpal ORIF' || injuryType === 'Phalanx Fracture' ? 28 : 84;
-  const createdDate = new Date(userCode === 'DEMO01' ? '2025-06-01' : userData?.user?.createdAt || Date.now());
+  const createdDate = new Date(userCode === 'DEMO01' ? '2025-06-01' : user?.user?.createdAt || Date.now());
   const currentDate = new Date();
   const daysSinceStart = Math.floor((currentDate.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24));
   const daysRemaining = Math.max(0, studyDuration - daysSinceStart);
@@ -200,11 +200,11 @@ export default function ProgressCharts() {
                 <div className="text-sm text-muted-foreground">Injury Type</div>
               </div>
               <div>
-                <div className="text-2xl font-bold">Day {progress?.studyDay || 1}</div>
+                <div className="text-2xl font-bold">Day {currentDay}</div>
                 <div className="text-sm text-muted-foreground">Current Day</div>
               </div>
               <div>
-                <div className="text-2xl font-bold">{progress?.daysRemaining || 0}</div>
+                <div className="text-2xl font-bold">{daysRemaining}</div>
                 <div className="text-sm text-muted-foreground">Days Remaining</div>
               </div>
               <div>
