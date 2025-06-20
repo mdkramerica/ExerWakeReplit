@@ -82,7 +82,7 @@ export default function Recording() {
   const completeAssessmentMutation = useMutation({
     mutationFn: async (data: any) => {
       const response = await apiRequest("POST", `/api/users/${currentUser.id}/assessments/${id}/complete`, data);
-      return response.json();
+      return response;
     },
     onSuccess: (data) => {
       // Invalidate both assessment list and progress queries to refresh the UI

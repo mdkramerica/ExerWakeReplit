@@ -43,7 +43,7 @@ export default function VideoInstruction() {
   const startAssessmentMutation = useMutation({
     mutationFn: async () => {
       const response = await apiRequest("POST", `/api/users/${currentUser.id}/assessments/${id}/start`);
-      return response.json();
+      return response;
     },
   });
 
