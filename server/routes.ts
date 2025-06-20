@@ -531,17 +531,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { code } = z.object({ code: z.string().length(6) }).parse(req.body);
       
-      // Define valid access codes
-      const validCodes = ['DEMO01', 'TEST01', 'ADMIN1'];
-      
-      if (!validCodes.includes(code)) {
-        return res.status(400).json({ message: "Invalid access code" });
-      }
-      
       let user = await storage.getUserByCode(code);
       
       if (!user) {
-        // Create new user with the valid code
+        // Create new user with any valid 6-digit code
         user = await storage.createUser({ code, isFirstTime: true });
         
         if (!user) {

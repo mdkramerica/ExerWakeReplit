@@ -259,19 +259,18 @@ export class PersistentMemoryStorage {
   }
 
   async createUser(userData: any): Promise<any> {
-    // Only allow creation of users with valid access codes
-    const validCodes = ['DEMO01', 'TEST01', 'ADMIN1']; // Define valid access codes
-    
-    if (!validCodes.includes(userData.code)) {
-      console.log(`Persistent storage createUser rejected invalid code: ${userData.code}`);
+    // Allow creation of users with any 6-digit access code
+    if (!userData.code || userData.code.length !== 6) {
+      console.log(`Persistent storage createUser rejected invalid code format: ${userData.code}`);
       return null;
     }
     
     const newUser = {
-      id: Math.max(...Array.from(this.users.keys())) + 1,
+      id: this.users.size > 0 ? Math.max(...Array.from(this.users.keys())) + 1 : 1,
       ...userData,
       createdAt: new Date(),
-      isFirstTime: true
+      isFirstTime: true,
+      injuryType: null
     };
     this.users.set(newUser.id, newUser);
     this.userByCode.set(newUser.code, newUser);

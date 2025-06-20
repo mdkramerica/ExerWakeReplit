@@ -9,8 +9,7 @@ export class RecoveryStorage {
   private isUsingMemory = false;
 
   constructor() {
-    setTimeout(() => this.initializeStorage(), 0);
-    // Initialize with persistent memory storage immediately
+    // Always use persistent memory storage for consistent behavior
     this.activeStorage = new PersistentMemoryStorage();
     this.isUsingMemory = true;
   }
