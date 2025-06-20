@@ -150,8 +150,14 @@ export default function ProgressCharts() {
     return null;
   };
 
-  // Get unique assessment types from user's assessments
-  const assessmentTypes = userAssessments.map(a => a.name).filter((name, index, self) => self.indexOf(name) === index);
+  // Get assessment types based on injury
+  const assessmentTypes = Object.keys(targetROM[injuryType] || {});
+  
+  // For Metacarpal ORIF, show digit breakdown
+  const showDigitBreakdown = injuryType === 'Metacarpal ORIF';
+  const displayAssessments = showDigitBreakdown ? 
+    ['TAM (Total Active Motion)', 'Index Finger TAM', 'Middle Finger TAM', 'Ring Finger TAM', 'Pinky Finger TAM'] :
+    assessmentTypes;
 
   return (
     <div className="container mx-auto py-8">
