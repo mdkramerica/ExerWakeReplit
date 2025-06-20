@@ -48,6 +48,16 @@ export const patients = pgTable("patients", {
   surgeonId: text("surgeon_id"), // De-identified surgeon identifier
   injuryType: text("injury_type"), // Specific injury classification
   
+  // Enrollment fields
+  enrollmentStatus: text("enrollment_status").default("screening"), // screening, enrolled, excluded, withdrawn
+  enrolledDate: timestamp("enrolled_date"),
+  accessCode: text("access_code").unique(), // 6-digit code for patient access
+  phone: text("phone"),
+  dateOfBirth: date("date_of_birth"),
+  gender: text("gender"),
+  injuryDate: date("injury_date"),
+  eligibilityNotes: text("eligibility_notes"),
+  
   isActive: boolean("is_active").default(true),
   baselineAssessmentId: integer("baseline_assessment_id"), // Reference to first assessment
   enrolledInStudy: boolean("enrolled_in_study").default(false),

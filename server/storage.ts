@@ -271,14 +271,14 @@ export class DatabaseStorage implements IStorage {
 
   async createPatient(insertPatient: InsertPatient): Promise<Patient> {
     // Generate access code if not provided
-    const accessCode = insertPatient.accessCode || await this.generateAccessCode();
+    const accessCode = await this.generateAccessCode();
     
     const [patient] = await db
       .insert(patients)
       .values({
         ...insertPatient,
         accessCode,
-        enrollmentStatus: insertPatient.enrollmentStatus || 'screening'
+        enrollmentStatus: 'screening'
       })
       .returning();
     return patient;
@@ -644,8 +644,10 @@ export class DatabaseStorage implements IStorage {
     
     while (exists) {
       code = Math.floor(100000 + Math.random() * 900000).toString();
-      const existing = await db.select().from(patients).where(eq(patients.accessCode, code)).limit(1);
-      exists = existing.length > 0;
+      // Check in both patients and users tables to avoid duplicates
+      const existingInPatients = await db.select().from(patients).where(eq(patients.accessCode, code)).limit(1);
+      const existingInUsers = await db.select().from(users).where(eq(users.code, code)).limit(1);
+      exists = existingInPatients.length > 0 || existingInUsers.length > 0;
     }
     
     return code!;
