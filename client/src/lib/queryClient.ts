@@ -59,11 +59,13 @@ export const queryClient = new QueryClient({
 // Export a compatible apiRequest function for landing page
 export async function apiRequest(method: string, endpoint: string, data?: any) {
   const baseUrl = import.meta.env.VITE_API_URL || '';
+  const token = localStorage.getItem('auth_token');
   
   const config: RequestInit = {
     method,
     headers: {
       'Content-Type': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` }),
     },
   };
 

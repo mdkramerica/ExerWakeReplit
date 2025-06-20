@@ -66,16 +66,29 @@ export default function PatientEnrollment() {
 
   const createPatientMutation = useMutation({
     mutationFn: async (data: PatientFormData) => {
-      const response = await apiRequest('POST', '/api/patients', {
-        patientId: data.patientId,
-        alias: data.alias,
-        phone: data.phone || null,
-        dateOfBirth: data.dateOfBirth || null,
-        gender: data.gender || null,
-        injuryDate: data.injuryDate || null,
-        cohortId: data.cohortId,
-        eligibilityNotes: data.eligibilityNotes || null,
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/patients', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          patientId: data.patientId,
+          alias: data.alias,
+          phone: data.phone || null,
+          dateOfBirth: data.dateOfBirth || null,
+          gender: data.gender || null,
+          injuryDate: data.injuryDate || null,
+          cohortId: data.cohortId,
+          eligibilityNotes: data.eligibilityNotes || null,
+        }),
       });
+      
+      if (!response.ok) {
+        throw new Error('Failed to create patient');
+      }
+      
       return response.json();
     },
     onSuccess: (patient) => {
@@ -97,7 +110,18 @@ export default function PatientEnrollment() {
 
   const checkEligibilityMutation = useMutation({
     mutationFn: async ({ patientId, cohortId }: { patientId: number; cohortId: number }) => {
-      const response = await apiRequest('GET', `/api/patients/${patientId}/eligibility/${cohortId}`, null);
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`/api/patients/${patientId}/eligibility/${cohortId}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to check eligibility');
+      }
+      
       return response.json();
     },
     onSuccess: (result: EligibilityResult) => {
@@ -115,11 +139,24 @@ export default function PatientEnrollment() {
       enrollmentStatus: string;
       eligibilityNotes?: string;
     }) => {
-      const response = await apiRequest('POST', `/api/patients/${patientId}/enroll`, {
-        cohortId,
-        enrollmentStatus,
-        eligibilityNotes,
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`/api/patients/${patientId}/enroll`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          cohortId,
+          enrollmentStatus,
+          eligibilityNotes,
+        }),
       });
+      
+      if (!response.ok) {
+        throw new Error('Failed to enroll patient');
+      }
+      
       return response.json();
     },
     onSuccess: (patient) => {
