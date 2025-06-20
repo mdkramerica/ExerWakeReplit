@@ -134,6 +134,7 @@ export default function AssessmentList() {
   const allCompleted = assessments.length > 0 && assessments.every(a => a.isCompleted);
   
   // Calculate days remaining based on study duration
+  const injuryType = userData.user.injuryType;
   const studyDuration = injuryType === 'Trigger Finger' || injuryType === 'Metacarpal ORIF' || injuryType === 'Phalanx Fracture' ? 28 : 84;
   const createdDate = new Date(userData.user.createdAt);
   const currentDate = new Date();
