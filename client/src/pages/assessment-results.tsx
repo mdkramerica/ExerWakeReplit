@@ -277,13 +277,7 @@ export default function AssessmentResults() {
                       <div className="text-center">
                         <div className="text-3xl font-bold text-blue-600 mb-2">
                           {(() => {
-                            // Check stored values first
-                            const storedFlexion = Number(userAssessment.maxWristFlexion || userAssessment.wristFlexionAngle || 0);
-                            if (storedFlexion > 0) {
-                              return storedFlexion.toFixed(1);
-                            }
-                            
-                            // Dynamic calculation fallback
+                            // Use the exact same calculation as motion replay
                             if (userAssessment.repetitionData && userAssessment.repetitionData[0]?.motionData) {
                               try {
                                 const motionData = userAssessment.repetitionData[0].motionData;
@@ -291,12 +285,13 @@ export default function AssessmentResults() {
                                 // Calculate wrist angles for all frames like in replay
                                 const wristAnglesAllFrames = motionData.map(frame => {
                                   if (frame.landmarks && frame.poseLandmarks) {
-                                    return calculateWristAngleByHandType(frame.landmarks, frame.poseLandmarks);
+                                    return calculateElbowReferencedWristAngle(frame.landmarks, frame.poseLandmarks);
                                   }
                                   return null;
                                 }).filter(Boolean);
                                 
                                 if (wristAnglesAllFrames.length > 0) {
+                                  // Use exact motion replay logic - no additional filtering
                                   const maxFlexion = Math.max(...wristAnglesAllFrames.map(w => w!.wristFlexionAngle));
                                   
                                   console.log(`📊 FLEXION - Frames: ${wristAnglesAllFrames.length}, Max: ${maxFlexion.toFixed(1)}°`);
@@ -319,13 +314,7 @@ export default function AssessmentResults() {
                       <div className="text-center">
                         <div className="text-3xl font-bold text-purple-600 mb-2">
                           {(() => {
-                            // Check stored values first
-                            const storedExtension = Number(userAssessment.maxWristExtension || userAssessment.wristExtensionAngle || 0);
-                            if (storedExtension > 0) {
-                              return storedExtension.toFixed(1);
-                            }
-                            
-                            // Dynamic calculation fallback
+                            // Use the exact same calculation as motion replay
                             if (userAssessment.repetitionData && userAssessment.repetitionData[0]?.motionData) {
                               try {
                                 const motionData = userAssessment.repetitionData[0].motionData;
@@ -333,12 +322,13 @@ export default function AssessmentResults() {
                                 // Calculate wrist angles for all frames like in replay
                                 const wristAnglesAllFrames = motionData.map(frame => {
                                   if (frame.landmarks && frame.poseLandmarks) {
-                                    return calculateWristAngleByHandType(frame.landmarks, frame.poseLandmarks);
+                                    return calculateElbowReferencedWristAngle(frame.landmarks, frame.poseLandmarks);
                                   }
                                   return null;
                                 }).filter(Boolean);
                                 
                                 if (wristAnglesAllFrames.length > 0) {
+                                  // Use exact motion replay logic - no additional filtering
                                   const maxExtension = Math.max(...wristAnglesAllFrames.map(w => w!.wristExtensionAngle));
                                   
                                   console.log(`📊 EXTENSION - Frames: ${wristAnglesAllFrames.length}, Max: ${maxExtension.toFixed(1)}°`);
@@ -350,6 +340,7 @@ export default function AssessmentResults() {
                               }
                             }
                             
+                            // Fallback only if calculation fails
                             return '0.0';
                           })()}°
                         </div>
@@ -361,16 +352,7 @@ export default function AssessmentResults() {
                     <div className="mt-6 text-center">
                       <div className="text-2xl font-bold text-green-600">
                         {(() => {
-                          // Check stored values first
-                          const storedFlexion = Number(userAssessment.maxWristFlexion || userAssessment.wristFlexionAngle || 0);
-                          const storedExtension = Number(userAssessment.maxWristExtension || userAssessment.wristExtensionAngle || 0);
-                          const storedTotal = storedFlexion + storedExtension;
-                          
-                          if (storedTotal > 0) {
-                            return storedTotal.toFixed(1);
-                          }
-                          
-                          // Dynamic calculation fallback
+                          // Use the exact same calculation as motion replay for total ROM
                           if (userAssessment.repetitionData && userAssessment.repetitionData[0]?.motionData) {
                             try {
                               const motionData = userAssessment.repetitionData[0].motionData;
@@ -378,7 +360,7 @@ export default function AssessmentResults() {
                               // Calculate wrist angles for all frames like in replay
                               const wristAnglesAllFrames = motionData.map(frame => {
                                 if (frame.landmarks && frame.poseLandmarks) {
-                                  return calculateWristAngleByHandType(frame.landmarks, frame.poseLandmarks);
+                                  return calculateElbowReferencedWristAngle(frame.landmarks, frame.poseLandmarks);
                                 }
                                 return null;
                               }).filter(Boolean);
@@ -410,21 +392,7 @@ export default function AssessmentResults() {
                       <h5 className="font-medium mb-2 text-gray-900">Clinical Assessment</h5>
                       <p className="text-sm text-gray-700">
                         {(() => {
-                          // Check stored values first
-                          const storedFlexion = Number(userAssessment.maxWristFlexion || userAssessment.wristFlexionAngle || 0);
-                          const storedExtension = Number(userAssessment.maxWristExtension || userAssessment.wristExtensionAngle || 0);
-                          
-                          if (storedFlexion > 0 || storedExtension > 0) {
-                            if (storedFlexion >= 60 && storedExtension >= 50) {
-                              return 'Excellent wrist mobility - within normal functional range';
-                            } else if (storedFlexion >= 40 || storedExtension >= 30) {
-                              return 'Moderate wrist mobility - some limitation present';
-                            } else {
-                              return 'Limited wrist mobility - significant restriction noted';
-                            }
-                          }
-                          
-                          // Dynamic calculation fallback
+                          // Use the exact same calculation as motion replay for clinical assessment
                           if (userAssessment.repetitionData && userAssessment.repetitionData[0]?.motionData) {
                             try {
                               const motionData = userAssessment.repetitionData[0].motionData;
@@ -432,7 +400,7 @@ export default function AssessmentResults() {
                               // Calculate wrist angles for all frames like in replay
                               const wristAnglesAllFrames = motionData.map(frame => {
                                 if (frame.landmarks && frame.poseLandmarks) {
-                                  return calculateWristAngleByHandType(frame.landmarks, frame.poseLandmarks);
+                                  return calculateElbowReferencedWristAngle(frame.landmarks, frame.poseLandmarks);
                                 }
                                 return null;
                               }).filter(Boolean);

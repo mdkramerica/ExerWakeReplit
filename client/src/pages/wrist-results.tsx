@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, Download, Share2, TrendingUp, Activity } from "lucide-react";
-import { calculateWristAngleByHandType } from "@shared/elbow-wrist-calculator";
 
 interface WristResultsData {
   userAssessment: {
@@ -114,46 +113,19 @@ export default function WristResults() {
   const normalFlexionRange = [0, 80];
   const normalExtensionRange = [0, 70];
   
-  // Enhanced field checking for wrist angle data with dynamic calculation fallback
-  let maxFlexion = Number(
+  // Enhanced field checking for wrist angle data from different sources
+  const maxFlexion = Number(
     userAssessment.maxWristFlexion || 
     userAssessment.wristFlexionAngle ||
     (userAssessment.repetitionData && userAssessment.repetitionData[0]?.maxWristFlexion) ||
     0
   );
-  let maxExtension = Number(
+  const maxExtension = Number(
     userAssessment.maxWristExtension || 
     userAssessment.wristExtensionAngle ||
     (userAssessment.repetitionData && userAssessment.repetitionData[0]?.maxWristExtension) ||
     0
   );
-  
-  // Dynamic calculation fallback if stored values are missing or zero
-  if ((maxFlexion === 0 && maxExtension === 0) && userAssessment.repetitionData && userAssessment.repetitionData[0]?.motionData) {
-    try {
-      const motionData = userAssessment.repetitionData[0].motionData;
-      
-      // Calculate wrist angles for all frames
-      const wristAnglesAllFrames = motionData.map((frame: any) => {
-        if (frame.landmarks && frame.poseLandmarks) {
-          return calculateWristAngleByHandType(frame.landmarks, frame.poseLandmarks);
-        }
-        return null;
-      }).filter(Boolean);
-      
-      if (wristAnglesAllFrames.length > 0) {
-        const calculatedMaxFlexion = Math.max(...wristAnglesAllFrames.map((w: any) => w.wristFlexionAngle || 0));
-        const calculatedMaxExtension = Math.max(...wristAnglesAllFrames.map((w: any) => w.wristExtensionAngle || 0));
-        
-        maxFlexion = calculatedMaxFlexion;
-        maxExtension = calculatedMaxExtension;
-        
-        console.log('Wrist results calculated dynamically:', { maxFlexion, maxExtension });
-      }
-    } catch (error) {
-      console.error('Dynamic wrist calculation failed:', error);
-    }
-  }
   
   console.log('Wrist angle values:', {
     maxWristFlexion: userAssessment.maxWristFlexion,

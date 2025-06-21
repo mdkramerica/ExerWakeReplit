@@ -804,30 +804,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (rep.motionData && Array.isArray(rep.motionData)) {
             allMotionFrames.push(...rep.motionData);
             
-            // Calculate and extract wrist angles from motion frames for wrist assessments
-            rep.motionData.forEach(async (frame: any) => {
-              if (frame.landmarks && frame.poseLandmarks) {
-                try {
-                  // Import and use the same calculation as frontend for consistency
-                  const { calculateWristAngleByHandType } = await import('../shared/elbow-wrist-calculator.js');
-                  const frameWristAngles = calculateWristAngleByHandType(frame.landmarks, frame.poseLandmarks);
-                  
-                  if (frameWristAngles) {
-                    if (frameWristAngles.wristFlexionAngle !== undefined && frameWristAngles.wristFlexionAngle !== null) {
-                      wristFlexionAngle = Math.max(wristFlexionAngle || 0, frameWristAngles.wristFlexionAngle);
-                    }
-                    if (frameWristAngles.wristExtensionAngle !== undefined && frameWristAngles.wristExtensionAngle !== null) {
-                      wristExtensionAngle = Math.max(wristExtensionAngle || 0, frameWristAngles.wristExtensionAngle);
-                    }
-                  }
-                } catch (error) {
-                  console.log('Wrist calculation error, using stored values:', error);
-                }
-              }
-              
-              // Fallback to stored wrist angles if direct calculation fails
+            // Extract wrist angles from motion frames for wrist assessments
+            rep.motionData.forEach((frame: any) => {
               if (frame.wristAngles) {
                 const frameWristAngles = frame.wristAngles;
+                // Remove the > 0 filter to capture all calculated angles, including small ones
                 if (frameWristAngles.wristFlexionAngle !== undefined && frameWristAngles.wristFlexionAngle !== null) {
                   wristFlexionAngle = Math.max(wristFlexionAngle || 0, frameWristAngles.wristFlexionAngle);
                 }
