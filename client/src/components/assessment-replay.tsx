@@ -963,18 +963,21 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
       ctx.fillText(`Hand: ${currentWristAngles.handType}`, wristBoxX + 10, wristBoxY + 95);
       ctx.fillText(`Confidence: ${(currentWristAngles.confidence * 100).toFixed(1)}%`, wristBoxX + 10, wristBoxY + 110);
       
-      // Maximum angles (if available)
-      if (maxWristAngles) {
+      // Session Maximum angles from authoritative calculator
+      if (authoritativeWristResults) {
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 11px Arial';
-        ctx.fillText('Session Maximum:', wristBoxX + 10, wristBoxY + 135);
+        ctx.fillText('Session Maximum (Authoritative):', wristBoxX + 10, wristBoxY + 135);
         
         ctx.fillStyle = '#3b82f6';
         ctx.font = '10px Arial';
-        ctx.fillText(`Max Flexion: ${maxWristAngles.wristFlexionAngle.toFixed(1)}°`, wristBoxX + 10, wristBoxY + 150);
+        ctx.fillText(`Max Flexion: ${authoritativeWristResults.maxFlexion.toFixed(1)}°`, wristBoxX + 10, wristBoxY + 150);
         
         ctx.fillStyle = '#f59e0b';
-        ctx.fillText(`Max Extension: ${maxWristAngles.wristExtensionAngle.toFixed(1)}°`, wristBoxX + 10, wristBoxY + 165);
+        ctx.fillText(`Max Extension: ${authoritativeWristResults.maxExtension.toFixed(1)}°`, wristBoxX + 10, wristBoxY + 165);
+        
+        ctx.fillStyle = '#10b981';
+        ctx.fillText(`Total ROM: ${authoritativeWristResults.totalROM.toFixed(1)}°`, wristBoxX + 10, wristBoxY + 180);
       }
       
       // Visual angle indicator with elbow and forearm line
