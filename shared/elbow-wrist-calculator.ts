@@ -562,81 +562,35 @@ function calculateLeftHandWristAngle(
           const angleRadians = Math.acos(clampedDot);
           const angleDegrees = angleRadians * (180 / Math.PI);
           
-          if (angleDegrees > 5) {
-            // ANATOMICAL POSITION-BASED CLASSIFICATION
-            // Use spatial positioning relative to forearm neutral line
-            
-            // Create a plane perpendicular to the forearm at the wrist
-            const forearmVector = {
-              x: handWrist.x - elbow.x,
-              y: handWrist.y - elbow.y,
-              z: handWrist.z - elbow.z
-            };
-            
-            // Normalize forearm vector
-            const forearmLength = Math.sqrt(forearmVector.x**2 + forearmVector.y**2 + forearmVector.z**2);
-            const forearmNorm = {
-              x: forearmVector.x / forearmLength,
-              y: forearmVector.y / forearmLength,
-              z: forearmVector.z / forearmLength
-            };
-            
-            // Vector from wrist to middle MCP
-            const wristToMcp = {
-              x: middleMcp.x - handWrist.x,
-              y: middleMcp.y - handWrist.y,
-              z: middleMcp.z - handWrist.z
-            };
-            
-            // Project hand deviation onto a plane perpendicular to forearm
-            // Dot product with forearm normal gives the component along the forearm
-            const alongForearm = wristToMcp.x * forearmNorm.x + wristToMcp.y * forearmNorm.y + wristToMcp.z * forearmNorm.z;
-            
-            // Remove the along-forearm component to get perpendicular deviation
-            const perpendicularDeviation = {
-              x: wristToMcp.x - (alongForearm * forearmNorm.x),
-              y: wristToMcp.y - (alongForearm * forearmNorm.y),
-              z: wristToMcp.z - (alongForearm * forearmNorm.z)
-            };
-            
-            // MULTI-AXIS CALIBRATED CLASSIFICATION
-            // Test all three axes to find the most reliable palm/dorsal indicator
-            
-            // USE NEW ANATOMICAL SIGNED ANGLE METHOD
-            const signedAngle = calculateAnatomicalWristAngle(
-              { x: elbow.x, y: elbow.y, z: elbow.z },
-              { x: handWrist.x, y: handWrist.y, z: handWrist.z },
-              { x: middleMcp.x, y: middleMcp.y, z: middleMcp.z }
-            );
-            
-            // Store the anatomical angle for reference
-            result.forearmToHandAngle = 180 + signedAngle; // Convert to 0-360° scale for compatibility
-            
-            console.log(`🎯 ANATOMICAL LEFT - Signed:${signedAngle.toFixed(1)}°, Anatomical:${result.forearmToHandAngle.toFixed(1)}°`);
-            
-            // Apply neutral zone for signed angles (±10° around 0)
-            if (Math.abs(signedAngle) <= 10) {
-              result.wristFlexionAngle = 0;
-              result.wristExtensionAngle = 0;
-              console.log(`LEFT Wrist NEUTRAL: ${signedAngle.toFixed(1)}° (within neutral zone)`);
-            } else if (signedAngle > 0) {
-              // Positive = flexion
-              result.wristFlexionAngle = signedAngle;
-              result.wristExtensionAngle = 0;
-              console.log(`LEFT Wrist FLEXION: ${signedAngle.toFixed(1)}°`);
-            } else {
-              // Negative = extension
-              result.wristExtensionAngle = Math.abs(signedAngle);
-              result.wristFlexionAngle = 0;
-              console.log(`LEFT Wrist EXTENSION: ${Math.abs(signedAngle).toFixed(1)}°`);
-            }
-          } else {
-            result.wristFlexionAngle = 0;
-            result.wristExtensionAngle = 0;
-            console.log(`LEFT Wrist neutral: ${angleDegrees.toFixed(1)}° deviation`);
-          }
+        // USE NEW ANATOMICAL SIGNED ANGLE METHOD
+        const signedAngle = calculateAnatomicalWristAngle(
+          { x: elbow.x, y: elbow.y, z: elbow.z },
+          { x: handWrist.x, y: handWrist.y, z: handWrist.z },
+          { x: middleMcp.x, y: middleMcp.y, z: middleMcp.z }
+        );
+        
+        // Store the anatomical angle for reference
+        result.forearmToHandAngle = 180 + signedAngle; // Convert to 0-360° scale for compatibility
+        
+        console.log(`🎯 ANATOMICAL LEFT - Signed:${signedAngle.toFixed(1)}°, Anatomical:${result.forearmToHandAngle.toFixed(1)}°`);
+        
+        // Apply neutral zone for signed angles (±10° around 0)
+        if (Math.abs(signedAngle) <= 10) {
+          result.wristFlexionAngle = 0;
+          result.wristExtensionAngle = 0;
+          console.log(`LEFT Wrist NEUTRAL: ${signedAngle.toFixed(1)}° (within neutral zone)`);
+        } else if (signedAngle > 0) {
+          // Positive = flexion
+          result.wristFlexionAngle = signedAngle;
+          result.wristExtensionAngle = 0;
+          console.log(`LEFT Wrist FLEXION: ${signedAngle.toFixed(1)}°`);
+        } else {
+          // Negative = extension
+          result.wristExtensionAngle = Math.abs(signedAngle);
+          result.wristFlexionAngle = 0;
+          console.log(`LEFT Wrist EXTENSION: ${Math.abs(signedAngle).toFixed(1)}°`);
         }
-
+        
         console.log(`LEFT Anatomical calculation: ${signedAngle.toFixed(1)}° signed angle`);
       }
     }
