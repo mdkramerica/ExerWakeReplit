@@ -863,33 +863,32 @@ function calculateAnatomicalWristAngle(
     z: uForearm.x * uHand.y - uForearm.y * uHand.x
   };
   
-  // Use the raw angle directly, but establish proper neutral baseline
-  // In anatomical terms, neutral wrist is around 145-165° (not 180°)
-  // This accounts for natural hand position relative to forearm
+  // SIMPLIFIED APPROACH: Use the raw angle as deviation from straight (180°)
+  // Then apply appropriate scaling to match visual perception
   
-  const ANATOMICAL_NEUTRAL = 155; // degrees - typical neutral wrist angle
-  const NEUTRAL_TOLERANCE = 15;   // ±15° around neutral is considered "neutral"
+  // Calculate how much the angle deviates from straight alignment (180°)
+  const deviationFromStraight = 180 - rawAngle;
   
-  // Calculate signed angle using cross product
+  // Use cross product for sign determination
   const signRaw = Math.sign(cross.z + 1e-9);
   const sideFactor = wrist.x < elbow.x ? -1 : 1;
   
-  // Calculate deviation from anatomical neutral
-  const deviationFromNeutral = rawAngle - ANATOMICAL_NEUTRAL;
+  // Apply the deviation with proper sign
+  const signedDeviation = deviationFromStraight * signRaw * sideFactor;
   
-  let finalAngle = 0;
+  // Apply scaling factor to match visual perception
+  // Since the raw calculation seems to be roughly 2x what we expect visually
+  const VISUAL_SCALE_FACTOR = 0.5;
+  const scaledAngle = signedDeviation * VISUAL_SCALE_FACTOR;
   
-  if (Math.abs(deviationFromNeutral) <= NEUTRAL_TOLERANCE) {
-    // Within neutral tolerance - report as 0°
-    finalAngle = 0;
-  } else {
-    // Outside neutral - calculate actual flexion/extension
-    // Remove the neutral tolerance from the deviation
-    const activeDeviation = Math.abs(deviationFromNeutral) - NEUTRAL_TOLERANCE;
-    finalAngle = activeDeviation * signRaw * sideFactor;
+  // Apply small neutral zone after scaling
+  const SMALL_NEUTRAL_ZONE = 5; // degrees
+  
+  if (Math.abs(scaledAngle) <= SMALL_NEUTRAL_ZONE) {
+    return 0; // Near-neutral positions
   }
   
-  return finalAngle;
+  return scaledAngle;
 }
 
 // RIGHT hand specific calculation using anatomical landmark method
