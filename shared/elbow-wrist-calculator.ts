@@ -777,3 +777,32 @@ export function getRecordingSessionElbowSelection() {
     isLocked: recordingSessionElbowLocked
   };
 }
+
+// Hand-specific dispatcher function
+function calculateWristAngleByHandType(
+  handLandmarks: HandLandmark[],
+  poseLandmarks?: PoseLandmark[],
+  forceHandType?: 'LEFT' | 'RIGHT'
+): ElbowWristAngles {
+  // Determine hand type
+  let handType = forceHandType;
+  if (!handType && poseLandmarks && poseLandmarks.length > 16) {
+    handType = determineHandType(handLandmarks, poseLandmarks);
+  }
+  
+  console.log(`🔄 DISPATCHER - Using ${handType} hand calculation method`);
+  
+  // Route to appropriate calculation method
+  if (handType === 'LEFT') {
+    return calculateLeftHandWristAngle(handLandmarks, poseLandmarks);
+  } else {
+    return calculateElbowReferencedWristAngle(handLandmarks, poseLandmarks);
+  }
+}
+
+// Export all wrist calculation functions
+export { 
+  calculateWristAngleByHandType, 
+  calculateLeftHandWristAngle, 
+  calculateElbowReferencedWristAngle 
+};

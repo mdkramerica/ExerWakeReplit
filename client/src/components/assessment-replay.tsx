@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Play, Pause, RotateCcw, Download } from "lucide-react";
 import { calculateCurrentROM, calculateFingerROM, type JointAngles } from "@/lib/rom-calculator";
 import { calculateKapandjiScore, calculateMaxKapandjiScore, type KapandjiScore } from "@shared/kapandji-calculator";
-import { calculateElbowReferencedWristAngle, getRecordingSessionElbowSelection, type ElbowWristAngles } from "@shared/elbow-wrist-calculator";
+import { calculateWristAngleByHandType, getRecordingSessionElbowSelection, type ElbowWristAngles } from "@shared/elbow-wrist-calculator";
 // Remove the import since we'll load the image directly
 
 interface ReplayData {
