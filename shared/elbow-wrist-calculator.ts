@@ -783,7 +783,7 @@ export function calculateMaxElbowWristAngles(
   return maxResult;
 }
 
-export let isReplayMode = false;
+let isReplayMode = false;
 
 export function setReplayMode(replay: boolean) {
   isReplayMode = replay;

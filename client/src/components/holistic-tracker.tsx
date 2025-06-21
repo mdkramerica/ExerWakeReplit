@@ -358,6 +358,7 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType,
           y: landmark.y,
           z: landmark.z
         })),
+        wristAngles: wristAngles,
         poseLandmarks: poseLandmarks.map((landmark: any) => ({
           x: landmark.x,
           y: landmark.y,
