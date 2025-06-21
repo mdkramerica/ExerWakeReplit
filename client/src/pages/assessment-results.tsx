@@ -70,6 +70,10 @@ export default function AssessmentResults() {
                               userAssessment.assessmentName?.includes("Kapandji") ||
                               userAssessment.assessmentId === 27;
 
+  const isWristAssessment = userAssessment.assessmentName === "Wrist Flexion/Extension" ||
+                           userAssessment.assessmentName?.includes("Wrist") ||
+                           userAssessment.assessmentId === 3;
+
   return (
     <div className="min-h-screen bg-gray-50">
       {showReplay && (
@@ -264,8 +268,59 @@ export default function AssessmentResults() {
                   </div>
                 )}
 
+                {/* Wrist-specific results */}
+                {isWristAssessment && (
+                  <div className="bg-blue-50 border border-blue-200 p-6 rounded-lg">
+                    <h4 className="font-medium mb-4 text-gray-900">Wrist Range of Motion Analysis</h4>
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div className="text-center">
+                        <div className="text-3xl font-bold text-blue-600 mb-2">
+                          {parseFloat(userAssessment.maxWristFlexion || userAssessment.wristFlexionAngle || '0').toFixed(1)}°
+                        </div>
+                        <div className="text-lg text-gray-700">Maximum Flexion</div>
+                        <div className="text-sm text-gray-500 mt-1">Normal: 0-80°</div>
+                      </div>
+                      
+                      <div className="text-center">
+                        <div className="text-3xl font-bold text-purple-600 mb-2">
+                          {parseFloat(userAssessment.maxWristExtension || userAssessment.wristExtensionAngle || '0').toFixed(1)}°
+                        </div>
+                        <div className="text-lg text-gray-700">Maximum Extension</div>
+                        <div className="text-sm text-gray-500 mt-1">Normal: 0-70°</div>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-6 text-center">
+                      <div className="text-2xl font-bold text-green-600">
+                        {(parseFloat(userAssessment.maxWristFlexion || userAssessment.wristFlexionAngle || '0') + 
+                          parseFloat(userAssessment.maxWristExtension || userAssessment.wristExtensionAngle || '0')).toFixed(1)}°
+                      </div>
+                      <div className="text-lg text-gray-700">Total Wrist ROM</div>
+                      <div className="text-sm text-gray-500 mt-1">Normal: 150°</div>
+                    </div>
+
+                    <div className="mt-6 p-4 bg-white rounded border">
+                      <h5 className="font-medium mb-2 text-gray-900">Clinical Assessment</h5>
+                      <p className="text-sm text-gray-700">
+                        {(() => {
+                          const flexion = parseFloat(userAssessment.maxWristFlexion || userAssessment.wristFlexionAngle || '0');
+                          const extension = parseFloat(userAssessment.maxWristExtension || userAssessment.wristExtensionAngle || '0');
+                          
+                          if (flexion >= 60 && extension >= 50) {
+                            return 'Excellent wrist mobility - within normal functional range';
+                          } else if (flexion >= 40 || extension >= 30) {
+                            return 'Moderate wrist mobility - some limitation present';
+                          } else {
+                            return 'Limited wrist mobility - significant restriction noted';
+                          }
+                        })()}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 {/* Comprehensive ROM Analysis for TAM assessments */}
-                {!isKapandjiAssessment && userAssessment.totalActiveRom && (
+                {!isKapandjiAssessment && !isWristAssessment && userAssessment.totalActiveRom && (
                   <div className="bg-gray-100 border border-gray-200 p-4 rounded-lg">
                     <h4 className="font-medium mb-3 text-gray-900">Comprehensive ROM Analysis - All Digits</h4>
                     <div className="space-y-4">
