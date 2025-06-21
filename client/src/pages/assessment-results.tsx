@@ -6,7 +6,7 @@ import { ArrowLeft, Share, Play } from "lucide-react";
 import { Link } from "wouter";
 import { useState } from "react";
 import AssessmentReplay from "@/components/assessment-replay";
-import { calculateMaxElbowWristAngles } from "@shared/elbow-wrist-calculator";
+import { calculateElbowReferencedWristAngle } from "@shared/elbow-wrist-calculator";
 
 export default function AssessmentResults() {
   const [, params] = useRoute("/assessment-results/:code/:userAssessmentId");
@@ -281,10 +281,27 @@ export default function AssessmentResults() {
                             if (userAssessment.repetitionData && userAssessment.repetitionData[0]?.motionData) {
                               try {
                                 const motionData = userAssessment.repetitionData[0].motionData;
-                                const wristResults = calculateMaxElbowWristAngles(motionData, 'LEFT');
                                 
-                                console.log('Assessment Results - Flexion from replay calculation:', wristResults.maxFlexion);
-                                return wristResults.maxFlexion.toFixed(1);
+                                // Calculate wrist angles for all frames like in replay
+                                const wristAnglesAllFrames = motionData.map(frame => {
+                                  if (frame.landmarks && frame.poseLandmarks) {
+                                    return calculateElbowReferencedWristAngle(frame.landmarks, frame.poseLandmarks);
+                                  }
+                                  return null;
+                                }).filter(Boolean);
+                                
+                                if (wristAnglesAllFrames.length > 0) {
+                                  const allFlexionAngles = wristAnglesAllFrames.map(w => w!.wristFlexionAngle).filter(angle => !isNaN(angle) && angle >= 0);
+                                  const maxFlexion = allFlexionAngles.length > 0 ? Math.max(...allFlexionAngles) : 0;
+                                  
+                                  console.log('Assessment Results - Flexion calculation:', {
+                                    framesProcessed: wristAnglesAllFrames.length,
+                                    flexionAngles: allFlexionAngles.length,
+                                    maxFlexion: maxFlexion
+                                  });
+                                  
+                                  return maxFlexion.toFixed(1);
+                                }
                               } catch (error) {
                                 console.error('Error calculating flexion:', error);
                               }
@@ -305,10 +322,27 @@ export default function AssessmentResults() {
                             if (userAssessment.repetitionData && userAssessment.repetitionData[0]?.motionData) {
                               try {
                                 const motionData = userAssessment.repetitionData[0].motionData;
-                                const wristResults = calculateMaxElbowWristAngles(motionData, 'LEFT');
                                 
-                                console.log('Assessment Results - Extension from replay calculation:', wristResults.maxExtension);
-                                return wristResults.maxExtension.toFixed(1);
+                                // Calculate wrist angles for all frames like in replay
+                                const wristAnglesAllFrames = motionData.map(frame => {
+                                  if (frame.landmarks && frame.poseLandmarks) {
+                                    return calculateElbowReferencedWristAngle(frame.landmarks, frame.poseLandmarks);
+                                  }
+                                  return null;
+                                }).filter(Boolean);
+                                
+                                if (wristAnglesAllFrames.length > 0) {
+                                  const allExtensionAngles = wristAnglesAllFrames.map(w => w!.wristExtensionAngle).filter(angle => !isNaN(angle) && angle >= 0);
+                                  const maxExtension = allExtensionAngles.length > 0 ? Math.max(...allExtensionAngles) : 0;
+                                  
+                                  console.log('Assessment Results - Extension calculation:', {
+                                    framesProcessed: wristAnglesAllFrames.length,
+                                    extensionAngles: allExtensionAngles.length,
+                                    maxExtension: maxExtension
+                                  });
+                                  
+                                  return maxExtension.toFixed(1);
+                                }
                               } catch (error) {
                                 console.error('Error calculating extension:', error);
                               }
@@ -330,11 +364,26 @@ export default function AssessmentResults() {
                           if (userAssessment.repetitionData && userAssessment.repetitionData[0]?.motionData) {
                             try {
                               const motionData = userAssessment.repetitionData[0].motionData;
-                              const wristResults = calculateMaxElbowWristAngles(motionData, 'LEFT');
                               
-                              const totalROM = wristResults.maxFlexion + wristResults.maxExtension;
-                              console.log('Assessment Results - Total ROM from replay calculation:', totalROM);
-                              return totalROM.toFixed(1);
+                              // Calculate wrist angles for all frames like in replay
+                              const wristAnglesAllFrames = motionData.map(frame => {
+                                if (frame.landmarks && frame.poseLandmarks) {
+                                  return calculateElbowReferencedWristAngle(frame.landmarks, frame.poseLandmarks);
+                                }
+                                return null;
+                              }).filter(Boolean);
+                              
+                              if (wristAnglesAllFrames.length > 0) {
+                                const allFlexionAngles = wristAnglesAllFrames.map(w => w!.wristFlexionAngle).filter(angle => !isNaN(angle) && angle >= 0);
+                                const allExtensionAngles = wristAnglesAllFrames.map(w => w!.wristExtensionAngle).filter(angle => !isNaN(angle) && angle >= 0);
+                                
+                                const maxFlexion = allFlexionAngles.length > 0 ? Math.max(...allFlexionAngles) : 0;
+                                const maxExtension = allExtensionAngles.length > 0 ? Math.max(...allExtensionAngles) : 0;
+                                const totalROM = maxFlexion + maxExtension;
+                                
+                                console.log('Assessment Results - Total ROM calculation:', totalROM);
+                                return totalROM.toFixed(1);
+                              }
                             } catch (error) {
                               console.error('Error calculating total ROM:', error);
                             }
@@ -355,17 +404,29 @@ export default function AssessmentResults() {
                           if (userAssessment.repetitionData && userAssessment.repetitionData[0]?.motionData) {
                             try {
                               const motionData = userAssessment.repetitionData[0].motionData;
-                              const wristResults = calculateMaxElbowWristAngles(motionData, 'LEFT');
                               
-                              const maxFlexion = wristResults.maxFlexion;
-                              const maxExtension = wristResults.maxExtension;
+                              // Calculate wrist angles for all frames like in replay
+                              const wristAnglesAllFrames = motionData.map(frame => {
+                                if (frame.landmarks && frame.poseLandmarks) {
+                                  return calculateElbowReferencedWristAngle(frame.landmarks, frame.poseLandmarks);
+                                }
+                                return null;
+                              }).filter(Boolean);
                               
-                              if (maxFlexion >= 60 && maxExtension >= 50) {
-                                return 'Excellent wrist mobility - within normal functional range';
-                              } else if (maxFlexion >= 40 || maxExtension >= 30) {
-                                return 'Moderate wrist mobility - some limitation present';
-                              } else {
-                                return 'Limited wrist mobility - significant restriction noted';
+                              if (wristAnglesAllFrames.length > 0) {
+                                const allFlexionAngles = wristAnglesAllFrames.map(w => w!.wristFlexionAngle).filter(angle => !isNaN(angle) && angle >= 0);
+                                const allExtensionAngles = wristAnglesAllFrames.map(w => w!.wristExtensionAngle).filter(angle => !isNaN(angle) && angle >= 0);
+                                
+                                const maxFlexion = allFlexionAngles.length > 0 ? Math.max(...allFlexionAngles) : 0;
+                                const maxExtension = allExtensionAngles.length > 0 ? Math.max(...allExtensionAngles) : 0;
+                                
+                                if (maxFlexion >= 60 && maxExtension >= 50) {
+                                  return 'Excellent wrist mobility - within normal functional range';
+                                } else if (maxFlexion >= 40 || maxExtension >= 30) {
+                                  return 'Moderate wrist mobility - some limitation present';
+                                } else {
+                                  return 'Limited wrist mobility - significant restriction noted';
+                                }
                               }
                             } catch (error) {
                               console.error('Error in clinical assessment:', error);
