@@ -539,22 +539,23 @@ function calculateLeftHandWristAngle(
               z: referenceNorm.x * measurementNorm.y - referenceNorm.y * measurementNorm.x
             };
             
-            // LEFT HAND ANALYSIS: Check both directions to ensure we're capturing all movement
-            const isExtension = crossProduct.y < 0;
-            const isFlexion = crossProduct.y > 0;
+            // LEFT HAND CORRECTED: Based on visual evidence, LEFT hand coordinate interpretation was backwards
+            // For LEFT hand: negative Y = flexion (forward bend), positive Y = extension (backward bend)
+            const isFlexion = crossProduct.y < 0;
+            const isExtension = crossProduct.y > 0;
             
-            console.log(`🔍 LEFT HAND ANALYSIS - Y: ${crossProduct.y.toFixed(4)}, Angle: ${angleDegrees.toFixed(1)}°, Extension: ${isExtension}, Flexion: ${isFlexion}`);
+            console.log(`🔍 LEFT HAND CORRECTED - Y: ${crossProduct.y.toFixed(4)}, Angle: ${angleDegrees.toFixed(1)}°, Flexion: ${isFlexion}, Extension: ${isExtension}`);
             
-            if (isExtension) {
-              result.wristExtensionAngle = angleDegrees;
-              result.wristFlexionAngle = 0;
-              console.log(`LEFT Wrist EXTENSION: ${result.wristExtensionAngle.toFixed(1)}°`);
-            } else if (isFlexion) {
+            if (isFlexion) {
               result.wristFlexionAngle = angleDegrees;
               result.wristExtensionAngle = 0;
-              console.log(`LEFT Wrist FLEXION: ${result.wristFlexionAngle.toFixed(1)}°`);
+              console.log(`LEFT Wrist FLEXION: ${result.wristFlexionAngle.toFixed(1)}° (corrected logic)`);
+            } else if (isExtension) {
+              result.wristExtensionAngle = angleDegrees;
+              result.wristFlexionAngle = 0;
+              console.log(`LEFT Wrist EXTENSION: ${result.wristExtensionAngle.toFixed(1)}° (corrected logic)`);
             } else {
-              // Near-zero Y values - check magnitude for neutral detection
+              // Near-zero Y values - neutral position
               result.wristFlexionAngle = 0;
               result.wristExtensionAngle = 0;
               console.log(`LEFT Wrist NEUTRAL: Y=${crossProduct.y.toFixed(4)} (too close to zero)`);
