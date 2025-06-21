@@ -6,6 +6,7 @@ import { ArrowLeft, Share, Play } from "lucide-react";
 import { Link } from "wouter";
 import { useState } from "react";
 import AssessmentReplay from "@/components/assessment-replay";
+import { calculateMaxElbowWristAngles } from "@shared/elbow-wrist-calculator";
 
 export default function AssessmentResults() {
   const [, params] = useRoute("/assessment-results/:code/:userAssessmentId");
@@ -276,69 +277,21 @@ export default function AssessmentResults() {
                       <div className="text-center">
                         <div className="text-3xl font-bold text-blue-600 mb-2">
                           {(() => {
-                            // Calculate wrist angles directly from motion data using the same logic as replay
+                            // Use the exact same calculation as motion replay
                             if (userAssessment.repetitionData && userAssessment.repetitionData[0]?.motionData) {
-                              const motionData = userAssessment.repetitionData[0].motionData;
-                              
-                              let maxFlexion = 0;
-                              let flexionCount = 0;
-                              
-                              // Process each frame like in the replay analysis
-                              motionData.forEach(frame => {
-                                if (frame.landmarks && frame.landmarks.length >= 21) {
-                                  // Use the same elbow-wrist calculation logic
-                                  try {
-                                    // Extract landmarks for wrist calculation
-                                    const wristLandmark = frame.landmarks[0]; // Wrist is index 0
-                                    const middleMcpLandmark = frame.landmarks[9]; // Middle finger MCP is index 9
-                                    
-                                    if (wristLandmark && middleMcpLandmark) {
-                                      // Calculate the vector from wrist to middle MCP
-                                      const handVector = {
-                                        x: middleMcpLandmark.x - wristLandmark.x,
-                                        y: middleMcpLandmark.y - wristLandmark.y,
-                                        z: (middleMcpLandmark.z || 0) - (wristLandmark.z || 0)
-                                      };
-                                      
-                                      // Calculate angle based on Y component (flexion/extension)
-                                      const length = Math.sqrt(handVector.x * handVector.x + handVector.y * handVector.y + handVector.z * handVector.z);
-                                      if (length > 0) {
-                                        const normalizedY = handVector.y / length;
-                                        const angleRad = Math.asin(Math.abs(normalizedY));
-                                        const angleDeg = (angleRad * 180) / Math.PI;
-                                        
-                                        // Check if this is flexion (Y positive) or extension (Y negative)
-                                        if (normalizedY > 0.1) { // Flexion threshold
-                                          const flexionAngle = Math.min(angleDeg, 90); // Cap at 90 degrees
-                                          if (flexionAngle > maxFlexion) {
-                                            maxFlexion = flexionAngle;
-                                          }
-                                          flexionCount++;
-                                        }
-                                      }
-                                    }
-                                  } catch (error) {
-                                    // Continue processing other frames
-                                  }
-                                }
-                              });
-                              
-                              console.log(`Flexion calculation: ${flexionCount} frames processed, max: ${maxFlexion.toFixed(1)}°`);
-                              
-                              // Return calculated value or fallback
-                              if (maxFlexion > 0) {
-                                return maxFlexion.toFixed(1);
+                              try {
+                                const motionData = userAssessment.repetitionData[0].motionData;
+                                const wristResults = calculateMaxElbowWristAngles(motionData, 'LEFT');
+                                
+                                console.log('Assessment Results - Flexion from replay calculation:', wristResults.maxFlexion);
+                                return wristResults.maxFlexion.toFixed(1);
+                              } catch (error) {
+                                console.error('Error calculating flexion:', error);
                               }
                             }
                             
-                            // Fallback to database values
-                            const storedFlexion = parseFloat(
-                              userAssessment.maxWristFlexion || 
-                              userAssessment.wristFlexionAngle || 
-                              '0'
-                            );
-                            
-                            return storedFlexion > 0 ? storedFlexion.toFixed(1) : '70.1';
+                            // Fallback only if calculation fails
+                            return '0.0';
                           })()}°
                         </div>
                         <div className="text-lg text-gray-700">Maximum Flexion</div>
@@ -348,69 +301,21 @@ export default function AssessmentResults() {
                       <div className="text-center">
                         <div className="text-3xl font-bold text-purple-600 mb-2">
                           {(() => {
-                            // Calculate wrist angles directly from motion data using the same logic as replay
+                            // Use the exact same calculation as motion replay
                             if (userAssessment.repetitionData && userAssessment.repetitionData[0]?.motionData) {
-                              const motionData = userAssessment.repetitionData[0].motionData;
-                              
-                              let maxExtension = 0;
-                              let extensionCount = 0;
-                              
-                              // Process each frame like in the replay analysis
-                              motionData.forEach(frame => {
-                                if (frame.landmarks && frame.landmarks.length >= 21) {
-                                  // Use the same elbow-wrist calculation logic
-                                  try {
-                                    // Extract landmarks for wrist calculation
-                                    const wristLandmark = frame.landmarks[0]; // Wrist is index 0
-                                    const middleMcpLandmark = frame.landmarks[9]; // Middle finger MCP is index 9
-                                    
-                                    if (wristLandmark && middleMcpLandmark) {
-                                      // Calculate the vector from wrist to middle MCP
-                                      const handVector = {
-                                        x: middleMcpLandmark.x - wristLandmark.x,
-                                        y: middleMcpLandmark.y - wristLandmark.y,
-                                        z: (middleMcpLandmark.z || 0) - (wristLandmark.z || 0)
-                                      };
-                                      
-                                      // Calculate angle based on Y component (flexion/extension)
-                                      const length = Math.sqrt(handVector.x * handVector.x + handVector.y * handVector.y + handVector.z * handVector.z);
-                                      if (length > 0) {
-                                        const normalizedY = handVector.y / length;
-                                        const angleRad = Math.asin(Math.abs(normalizedY));
-                                        const angleDeg = (angleRad * 180) / Math.PI;
-                                        
-                                        // Check if this is extension (Y negative) 
-                                        if (normalizedY < -0.1) { // Extension threshold
-                                          const extensionAngle = Math.min(angleDeg, 90); // Cap at 90 degrees
-                                          if (extensionAngle > maxExtension) {
-                                            maxExtension = extensionAngle;
-                                          }
-                                          extensionCount++;
-                                        }
-                                      }
-                                    }
-                                  } catch (error) {
-                                    // Continue processing other frames
-                                  }
-                                }
-                              });
-                              
-                              console.log(`Extension calculation: ${extensionCount} frames processed, max: ${maxExtension.toFixed(1)}°`);
-                              
-                              // Return calculated value or fallback
-                              if (maxExtension > 0) {
-                                return maxExtension.toFixed(1);
+                              try {
+                                const motionData = userAssessment.repetitionData[0].motionData;
+                                const wristResults = calculateMaxElbowWristAngles(motionData, 'LEFT');
+                                
+                                console.log('Assessment Results - Extension from replay calculation:', wristResults.maxExtension);
+                                return wristResults.maxExtension.toFixed(1);
+                              } catch (error) {
+                                console.error('Error calculating extension:', error);
                               }
                             }
                             
-                            // Fallback to database values
-                            const storedExtension = parseFloat(
-                              userAssessment.maxWristExtension || 
-                              userAssessment.wristExtensionAngle || 
-                              '0'
-                            );
-                            
-                            return storedExtension > 0 ? storedExtension.toFixed(1) : '74.3';
+                            // Fallback only if calculation fails
+                            return '0.0';
                           })()}°
                         </div>
                         <div className="text-lg text-gray-700">Maximum Extension</div>
@@ -421,51 +326,21 @@ export default function AssessmentResults() {
                     <div className="mt-6 text-center">
                       <div className="text-2xl font-bold text-green-600">
                         {(() => {
-                          // Calculate both values dynamically
-                          let flexion = 0;
-                          let extension = 0;
-                          
+                          // Use the exact same calculation as motion replay for total ROM
                           if (userAssessment.repetitionData && userAssessment.repetitionData[0]?.motionData) {
-                            const motionData = userAssessment.repetitionData[0].motionData;
-                            
-                            motionData.forEach(frame => {
-                              if (frame.landmarks && frame.landmarks.length >= 21) {
-                                try {
-                                  const wristLandmark = frame.landmarks[0];
-                                  const middleMcpLandmark = frame.landmarks[9];
-                                  
-                                  if (wristLandmark && middleMcpLandmark) {
-                                    const handVector = {
-                                      x: middleMcpLandmark.x - wristLandmark.x,
-                                      y: middleMcpLandmark.y - wristLandmark.y,
-                                      z: (middleMcpLandmark.z || 0) - (wristLandmark.z || 0)
-                                    };
-                                    
-                                    const length = Math.sqrt(handVector.x * handVector.x + handVector.y * handVector.y + handVector.z * handVector.z);
-                                    if (length > 0) {
-                                      const normalizedY = handVector.y / length;
-                                      const angleRad = Math.asin(Math.abs(normalizedY));
-                                      const angleDeg = (angleRad * 180) / Math.PI;
-                                      
-                                      if (normalizedY > 0.1 && angleDeg > flexion) {
-                                        flexion = Math.min(angleDeg, 90);
-                                      } else if (normalizedY < -0.1 && angleDeg > extension) {
-                                        extension = Math.min(angleDeg, 90);
-                                      }
-                                    }
-                                  }
-                                } catch (error) {
-                                  // Continue processing
-                                }
-                              }
-                            });
+                            try {
+                              const motionData = userAssessment.repetitionData[0].motionData;
+                              const wristResults = calculateMaxElbowWristAngles(motionData, 'LEFT');
+                              
+                              const totalROM = wristResults.maxFlexion + wristResults.maxExtension;
+                              console.log('Assessment Results - Total ROM from replay calculation:', totalROM);
+                              return totalROM.toFixed(1);
+                            } catch (error) {
+                              console.error('Error calculating total ROM:', error);
+                            }
                           }
                           
-                          // Use calculated or fallback values
-                          if (flexion === 0) flexion = 70.1;
-                          if (extension === 0) extension = 74.3;
-                          
-                          return (flexion + extension).toFixed(1);
+                          return '0.0';
                         })()}°
                       </div>
                       <div className="text-lg text-gray-700">Total Wrist ROM</div>
@@ -476,57 +351,28 @@ export default function AssessmentResults() {
                       <h5 className="font-medium mb-2 text-gray-900">Clinical Assessment</h5>
                       <p className="text-sm text-gray-700">
                         {(() => {
-                          // Calculate actual values for clinical assessment
-                          let maxFlexion = 0;
-                          let maxExtension = 0;
-                          
+                          // Use the exact same calculation as motion replay for clinical assessment
                           if (userAssessment.repetitionData && userAssessment.repetitionData[0]?.motionData) {
-                            const motionData = userAssessment.repetitionData[0].motionData;
-                            
-                            motionData.forEach(frame => {
-                              if (frame.landmarks && frame.landmarks.length >= 21) {
-                                try {
-                                  const wristLandmark = frame.landmarks[0];
-                                  const middleMcpLandmark = frame.landmarks[9];
-                                  
-                                  if (wristLandmark && middleMcpLandmark) {
-                                    const handVector = {
-                                      x: middleMcpLandmark.x - wristLandmark.x,
-                                      y: middleMcpLandmark.y - wristLandmark.y,
-                                      z: (middleMcpLandmark.z || 0) - (wristLandmark.z || 0)
-                                    };
-                                    
-                                    const length = Math.sqrt(handVector.x * handVector.x + handVector.y * handVector.y + handVector.z * handVector.z);
-                                    if (length > 0) {
-                                      const normalizedY = handVector.y / length;
-                                      const angleRad = Math.asin(Math.abs(normalizedY));
-                                      const angleDeg = (angleRad * 180) / Math.PI;
-                                      
-                                      if (normalizedY > 0.1 && angleDeg > maxFlexion) {
-                                        maxFlexion = Math.min(angleDeg, 90);
-                                      } else if (normalizedY < -0.1 && angleDeg > maxExtension) {
-                                        maxExtension = Math.min(angleDeg, 90);
-                                      }
-                                    }
-                                  }
-                                } catch (error) {
-                                  // Continue processing
-                                }
+                            try {
+                              const motionData = userAssessment.repetitionData[0].motionData;
+                              const wristResults = calculateMaxElbowWristAngles(motionData, 'LEFT');
+                              
+                              const maxFlexion = wristResults.maxFlexion;
+                              const maxExtension = wristResults.maxExtension;
+                              
+                              if (maxFlexion >= 60 && maxExtension >= 50) {
+                                return 'Excellent wrist mobility - within normal functional range';
+                              } else if (maxFlexion >= 40 || maxExtension >= 30) {
+                                return 'Moderate wrist mobility - some limitation present';
+                              } else {
+                                return 'Limited wrist mobility - significant restriction noted';
                               }
-                            });
+                            } catch (error) {
+                              console.error('Error in clinical assessment:', error);
+                            }
                           }
                           
-                          // Use calculated or fallback values for assessment
-                          if (maxFlexion === 0) maxFlexion = 70.1;
-                          if (maxExtension === 0) maxExtension = 74.3;
-                          
-                          if (maxFlexion >= 60 && maxExtension >= 50) {
-                            return 'Excellent wrist mobility - within normal functional range';
-                          } else if (maxFlexion >= 40 || maxExtension >= 30) {
-                            return 'Moderate wrist mobility - some limitation present';
-                          } else {
-                            return 'Limited wrist mobility - significant restriction noted';
-                          }
+                          return 'Unable to assess - insufficient motion data';
                         })()}
                       </p>
                     </div>
