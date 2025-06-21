@@ -786,7 +786,14 @@ export function calculateMaxElbowWristAngles(
   return maxResult;
 }
 
-export function resetRecordingSession() {
+export let isReplayMode = false;
+
+export function setReplayMode(replay: boolean) {
+  isReplayMode = replay;
+  console.log(`🎬 REPLAY MODE: ${replay ? 'ENABLED' : 'DISABLED'}`);
+}
+
+function resetRecordingSession() {
   // Clear session state when starting a new recording
   recordingSessionElbowLocked = false;
   recordingSessionElbowIndex = undefined;
