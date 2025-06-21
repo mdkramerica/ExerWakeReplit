@@ -108,7 +108,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
         // Calculate wrist angles for all frames
         const wristAnglesAllFrames = replayData.map(frame => {
           if (frame.landmarks && frame.poseLandmarks) {
-            return calculateElbowReferencedWristAngle(frame.landmarks, frame.poseLandmarks);
+            return calculateWristAngleByHandType(frame.landmarks, frame.poseLandmarks);
           }
           return null;
         }).filter(Boolean);
@@ -224,7 +224,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
         } else if (isWristAssessment) {
           // Calculate current wrist angles for this frame
           if (frame.landmarks && frame.poseLandmarks) {
-            const currentWrist = calculateElbowReferencedWristAngle(frame.landmarks, frame.poseLandmarks);
+            const currentWrist = calculateWristAngleByHandType(frame.landmarks, frame.poseLandmarks);
             setCurrentWristAngles(currentWrist);
           }
         } else {
