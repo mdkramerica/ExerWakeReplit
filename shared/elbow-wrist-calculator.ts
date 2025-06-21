@@ -863,32 +863,37 @@ function calculateAnatomicalWristAngle(
     z: uForearm.x * uHand.y - uForearm.y * uHand.x
   };
   
-  // SIMPLIFIED APPROACH: Use the raw angle as deviation from straight (180°)
-  // Then apply appropriate scaling to match visual perception
+  // CORRECTED BIOMECHANICAL APPROACH:
+  // Raw angle represents the actual angle between forearm and hand vectors
+  // Smaller angles = more bent/deviated, Larger angles = more neutral/straight
   
-  // Calculate how much the angle deviates from straight alignment (180°)
-  const deviationFromStraight = 180 - rawAngle;
+  console.log(`📐 Raw angle analysis: ${rawAngle.toFixed(1)}°`);
   
-  // Use cross product for sign determination
-  const signRaw = Math.sign(cross.z + 1e-9);
-  const sideFactor = wrist.x < elbow.x ? -1 : 1;
+  // Establish neutral baseline: angles close to 160-180° are neutral
+  const NEUTRAL_BASELINE = 170; // degrees - angles above this are considered neutral
+  const NEUTRAL_ZONE = 20; // degrees - tolerance around neutral
   
-  // Apply the deviation with proper sign
-  const signedDeviation = deviationFromStraight * signRaw * sideFactor;
+  let wristBendAngle = 0;
   
-  // Apply scaling factor to match visual perception
-  // Since the raw calculation seems to be roughly 2x what we expect visually
-  const VISUAL_SCALE_FACTOR = 0.5;
-  const scaledAngle = signedDeviation * VISUAL_SCALE_FACTOR;
-  
-  // Apply small neutral zone after scaling
-  const SMALL_NEUTRAL_ZONE = 5; // degrees
-  
-  if (Math.abs(scaledAngle) <= SMALL_NEUTRAL_ZONE) {
-    return 0; // Near-neutral positions
+  if (rawAngle >= (NEUTRAL_BASELINE - NEUTRAL_ZONE)) {
+    // Within neutral zone (150-180°) - report as neutral
+    wristBendAngle = 0;
+    console.log(`✅ NEUTRAL detected: ${rawAngle.toFixed(1)}° is within neutral zone`);
+  } else {
+    // Below neutral zone - calculate actual bend
+    // The farther from neutral baseline, the more bend
+    const bendMagnitude = (NEUTRAL_BASELINE - NEUTRAL_ZONE) - rawAngle;
+    
+    // Use cross product for direction (flexion vs extension)
+    const signRaw = Math.sign(cross.z + 1e-9);
+    const sideFactor = wrist.x < elbow.x ? -1 : 1;
+    
+    wristBendAngle = bendMagnitude * signRaw * sideFactor;
+    
+    console.log(`🎯 BEND detected: ${rawAngle.toFixed(1)}° → ${bendMagnitude.toFixed(1)}° bend magnitude`);
   }
   
-  return scaledAngle;
+  return wristBendAngle;
 }
 
 // RIGHT hand specific calculation using anatomical landmark method
