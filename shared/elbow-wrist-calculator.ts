@@ -539,19 +539,25 @@ function calculateLeftHandWristAngle(
               z: referenceNorm.x * measurementNorm.y - referenceNorm.y * measurementNorm.x
             };
             
-            // LEFT HAND SPECIFIC: Inverted logic - negative Y = extension, positive Y = flexion
+            // LEFT HAND ANALYSIS: Check both directions to ensure we're capturing all movement
             const isExtension = crossProduct.y < 0;
+            const isFlexion = crossProduct.y > 0;
             
-            console.log(`🔍 LEFT HAND SPECIFIC - Y: ${crossProduct.y.toFixed(4)}, Extension: ${isExtension}`);
+            console.log(`🔍 LEFT HAND ANALYSIS - Y: ${crossProduct.y.toFixed(4)}, Angle: ${angleDegrees.toFixed(1)}°, Extension: ${isExtension}, Flexion: ${isFlexion}`);
             
             if (isExtension) {
               result.wristExtensionAngle = angleDegrees;
               result.wristFlexionAngle = 0;
               console.log(`LEFT Wrist EXTENSION: ${result.wristExtensionAngle.toFixed(1)}°`);
-            } else {
+            } else if (isFlexion) {
               result.wristFlexionAngle = angleDegrees;
               result.wristExtensionAngle = 0;
               console.log(`LEFT Wrist FLEXION: ${result.wristFlexionAngle.toFixed(1)}°`);
+            } else {
+              // Near-zero Y values - check magnitude for neutral detection
+              result.wristFlexionAngle = 0;
+              result.wristExtensionAngle = 0;
+              console.log(`LEFT Wrist NEUTRAL: Y=${crossProduct.y.toFixed(4)} (too close to zero)`);
             }
           } else {
             result.wristFlexionAngle = 0;
