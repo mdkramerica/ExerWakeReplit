@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { calculateCurrentROM, calculateMaxROM, type JointAngles } from "@/lib/rom-calculator";
 import { calculateFingerROM } from "@shared/rom-calculator";
 import { calculateWristAngles } from "@shared/wrist-calculator";
-import { calculateElbowReferencedWristAngle, calculateMaxElbowWristAngles } from "@shared/elbow-wrist-calculator";
+import { calculateElbowReferencedWristAngle, calculateMaxElbowWristAngles, resetRecordingSession } from "@shared/elbow-wrist-calculator";
 
 export default function Recording() {
   const { id, code } = useParams();
@@ -137,7 +137,8 @@ export default function Recording() {
             recordingMotionDataRef.current = [];
             // Reset session hand type for new recording
             setSessionHandType('UNKNOWN');
-            console.log('🔄 Reset session hand type for new recording');
+            resetRecordingSession();
+            console.log('🔄 Reset session hand type and elbow lock for new recording');
             setMaxROM({ mcpAngle: 0, pipAngle: 0, dipAngle: 0, totalActiveRom: 0 });
             return 0;
           }
