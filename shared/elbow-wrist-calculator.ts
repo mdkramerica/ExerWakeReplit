@@ -426,29 +426,33 @@ export function calculateElbowReferencedWristAngleWithForce(
       
       // MULTI-AXIS CALIBRATED CLASSIFICATION (Universal method)
       
-      // ANATOMICAL ANGLE-BASED NEUTRAL DETECTION - Use anatomical angle for proper reference
-      const anatomicalAngle = result.forearmToHandAngle;
-      const isNeutralPosition = anatomicalAngle >= 160 && anatomicalAngle <= 200; // Near 180° = neutral
+      // Use the new anatomical landmark method for universal calculation
+      const signedAngle = calculateAnatomicalWristAngle(
+        { x: elbow.x, y: elbow.y, z: elbow.z },
+        { x: handWrist.x, y: handWrist.y, z: handWrist.z },
+        { x: middleMcp.x, y: middleMcp.y, z: middleMcp.z }
+      );
       
-      console.log(`🎯 ANATOMICAL METHOD ${forceHandType} - Forearm-Hand:${anatomicalAngle.toFixed(1)}°, Joint-Dev:${wristAngle.toFixed(1)}°, Neutral:${isNeutralPosition}`);
+      // Store the anatomical angle for reference
+      result.forearmToHandAngle = 180 + signedAngle; // Convert to 0-360° scale for compatibility
       
-      if (isNeutralPosition) {
+      console.log(`🎯 ANATOMICAL ${forceHandType} - Signed:${signedAngle.toFixed(1)}°, Anatomical:${result.forearmToHandAngle.toFixed(1)}°`);
+      
+      // Apply neutral zone for signed angles (±10° around 0)
+      if (Math.abs(signedAngle) <= 10) {
         result.wristFlexionAngle = 0;
         result.wristExtensionAngle = 0;
-        console.log(`${forceHandType} Wrist NEUTRAL: ${anatomicalAngle.toFixed(1)}° anatomical (neutral zone)`);
+        console.log(`${forceHandType} Wrist NEUTRAL: ${signedAngle.toFixed(1)}° (within neutral zone)`);
+      } else if (signedAngle > 0) {
+        // Positive = flexion
+        result.wristFlexionAngle = signedAngle;
+        result.wristExtensionAngle = 0;
+        console.log(`${forceHandType} Wrist FLEXION: ${signedAngle.toFixed(1)}°`);
       } else {
-        // Use joint deviation angle for measuring actual flexion/extension
-        if (anatomicalAngle < 180) {
-          // Less than straight = flexion
-          result.wristFlexionAngle = wristAngle;
-          result.wristExtensionAngle = 0;
-          console.log(`${forceHandType} Wrist FLEXION: ${wristAngle.toFixed(1)}° (anatomical ${anatomicalAngle.toFixed(1)}° < 180°)`);
-        } else {
-          // Greater than straight = extension
-          result.wristExtensionAngle = wristAngle;
-          result.wristFlexionAngle = 0;
-          console.log(`${forceHandType} Wrist EXTENSION: ${wristAngle.toFixed(1)}° (anatomical ${anatomicalAngle.toFixed(1)}° > 180°)`);
-        }
+        // Negative = extension
+        result.wristExtensionAngle = Math.abs(signedAngle);
+        result.wristFlexionAngle = 0;
+        console.log(`${forceHandType} Wrist EXTENSION: ${Math.abs(signedAngle).toFixed(1)}°`);
       }
 
       // Set high confidence for successful calculation
@@ -848,7 +852,70 @@ export function getRecordingSessionElbowSelection() {
 }
 
 // Hand-specific dispatcher function
-// RIGHT hand specific calculation with multi-axis method
+// Robust anatomical landmark-based wrist angle calculation
+function calculateAnatomicalWristAngle(
+  elbow: { x: number; y: number; z: number },
+  wrist: { x: number; y: number; z: number },
+  middleMcp: { x: number; y: number; z: number }
+): number {
+  // Vector from elbow to wrist (forearm direction)
+  const forearm = {
+    x: wrist.x - elbow.x,
+    y: wrist.y - elbow.y,
+    z: wrist.z - elbow.z
+  };
+  
+  // Vector from wrist to middle MCP (hand direction)
+  const handVec = {
+    x: middleMcp.x - wrist.x,
+    y: middleMcp.y - wrist.y,
+    z: middleMcp.z - wrist.z
+  };
+  
+  // Normalize vectors
+  const forearmLength = Math.sqrt(forearm.x**2 + forearm.y**2 + forearm.z**2);
+  const handLength = Math.sqrt(handVec.x**2 + handVec.y**2 + handVec.z**2);
+  
+  if (forearmLength === 0 || handLength === 0) {
+    return 0; // Avoid division by zero
+  }
+  
+  const uForearm = {
+    x: forearm.x / forearmLength,
+    y: forearm.y / forearmLength,
+    z: forearm.z / forearmLength
+  };
+  
+  const uHand = {
+    x: handVec.x / handLength,
+    y: handVec.y / handLength,
+    z: handVec.z / handLength
+  };
+  
+  // Raw angle (0-180°) using dot product
+  const dotProduct = uForearm.x * uHand.x + uForearm.y * uHand.y + uForearm.z * uHand.z;
+  const clampedDot = Math.max(-1, Math.min(1, dotProduct));
+  const rawAngle = Math.acos(clampedDot) * (180 / Math.PI);
+  
+  // Sign determination using cross product Z-component
+  const cross = {
+    x: uForearm.y * uHand.z - uForearm.z * uHand.y,
+    y: uForearm.z * uHand.x - uForearm.x * uHand.z,
+    z: uForearm.x * uHand.y - uForearm.y * uHand.x
+  };
+  
+  // Use Z-component for sign with tiny bias to avoid zero
+  const signRaw = Math.sign(cross.z + 1e-9);
+  
+  // Auto-detect side: if wrist.x < elbow.x → left arm, invert sign to keep flexion positive
+  const sideFactor = wrist.x < elbow.x ? -1 : 1;
+  
+  const signedAngle = rawAngle * signRaw * sideFactor;
+  
+  return signedAngle;
+}
+
+// RIGHT hand specific calculation using anatomical landmark method
 function calculateRightHandWristAngle(
   handLandmarks: HandLandmark[],
   poseLandmarks?: PoseLandmark[]
@@ -867,7 +934,6 @@ function calculateRightHandWristAngle(
   }
 
   if (poseLandmarks && poseLandmarks.length > 16) {
-    // Use RIGHT hand landmarks
     const elbow = poseLandmarks[POSE_LANDMARKS.RIGHT_ELBOW];
     const poseWrist = poseLandmarks[POSE_LANDMARKS.RIGHT_WRIST];
     const shoulder = poseLandmarks[POSE_LANDMARKS.RIGHT_SHOULDER];
@@ -882,108 +948,36 @@ function calculateRightHandWristAngle(
       const middleMcp = handLandmarks[HAND_LANDMARKS.MIDDLE_MCP];
 
       if (handWrist && middleMcp) {
-        const forearmToHandAngle = calculateAngleBetweenVectors(
+        // Calculate signed anatomical angle
+        const signedAngle = calculateAnatomicalWristAngle(
           { x: elbow.x, y: elbow.y, z: elbow.z },
           { x: handWrist.x, y: handWrist.y, z: handWrist.z },
           { x: middleMcp.x, y: middleMcp.y, z: middleMcp.z }
         );
-
-        result.forearmToHandAngle = forearmToHandAngle;
-
-        const referenceVector = {
-          x: handWrist.x - elbow.x,
-          y: handWrist.y - elbow.y,
-          z: handWrist.z - elbow.z
-        };
-
-        const measurementVector = {
-          x: middleMcp.x - handWrist.x,
-          y: middleMcp.y - handWrist.y,
-          z: middleMcp.z - handWrist.z
-        };
-
-        const referenceLength = Math.sqrt(referenceVector.x**2 + referenceVector.y**2 + referenceVector.z**2);
-        const measurementLength = Math.sqrt(measurementVector.x**2 + measurementVector.y**2 + measurementVector.z**2);
         
-        if (referenceLength > 0 && measurementLength > 0) {
-          const referenceNorm = {
-            x: referenceVector.x / referenceLength,
-            y: referenceVector.y / referenceLength,
-            z: referenceVector.z / referenceLength
-          };
-          
-          const measurementNorm = {
-            x: measurementVector.x / measurementLength,
-            y: measurementVector.y / measurementLength,
-            z: measurementVector.z / measurementLength
-          };
-          
-          const dotProduct = referenceNorm.x * measurementNorm.x + referenceNorm.y * measurementNorm.y + referenceNorm.z * measurementNorm.z;
-          const clampedDot = Math.max(-1, Math.min(1, dotProduct));
-          const angleRadians = Math.acos(clampedDot);
-          const angleDegrees = angleRadians * (180 / Math.PI);
-          
-          if (angleDegrees > 5) {
-            // MULTI-AXIS CALIBRATED CLASSIFICATION
-            const forearmVector = {
-              x: handWrist.x - elbow.x,
-              y: handWrist.y - elbow.y,
-              z: handWrist.z - elbow.z
-            };
-            
-            const forearmLength = Math.sqrt(forearmVector.x**2 + forearmVector.y**2 + forearmVector.z**2);
-            const forearmNorm = {
-              x: forearmVector.x / forearmLength,
-              y: forearmVector.y / forearmLength,
-              z: forearmVector.z / forearmLength
-            };
-            
-            const wristToMcp = {
-              x: middleMcp.x - handWrist.x,
-              y: middleMcp.y - handWrist.y,
-              z: middleMcp.z - handWrist.z
-            };
-            
-            const alongForearm = wristToMcp.x * forearmNorm.x + wristToMcp.y * forearmNorm.y + wristToMcp.z * forearmNorm.z;
-            
-            const perpendicularDeviation = {
-              x: wristToMcp.x - (alongForearm * forearmNorm.x),
-              y: wristToMcp.y - (alongForearm * forearmNorm.y),
-              z: wristToMcp.z - (alongForearm * forearmNorm.z)
-            };
-            
-            // ANATOMICAL ANGLE-BASED NEUTRAL DETECTION - Use forearmToHandAngle for proper reference
-            const anatomicalAngle = forearmToHandAngle;
-            const isNeutralPosition = anatomicalAngle >= 160 && anatomicalAngle <= 200; // Near 180° = neutral
-            
-            console.log(`🎯 ANATOMICAL METHOD RIGHT - Forearm-Hand:${anatomicalAngle.toFixed(1)}°, Joint-Dev:${angleDegrees.toFixed(1)}°, Neutral:${isNeutralPosition}`);
-            
-            if (isNeutralPosition) {
-              result.wristFlexionAngle = 0;
-              result.wristExtensionAngle = 0;
-              console.log(`RIGHT Wrist NEUTRAL: ${anatomicalAngle.toFixed(1)}° anatomical (neutral zone)`);
-            } else {
-              // Use joint deviation angle for measuring actual flexion/extension
-              if (anatomicalAngle < 180) {
-                // Less than straight = flexion
-                result.wristFlexionAngle = angleDegrees;
-                result.wristExtensionAngle = 0;
-                console.log(`RIGHT Wrist FLEXION: ${angleDegrees.toFixed(1)}° (anatomical ${anatomicalAngle.toFixed(1)}° < 180°)`);
-              } else {
-                // Greater than straight = extension
-                result.wristExtensionAngle = angleDegrees;
-                result.wristFlexionAngle = 0;
-                console.log(`RIGHT Wrist EXTENSION: ${angleDegrees.toFixed(1)}° (anatomical ${anatomicalAngle.toFixed(1)}° > 180°)`);
-              }
-            }
-          } else {
-            result.wristFlexionAngle = 0;
-            result.wristExtensionAngle = 0;
-            console.log(`RIGHT Wrist neutral: ${angleDegrees.toFixed(1)}° deviation`);
-          }
+        // Store the raw anatomical angle for reference
+        result.forearmToHandAngle = 180 + signedAngle; // Convert to 0-360° scale for compatibility
+        
+        console.log(`🎯 ANATOMICAL RIGHT - Signed:${signedAngle.toFixed(1)}°, Anatomical:${result.forearmToHandAngle.toFixed(1)}°`);
+        
+        // Apply neutral zone for signed angles (±10° around 0)
+        if (Math.abs(signedAngle) <= 10) {
+          result.wristFlexionAngle = 0;
+          result.wristExtensionAngle = 0;
+          console.log(`RIGHT Wrist NEUTRAL: ${signedAngle.toFixed(1)}° (within neutral zone)`);
+        } else if (signedAngle > 0) {
+          // Positive = flexion
+          result.wristFlexionAngle = signedAngle;
+          result.wristExtensionAngle = 0;
+          console.log(`RIGHT Wrist FLEXION: ${signedAngle.toFixed(1)}°`);
+        } else {
+          // Negative = extension
+          result.wristExtensionAngle = Math.abs(signedAngle);
+          result.wristFlexionAngle = 0;
+          console.log(`RIGHT Wrist EXTENSION: ${Math.abs(signedAngle).toFixed(1)}°`);
         }
-
-        console.log(`RIGHT Elbow-referenced calculation: ${Math.abs(forearmToHandAngle - 180).toFixed(1)}° deviation from neutral`);
+        
+        console.log(`RIGHT Anatomical calculation: ${signedAngle.toFixed(1)}° signed angle`);
       }
     }
   }
