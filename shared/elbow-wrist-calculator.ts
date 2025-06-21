@@ -426,8 +426,8 @@ export function calculateElbowReferencedWristAngleWithForce(
       
       // MULTI-AXIS CALIBRATED CLASSIFICATION (Universal method)
       
-      // Check if angle is in neutral zone (170-190 degrees = nearly straight)
-      const isNeutralAngle = wristAngle >= 170 && wristAngle <= 190;
+      // Adjust neutral zone for observed neutral positions (120-140 degrees seems to be neutral)
+      const isNeutralAngle = (wristAngle >= 120 && wristAngle <= 140) || (wristAngle >= 170 && wristAngle <= 190);
       
       if (isNeutralAngle) {
         // Force neutral classification for nearly straight positions
@@ -612,8 +612,8 @@ function calculateLeftHandWristAngle(
             // MULTI-AXIS CALIBRATED CLASSIFICATION
             // Test all three axes to find the most reliable palm/dorsal indicator
             
-            // Check if angle is in neutral zone (170-190 degrees = nearly straight)
-            const isNeutralAngle = angleDegrees >= 170 && angleDegrees <= 190;
+            // Adjust neutral zone for observed neutral positions (120-140 degrees seems to be neutral)
+            const isNeutralAngle = (angleDegrees >= 120 && angleDegrees <= 140) || (angleDegrees >= 170 && angleDegrees <= 190);
             
             if (isNeutralAngle) {
               // Force neutral classification for nearly straight positions
