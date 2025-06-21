@@ -224,23 +224,8 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
         } else if (isWristAssessment) {
           // Calculate current wrist angles for this frame
           if (frame.landmarks && frame.poseLandmarks) {
-            // DEBUG: Log raw coordinate data being used for calculation
-            console.log(`🔍 FRAME ${currentFrame} COORDINATE DEBUG:`);
-            console.log(`   Raw Wrist (landmark[0]): x=${frame.landmarks[0]?.x.toFixed(4)}, y=${frame.landmarks[0]?.y.toFixed(4)}, z=${frame.landmarks[0]?.z.toFixed(4)}`);
-            console.log(`   Raw MCP (landmark[9]): x=${frame.landmarks[9]?.x.toFixed(4)}, y=${frame.landmarks[9]?.y.toFixed(4)}, z=${frame.landmarks[9]?.z.toFixed(4)}`);
-            
-            if (frame.poseLandmarks[13]) {
-              console.log(`   Raw Left Elbow (pose[13]): x=${frame.poseLandmarks[13].x.toFixed(4)}, y=${frame.poseLandmarks[13].y.toFixed(4)}, z=${frame.poseLandmarks[13].z.toFixed(4)}`);
-            }
-            if (frame.poseLandmarks[14]) {
-              console.log(`   Raw Right Elbow (pose[14]): x=${frame.poseLandmarks[14].x.toFixed(4)}, y=${frame.poseLandmarks[14].y.toFixed(4)}, z=${frame.poseLandmarks[14].z.toFixed(4)}`);
-            }
-            
             const currentWrist = calculateWristAngleByHandType(frame.landmarks, frame.poseLandmarks);
             setCurrentWristAngles(currentWrist);
-            
-            // DEBUG: Log what the calculation produced
-            console.log(`   📊 CALCULATION RESULT: ${currentWrist.wristFlexionAngle.toFixed(1)}° flexion, ${currentWrist.wristExtensionAngle.toFixed(1)}° extension`);
           }
         } else {
           // Calculate ROM for standard assessments
@@ -871,13 +856,6 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
         const mcpX = middleMcp.x * canvas.width;
         const mcpY = middleMcp.y * canvas.height;
         
-        // DEBUG: Log visual coordinate transformation
-        console.log(`🎨 VISUAL COORDINATE DEBUG (Frame ${frameIndex}):`);
-        console.log(`   Canvas dimensions: ${canvas.width}x${canvas.height}`);
-        console.log(`   Visual Wrist: raw(${wrist.x.toFixed(4)}, ${wrist.y.toFixed(4)}) → screen(${wristX.toFixed(1)}, ${wristY.toFixed(1)})`);
-        console.log(`   Visual MCP: raw(${middleMcp.x.toFixed(4)}, ${middleMcp.y.toFixed(4)}) → screen(${mcpX.toFixed(1)}, ${mcpY.toFixed(1)})`);
-        console.log(`   Visual distance wrist→MCP: ${Math.sqrt((mcpX-wristX)**2 + (mcpY-wristY)**2).toFixed(1)} pixels`);
-        
         // Draw elbow and forearm line if pose landmarks available
         if (frame.poseLandmarks && frame.poseLandmarks.length > 15) {
           // Use hand type from current wrist analysis for consistent elbow tracking
@@ -916,10 +894,6 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
             const elbowY = selectedElbow.y * canvas.height;
             const poseWristX = selectedPoseWrist.x * canvas.width;
             const poseWristY = selectedPoseWrist.y * canvas.height;
-            
-            // DEBUG: Log elbow coordinate transformation
-            console.log(`   Visual Elbow (index ${elbowIndex}): raw(${selectedElbow.x.toFixed(4)}, ${selectedElbow.y.toFixed(4)}) → screen(${elbowX.toFixed(1)}, ${elbowY.toFixed(1)})`);
-            console.log(`   Visual forearm distance: ${Math.sqrt((poseWristX-elbowX)**2 + (poseWristY-elbowY)**2).toFixed(1)} pixels`);
             
             // Draw forearm line (elbow to base of hand)
             ctx.strokeStyle = '#3b82f6';
