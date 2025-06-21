@@ -424,30 +424,45 @@ export function calculateElbowReferencedWristAngleWithForce(
         z: wristToMcp.z - (alongForearm * forearmNorm.z)
       };
       
-      // Use Y-axis for palm/dorsal classification (universal method)
-      const palmSideDeviation = perpendicularDeviation.y;
+      // MULTI-AXIS CALIBRATED CLASSIFICATION (Universal method)
       
-      const isFlexion = palmSideDeviation > 0;
-      const isExtension = palmSideDeviation < 0;
+      // Check if angle is in neutral zone (170-190 degrees = nearly straight)
+      const isNeutralAngle = wristAngle >= 170 && wristAngle <= 190;
       
-      console.log(`🎯 ANATOMICAL UNIVERSAL - Palm deviation: ${palmSideDeviation.toFixed(4)}, Hand: ${forceHandType}, Direction: ${isFlexion ? 'FLEXION' : 'EXTENSION'}`);
-      
-      // Always assign angles for responsive real-time display
-      if (isFlexion) {
-        // Flexion: hand bent toward palm side
-        result.wristFlexionAngle = wristAngle;
-        result.wristExtensionAngle = 0;
-        console.log(`Wrist FLEXION: ${result.wristFlexionAngle.toFixed(1)}° (anatomical)`);
-      } else if (isExtension) {
-        // Extension: hand bent toward dorsal side
-        result.wristExtensionAngle = wristAngle;
+      if (isNeutralAngle) {
+        // Force neutral classification for nearly straight positions
         result.wristFlexionAngle = 0;
-        console.log(`Wrist EXTENSION: ${result.wristExtensionAngle.toFixed(1)}° (anatomical)`);
+        result.wristExtensionAngle = 0;
+        console.log(`${forceHandType} Wrist NEUTRAL: ${wristAngle.toFixed(1)}° (neutral zone 170-190°)`);
       } else {
-        // Neutral position
-        result.wristFlexionAngle = 0;
-        result.wristExtensionAngle = 0;
-        console.log(`Wrist NEUTRAL: deviation=${palmSideDeviation.toFixed(4)}`);
+        // For significant deviations, use multi-axis analysis
+        const xDeviation = perpendicularDeviation.x;
+        const yDeviation = perpendicularDeviation.y;
+        const zDeviation = perpendicularDeviation.z;
+        
+        // Use Z-axis as primary classifier (often most reliable for flexion/extension)
+        // Negative Z typically indicates flexion (palm forward), positive Z indicates extension
+        const primaryDeviation = zDeviation;
+        const isFlexion = primaryDeviation < 0;
+        const isExtension = primaryDeviation > 0;
+        
+        console.log(`🎯 MULTI-AXIS ${forceHandType} - X:${xDeviation.toFixed(3)}, Y:${yDeviation.toFixed(3)}, Z:${zDeviation.toFixed(3)}, Angle:${wristAngle.toFixed(1)}°, Primary(Z):${primaryDeviation.toFixed(3)}`);
+        console.log(`${forceHandType} Classification - Flexion:${isFlexion}, Extension:${isExtension}`);
+        
+        if (isFlexion) {
+          result.wristFlexionAngle = wristAngle;
+          result.wristExtensionAngle = 0;
+          console.log(`${forceHandType} Wrist FLEXION: ${result.wristFlexionAngle.toFixed(1)}° (Z-axis method)`);
+        } else if (isExtension) {
+          result.wristExtensionAngle = wristAngle;
+          result.wristFlexionAngle = 0;
+          console.log(`${forceHandType} Wrist EXTENSION: ${result.wristExtensionAngle.toFixed(1)}° (Z-axis method)`);
+        } else {
+          // Very small deviation - treat as neutral
+          result.wristFlexionAngle = 0;
+          result.wristExtensionAngle = 0;
+          console.log(`${forceHandType} Wrist NEUTRAL: Z-deviation=${primaryDeviation.toFixed(4)} (too small)`);
+        }
       }
 
       // Set high confidence for successful calculation
@@ -594,28 +609,46 @@ function calculateLeftHandWristAngle(
               z: wristToMcp.z - (alongForearm * forearmNorm.z)
             };
             
-            // Use anatomical reference: typically the Y-axis indicates palm/dorsal direction
-            // Positive Y deviation = palm side (flexion), Negative Y deviation = dorsal side (extension)
-            const palmSideDeviation = perpendicularDeviation.y;
+            // MULTI-AXIS CALIBRATED CLASSIFICATION
+            // Test all three axes to find the most reliable palm/dorsal indicator
             
-            const isFlexion = palmSideDeviation > 0;
-            const isExtension = palmSideDeviation < 0;
+            // Check if angle is in neutral zone (170-190 degrees = nearly straight)
+            const isNeutralAngle = angleDegrees >= 170 && angleDegrees <= 190;
             
-            console.log(`🔍 ANATOMICAL METHOD - Palm deviation: ${palmSideDeviation.toFixed(4)}, Angle: ${angleDegrees.toFixed(1)}°, Flexion: ${isFlexion}, Extension: ${isExtension}`);
-            
-            if (isFlexion) {
-              result.wristFlexionAngle = angleDegrees;
-              result.wristExtensionAngle = 0;
-              console.log(`LEFT Wrist FLEXION: ${result.wristFlexionAngle.toFixed(1)}° (anatomical method)`);
-            } else if (isExtension) {
-              result.wristExtensionAngle = angleDegrees;
+            if (isNeutralAngle) {
+              // Force neutral classification for nearly straight positions
               result.wristFlexionAngle = 0;
-              console.log(`LEFT Wrist EXTENSION: ${result.wristExtensionAngle.toFixed(1)}° (anatomical method)`);
+              result.wristExtensionAngle = 0;
+              console.log(`LEFT Wrist NEUTRAL: ${angleDegrees.toFixed(1)}° (neutral zone 170-190°)`);
             } else {
-              // Neutral position
-              result.wristFlexionAngle = 0;
-              result.wristExtensionAngle = 0;
-              console.log(`LEFT Wrist NEUTRAL: deviation=${palmSideDeviation.toFixed(4)} (too close to zero)`);
+              // For significant deviations, use multi-axis analysis
+              const xDeviation = perpendicularDeviation.x;
+              const yDeviation = perpendicularDeviation.y;
+              const zDeviation = perpendicularDeviation.z;
+              
+              // Use Z-axis as primary classifier (often most reliable for flexion/extension)
+              // Negative Z typically indicates flexion (palm forward), positive Z indicates extension
+              const primaryDeviation = zDeviation;
+              const isFlexion = primaryDeviation < 0;
+              const isExtension = primaryDeviation > 0;
+              
+              console.log(`🔍 MULTI-AXIS LEFT - X:${xDeviation.toFixed(3)}, Y:${yDeviation.toFixed(3)}, Z:${zDeviation.toFixed(3)}, Angle:${angleDegrees.toFixed(1)}°, Primary(Z):${primaryDeviation.toFixed(3)}`);
+              console.log(`LEFT Classification - Flexion:${isFlexion}, Extension:${isExtension}`);
+              
+              if (isFlexion) {
+                result.wristFlexionAngle = angleDegrees;
+                result.wristExtensionAngle = 0;
+                console.log(`LEFT Wrist FLEXION: ${result.wristFlexionAngle.toFixed(1)}° (Z-axis method)`);
+              } else if (isExtension) {
+                result.wristExtensionAngle = angleDegrees;
+                result.wristFlexionAngle = 0;
+                console.log(`LEFT Wrist EXTENSION: ${result.wristExtensionAngle.toFixed(1)}° (Z-axis method)`);
+              } else {
+                // Very small deviation - treat as neutral
+                result.wristFlexionAngle = 0;
+                result.wristExtensionAngle = 0;
+                console.log(`LEFT Wrist NEUTRAL: Z-deviation=${primaryDeviation.toFixed(4)} (too small)`);
+              }
             }
           } else {
             result.wristFlexionAngle = 0;
