@@ -291,14 +291,10 @@ export default function AssessmentResults() {
                                 }).filter(Boolean);
                                 
                                 if (wristAnglesAllFrames.length > 0) {
-                                  const allFlexionAngles = wristAnglesAllFrames.map(w => w!.wristFlexionAngle).filter(angle => !isNaN(angle) && angle >= 0);
-                                  const maxFlexion = allFlexionAngles.length > 0 ? Math.max(...allFlexionAngles) : 0;
+                                  // Use exact motion replay logic - no additional filtering
+                                  const maxFlexion = Math.max(...wristAnglesAllFrames.map(w => w!.wristFlexionAngle));
                                   
-                                  console.log('Assessment Results - Flexion calculation:', {
-                                    framesProcessed: wristAnglesAllFrames.length,
-                                    flexionAngles: allFlexionAngles.length,
-                                    maxFlexion: maxFlexion
-                                  });
+                                  console.log(`📊 FLEXION - Frames: ${wristAnglesAllFrames.length}, Max: ${maxFlexion.toFixed(1)}°`);
                                   
                                   return maxFlexion.toFixed(1);
                                 }
@@ -332,14 +328,10 @@ export default function AssessmentResults() {
                                 }).filter(Boolean);
                                 
                                 if (wristAnglesAllFrames.length > 0) {
-                                  const allExtensionAngles = wristAnglesAllFrames.map(w => w!.wristExtensionAngle).filter(angle => !isNaN(angle) && angle >= 0);
-                                  const maxExtension = allExtensionAngles.length > 0 ? Math.max(...allExtensionAngles) : 0;
+                                  // Use exact motion replay logic - no additional filtering
+                                  const maxExtension = Math.max(...wristAnglesAllFrames.map(w => w!.wristExtensionAngle));
                                   
-                                  console.log('Assessment Results - Extension calculation:', {
-                                    framesProcessed: wristAnglesAllFrames.length,
-                                    extensionAngles: allExtensionAngles.length,
-                                    maxExtension: maxExtension
-                                  });
+                                  console.log(`📊 EXTENSION - Frames: ${wristAnglesAllFrames.length}, Max: ${maxExtension.toFixed(1)}°`);
                                   
                                   return maxExtension.toFixed(1);
                                 }
