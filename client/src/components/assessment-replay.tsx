@@ -170,35 +170,34 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
         console.log(`REPLAY: Processed ${wristAnglesAllFrames.length} frames with forced hand type = ${sessionHandType}`);
         
         if (wristAnglesAllFrames.length > 0) {
-          // Use EXACT same maximum calculation logic as wrist-results page
-          const allFlexionAngles = wristAnglesAllFrames.map(w => w!.wristFlexionAngle).filter(angle => !isNaN(angle) && angle >= 0);
-          const allExtensionAngles = wristAnglesAllFrames.map(w => w!.wristExtensionAngle).filter(angle => !isNaN(angle) && angle >= 0);
-          const allForearmAngles = wristAnglesAllFrames.map(w => w!.forearmToHandAngle).filter(angle => !isNaN(angle));
+          // Use the CENTRALIZED CALCULATOR to ensure absolute consistency
+          const mockUserAssessment = {
+            repetitionData: [{
+              motionData: replayData
+            }]
+          };
           
-          // Mirror the exact calculation from wrist-results.tsx
-          const maxFlexion = allFlexionAngles.length > 0 ? Math.max(...allFlexionAngles) : 0;
-          const maxExtension = allExtensionAngles.length > 0 ? Math.max(...allExtensionAngles) : 0;
-          const maxForearmAngle = allForearmAngles.length > 0 ? Math.max(...allForearmAngles) : 0;
+          const authoritativeResults = calculateWristResults(mockUserAssessment);
           
-          console.log(`MOTION ANALYSIS - WRIST RESULTS CONSISTENCY:`);
-          console.log(`  - Max Flexion: ${maxFlexion.toFixed(1)}° (matches wrist-results calculation)`);
-          console.log(`  - Max Extension: ${maxExtension.toFixed(1)}° (matches wrist-results calculation)`);
-          console.log(`  - Total ROM: ${(maxFlexion + maxExtension).toFixed(1)}° (matches wrist-results calculation)`);
-          console.log(`  - Frames analyzed: ${wristAnglesAllFrames.length}`);
+          console.log(`🎯 MOTION ANALYSIS - USING CENTRALIZED CALCULATOR:`);
+          console.log(`  - Max Flexion: ${authoritativeResults.maxFlexion.toFixed(1)}° (authoritative source)`);
+          console.log(`  - Max Extension: ${authoritativeResults.maxExtension.toFixed(1)}° (authoritative source)`);
+          console.log(`  - Total ROM: ${authoritativeResults.totalROM.toFixed(1)}° (authoritative source)`);
+          console.log(`  - Frames analyzed: ${authoritativeResults.frameCount}`);
           
           // Use session hand type consistently
-          const finalHandType = sessionHandType !== 'UNKNOWN' ? sessionHandType : wristAnglesAllFrames[0]!.handType;
+          const finalHandType = sessionHandType !== 'UNKNOWN' ? sessionHandType : authoritativeResults.handType;
           
           setMaxWristAngles({
-            forearmToHandAngle: maxForearmAngle,
-            wristFlexionAngle: maxFlexion,
-            wristExtensionAngle: maxExtension,
+            forearmToHandAngle: 90, // Not used for display in wrist assessments
+            wristFlexionAngle: authoritativeResults.maxFlexion,
+            wristExtensionAngle: authoritativeResults.maxExtension,
             elbowDetected: true,
             handType: finalHandType,
-            confidence: Math.max(...wristAnglesAllFrames.map(w => w!.confidence))
+            confidence: authoritativeResults.averageConfidence
           });
           
-          console.log(`MOTION ANALYSIS: Results match wrist-results page - Hand: ${finalHandType}, Total ROM: ${(maxFlexion + maxExtension).toFixed(1)}°`);
+          console.log(`🎯 MOTION ANALYSIS: Using authoritative calculator - Hand: ${finalHandType}, Total ROM: ${authoritativeResults.totalROM.toFixed(1)}°`);
         }
         setCurrentFrame(0);
       } else {

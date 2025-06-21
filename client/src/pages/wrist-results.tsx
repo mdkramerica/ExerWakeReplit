@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, Download, Share2, TrendingUp, Activity, Calculator, Info, FileText, ChevronDown, ChevronUp } from "lucide-react";
+import { calculateWristResults, getWristClinicalInterpretation, getWristPercentages } from "@shared/wrist-results-calculator";
 
 interface WristResultsData {
   userAssessment: {
@@ -110,36 +111,14 @@ export default function WristResults() {
     );
   }
   
-  // Clinical reference ranges for wrist ROM
-  const normalFlexionRange = [0, 80];
-  const normalExtensionRange = [0, 70];
+  // Use the centralized calculation - SINGLE SOURCE OF TRUTH
+  const wristResults = calculateWristResults(userAssessment);
+  const interpretation = getWristClinicalInterpretation(wristResults);
+  const { flexionPercentage, extensionPercentage } = getWristPercentages(wristResults);
   
-  // Enhanced field checking for wrist angle data from different sources
-  const maxFlexion = Number(
-    userAssessment.maxWristFlexion || 
-    userAssessment.wristFlexionAngle ||
-    (userAssessment.repetitionData && userAssessment.repetitionData[0]?.maxWristFlexion) ||
-    0
-  );
-  const maxExtension = Number(
-    userAssessment.maxWristExtension || 
-    userAssessment.wristExtensionAngle ||
-    (userAssessment.repetitionData && userAssessment.repetitionData[0]?.maxWristExtension) ||
-    0
-  );
-  
-  console.log('Wrist angle values:', {
-    maxWristFlexion: userAssessment.maxWristFlexion,
-    maxWristExtension: userAssessment.maxWristExtension,
-    wristFlexionAngle: userAssessment.wristFlexionAngle,
-    wristExtensionAngle: userAssessment.wristExtensionAngle,
-    finalMaxFlexion: maxFlexion,
-    finalMaxExtension: maxExtension
-  });
-  
-  const flexionPercentage = Math.min((maxFlexion / normalFlexionRange[1]) * 100, 100);
-  const extensionPercentage = Math.min((maxExtension / normalExtensionRange[1]) * 100, 100);
-  const totalFrames = userAssessment?.repetitionData?.[0]?.motionData?.length || 0;
+  // Extract values for display
+  const { maxFlexion, maxExtension, totalROM, frameCount } = wristResults;
+  const totalFrames = frameCount;
   
   const getQualityColor = (score: number) => {
     if (score >= 85) return "bg-green-500";
@@ -147,20 +126,13 @@ export default function WristResults() {
     return "bg-red-500";
   };
   
-  const getResultsInterpretation = () => {
-    const flexion = maxFlexion;
-    const extension = maxExtension;
-    
-    if (flexion >= 60 && extension >= 50) {
-      return { status: "Normal", color: "text-green-600", description: "Excellent wrist mobility" };
-    } else if (flexion >= 40 || extension >= 30) {
-      return { status: "Moderate", color: "text-yellow-600", description: "Some limitation present" };
-    } else {
-      return { status: "Limited", color: "text-red-600", description: "Significant mobility restriction" };
-    }
-  };
-  
-  const interpretation = getResultsInterpretation();
+  console.log('🎯 WRIST RESULTS PAGE - AUTHORITATIVE VALUES:', {
+    maxFlexion: maxFlexion.toFixed(1),
+    maxExtension: maxExtension.toFixed(1),
+    totalROM: totalROM.toFixed(1),
+    frameCount,
+    source: 'centralized-calculator'
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">

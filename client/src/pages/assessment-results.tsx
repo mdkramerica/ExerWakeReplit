@@ -6,7 +6,7 @@ import { ArrowLeft, Share, Play } from "lucide-react";
 import { Link } from "wouter";
 import { useState } from "react";
 import AssessmentReplay from "@/components/assessment-replay";
-import { calculateWristAngleByHandType, calculateElbowReferencedWristAngle } from "@shared/elbow-wrist-calculator";
+import { calculateWristResults, getWristClinicalInterpretation, getWristPercentages } from "@shared/wrist-results-calculator";
 
 export default function AssessmentResults() {
   const [, params] = useRoute("/assessment-results/:code/:userAssessmentId");
