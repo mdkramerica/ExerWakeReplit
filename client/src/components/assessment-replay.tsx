@@ -667,8 +667,10 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
     
     // If still unknown, determine from assessment metadata or overall session
     if (!displayHandType || displayHandType === 'UNKNOWN') {
-      // First try to get from assessment data
-      if (userAssessment?.handType && userAssessment.handType !== 'UNKNOWN') {
+      // For wrist assessments, prioritize the detected hand type from calculations
+      if (isWristAssessment && maxWristAngles?.handType) {
+        displayHandType = maxWristAngles.handType;
+      } else if (userAssessment?.handType && userAssessment.handType !== 'UNKNOWN') {
         displayHandType = userAssessment.handType;
       } else {
         // Check all frames for hand type information
@@ -682,8 +684,14 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
           const rightCount = allHandTypes.filter(h => h === 'RIGHT' || h === 'Right').length;
           displayHandType = leftCount > rightCount ? 'LEFT' : 'RIGHT';
         } else {
-          // Default fallback based on the fact that a hand was detected
-          displayHandType = 'LEFT'; // Most recordings are left hand based on the data
+          // Calculate hand type from current frame if available
+          if (isWristAssessment && frame.landmarks && frame.poseLandmarks) {
+            const currentWristCalc = calculateWristAngleByHandType(frame.landmarks, frame.poseLandmarks);
+            displayHandType = currentWristCalc.handType;
+          } else {
+            // Last resort fallback
+            displayHandType = 'RIGHT';
+          }
         }
       }
     }
