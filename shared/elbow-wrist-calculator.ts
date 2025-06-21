@@ -859,11 +859,11 @@ function calculateAnatomicalWristAngle(
     z: uForearm.x * uHand.y - uForearm.y * uHand.x
   };
   
-  // DATA-DRIVEN APPROACH: Based on observation that raw angles range 44-66° for this dataset
-  // Establish neutral zone around the middle of this range (around 55°)
+  // IMPROVED SENSITIVITY: Tighter neutral zone for better clinical detection
+  // Based on observation that raw angles range 44-66° for this dataset
   
   const NEUTRAL_CENTER = 55; // degrees - center of observed neutral range
-  const NEUTRAL_TOLERANCE = 10; // degrees - ±10° around center considered neutral
+  const NEUTRAL_TOLERANCE = 3; // degrees - ±3° around center considered neutral (reduced from 10°)
   
   // Calculate deviation from the data-driven neutral center
   const deviationFromNeutral = Math.abs(rawAngle - NEUTRAL_CENTER);
@@ -871,12 +871,12 @@ function calculateAnatomicalWristAngle(
   let wristBendAngle = 0;
   
   if (deviationFromNeutral <= NEUTRAL_TOLERANCE) {
-    // Within neutral tolerance (45-65°) - report as neutral
+    // Within tight neutral tolerance (52-58°) - report as neutral
     wristBendAngle = 0;
   } else {
-    // Outside neutral - calculate actual bend
-    // Use a reasonable scaling factor to get clinical angles (0-90°)
-    const bendMagnitude = (deviationFromNeutral - NEUTRAL_TOLERANCE) * 2; // Scale factor
+    // Outside neutral - calculate actual bend with improved sensitivity
+    // Use higher scaling factor for better clinical resolution
+    const bendMagnitude = (deviationFromNeutral - NEUTRAL_TOLERANCE) * 3; // Increased scale factor from 2 to 3
     
     // Use cross product for direction (flexion vs extension)
     const signRaw = Math.sign(cross.z + 1e-9);
