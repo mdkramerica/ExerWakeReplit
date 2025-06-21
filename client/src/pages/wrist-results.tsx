@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, Download, Share2, TrendingUp, Activity, Calculator, Info } from "lucide-react";
+import { ArrowLeft, Download, Share2, TrendingUp, Activity, Calculator, Info, FileText, ChevronDown, ChevronUp } from "lucide-react";
 
 interface WristResultsData {
   userAssessment: {
@@ -33,6 +33,7 @@ interface WristResultsData {
 export default function WristResults() {
   const { userCode, userAssessmentId } = useParams();
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [showDetailedDocs, setShowDetailedDocs] = useState(false);
 
   useEffect(() => {
     const savedUser = sessionStorage.getItem('currentUser');
@@ -263,6 +264,140 @@ export default function WristResults() {
               </div>
             </div>
           </CardContent>
+        </Card>
+
+        {/* Detailed Technical Documentation */}
+        <Card className="border-l-4 border-l-amber-500">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg font-semibold text-amber-700 flex items-center gap-2">
+                <FileText className="w-5 h-5" />
+                Detailed Calculation Documentation
+              </CardTitle>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => setShowDetailedDocs(!showDetailedDocs)}
+                className="text-amber-700 hover:text-amber-800"
+              >
+                {showDetailedDocs ? (
+                  <>
+                    <ChevronUp className="w-4 h-4 mr-1" />
+                    Hide Details
+                  </>
+                ) : (
+                  <>
+                    <ChevronDown className="w-4 h-4 mr-1" />
+                    View Full Documentation
+                  </>
+                )}
+              </Button>
+            </div>
+          </CardHeader>
+          {showDetailedDocs && (
+            <CardContent className="max-h-96 overflow-y-auto bg-gray-50">
+              <div className="prose prose-sm max-w-none">
+                <div className="bg-white p-6 rounded-lg border">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4">Mathematical Implementation</h3>
+                  
+                  <div className="space-y-6">
+                    <div>
+                      <h4 className="font-semibold text-gray-800 mb-2">1. Vector Construction</h4>
+                      <div className="bg-blue-50 p-3 rounded font-mono text-sm">
+                        <div>forearmVector = handWrist - poseElbow</div>
+                        <div>handVector = middleMCP - handWrist</div>
+                      </div>
+                      <p className="text-sm text-gray-600 mt-2">
+                        The forearm vector establishes anatomical reference, while the hand vector represents the orientation being measured.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold text-gray-800 mb-2">2. Dot Product Angle Calculation</h4>
+                      <div className="bg-green-50 p-3 rounded font-mono text-sm">
+                        <div>dotProduct = forearm·hand = fx*hx + fy*hy + fz*hz</div>
+                        <div>cosAngle = dotProduct / (|forearm| * |hand|)</div>
+                        <div>angleDegrees = arccos(cosAngle) * (180/PI)</div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold text-gray-800 mb-2">3. Cross Product Direction</h4>
+                      <div className="bg-purple-50 p-3 rounded font-mono text-sm">
+                        <div>crossProduct = forearm x hand</div>
+                        <div>if (crossProduct.y &gt; 0) = Flexion (+)</div>
+                        <div>if (crossProduct.y &lt; 0) = Extension (-)</div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold text-gray-800 mb-2">4. Hand-Specific Landmarks</h4>
+                      <div className="bg-yellow-50 p-3 rounded text-sm">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <strong>LEFT Hand:</strong>
+                            <ul className="text-xs mt-1">
+                              <li>- Elbow: MediaPipe index 13</li>
+                              <li>- Wrist: MediaPipe index 15</li>
+                              <li>- Hand landmarks from left detection</li>
+                            </ul>
+                          </div>
+                          <div>
+                            <strong>RIGHT Hand:</strong>
+                            <ul className="text-xs mt-1">
+                              <li>- Elbow: MediaPipe index 14</li>
+                              <li>- Wrist: MediaPipe index 16</li>
+                              <li>- Hand landmarks from right detection</li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold text-gray-800 mb-2">5. Maximum Value Processing</h4>
+                      <div className="bg-red-50 p-3 rounded font-mono text-sm">
+                        <div>maxFlexion = max(all flexion angles across {totalFrames} frames)</div>
+                        <div>maxExtension = max(all extension angles across {totalFrames} frames)</div>
+                        <div>totalROM = maxFlexion + maxExtension</div>
+                      </div>
+                      <p className="text-sm text-gray-600 mt-2">
+                        Each frame is analyzed independently, with the maximum recorded values representing peak mobility.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold text-gray-800 mb-2">6. Quality Assurance</h4>
+                      <ul className="text-sm text-gray-600 space-y-1">
+                        <li>- ±3° neutral zone eliminates micro-movement noise</li>
+                        <li>- Session-locked hand type prevents calculation inconsistencies</li>
+                        <li>- 3D coordinate system with depth (Z-axis) for accuracy</li>
+                        <li>- Real-time validation with confidence scoring</li>
+                      </ul>
+                    </div>
+
+                    <div className="bg-gray-100 p-4 rounded">
+                      <h4 className="font-semibold text-gray-800 mb-2">Current Assessment Data</h4>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <strong>Motion Frames Analyzed:</strong> {totalFrames}
+                        </div>
+                        <div>
+                          <strong>Sampling Rate:</strong> ~30 FPS
+                        </div>
+                        <div>
+                          <strong>Hand Type Detected:</strong> {userAssessment?.handType || 'Session-locked'}
+                        </div>
+                        <div>
+                          <strong>Quality Score:</strong> {userAssessment?.qualityScore || 100}%
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          )}
         </Card>
 
         {/* Assessment Overview */}
