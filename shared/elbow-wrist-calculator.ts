@@ -426,42 +426,28 @@ export function calculateElbowReferencedWristAngleWithForce(
       
       // MULTI-AXIS CALIBRATED CLASSIFICATION (Universal method)
       
-      // Expanded neutral zone for observed neutral positions
-      const isNeutralAngle = (wristAngle >= 120 && wristAngle <= 140) || (wristAngle >= 170 && wristAngle <= 190);
+      // MAGNITUDE-BASED NEUTRAL DETECTION - Focus on deviation from 180° (straight line)
+      const deviationFrom180 = Math.abs(wristAngle - 180);
+      const isNeutralPosition = deviationFrom180 <= 60; // Within 60° of straight = neutral (120-240°)
       
-      if (isNeutralAngle) {
-        // Force neutral classification for nearly straight positions
+      console.log(`🎯 MAGNITUDE METHOD ${forceHandType} - Raw:${wristAngle.toFixed(1)}°, Deviation from 180°:${deviationFrom180.toFixed(1)}°, Neutral:${isNeutralPosition}`);
+      
+      if (isNeutralPosition) {
         result.wristFlexionAngle = 0;
         result.wristExtensionAngle = 0;
-        console.log(`${forceHandType} Wrist NEUTRAL: ${wristAngle.toFixed(1)}° (neutral zone 170-190°)`);
+        console.log(`${forceHandType} Wrist NEUTRAL: ${wristAngle.toFixed(1)}° (within ${deviationFrom180.toFixed(1)}° of straight)`);
       } else {
-        // For significant deviations, use multi-axis analysis
-        const xDeviation = perpendicularDeviation.x;
-        const yDeviation = perpendicularDeviation.y;
-        const zDeviation = perpendicularDeviation.z;
-        
-        // Use Z-axis as primary classifier (often most reliable for flexion/extension)
-        // Negative Z typically indicates flexion (palm forward), positive Z indicates extension
-        const primaryDeviation = zDeviation;
-        const isFlexion = primaryDeviation < 0;
-        const isExtension = primaryDeviation > 0;
-        
-        console.log(`🎯 MULTI-AXIS ${forceHandType} - X:${xDeviation.toFixed(3)}, Y:${yDeviation.toFixed(3)}, Z:${zDeviation.toFixed(3)}, Angle:${wristAngle.toFixed(1)}°, Primary(Z):${primaryDeviation.toFixed(3)}`);
-        console.log(`${forceHandType} Classification - Flexion:${isFlexion}, Extension:${isExtension}`);
-        
-        if (isFlexion) {
-          result.wristFlexionAngle = wristAngle;
+        // For significant deviations, use angle position relative to 180°
+        if (wristAngle < 180) {
+          // Less than straight = flexion (hand bent forward)
+          result.wristFlexionAngle = 180 - wristAngle;
           result.wristExtensionAngle = 0;
-          console.log(`${forceHandType} Wrist FLEXION: ${result.wristFlexionAngle.toFixed(1)}° (Z-axis method)`);
-        } else if (isExtension) {
-          result.wristExtensionAngle = wristAngle;
-          result.wristFlexionAngle = 0;
-          console.log(`${forceHandType} Wrist EXTENSION: ${result.wristExtensionAngle.toFixed(1)}° (Z-axis method)`);
+          console.log(`${forceHandType} Wrist FLEXION: ${result.wristFlexionAngle.toFixed(1)}° (${wristAngle.toFixed(1)}° < 180°)`);
         } else {
-          // Very small deviation - treat as neutral
+          // Greater than straight = extension (hand bent backward)  
+          result.wristExtensionAngle = wristAngle - 180;
           result.wristFlexionAngle = 0;
-          result.wristExtensionAngle = 0;
-          console.log(`${forceHandType} Wrist NEUTRAL: Z-deviation=${primaryDeviation.toFixed(4)} (too small)`);
+          console.log(`${forceHandType} Wrist EXTENSION: ${result.wristExtensionAngle.toFixed(1)}° (${wristAngle.toFixed(1)}° > 180°)`);
         }
       }
 
@@ -612,42 +598,28 @@ function calculateLeftHandWristAngle(
             // MULTI-AXIS CALIBRATED CLASSIFICATION
             // Test all three axes to find the most reliable palm/dorsal indicator
             
-            // Expanded neutral zone for observed neutral positions
-            const isNeutralAngle = (angleDegrees >= 120 && angleDegrees <= 140) || (angleDegrees >= 170 && angleDegrees <= 190);
+            // MAGNITUDE-BASED NEUTRAL DETECTION - Focus on deviation from 180° (straight line)
+            const deviationFrom180 = Math.abs(angleDegrees - 180);
+            const isNeutralPosition = deviationFrom180 <= 60; // Within 60° of straight = neutral (120-240°)
             
-            if (isNeutralAngle) {
-              // Force neutral classification for nearly straight positions
+            console.log(`🎯 MAGNITUDE METHOD LEFT - Raw:${angleDegrees.toFixed(1)}°, Deviation from 180°:${deviationFrom180.toFixed(1)}°, Neutral:${isNeutralPosition}`);
+            
+            if (isNeutralPosition) {
               result.wristFlexionAngle = 0;
               result.wristExtensionAngle = 0;
-              console.log(`LEFT Wrist NEUTRAL: ${angleDegrees.toFixed(1)}° (neutral zone 170-190°)`);
+              console.log(`LEFT Wrist NEUTRAL: ${angleDegrees.toFixed(1)}° (within ${deviationFrom180.toFixed(1)}° of straight)`);
             } else {
-              // For significant deviations, use multi-axis analysis
-              const xDeviation = perpendicularDeviation.x;
-              const yDeviation = perpendicularDeviation.y;
-              const zDeviation = perpendicularDeviation.z;
-              
-              // Use Z-axis as primary classifier (often most reliable for flexion/extension)
-              // Negative Z typically indicates flexion (palm forward), positive Z indicates extension
-              const primaryDeviation = zDeviation;
-              const isFlexion = primaryDeviation < 0;
-              const isExtension = primaryDeviation > 0;
-              
-              console.log(`🔍 MULTI-AXIS LEFT - X:${xDeviation.toFixed(3)}, Y:${yDeviation.toFixed(3)}, Z:${zDeviation.toFixed(3)}, Angle:${angleDegrees.toFixed(1)}°, Primary(Z):${primaryDeviation.toFixed(3)}`);
-              console.log(`LEFT Classification - Flexion:${isFlexion}, Extension:${isExtension}`);
-              
-              if (isFlexion) {
-                result.wristFlexionAngle = angleDegrees;
+              // For significant deviations, use angle position relative to 180°
+              if (angleDegrees < 180) {
+                // Less than straight = flexion (hand bent forward)
+                result.wristFlexionAngle = 180 - angleDegrees;
                 result.wristExtensionAngle = 0;
-                console.log(`LEFT Wrist FLEXION: ${result.wristFlexionAngle.toFixed(1)}° (Z-axis method)`);
-              } else if (isExtension) {
-                result.wristExtensionAngle = angleDegrees;
-                result.wristFlexionAngle = 0;
-                console.log(`LEFT Wrist EXTENSION: ${result.wristExtensionAngle.toFixed(1)}° (Z-axis method)`);
+                console.log(`LEFT Wrist FLEXION: ${result.wristFlexionAngle.toFixed(1)}° (${angleDegrees.toFixed(1)}° < 180°)`);
               } else {
-                // Very small deviation - treat as neutral
+                // Greater than straight = extension (hand bent backward)  
+                result.wristExtensionAngle = angleDegrees - 180;
                 result.wristFlexionAngle = 0;
-                result.wristExtensionAngle = 0;
-                console.log(`LEFT Wrist NEUTRAL: Z-deviation=${primaryDeviation.toFixed(4)} (too small)`);
+                console.log(`LEFT Wrist EXTENSION: ${result.wristExtensionAngle.toFixed(1)}° (${angleDegrees.toFixed(1)}° > 180°)`);
               }
             }
           } else {
@@ -980,37 +952,28 @@ function calculateRightHandWristAngle(
               z: wristToMcp.z - (alongForearm * forearmNorm.z)
             };
             
-            // Expanded neutral zone for observed neutral positions
-            const isNeutralAngle = (angleDegrees >= 120 && angleDegrees <= 140) || (angleDegrees >= 170 && angleDegrees <= 190);
+            // MAGNITUDE-BASED NEUTRAL DETECTION - Focus on deviation from 180° (straight line)
+            const deviationFrom180 = Math.abs(angleDegrees - 180);
+            const isNeutralPosition = deviationFrom180 <= 60; // Within 60° of straight = neutral (120-240°)
             
-            if (isNeutralAngle) {
+            console.log(`🎯 MAGNITUDE METHOD RIGHT - Raw:${angleDegrees.toFixed(1)}°, Deviation from 180°:${deviationFrom180.toFixed(1)}°, Neutral:${isNeutralPosition}`);
+            
+            if (isNeutralPosition) {
               result.wristFlexionAngle = 0;
               result.wristExtensionAngle = 0;
-              console.log(`RIGHT Wrist NEUTRAL: ${angleDegrees.toFixed(1)}° (neutral zone)`);
+              console.log(`RIGHT Wrist NEUTRAL: ${angleDegrees.toFixed(1)}° (within ${deviationFrom180.toFixed(1)}° of straight)`);
             } else {
-              const xDeviation = perpendicularDeviation.x;
-              const yDeviation = perpendicularDeviation.y;
-              const zDeviation = perpendicularDeviation.z;
-              
-              const primaryDeviation = zDeviation;
-              const isFlexion = primaryDeviation < 0;
-              const isExtension = primaryDeviation > 0;
-              
-              console.log(`🔍 MULTI-AXIS RIGHT - X:${xDeviation.toFixed(3)}, Y:${yDeviation.toFixed(3)}, Z:${zDeviation.toFixed(3)}, Angle:${angleDegrees.toFixed(1)}°, Primary(Z):${primaryDeviation.toFixed(3)}`);
-              console.log(`RIGHT Classification - Flexion:${isFlexion}, Extension:${isExtension}`);
-              
-              if (isFlexion) {
-                result.wristFlexionAngle = angleDegrees;
+              // For significant deviations, use angle position relative to 180°
+              if (angleDegrees < 180) {
+                // Less than straight = flexion (hand bent forward)
+                result.wristFlexionAngle = 180 - angleDegrees;
                 result.wristExtensionAngle = 0;
-                console.log(`RIGHT Wrist FLEXION: ${result.wristFlexionAngle.toFixed(1)}° (Z-axis method)`);
-              } else if (isExtension) {
-                result.wristExtensionAngle = angleDegrees;
-                result.wristFlexionAngle = 0;
-                console.log(`RIGHT Wrist EXTENSION: ${result.wristExtensionAngle.toFixed(1)}° (Z-axis method)`);
+                console.log(`RIGHT Wrist FLEXION: ${result.wristFlexionAngle.toFixed(1)}° (${angleDegrees.toFixed(1)}° < 180°)`);
               } else {
+                // Greater than straight = extension (hand bent backward)  
+                result.wristExtensionAngle = angleDegrees - 180;
                 result.wristFlexionAngle = 0;
-                result.wristExtensionAngle = 0;
-                console.log(`RIGHT Wrist NEUTRAL: Z-deviation=${primaryDeviation.toFixed(4)} (too small)`);
+                console.log(`RIGHT Wrist EXTENSION: ${result.wristExtensionAngle.toFixed(1)}° (${angleDegrees.toFixed(1)}° > 180°)`);
               }
             }
           } else {
