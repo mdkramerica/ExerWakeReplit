@@ -592,6 +592,7 @@ function calculateLeftHandWristAngle(
         }
         
         console.log(`LEFT Anatomical calculation: ${signedAngle.toFixed(1)}° signed angle`);
+        }
       }
     }
   }
