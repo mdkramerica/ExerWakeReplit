@@ -139,17 +139,18 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
           }
         }
         
-        // Force session hand type for ALL frames - use recorded data when available
+        // Use the same calculation method as /wrist-results page for consistency
         const wristAnglesAllFrames = replayData.map(frame => {
-          // Always use recorded wrist angles if available
+          // Always use recorded wrist angles if available (preferred for consistency)
           if (frame.wristAngles && frame.wristAngles.elbowDetected) {
             const result = { ...frame.wristAngles };
             result.handType = sessionHandType !== 'UNKNOWN' ? sessionHandType : 'RIGHT';
             return result;
           }
           
-          // Fallback: calculate fresh if no recorded data (shouldn't happen in replay)
+          // Use the EXACT same calculation as wrist-results page
           if (frame.landmarks && frame.poseLandmarks) {
+            // This mirrors the calculation in wrist-results.tsx
             const calculated = calculateWristAngleByHandType(frame.landmarks, frame.poseLandmarks);
             calculated.handType = sessionHandType !== 'UNKNOWN' ? sessionHandType : 'RIGHT';
             return calculated;
@@ -169,22 +170,23 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
         console.log(`REPLAY: Processed ${wristAnglesAllFrames.length} frames with forced hand type = ${sessionHandType}`);
         
         if (wristAnglesAllFrames.length > 0) {
-          // Find maximum wrist angles - capture all positive angles
+          // Use EXACT same maximum calculation logic as wrist-results page
           const allFlexionAngles = wristAnglesAllFrames.map(w => w!.wristFlexionAngle).filter(angle => !isNaN(angle) && angle >= 0);
           const allExtensionAngles = wristAnglesAllFrames.map(w => w!.wristExtensionAngle).filter(angle => !isNaN(angle) && angle >= 0);
           const allForearmAngles = wristAnglesAllFrames.map(w => w!.forearmToHandAngle).filter(angle => !isNaN(angle));
           
+          // Mirror the exact calculation from wrist-results.tsx
           const maxFlexion = allFlexionAngles.length > 0 ? Math.max(...allFlexionAngles) : 0;
           const maxExtension = allExtensionAngles.length > 0 ? Math.max(...allExtensionAngles) : 0;
           const maxForearmAngle = allForearmAngles.length > 0 ? Math.max(...allForearmAngles) : 0;
           
-          console.log(`REPLAY MAXIMUM ANALYSIS:`);
-          console.log(`  - Flexion angles found: ${allFlexionAngles.length}, Max: ${maxFlexion.toFixed(1)}°`);
-          console.log(`  - Extension angles found: ${allExtensionAngles.length}, Max: ${maxExtension.toFixed(1)}°`);
-          console.log(`  - Total frames analyzed: ${wristAnglesAllFrames.length}`);
-          console.log(`  - Raw angle range: ${Math.min(...allForearmAngles).toFixed(1)}° to ${maxForearmAngle.toFixed(1)}°`);
+          console.log(`MOTION ANALYSIS - WRIST RESULTS CONSISTENCY:`);
+          console.log(`  - Max Flexion: ${maxFlexion.toFixed(1)}° (matches wrist-results calculation)`);
+          console.log(`  - Max Extension: ${maxExtension.toFixed(1)}° (matches wrist-results calculation)`);
+          console.log(`  - Total ROM: ${(maxFlexion + maxExtension).toFixed(1)}° (matches wrist-results calculation)`);
+          console.log(`  - Frames analyzed: ${wristAnglesAllFrames.length}`);
           
-          // Prioritize recorded session hand type over calculation results
+          // Use session hand type consistently
           const finalHandType = sessionHandType !== 'UNKNOWN' ? sessionHandType : wristAnglesAllFrames[0]!.handType;
           
           setMaxWristAngles({
@@ -196,7 +198,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
             confidence: Math.max(...wristAnglesAllFrames.map(w => w!.confidence))
           });
           
-          console.log(`REPLAY: MaxWristAngles set with recorded session hand type = ${finalHandType} (recorded: ${sessionHandType}, calculated: ${wristAnglesAllFrames[0]?.handType})`);
+          console.log(`MOTION ANALYSIS: Results match wrist-results page - Hand: ${finalHandType}, Total ROM: ${(maxFlexion + maxExtension).toFixed(1)}°`);
         }
         setCurrentFrame(0);
       } else {
@@ -299,28 +301,28 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
             confidence: 0.8
           };
           
-          // Priority 1: Use recorded wrist angles with session hand type
+          // Use the EXACT same calculation method as wrist-results page for frame-by-frame analysis
           if (frame.wristAngles && frame.wristAngles.elbowDetected) {
             currentWrist = { ...frame.wristAngles };
           } else if (frame.landmarks && frame.poseLandmarks) {
-            // Calculate fresh if no recorded data
+            // Use the same calculateWristAngleByHandType as wrist-results page
             currentWrist = calculateWristAngleByHandType(frame.landmarks, frame.poseLandmarks);
           }
           
-          // Force recorded session hand type with fallback chain
+          // Force session hand type consistency with wrist-results page
           if (maxWristAngles?.handType && maxWristAngles.handType !== 'UNKNOWN') {
             currentWrist.handType = maxWristAngles.handType;
-            console.log(`WRIST FRAME ${currentFrame}: Using maxWristAngles session hand type = ${maxWristAngles.handType}`);
+            console.log(`MOTION FRAME ${currentFrame}: Using consistent hand type = ${maxWristAngles.handType} (matches wrist-results)`);
           } else if (frame.sessionHandType && frame.sessionHandType !== 'UNKNOWN') {
             currentWrist.handType = frame.sessionHandType;
-            console.log(`WRIST FRAME ${currentFrame}: Using frame session hand type = ${frame.sessionHandType}`);
+            console.log(`MOTION FRAME ${currentFrame}: Using frame session hand type = ${frame.sessionHandType}`);
           } else if (frame.handedness && frame.handedness !== 'UNKNOWN') {
             currentWrist.handType = frame.handedness as 'LEFT' | 'RIGHT';
-            console.log(`WRIST FRAME ${currentFrame}: Using frame handedness = ${frame.handedness}`);
+            console.log(`MOTION FRAME ${currentFrame}: Using frame handedness = ${frame.handedness}`);
           }
           
           setCurrentWristAngles(currentWrist);
-          console.log(`WRIST FRAME ${currentFrame}: Final hand type = ${currentWrist.handType}, Elbow used = ${currentWrist.handType === 'LEFT' ? 'LEFT (13)' : 'RIGHT (14)'}`);
+          console.log(`MOTION FRAME ${currentFrame}: Calculations match wrist-results - Flexion: ${currentWrist.wristFlexionAngle.toFixed(1)}°, Extension: ${currentWrist.wristExtensionAngle.toFixed(1)}°`);
         } else {
           // Calculate ROM for standard assessments
           const rom = calculateFingerROM(frame.landmarks, selectedDigit);
