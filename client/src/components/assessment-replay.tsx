@@ -66,6 +66,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
   // Wrist-specific state variables
   const [currentWristAngles, setCurrentWristAngles] = useState<ElbowWristAngles | null>(null);
   const [maxWristAngles, setMaxWristAngles] = useState<ElbowWristAngles | null>(null);
+  const [authoritativeWristResults, setAuthoritativeWristResults] = useState<any>(null);
   
   // Fetch real motion data if userAssessmentId is provided
   const { data: motionData, isLoading } = useQuery({
@@ -185,6 +186,9 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
           console.log(`  - Max Extension: ${authoritativeResults.maxExtension.toFixed(1)}° (authoritative source)`);
           console.log(`  - Total ROM: ${authoritativeResults.totalROM.toFixed(1)}° (authoritative source)`);
           console.log(`  - Frames analyzed: ${authoritativeResults.frameCount}`);
+          
+          // Store the authoritative results for display
+          setAuthoritativeWristResults(authoritativeResults);
           
           // Use session hand type consistently
           const finalHandType = sessionHandType !== 'UNKNOWN' ? sessionHandType : authoritativeResults.handType;
@@ -1705,29 +1709,34 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
                     </div>
                   </div>
                   
-                  {maxWristAngles && (
+                  {authoritativeWristResults && (
                     <div className="bg-white p-4 rounded border">
                       <div className="flex justify-between items-center mb-3">
                         <span className="font-medium text-gray-900">Session Maximum</span>
-                        <span className="text-sm text-gray-600">Best Performance</span>
+                        <span className="text-sm text-gray-600">Centralized Calculator</span>
                       </div>
                       
                       <div className="space-y-3">
                         <div className="flex justify-between">
-                          <span className="text-gray-700">Max Raw Angle:</span>
-                          <span className="font-bold text-green-600">{maxWristAngles.forearmToHandAngle.toFixed(1)}°</span>
-                        </div>
-                        <div className="flex justify-between">
                           <span className="text-gray-700">Max Flexion:</span>
-                          <span className="font-bold text-blue-600">{maxWristAngles.wristFlexionAngle.toFixed(1)}°</span>
+                          <span className="font-bold text-blue-600">{authoritativeWristResults.maxFlexion.toFixed(1)}°</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-700">Max Extension:</span>
-                          <span className="font-bold text-orange-600">{maxWristAngles.wristExtensionAngle.toFixed(1)}°</span>
+                          <span className="font-bold text-orange-600">{authoritativeWristResults.maxExtension.toFixed(1)}°</span>
                         </div>
-                        <div className="pt-2 border-t">
-                          <div className="text-xs text-gray-600">Clinical Normal Ranges:</div>
-                          <div className="text-xs text-gray-600">Flexion: 0-80° | Extension: 0-70°</div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-700">Total ROM:</span>
+                          <span className="font-bold text-purple-600">
+                            {authoritativeWristResults.totalROM.toFixed(1)}°
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-700">Hand Type:</span>
+                          <span className="font-medium text-gray-900">{authoritativeWristResults.handType}</span>
+                        </div>
+                        <div className="mt-2 p-2 bg-blue-100 border border-blue-300 rounded text-xs">
+                          <strong>Authoritative Source:</strong> Values match wrist-results page exactly
                         </div>
                       </div>
                     </div>
