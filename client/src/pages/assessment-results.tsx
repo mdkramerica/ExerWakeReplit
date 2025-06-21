@@ -277,36 +277,10 @@ export default function AssessmentResults() {
                       <div className="text-center">
                         <div className="text-3xl font-bold text-blue-600 mb-2">
                           {(() => {
-                            // Use the exact same calculation as motion replay
-                            if (userAssessment.repetitionData && userAssessment.repetitionData[0]?.motionData) {
-                              try {
-                                const motionData = userAssessment.repetitionData[0].motionData;
-                                
-                                // Calculate wrist angles for all frames like in replay
-                                const wristAnglesAllFrames = motionData.map(frame => {
-                                  if (frame.landmarks && frame.poseLandmarks) {
-                                    return calculateWristAngleByHandType(frame.landmarks, frame.poseLandmarks);
-                                  }
-                                  return null;
-                                }).filter(Boolean);
-                                
-                                if (wristAnglesAllFrames.length > 0) {
-                                  // Use exact motion replay logic - no additional filtering
-                                  const allFlexionAngles = wristAnglesAllFrames.map(w => w!.wristFlexionAngle).filter(angle => !isNaN(angle) && angle >= 0);
-                                  const maxFlexion = allFlexionAngles.length > 0 ? Math.max(...allFlexionAngles) : 0;
-                                  
-                                  console.log(`📊 FLEXION - Frames: ${wristAnglesAllFrames.length}, Max: ${maxFlexion.toFixed(1)}°`);
-                                  
-                                  return maxFlexion.toFixed(1);
-                                }
-                              } catch (error) {
-                                console.error('Error calculating flexion:', error);
-                              }
-                            }
-                            
-                            // Fallback only if calculation fails
-                            return '0.0';
-                          })()}°
+                            const wristResults = calculateWristResults(userAssessment);
+                            console.log(`📊 ASSESSMENT RESULTS - FLEXION: ${wristResults.maxFlexion.toFixed(1)}° (using centralized calculator)`);
+                            return `${wristResults.maxFlexion.toFixed(1)}°`;
+                          })()}
                         </div>
                         <div className="text-lg text-gray-700">Maximum Flexion</div>
                         <div className="text-sm text-gray-500 mt-1">Normal: 0-80°</div>
@@ -315,36 +289,10 @@ export default function AssessmentResults() {
                       <div className="text-center">
                         <div className="text-3xl font-bold text-purple-600 mb-2">
                           {(() => {
-                            // Use the exact same calculation as motion replay
-                            if (userAssessment.repetitionData && userAssessment.repetitionData[0]?.motionData) {
-                              try {
-                                const motionData = userAssessment.repetitionData[0].motionData;
-                                
-                                // Calculate wrist angles for all frames like in replay
-                                const wristAnglesAllFrames = motionData.map(frame => {
-                                  if (frame.landmarks && frame.poseLandmarks) {
-                                    return calculateWristAngleByHandType(frame.landmarks, frame.poseLandmarks);
-                                  }
-                                  return null;
-                                }).filter(Boolean);
-                                
-                                if (wristAnglesAllFrames.length > 0) {
-                                  // Use exact motion replay logic - no additional filtering
-                                  const allExtensionAngles = wristAnglesAllFrames.map(w => w!.wristExtensionAngle).filter(angle => !isNaN(angle) && angle >= 0);
-                                  const maxExtension = allExtensionAngles.length > 0 ? Math.max(...allExtensionAngles) : 0;
-                                  
-                                  console.log(`📊 EXTENSION - Frames: ${wristAnglesAllFrames.length}, Max: ${maxExtension.toFixed(1)}°`);
-                                  
-                                  return maxExtension.toFixed(1);
-                                }
-                              } catch (error) {
-                                console.error('Error calculating extension:', error);
-                              }
-                            }
-                            
-                            // Fallback only if calculation fails
-                            return '0.0';
-                          })()}°
+                            const wristResults = calculateWristResults(userAssessment);
+                            console.log(`📊 ASSESSMENT RESULTS - EXTENSION: ${wristResults.maxExtension.toFixed(1)}° (using centralized calculator)`);
+                            return `${wristResults.maxExtension.toFixed(1)}°`;
+                          })()}
                         </div>
                         <div className="text-lg text-gray-700">Maximum Extension</div>
                         <div className="text-sm text-gray-500 mt-1">Normal: 0-70°</div>

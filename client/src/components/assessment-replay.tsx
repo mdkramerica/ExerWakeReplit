@@ -6,6 +6,7 @@ import { Play, Pause, RotateCcw, Download } from "lucide-react";
 import { calculateCurrentROM, calculateFingerROM, type JointAngles } from "@/lib/rom-calculator";
 import { calculateKapandjiScore, calculateMaxKapandjiScore, type KapandjiScore } from "@shared/kapandji-calculator";
 import { calculateWristAngleByHandType, getRecordingSessionElbowSelection, setReplayMode, type ElbowWristAngles } from "@shared/elbow-wrist-calculator";
+import { calculateWristResults } from "@shared/wrist-results-calculator";
 // Remove the import since we'll load the image directly
 
 interface ReplayData {
