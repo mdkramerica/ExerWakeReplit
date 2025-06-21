@@ -863,15 +863,36 @@ function calculateAnatomicalWristAngle(
     z: uForearm.x * uHand.y - uForearm.y * uHand.x
   };
   
-  // Use Z-component for sign with tiny bias to avoid zero
-  const signRaw = Math.sign(cross.z + 1e-9);
+  // BIOMECHANICAL NEUTRAL ZONE: In reality, wrist is "neutral" when forearm and hand 
+  // are roughly aligned. Perfect alignment (0°) is rare due to natural hand anatomy.
+  // Clinical neutral is typically when the angle is close to straight line.
   
-  // Auto-detect side: if wrist.x < elbow.x → left arm, invert sign to keep flexion positive
-  const sideFactor = wrist.x < elbow.x ? -1 : 1;
+  const NEUTRAL_ZONE_DEGREES = 30; // Angles within this range of straight are considered neutral
+  const STRAIGHT_ANGLE = 180;
   
-  const signedAngle = rawAngle * signRaw * sideFactor;
+  // Calculate deviation from anatomically straight position
+  const deviationFromStraight = Math.abs(rawAngle - STRAIGHT_ANGLE);
   
-  return signedAngle;
+  let adjustedAngle = 0;
+  
+  if (deviationFromStraight <= NEUTRAL_ZONE_DEGREES) {
+    // Within neutral zone - report as 0° to match visual appearance
+    adjustedAngle = 0;
+  } else {
+    // Outside neutral zone - calculate actual flexion/extension
+    // Subtract the neutral zone to get the "active" bend angle
+    const activeBend = deviationFromStraight - NEUTRAL_ZONE_DEGREES;
+    
+    // Use Z-component for sign determination
+    const signRaw = Math.sign(cross.z + 1e-9);
+    
+    // Auto-detect side: if wrist.x < elbow.x → left arm, invert sign
+    const sideFactor = wrist.x < elbow.x ? -1 : 1;
+    
+    adjustedAngle = activeBend * signRaw * sideFactor;
+  }
+  
+  return adjustedAngle;
 }
 
 // RIGHT hand specific calculation using anatomical landmark method
