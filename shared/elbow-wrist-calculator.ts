@@ -426,7 +426,7 @@ export function calculateElbowReferencedWristAngleWithForce(
       
       // MULTI-AXIS CALIBRATED CLASSIFICATION (Universal method)
       
-      // Adjust neutral zone for observed neutral positions (120-140 degrees seems to be neutral)
+      // Expanded neutral zone for observed neutral positions
       const isNeutralAngle = (wristAngle >= 120 && wristAngle <= 140) || (wristAngle >= 170 && wristAngle <= 190);
       
       if (isNeutralAngle) {
@@ -612,7 +612,7 @@ function calculateLeftHandWristAngle(
             // MULTI-AXIS CALIBRATED CLASSIFICATION
             // Test all three axes to find the most reliable palm/dorsal indicator
             
-            // Adjust neutral zone for observed neutral positions (120-140 degrees seems to be neutral)
+            // Expanded neutral zone for observed neutral positions
             const isNeutralAngle = (angleDegrees >= 120 && angleDegrees <= 140) || (angleDegrees >= 170 && angleDegrees <= 190);
             
             if (isNeutralAngle) {
@@ -876,6 +876,158 @@ export function getRecordingSessionElbowSelection() {
 }
 
 // Hand-specific dispatcher function
+// RIGHT hand specific calculation with multi-axis method
+function calculateRightHandWristAngle(
+  handLandmarks: HandLandmark[],
+  poseLandmarks?: PoseLandmark[]
+): ElbowWristAngles {
+  const result: ElbowWristAngles = {
+    forearmToHandAngle: 0,
+    wristFlexionAngle: 0,
+    wristExtensionAngle: 0,
+    elbowDetected: false,
+    handType: 'RIGHT',
+    confidence: 0
+  };
+
+  if (!handLandmarks || handLandmarks.length < 21) {
+    return result;
+  }
+
+  if (poseLandmarks && poseLandmarks.length > 16) {
+    // Use RIGHT hand landmarks
+    const elbow = poseLandmarks[POSE_LANDMARKS.RIGHT_ELBOW];
+    const poseWrist = poseLandmarks[POSE_LANDMARKS.RIGHT_WRIST];
+    const shoulder = poseLandmarks[POSE_LANDMARKS.RIGHT_SHOULDER];
+
+    if (elbow && poseWrist && shoulder && 
+        (elbow.visibility || 1) > 0.5 && (poseWrist.visibility || 1) > 0.5 && (shoulder.visibility || 1) > 0.5) {
+      
+      result.elbowDetected = true;
+      result.confidence = Math.min(elbow.visibility || 1, poseWrist.visibility || 1, shoulder.visibility || 1);
+
+      const handWrist = handLandmarks[HAND_LANDMARKS.WRIST];
+      const middleMcp = handLandmarks[HAND_LANDMARKS.MIDDLE_MCP];
+
+      if (handWrist && middleMcp) {
+        const forearmToHandAngle = calculateAngleBetweenVectors(
+          { x: elbow.x, y: elbow.y, z: elbow.z },
+          { x: handWrist.x, y: handWrist.y, z: handWrist.z },
+          { x: middleMcp.x, y: middleMcp.y, z: middleMcp.z }
+        );
+
+        result.forearmToHandAngle = forearmToHandAngle;
+
+        const referenceVector = {
+          x: handWrist.x - elbow.x,
+          y: handWrist.y - elbow.y,
+          z: handWrist.z - elbow.z
+        };
+
+        const measurementVector = {
+          x: middleMcp.x - handWrist.x,
+          y: middleMcp.y - handWrist.y,
+          z: middleMcp.z - handWrist.z
+        };
+
+        const referenceLength = Math.sqrt(referenceVector.x**2 + referenceVector.y**2 + referenceVector.z**2);
+        const measurementLength = Math.sqrt(measurementVector.x**2 + measurementVector.y**2 + measurementVector.z**2);
+        
+        if (referenceLength > 0 && measurementLength > 0) {
+          const referenceNorm = {
+            x: referenceVector.x / referenceLength,
+            y: referenceVector.y / referenceLength,
+            z: referenceVector.z / referenceLength
+          };
+          
+          const measurementNorm = {
+            x: measurementVector.x / measurementLength,
+            y: measurementVector.y / measurementLength,
+            z: measurementVector.z / measurementLength
+          };
+          
+          const dotProduct = referenceNorm.x * measurementNorm.x + referenceNorm.y * measurementNorm.y + referenceNorm.z * measurementNorm.z;
+          const clampedDot = Math.max(-1, Math.min(1, dotProduct));
+          const angleRadians = Math.acos(clampedDot);
+          const angleDegrees = angleRadians * (180 / Math.PI);
+          
+          if (angleDegrees > 5) {
+            // MULTI-AXIS CALIBRATED CLASSIFICATION
+            const forearmVector = {
+              x: handWrist.x - elbow.x,
+              y: handWrist.y - elbow.y,
+              z: handWrist.z - elbow.z
+            };
+            
+            const forearmLength = Math.sqrt(forearmVector.x**2 + forearmVector.y**2 + forearmVector.z**2);
+            const forearmNorm = {
+              x: forearmVector.x / forearmLength,
+              y: forearmVector.y / forearmLength,
+              z: forearmVector.z / forearmLength
+            };
+            
+            const wristToMcp = {
+              x: middleMcp.x - handWrist.x,
+              y: middleMcp.y - handWrist.y,
+              z: middleMcp.z - handWrist.z
+            };
+            
+            const alongForearm = wristToMcp.x * forearmNorm.x + wristToMcp.y * forearmNorm.y + wristToMcp.z * forearmNorm.z;
+            
+            const perpendicularDeviation = {
+              x: wristToMcp.x - (alongForearm * forearmNorm.x),
+              y: wristToMcp.y - (alongForearm * forearmNorm.y),
+              z: wristToMcp.z - (alongForearm * forearmNorm.z)
+            };
+            
+            // Expanded neutral zone for observed neutral positions
+            const isNeutralAngle = (angleDegrees >= 120 && angleDegrees <= 140) || (angleDegrees >= 170 && angleDegrees <= 190);
+            
+            if (isNeutralAngle) {
+              result.wristFlexionAngle = 0;
+              result.wristExtensionAngle = 0;
+              console.log(`RIGHT Wrist NEUTRAL: ${angleDegrees.toFixed(1)}° (neutral zone)`);
+            } else {
+              const xDeviation = perpendicularDeviation.x;
+              const yDeviation = perpendicularDeviation.y;
+              const zDeviation = perpendicularDeviation.z;
+              
+              const primaryDeviation = zDeviation;
+              const isFlexion = primaryDeviation < 0;
+              const isExtension = primaryDeviation > 0;
+              
+              console.log(`🔍 MULTI-AXIS RIGHT - X:${xDeviation.toFixed(3)}, Y:${yDeviation.toFixed(3)}, Z:${zDeviation.toFixed(3)}, Angle:${angleDegrees.toFixed(1)}°, Primary(Z):${primaryDeviation.toFixed(3)}`);
+              console.log(`RIGHT Classification - Flexion:${isFlexion}, Extension:${isExtension}`);
+              
+              if (isFlexion) {
+                result.wristFlexionAngle = angleDegrees;
+                result.wristExtensionAngle = 0;
+                console.log(`RIGHT Wrist FLEXION: ${result.wristFlexionAngle.toFixed(1)}° (Z-axis method)`);
+              } else if (isExtension) {
+                result.wristExtensionAngle = angleDegrees;
+                result.wristFlexionAngle = 0;
+                console.log(`RIGHT Wrist EXTENSION: ${result.wristExtensionAngle.toFixed(1)}° (Z-axis method)`);
+              } else {
+                result.wristFlexionAngle = 0;
+                result.wristExtensionAngle = 0;
+                console.log(`RIGHT Wrist NEUTRAL: Z-deviation=${primaryDeviation.toFixed(4)} (too small)`);
+              }
+            }
+          } else {
+            result.wristFlexionAngle = 0;
+            result.wristExtensionAngle = 0;
+            console.log(`RIGHT Wrist neutral: ${angleDegrees.toFixed(1)}° deviation`);
+          }
+        }
+
+        console.log(`RIGHT Elbow-referenced calculation: ${Math.abs(forearmToHandAngle - 180).toFixed(1)}° deviation from neutral`);
+      }
+    }
+  }
+
+  return result;
+}
+
 function calculateWristAngleByHandType(
   handLandmarks: HandLandmark[],
   poseLandmarks?: PoseLandmark[],
@@ -892,7 +1044,10 @@ function calculateWristAngleByHandType(
   // Route to appropriate calculation method
   if (handType === 'LEFT') {
     return calculateLeftHandWristAngle(handLandmarks, poseLandmarks);
+  } else if (handType === 'RIGHT') {
+    return calculateRightHandWristAngle(handLandmarks, poseLandmarks);
   } else {
+    // Fallback to old method for UNKNOWN hand type
     return calculateElbowReferencedWristAngle(handLandmarks, poseLandmarks);
   }
 }
