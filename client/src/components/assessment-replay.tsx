@@ -294,7 +294,6 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
           
           setCurrentWristAngles(currentWrist);
           console.log(`WRIST FRAME ${currentFrame}: Final hand type = ${currentWrist.handType}, Elbow used = ${currentWrist.handType === 'LEFT' ? 'LEFT (13)' : 'RIGHT (14)'}`);
-        }
         } else {
           // Calculate ROM for standard assessments
           const rom = calculateFingerROM(frame.landmarks, selectedDigit);

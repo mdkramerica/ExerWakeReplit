@@ -793,7 +793,7 @@ export function setReplayMode(replay: boolean) {
   console.log(`🎬 REPLAY MODE: ${replay ? 'ENABLED' : 'DISABLED'}`);
 }
 
-function resetRecordingSession() {
+export function resetRecordingSession() {
   // Clear session state when starting a new recording
   recordingSessionElbowLocked = false;
   recordingSessionElbowIndex = undefined;
