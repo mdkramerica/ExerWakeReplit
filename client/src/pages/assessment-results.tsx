@@ -6,7 +6,7 @@ import { ArrowLeft, Share, Play } from "lucide-react";
 import { Link } from "wouter";
 import { useState } from "react";
 import AssessmentReplay from "@/components/assessment-replay";
-import { calculateWristAngleByHandType } from "@shared/elbow-wrist-calculator";
+import { calculateWristAngleByHandType, calculateElbowReferencedWristAngle } from "@shared/elbow-wrist-calculator";
 
 export default function AssessmentResults() {
   const [, params] = useRoute("/assessment-results/:code/:userAssessmentId");
@@ -285,14 +285,15 @@ export default function AssessmentResults() {
                                 // Calculate wrist angles for all frames like in replay
                                 const wristAnglesAllFrames = motionData.map(frame => {
                                   if (frame.landmarks && frame.poseLandmarks) {
-                                    return calculateElbowReferencedWristAngle(frame.landmarks, frame.poseLandmarks);
+                                    return calculateWristAngleByHandType(frame.landmarks, frame.poseLandmarks);
                                   }
                                   return null;
                                 }).filter(Boolean);
                                 
                                 if (wristAnglesAllFrames.length > 0) {
                                   // Use exact motion replay logic - no additional filtering
-                                  const maxFlexion = Math.max(...wristAnglesAllFrames.map(w => w!.wristFlexionAngle));
+                                  const allFlexionAngles = wristAnglesAllFrames.map(w => w!.wristFlexionAngle).filter(angle => !isNaN(angle) && angle >= 0);
+                                  const maxFlexion = allFlexionAngles.length > 0 ? Math.max(...allFlexionAngles) : 0;
                                   
                                   console.log(`📊 FLEXION - Frames: ${wristAnglesAllFrames.length}, Max: ${maxFlexion.toFixed(1)}°`);
                                   
@@ -322,14 +323,15 @@ export default function AssessmentResults() {
                                 // Calculate wrist angles for all frames like in replay
                                 const wristAnglesAllFrames = motionData.map(frame => {
                                   if (frame.landmarks && frame.poseLandmarks) {
-                                    return calculateElbowReferencedWristAngle(frame.landmarks, frame.poseLandmarks);
+                                    return calculateWristAngleByHandType(frame.landmarks, frame.poseLandmarks);
                                   }
                                   return null;
                                 }).filter(Boolean);
                                 
                                 if (wristAnglesAllFrames.length > 0) {
                                   // Use exact motion replay logic - no additional filtering
-                                  const maxExtension = Math.max(...wristAnglesAllFrames.map(w => w!.wristExtensionAngle));
+                                  const allExtensionAngles = wristAnglesAllFrames.map(w => w!.wristExtensionAngle).filter(angle => !isNaN(angle) && angle >= 0);
+                                  const maxExtension = allExtensionAngles.length > 0 ? Math.max(...allExtensionAngles) : 0;
                                   
                                   console.log(`📊 EXTENSION - Frames: ${wristAnglesAllFrames.length}, Max: ${maxExtension.toFixed(1)}°`);
                                   
