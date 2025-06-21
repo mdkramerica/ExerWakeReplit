@@ -397,31 +397,57 @@ export function calculateElbowReferencedWristAngleWithForce(
       };
       
       // VECTOR-BASED DIRECTIONAL DETERMINATION
-      // Use 3D cross product to determine if hand vector is above/below forearm vector
-      const crossProduct = {
-        x: elbowToWrist.y * wristToMcp.z - elbowToWrist.z * wristToMcp.y,
-        y: elbowToWrist.z * wristToMcp.x - elbowToWrist.x * wristToMcp.z,
-        z: elbowToWrist.x * wristToMcp.y - elbowToWrist.y * wristToMcp.x
+      // ANATOMICAL POSITION-BASED CLASSIFICATION (Universal for both hands)
+      // Project hand position relative to neutral forearm line
+      
+      // Create forearm reference vector
+      const forearmVector = {
+        x: elbowToWrist.x,
+        y: elbowToWrist.y,
+        z: elbowToWrist.z
       };
       
-      // CORRECTED FLEXION/EXTENSION CLASSIFICATION
-      // For LEFT hand: Negative Y cross product indicates extension (hand bent backward)
-      // For RIGHT hand: Positive Y cross product indicates extension (hand bent backward)
-      const isExtension = forceHandType === 'LEFT' ? crossProduct.y < 0 : crossProduct.y > 0;
+      // Normalize forearm vector
+      const forearmLength = Math.sqrt(forearmVector.x**2 + forearmVector.y**2 + forearmVector.z**2);
+      const forearmNorm = {
+        x: forearmVector.x / forearmLength,
+        y: forearmVector.y / forearmLength,
+        z: forearmVector.z / forearmLength
+      };
       
-      console.log(`🎯 CORRECTED DIRECTION - Cross product Y: ${crossProduct.y.toFixed(4)}, Hand: ${forceHandType}, Direction: ${isExtension ? 'EXTENSION' : 'FLEXION'}`);
+      // Project hand deviation onto perpendicular plane
+      const alongForearm = wristToMcp.x * forearmNorm.x + wristToMcp.y * forearmNorm.y + wristToMcp.z * forearmNorm.z;
+      
+      const perpendicularDeviation = {
+        x: wristToMcp.x - (alongForearm * forearmNorm.x),
+        y: wristToMcp.y - (alongForearm * forearmNorm.y),
+        z: wristToMcp.z - (alongForearm * forearmNorm.z)
+      };
+      
+      // Use Y-axis for palm/dorsal classification (universal method)
+      const palmSideDeviation = perpendicularDeviation.y;
+      
+      const isFlexion = palmSideDeviation > 0;
+      const isExtension = palmSideDeviation < 0;
+      
+      console.log(`🎯 ANATOMICAL UNIVERSAL - Palm deviation: ${palmSideDeviation.toFixed(4)}, Hand: ${forceHandType}, Direction: ${isFlexion ? 'FLEXION' : 'EXTENSION'}`);
       
       // Always assign angles for responsive real-time display
-      if (isExtension) {
-        // Extension: hand bent backward (away from forearm)
-        result.wristExtensionAngle = wristAngle;
-        result.wristFlexionAngle = 0;
-        console.log(`Wrist EXTENSION: ${result.wristExtensionAngle.toFixed(1)}°`);
-      } else {
-        // Flexion: hand bent forward (toward forearm)
+      if (isFlexion) {
+        // Flexion: hand bent toward palm side
         result.wristFlexionAngle = wristAngle;
         result.wristExtensionAngle = 0;
-        console.log(`Wrist FLEXION: ${result.wristFlexionAngle.toFixed(1)}°`);
+        console.log(`Wrist FLEXION: ${result.wristFlexionAngle.toFixed(1)}° (anatomical)`);
+      } else if (isExtension) {
+        // Extension: hand bent toward dorsal side
+        result.wristExtensionAngle = wristAngle;
+        result.wristFlexionAngle = 0;
+        console.log(`Wrist EXTENSION: ${result.wristExtensionAngle.toFixed(1)}° (anatomical)`);
+      } else {
+        // Neutral position
+        result.wristFlexionAngle = 0;
+        result.wristExtensionAngle = 0;
+        console.log(`Wrist NEUTRAL: deviation=${palmSideDeviation.toFixed(4)}`);
       }
 
       // Set high confidence for successful calculation
@@ -532,33 +558,64 @@ function calculateLeftHandWristAngle(
           const angleDegrees = angleRadians * (180 / Math.PI);
           
           if (angleDegrees > 5) {
-            // Calculate cross product for direction
-            const crossProduct = {
-              x: referenceNorm.y * measurementNorm.z - referenceNorm.z * measurementNorm.y,
-              y: referenceNorm.z * measurementNorm.x - referenceNorm.x * measurementNorm.z,
-              z: referenceNorm.x * measurementNorm.y - referenceNorm.y * measurementNorm.x
+            // ANATOMICAL POSITION-BASED CLASSIFICATION
+            // Use spatial positioning relative to forearm neutral line
+            
+            // Create a plane perpendicular to the forearm at the wrist
+            const forearmVector = {
+              x: handWrist.x - elbow.x,
+              y: handWrist.y - elbow.y,
+              z: handWrist.z - elbow.z
             };
             
-            // LEFT HAND CORRECTED: Based on visual evidence, LEFT hand coordinate interpretation was backwards
-            // For LEFT hand: negative Y = flexion (forward bend), positive Y = extension (backward bend)
-            const isFlexion = crossProduct.y < 0;
-            const isExtension = crossProduct.y > 0;
+            // Normalize forearm vector
+            const forearmLength = Math.sqrt(forearmVector.x**2 + forearmVector.y**2 + forearmVector.z**2);
+            const forearmNorm = {
+              x: forearmVector.x / forearmLength,
+              y: forearmVector.y / forearmLength,
+              z: forearmVector.z / forearmLength
+            };
             
-            console.log(`🔍 LEFT HAND CORRECTED - Y: ${crossProduct.y.toFixed(4)}, Angle: ${angleDegrees.toFixed(1)}°, Flexion: ${isFlexion}, Extension: ${isExtension}`);
+            // Vector from wrist to middle MCP
+            const wristToMcp = {
+              x: middleMcp.x - handWrist.x,
+              y: middleMcp.y - handWrist.y,
+              z: middleMcp.z - handWrist.z
+            };
+            
+            // Project hand deviation onto a plane perpendicular to forearm
+            // Dot product with forearm normal gives the component along the forearm
+            const alongForearm = wristToMcp.x * forearmNorm.x + wristToMcp.y * forearmNorm.y + wristToMcp.z * forearmNorm.z;
+            
+            // Remove the along-forearm component to get perpendicular deviation
+            const perpendicularDeviation = {
+              x: wristToMcp.x - (alongForearm * forearmNorm.x),
+              y: wristToMcp.y - (alongForearm * forearmNorm.y),
+              z: wristToMcp.z - (alongForearm * forearmNorm.z)
+            };
+            
+            // Use anatomical reference: typically the Y-axis indicates palm/dorsal direction
+            // Positive Y deviation = palm side (flexion), Negative Y deviation = dorsal side (extension)
+            const palmSideDeviation = perpendicularDeviation.y;
+            
+            const isFlexion = palmSideDeviation > 0;
+            const isExtension = palmSideDeviation < 0;
+            
+            console.log(`🔍 ANATOMICAL METHOD - Palm deviation: ${palmSideDeviation.toFixed(4)}, Angle: ${angleDegrees.toFixed(1)}°, Flexion: ${isFlexion}, Extension: ${isExtension}`);
             
             if (isFlexion) {
               result.wristFlexionAngle = angleDegrees;
               result.wristExtensionAngle = 0;
-              console.log(`LEFT Wrist FLEXION: ${result.wristFlexionAngle.toFixed(1)}° (corrected logic)`);
+              console.log(`LEFT Wrist FLEXION: ${result.wristFlexionAngle.toFixed(1)}° (anatomical method)`);
             } else if (isExtension) {
               result.wristExtensionAngle = angleDegrees;
               result.wristFlexionAngle = 0;
-              console.log(`LEFT Wrist EXTENSION: ${result.wristExtensionAngle.toFixed(1)}° (corrected logic)`);
+              console.log(`LEFT Wrist EXTENSION: ${result.wristExtensionAngle.toFixed(1)}° (anatomical method)`);
             } else {
-              // Near-zero Y values - neutral position
+              // Neutral position
               result.wristFlexionAngle = 0;
               result.wristExtensionAngle = 0;
-              console.log(`LEFT Wrist NEUTRAL: Y=${crossProduct.y.toFixed(4)} (too close to zero)`);
+              console.log(`LEFT Wrist NEUTRAL: deviation=${palmSideDeviation.toFixed(4)} (too close to zero)`);
             }
           } else {
             result.wristFlexionAngle = 0;
