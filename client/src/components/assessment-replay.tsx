@@ -226,6 +226,11 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
           if (frame.landmarks && frame.poseLandmarks) {
             const currentWrist = calculateWristAngleByHandType(frame.landmarks, frame.poseLandmarks);
             setCurrentWristAngles(currentWrist);
+            
+            // Log consistency between calculation and replay
+            if (currentWrist.handType !== 'UNKNOWN') {
+              console.log(`WRIST FRAME ${currentFrame}: Calculation hand type = ${currentWrist.handType}, Elbow used = ${currentWrist.handType === 'LEFT' ? 'LEFT (13)' : 'RIGHT (14)'}`);
+            }
           }
         } else {
           // Calculate ROM for standard assessments
@@ -667,10 +672,24 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
     
     // If still unknown, determine from assessment metadata or overall session
     if (!displayHandType || displayHandType === 'UNKNOWN') {
-      // For wrist assessments, prioritize the detected hand type from calculations
-      if (isWristAssessment && maxWristAngles?.handType) {
-        displayHandType = maxWristAngles.handType;
-      } else if (userAssessment?.handType && userAssessment.handType !== 'UNKNOWN') {
+      // For wrist assessments, prioritize calculation results over display logic
+      if (isWristAssessment) {
+        // Priority 1: Use maxWristAngles from calculation results
+        if (maxWristAngles?.handType && maxWristAngles.handType !== 'UNKNOWN') {
+          displayHandType = maxWristAngles.handType;
+        }
+        // Priority 2: Calculate from current frame
+        else if (frame.landmarks && frame.poseLandmarks) {
+          const currentWristCalc = calculateWristAngleByHandType(frame.landmarks, frame.poseLandmarks);
+          displayHandType = currentWristCalc.handType;
+        }
+        // Priority 3: Use session data from recorded frames
+        else if (frame.sessionHandType && frame.sessionHandType !== 'UNKNOWN') {
+          displayHandType = frame.sessionHandType;
+        }
+      } 
+      // For non-wrist assessments, use existing logic
+      else if (userAssessment?.handType && userAssessment.handType !== 'UNKNOWN') {
         displayHandType = userAssessment.handType;
       } else {
         // Check all frames for hand type information
@@ -684,14 +703,8 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
           const rightCount = allHandTypes.filter(h => h === 'RIGHT' || h === 'Right').length;
           displayHandType = leftCount > rightCount ? 'LEFT' : 'RIGHT';
         } else {
-          // Calculate hand type from current frame if available
-          if (isWristAssessment && frame.landmarks && frame.poseLandmarks) {
-            const currentWristCalc = calculateWristAngleByHandType(frame.landmarks, frame.poseLandmarks);
-            displayHandType = currentWristCalc.handType;
-          } else {
-            // Last resort fallback
-            displayHandType = 'RIGHT';
-          }
+          // Last resort fallback
+          displayHandType = 'RIGHT';
         }
       }
     }
@@ -876,20 +889,27 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
           let wristIndex: number;
           
           // FORCE EXACT MATCH WITH CALCULATION: Use RIGHT elbow for RIGHT hand
+          // PRIORITY 1: Always use stored session elbow data if available (from recording)
           if (frame.sessionElbowLocked && frame.sessionElbowIndex !== undefined) {
-            // Use the stored session elbow selection from the recorded frame
             elbowIndex = frame.sessionElbowIndex;
             wristIndex = frame.sessionWristIndex || (frame.sessionElbowIndex === 13 ? 15 : 16);
             const elbowSide = elbowIndex === 13 ? 'LEFT' : 'RIGHT';
-            console.log(`REPLAY: Using stored session elbow selection - ${elbowSide} elbow (index ${elbowIndex})`);
-          } else {
-            // DIRECT MAPPING: RIGHT hand ALWAYS uses RIGHT elbow (index 14), LEFT hand ALWAYS uses LEFT elbow (index 13)
-            // This ensures replay matches the calculation logic exactly
-            const useRightElbow = sessionHandType === 'RIGHT';
-            elbowIndex = useRightElbow ? 14 : 13; // RIGHT elbow (14) or LEFT elbow (13)
-            wristIndex = useRightElbow ? 16 : 15; // RIGHT wrist (16) or LEFT wrist (15)
-            
-            console.log(`REPLAY: DIRECT MAPPING - ${sessionHandType} hand uses ${useRightElbow ? 'RIGHT' : 'LEFT'} elbow (index ${elbowIndex})`);
+            console.log(`REPLAY: Using recorded session elbow - ${elbowSide} elbow (index ${elbowIndex})`);
+          } 
+          // PRIORITY 2: Use hand type from actual wrist calculation results
+          else if (currentWristAngles && currentWristAngles.handType !== 'UNKNOWN') {
+            const useRightElbow = currentWristAngles.handType === 'RIGHT';
+            elbowIndex = useRightElbow ? 14 : 13;
+            wristIndex = useRightElbow ? 16 : 15;
+            console.log(`REPLAY: Using calculation hand type - ${currentWristAngles.handType} hand uses ${useRightElbow ? 'RIGHT' : 'LEFT'} elbow (index ${elbowIndex})`);
+          }
+          // PRIORITY 3: Fall back to frame hand type data
+          else {
+            const frameHandType = frame.sessionHandType || frame.handedness;
+            const useRightElbow = frameHandType === 'RIGHT';
+            elbowIndex = useRightElbow ? 14 : 13;
+            wristIndex = useRightElbow ? 16 : 15;
+            console.log(`REPLAY: Using frame hand type - ${frameHandType} hand uses ${useRightElbow ? 'RIGHT' : 'LEFT'} elbow (index ${elbowIndex})`);
           }
           
           const selectedElbow = frame.poseLandmarks[elbowIndex];
