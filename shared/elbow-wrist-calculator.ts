@@ -602,29 +602,33 @@ function calculateLeftHandWristAngle(
             // MULTI-AXIS CALIBRATED CLASSIFICATION
             // Test all three axes to find the most reliable palm/dorsal indicator
             
-            // ANATOMICAL ANGLE-BASED NEUTRAL DETECTION - Use forearmToHandAngle for proper reference
-            const anatomicalAngle = forearmToHandAngle;
-            const isNeutralPosition = anatomicalAngle >= 160 && anatomicalAngle <= 200; // Near 180° = neutral
+            // USE NEW ANATOMICAL SIGNED ANGLE METHOD
+            const signedAngle = calculateAnatomicalWristAngle(
+              { x: elbow.x, y: elbow.y, z: elbow.z },
+              { x: handWrist.x, y: handWrist.y, z: handWrist.z },
+              { x: middleMcp.x, y: middleMcp.y, z: middleMcp.z }
+            );
             
-            console.log(`🎯 ANATOMICAL METHOD LEFT - Forearm-Hand:${anatomicalAngle.toFixed(1)}°, Joint-Dev:${angleDegrees.toFixed(1)}°, Neutral:${isNeutralPosition}`);
+            // Store the anatomical angle for reference
+            result.forearmToHandAngle = 180 + signedAngle; // Convert to 0-360° scale for compatibility
             
-            if (isNeutralPosition) {
+            console.log(`🎯 ANATOMICAL LEFT - Signed:${signedAngle.toFixed(1)}°, Anatomical:${result.forearmToHandAngle.toFixed(1)}°`);
+            
+            // Apply neutral zone for signed angles (±10° around 0)
+            if (Math.abs(signedAngle) <= 10) {
               result.wristFlexionAngle = 0;
               result.wristExtensionAngle = 0;
-              console.log(`LEFT Wrist NEUTRAL: ${anatomicalAngle.toFixed(1)}° anatomical (neutral zone)`);
+              console.log(`LEFT Wrist NEUTRAL: ${signedAngle.toFixed(1)}° (within neutral zone)`);
+            } else if (signedAngle > 0) {
+              // Positive = flexion
+              result.wristFlexionAngle = signedAngle;
+              result.wristExtensionAngle = 0;
+              console.log(`LEFT Wrist FLEXION: ${signedAngle.toFixed(1)}°`);
             } else {
-              // Use joint deviation angle for measuring actual flexion/extension
-              if (anatomicalAngle < 180) {
-                // Less than straight = flexion
-                result.wristFlexionAngle = angleDegrees;
-                result.wristExtensionAngle = 0;
-                console.log(`LEFT Wrist FLEXION: ${angleDegrees.toFixed(1)}° (anatomical ${anatomicalAngle.toFixed(1)}° < 180°)`);
-              } else {
-                // Greater than straight = extension
-                result.wristExtensionAngle = angleDegrees;
-                result.wristFlexionAngle = 0;
-                console.log(`LEFT Wrist EXTENSION: ${angleDegrees.toFixed(1)}° (anatomical ${anatomicalAngle.toFixed(1)}° > 180°)`);
-              }
+              // Negative = extension
+              result.wristExtensionAngle = Math.abs(signedAngle);
+              result.wristFlexionAngle = 0;
+              console.log(`LEFT Wrist EXTENSION: ${Math.abs(signedAngle).toFixed(1)}°`);
             }
           } else {
             result.wristFlexionAngle = 0;
@@ -633,7 +637,7 @@ function calculateLeftHandWristAngle(
           }
         }
 
-        console.log(`LEFT Elbow-referenced calculation: ${Math.abs(forearmToHandAngle - 180).toFixed(1)}° deviation from neutral`);
+        console.log(`LEFT Anatomical calculation: ${signedAngle.toFixed(1)}° signed angle`);
       }
     }
   }
