@@ -172,23 +172,22 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
         console.log(`REPLAY: Processed ${wristAnglesAllFrames.length} frames with forced hand type = ${sessionHandType}`);
         
         if (wristAnglesAllFrames.length > 0) {
-          // Use the CENTRALIZED CALCULATOR to ensure absolute consistency
-          const mockUserAssessment = {
-            repetitionData: [{
-              motionData: replayData
-            }]
-          };
+          // DIRECTLY ACCESS THE ASSESSMENT DATA TO GET THE SAME VALUES AS WRIST-RESULTS PAGE
+          console.log(`🔧 DEBUG: Using userAssessment data directly for consistency`);
+          console.log(`🔧 DEBUG: userAssessment structure:`, userAssessment);
           
-          const authoritativeResults = calculateWristResults(mockUserAssessment);
+          // Use the EXACT same calculation that wrist-results.tsx uses
+          const authoritativeResults = calculateWristResults(userAssessment);
           
-          console.log(`🎯 MOTION ANALYSIS - USING CENTRALIZED CALCULATOR:`);
-          console.log(`  - Max Flexion: ${authoritativeResults.maxFlexion.toFixed(1)}° (authoritative source)`);
-          console.log(`  - Max Extension: ${authoritativeResults.maxExtension.toFixed(1)}° (authoritative source)`);
-          console.log(`  - Total ROM: ${authoritativeResults.totalROM.toFixed(1)}° (authoritative source)`);
-          console.log(`  - Frames analyzed: ${authoritativeResults.frameCount}`);
+          console.log(`🎯 MOTION ANALYSIS - USING REAL ASSESSMENT DATA:`);
+          console.log(`  - Max Flexion: ${authoritativeResults.maxFlexion.toFixed(1)}° (from assessment data)`);
+          console.log(`  - Max Extension: ${authoritativeResults.maxExtension.toFixed(1)}° (from assessment data)`);
+          console.log(`  - Total ROM: ${authoritativeResults.totalROM.toFixed(1)}° (from assessment data)`);
+          console.log(`  - Hand Type: ${authoritativeResults.handType}`);
           
           // Store the authoritative results for display
           setAuthoritativeWristResults(authoritativeResults);
+          console.log(`🔧 DEBUG: Stored authoritative results:`, authoritativeResults);
           
           // Use session hand type consistently
           const finalHandType = sessionHandType !== 'UNKNOWN' ? sessionHandType : authoritativeResults.handType;
@@ -202,8 +201,8 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
             confidence: authoritativeResults.averageConfidence
           });
           
-          console.log(`🎯 MOTION ANALYSIS: Using authoritative calculator - Hand: ${finalHandType}, Total ROM: ${authoritativeResults.totalROM.toFixed(1)}°`);
-          console.log(`🎯 SESSION MAXIMUMS MATCH WRIST-RESULTS: Flexion: ${authoritativeResults.maxFlexion.toFixed(1)}°, Extension: ${authoritativeResults.maxExtension.toFixed(1)}°`);
+          console.log(`🎯 MOTION ANALYSIS: Using REAL assessment data - Hand: ${finalHandType}, Total ROM: ${authoritativeResults.totalROM.toFixed(1)}°`);
+          console.log(`🎯 SESSION MAXIMUMS NOW MATCH WRIST-RESULTS: Flexion: ${authoritativeResults.maxFlexion.toFixed(1)}°, Extension: ${authoritativeResults.maxExtension.toFixed(1)}°`);
         }
         setCurrentFrame(0);
       } else {
@@ -1709,7 +1708,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
                     </div>
                   </div>
                   
-                  {authoritativeWristResults && (
+                  {authoritativeWristResults ? (
                     <div className="bg-white p-4 rounded border">
                       <div className="flex justify-between items-center mb-3">
                         <span className="font-medium text-gray-900">Session Maximum</span>
@@ -1719,24 +1718,37 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
                       <div className="space-y-3">
                         <div className="flex justify-between">
                           <span className="text-gray-700">Max Flexion:</span>
-                          <span className="font-bold text-blue-600">{authoritativeWristResults.maxFlexion.toFixed(1)}°</span>
+                          <span className="font-bold text-blue-600">
+                            {authoritativeWristResults?.maxFlexion?.toFixed(1) || '0.0'}°
+                          </span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-700">Max Extension:</span>
-                          <span className="font-bold text-orange-600">{authoritativeWristResults.maxExtension.toFixed(1)}°</span>
+                          <span className="font-bold text-orange-600">
+                            {authoritativeWristResults?.maxExtension?.toFixed(1) || '0.0'}°
+                          </span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-700">Total ROM:</span>
                           <span className="font-bold text-purple-600">
-                            {authoritativeWristResults.totalROM.toFixed(1)}°
+                            {authoritativeWristResults?.totalROM?.toFixed(1) || '0.0'}°
                           </span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-700">Hand Type:</span>
-                          <span className="font-medium text-gray-900">{authoritativeWristResults.handType}</span>
+                          <span className="font-medium text-gray-900">{authoritativeWristResults?.handType || 'UNKNOWN'}</span>
                         </div>
                         <div className="mt-2 p-2 bg-blue-100 border border-blue-300 rounded text-xs">
-                          <strong>Authoritative Source:</strong> Values match wrist-results page exactly
+                          <strong>Authoritative Source:</strong> Flexion: {authoritativeWristResults?.maxFlexion?.toFixed(1) || '0.0'}°, Extension: {authoritativeWristResults?.maxExtension?.toFixed(1) || '0.0'}°, Total: {authoritativeWristResults?.totalROM?.toFixed(1) || '0.0'}°
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-gray-50 p-4 rounded border">
+                      <div className="text-center text-gray-500">
+                        Loading authoritative wrist results...
+                        <div className="text-xs mt-1">
+                          Debug: authoritativeWristResults = {JSON.stringify(authoritativeWristResults)}
                         </div>
                       </div>
                     </div>
