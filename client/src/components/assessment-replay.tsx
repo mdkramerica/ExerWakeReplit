@@ -105,10 +105,35 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
         // Set frame to the one with the best score
         setCurrentFrame(0); // Start from beginning for Kapandji
       } else if (isWristAssessment) {
-        // Calculate wrist angles for all frames
+        // Use recorded session data instead of recalculating to preserve hand type
+        let sessionHandType: 'LEFT' | 'RIGHT' | 'UNKNOWN' = 'UNKNOWN';
+        
+        // Extract hand type from recorded session data
+        const frameWithHandType = replayData.find(f => f.sessionHandType && f.sessionHandType !== 'UNKNOWN');
+        if (frameWithHandType) {
+          sessionHandType = frameWithHandType.sessionHandType;
+          console.log(`REPLAY: Found recorded session hand type = ${sessionHandType} from frame data`);
+        } else {
+          // Try alternative data fields if sessionHandType is not available
+          const frameWithHandedness = replayData.find(f => f.handedness && f.handedness !== 'UNKNOWN');
+          if (frameWithHandedness) {
+            sessionHandType = frameWithHandedness.handedness as 'LEFT' | 'RIGHT';
+            console.log(`REPLAY: Using handedness as fallback = ${sessionHandType}`);
+          }
+        }
+        
+        // Calculate wrist angles using session-locked hand type
         const wristAnglesAllFrames = replayData.map(frame => {
           if (frame.landmarks && frame.poseLandmarks) {
-            return calculateWristAngleByHandType(frame.landmarks, frame.poseLandmarks);
+            // If we have recorded session data, use it; otherwise calculate fresh
+            if (sessionHandType !== 'UNKNOWN') {
+              // Force calculation to use recorded hand type
+              const result = calculateWristAngleByHandType(frame.landmarks, frame.poseLandmarks);
+              result.handType = sessionHandType; // Override with recorded hand type
+              return result;
+            } else {
+              return calculateWristAngleByHandType(frame.landmarks, frame.poseLandmarks);
+            }
           }
           return null;
         }).filter(Boolean);
@@ -134,9 +159,11 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
             wristFlexionAngle: maxFlexion,
             wristExtensionAngle: maxExtension,
             elbowDetected: true,
-            handType: wristAnglesAllFrames[0]!.handType,
+            handType: sessionHandType !== 'UNKNOWN' ? sessionHandType : wristAnglesAllFrames[0]!.handType,
             confidence: Math.max(...wristAnglesAllFrames.map(w => w!.confidence))
           });
+          
+          console.log(`REPLAY: MaxWristAngles set with hand type = ${sessionHandType !== 'UNKNOWN' ? sessionHandType : wristAnglesAllFrames[0]!.handType}`);
         }
         setCurrentFrame(0);
       } else {
@@ -222,15 +249,23 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
           const currentKapandji = calculateKapandjiScore(frame.landmarks);
           setKapandjiScore(currentKapandji);
         } else if (isWristAssessment) {
-          // Calculate current wrist angles for this frame
+          // Calculate current wrist angles for this frame using recorded session data
           if (frame.landmarks && frame.poseLandmarks) {
             const currentWrist = calculateWristAngleByHandType(frame.landmarks, frame.poseLandmarks);
+            
+            // Override hand type with recorded session data if available
+            if (frame.sessionHandType && frame.sessionHandType !== 'UNKNOWN') {
+              currentWrist.handType = frame.sessionHandType;
+              console.log(`WRIST FRAME ${currentFrame}: Using recorded session hand type = ${frame.sessionHandType}`);
+            } else if (maxWristAngles?.handType && maxWristAngles.handType !== 'UNKNOWN') {
+              currentWrist.handType = maxWristAngles.handType;
+              console.log(`WRIST FRAME ${currentFrame}: Using maxWristAngles hand type = ${maxWristAngles.handType}`);
+            }
+            
             setCurrentWristAngles(currentWrist);
             
-            // Log consistency between calculation and replay
-            if (currentWrist.handType !== 'UNKNOWN') {
-              console.log(`WRIST FRAME ${currentFrame}: Calculation hand type = ${currentWrist.handType}, Elbow used = ${currentWrist.handType === 'LEFT' ? 'LEFT (13)' : 'RIGHT (14)'}`);
-            }
+            // Log elbow consistency
+            console.log(`WRIST FRAME ${currentFrame}: Final hand type = ${currentWrist.handType}, Elbow used = ${currentWrist.handType === 'LEFT' ? 'LEFT (13)' : 'RIGHT (14)'}`);
           }
         } else {
           // Calculate ROM for standard assessments

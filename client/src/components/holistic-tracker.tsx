@@ -367,6 +367,7 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType,
         handType: currentDetection?.handType || 'UNKNOWN',
         lockedHandType: lastHandTypeRef.current,
         detectedHandSide: results.leftHandLandmarks ? 'LEFT' : (results.rightHandLandmarks ? 'RIGHT' : 'UNKNOWN'),
+        sessionHandType: lastHandTypeRef.current, // Store the locked hand type for session consistency
         sessionElbowIndex: sessionElbowData.elbowIndex,
         sessionWristIndex: sessionElbowData.wristIndex,
         sessionElbowLocked: sessionElbowData.isLocked
