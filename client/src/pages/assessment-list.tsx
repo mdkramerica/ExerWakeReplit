@@ -272,19 +272,52 @@ export default function AssessmentList() {
                     
                     {assessment.isCompleted ? (
                       <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            const historySection = document.getElementById('patient-history');
-                            if (historySection) {
-                              historySection.scrollIntoView({ behavior: 'smooth' });
-                            }
-                          }}
-                          className="text-blue-600 border-blue-200 hover:bg-blue-50"
-                        >
-                          View Results
-                        </Button>
+                        {/* Special routing for wrist assessments */}
+                        {assessment.name.toLowerCase().includes('wrist') ? (
+                          (() => {
+                            const userAssessment = historyData?.history?.find((h: any) => h.assessmentName === assessment.name);
+                            return userAssessment ? (
+                              <Link href={`/wrist-results/${userCode}/${userAssessment.id}`}>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-green-600 border-green-200 hover:bg-green-50"
+                                >
+                                  <TrendingUp className="w-3 h-3 mr-1" />
+                                  View Details
+                                </Button>
+                              </Link>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  const historySection = document.getElementById('patient-history');
+                                  if (historySection) {
+                                    historySection.scrollIntoView({ behavior: 'smooth' });
+                                  }
+                                }}
+                                className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                              >
+                                View Results
+                              </Button>
+                            );
+                          })()
+                        ) : (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const historySection = document.getElementById('patient-history');
+                              if (historySection) {
+                                historySection.scrollIntoView({ behavior: 'smooth' });
+                              }
+                            }}
+                            className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                          >
+                            View Results
+                          </Button>
+                        )}
                         <Button
                           size="sm"
                           onClick={() => navigate(`/assessment/${assessment.id}/video/${userCode}`)}
