@@ -139,9 +139,24 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
           }
         }
         
-        // Force session hand type for ALL frames regardless of recorded data
+        // Force session hand type for ALL frames - use recorded data when available
         const wristAnglesAllFrames = replayData.map(frame => {
-          let result = {
+          // Always use recorded wrist angles if available
+          if (frame.wristAngles && frame.wristAngles.elbowDetected) {
+            const result = { ...frame.wristAngles };
+            result.handType = sessionHandType !== 'UNKNOWN' ? sessionHandType : 'RIGHT';
+            return result;
+          }
+          
+          // Fallback: calculate fresh if no recorded data (shouldn't happen in replay)
+          if (frame.landmarks && frame.poseLandmarks) {
+            const calculated = calculateWristAngleByHandType(frame.landmarks, frame.poseLandmarks);
+            calculated.handType = sessionHandType !== 'UNKNOWN' ? sessionHandType : 'RIGHT';
+            return calculated;
+          }
+          
+          // Last resort fallback
+          return {
             forearmToHandAngle: 90,
             wristFlexionAngle: 0,
             wristExtensionAngle: 0,
@@ -149,14 +164,6 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
             handType: sessionHandType !== 'UNKNOWN' ? sessionHandType : 'RIGHT',
             confidence: 0.8
           };
-          
-          // If recorded wrist angles exist, use them but force hand type
-          if (frame.wristAngles && frame.wristAngles.elbowDetected) {
-            result = { ...frame.wristAngles };
-            result.handType = sessionHandType !== 'UNKNOWN' ? sessionHandType : 'RIGHT';
-          }
-          
-          return result;
         }).filter(Boolean);
         
         console.log(`REPLAY: Processed ${wristAnglesAllFrames.length} frames with forced hand type = ${sessionHandType}`);
@@ -293,8 +300,11 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
           };
           
           // Priority 1: Use recorded wrist angles with session hand type
-          if (frame.wristAngles) {
+          if (frame.wristAngles && frame.wristAngles.elbowDetected) {
             currentWrist = { ...frame.wristAngles };
+          } else if (frame.landmarks && frame.poseLandmarks) {
+            // Calculate fresh if no recorded data
+            currentWrist = calculateWristAngleByHandType(frame.landmarks, frame.poseLandmarks);
           }
           
           // Force recorded session hand type with fallback chain

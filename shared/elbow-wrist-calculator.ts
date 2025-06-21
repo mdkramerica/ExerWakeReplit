@@ -438,16 +438,16 @@ export function calculateElbowReferencedWristAngleWithForce(
       
       console.log(`🎯 ANATOMICAL ${forceHandType} - Signed:${signedAngle.toFixed(1)}°, Anatomical:${result.forearmToHandAngle.toFixed(1)}°`);
       
-      // Apply neutral zone for signed angles (±10° around 0)
-      if (Math.abs(signedAngle) <= 10) {
+      // Apply tighter neutral zone for signed angles (±3° around 0) to capture more motion
+      if (Math.abs(signedAngle) <= 3) {
         result.wristFlexionAngle = 0;
         result.wristExtensionAngle = 0;
         console.log(`${forceHandType} Wrist NEUTRAL: ${signedAngle.toFixed(1)}° (within neutral zone)`);
       } else if (signedAngle > 0) {
         // Positive = flexion
-        result.wristFlexionAngle = signedAngle;
+        result.wristFlexionAngle = Math.abs(signedAngle);
         result.wristExtensionAngle = 0;
-        console.log(`${forceHandType} Wrist FLEXION: ${signedAngle.toFixed(1)}°`);
+        console.log(`${forceHandType} Wrist FLEXION: ${Math.abs(signedAngle).toFixed(1)}°`);
       } else {
         // Negative = extension
         result.wristExtensionAngle = Math.abs(signedAngle);
@@ -574,15 +574,15 @@ function calculateLeftHandWristAngle(
         
         console.log(`🎯 CORRECTED LEFT - Signed:${signedAngle.toFixed(1)}°`);
         
-        // Apply realistic neutral zone (±5° around 0)
-        if (Math.abs(signedAngle) <= 5) {
+        // Apply tighter neutral zone (±3° around 0) to capture more motion
+        if (Math.abs(signedAngle) <= 3) {
           result.wristFlexionAngle = 0;
           result.wristExtensionAngle = 0;
           console.log(`LEFT Wrist NEUTRAL: ${signedAngle.toFixed(1)}°`);
         } else if (signedAngle > 0) {
-          result.wristFlexionAngle = signedAngle;
+          result.wristFlexionAngle = Math.abs(signedAngle);
           result.wristExtensionAngle = 0;
-          console.log(`LEFT Wrist FLEXION: ${signedAngle.toFixed(1)}°`);
+          console.log(`LEFT Wrist FLEXION: ${Math.abs(signedAngle).toFixed(1)}°`);
         } else {
           result.wristExtensionAngle = Math.abs(signedAngle);
           result.wristFlexionAngle = 0;
@@ -702,8 +702,8 @@ function calculateElbowReferencedWristAngle(
           const angleDegrees = angleRadians * (180 / Math.PI);
           
           // In neutral position, vectors should be aligned (0° angle between them)
-          // Deviation from 0° indicates wrist movement
-          if (angleDegrees > 5) { // Minimum threshold for detection
+          // Capture all wrist movement - reduce threshold for better sensitivity
+          if (angleDegrees > 2) { // Lower threshold for detection
             // Use cross product to determine flexion vs extension direction
             const crossProduct = {
               x: referenceNorm.y * measurementNorm.z - referenceNorm.z * measurementNorm.y,
@@ -711,22 +711,19 @@ function calculateElbowReferencedWristAngle(
               z: referenceNorm.x * measurementNorm.y - referenceNorm.y * measurementNorm.x
             };
             
-            // CORRECTED: Hand-specific direction determination based on coordinate system analysis
-            // LEFT hand: Positive Y cross product = extension, Negative Y = flexion
-            // RIGHT hand: Negative Y cross product = extension, Positive Y = flexion
-            // This accounts for opposite hand orientations in camera coordinate system
+            // Hand-specific direction determination
             const isExtension = handType === 'LEFT' ? crossProduct.y > 0 : crossProduct.y < 0;
             
-            console.log(`🔍 HAND-SPECIFIC ANALYSIS - Hand: ${handType}, Y: ${crossProduct.y.toFixed(4)}, Extension: ${isExtension}`);
+            console.log(`🔍 WRIST MOTION - Hand: ${handType}, Angle: ${angleDegrees.toFixed(1)}°, Y: ${crossProduct.y.toFixed(4)}, Extension: ${isExtension}`);
             
             if (isExtension) {
               result.wristExtensionAngle = angleDegrees;
               result.wristFlexionAngle = 0;
-              console.log(`Wrist extension: ${result.wristExtensionAngle.toFixed(1)}° (angle between vectors: ${angleDegrees.toFixed(1)}°)`);
+              console.log(`${handType} Wrist extension: ${result.wristExtensionAngle.toFixed(1)}°`);
             } else {
               result.wristFlexionAngle = angleDegrees;
               result.wristExtensionAngle = 0;
-              console.log(`Wrist flexion: ${result.wristFlexionAngle.toFixed(1)}° (angle between vectors: ${angleDegrees.toFixed(1)}°)`);
+              console.log(`${handType} Wrist flexion: ${result.wristFlexionAngle.toFixed(1)}°`);
             }
           } else {
             // Neutral position - vectors are aligned

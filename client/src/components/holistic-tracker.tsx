@@ -276,7 +276,8 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType,
         console.log(`🔍 Hand Detection - Current: ${currentDetection?.handType || 'UNKNOWN'}, Locked: ${lastHandTypeRef.current}, Confidence: ${currentDetection?.confidence?.toFixed(3) || '0'}`);
       }
       
-      // Force wrist angle calculation for wrist assessments
+      // Calculate wrist angles for wrist assessments during recording
+      let wristAngles = null;
       if (isWristAssessment && handLandmarks.length >= 21 && poseLandmarks.length > 16) {
         // Use locked hand type if available, otherwise use current detection
         const handTypeForCalculation = lastHandTypeRef.current !== 'UNKNOWN' ? lastHandTypeRef.current : currentDetection.handType;
