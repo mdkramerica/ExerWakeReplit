@@ -342,40 +342,18 @@ export default function AssessmentResults() {
                       <h5 className="font-medium mb-2 text-gray-900">Clinical Assessment</h5>
                       <p className="text-sm text-gray-700">
                         {(() => {
-                          // Use the exact same calculation as motion replay for clinical assessment
-                          if (userAssessment.repetitionData && userAssessment.repetitionData[0]?.motionData) {
-                            try {
-                              const motionData = userAssessment.repetitionData[0].motionData;
-                              
-                              // Calculate wrist angles for all frames like in replay
-                              const wristAnglesAllFrames = motionData.map(frame => {
-                                if (frame.landmarks && frame.poseLandmarks) {
-                                  return calculateElbowReferencedWristAngle(frame.landmarks, frame.poseLandmarks);
-                                }
-                                return null;
-                              }).filter(Boolean);
-                              
-                              if (wristAnglesAllFrames.length > 0) {
-                                const allFlexionAngles = wristAnglesAllFrames.map(w => w!.wristFlexionAngle).filter(angle => !isNaN(angle) && angle >= 0);
-                                const allExtensionAngles = wristAnglesAllFrames.map(w => w!.wristExtensionAngle).filter(angle => !isNaN(angle) && angle >= 0);
-                                
-                                const maxFlexion = allFlexionAngles.length > 0 ? Math.max(...allFlexionAngles) : 0;
-                                const maxExtension = allExtensionAngles.length > 0 ? Math.max(...allExtensionAngles) : 0;
-                                
-                                if (maxFlexion >= 60 && maxExtension >= 50) {
-                                  return 'Excellent wrist mobility - within normal functional range';
-                                } else if (maxFlexion >= 40 || maxExtension >= 30) {
-                                  return 'Moderate wrist mobility - some limitation present';
-                                } else {
-                                  return 'Limited wrist mobility - significant restriction noted';
-                                }
-                              }
-                            } catch (error) {
-                              console.error('Error in clinical assessment:', error);
-                            }
-                          }
+                          const wristResults = calculateWristResults(userAssessment);
+                          const interpretation = getWristClinicalInterpretation(wristResults);
                           
-                          return 'Unable to assess - insufficient motion data';
+                          console.log(`📊 ASSESSMENT RESULTS - CLINICAL: ${interpretation.status}, Total ROM: ${wristResults.totalROM.toFixed(1)}°`);
+                          
+                          if (interpretation.status === "Normal") {
+                            return `Excellent wrist mobility detected. Maximum flexion of ${wristResults.maxFlexion.toFixed(1)}° and extension of ${wristResults.maxExtension.toFixed(1)}° indicate normal range of motion (Total ROM: ${wristResults.totalROM.toFixed(1)}°).`;
+                          } else if (interpretation.status === "Moderate") {
+                            return `Moderate wrist mobility detected. Some limitation present with ${wristResults.maxFlexion.toFixed(1)}° flexion and ${wristResults.maxExtension.toFixed(1)}° extension (Total ROM: ${wristResults.totalROM.toFixed(1)}°).`;
+                          } else {
+                            return `Limited wrist mobility detected. Significant restriction with ${wristResults.maxFlexion.toFixed(1)}° flexion and ${wristResults.maxExtension.toFixed(1)}° extension (Total ROM: ${wristResults.totalROM.toFixed(1)}°).`;
+                          }
                         })()}
                       </p>
                     </div>
