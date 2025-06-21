@@ -863,36 +863,33 @@ function calculateAnatomicalWristAngle(
     z: uForearm.x * uHand.y - uForearm.y * uHand.x
   };
   
-  // BIOMECHANICAL NEUTRAL ZONE: In reality, wrist is "neutral" when forearm and hand 
-  // are roughly aligned. Perfect alignment (0°) is rare due to natural hand anatomy.
-  // Clinical neutral is typically when the angle is close to straight line.
+  // Use the raw angle directly, but establish proper neutral baseline
+  // In anatomical terms, neutral wrist is around 145-165° (not 180°)
+  // This accounts for natural hand position relative to forearm
   
-  const NEUTRAL_ZONE_DEGREES = 30; // Angles within this range of straight are considered neutral
-  const STRAIGHT_ANGLE = 180;
+  const ANATOMICAL_NEUTRAL = 155; // degrees - typical neutral wrist angle
+  const NEUTRAL_TOLERANCE = 15;   // ±15° around neutral is considered "neutral"
   
-  // Calculate deviation from anatomically straight position
-  const deviationFromStraight = Math.abs(rawAngle - STRAIGHT_ANGLE);
+  // Calculate signed angle using cross product
+  const signRaw = Math.sign(cross.z + 1e-9);
+  const sideFactor = wrist.x < elbow.x ? -1 : 1;
   
-  let adjustedAngle = 0;
+  // Calculate deviation from anatomical neutral
+  const deviationFromNeutral = rawAngle - ANATOMICAL_NEUTRAL;
   
-  if (deviationFromStraight <= NEUTRAL_ZONE_DEGREES) {
-    // Within neutral zone - report as 0° to match visual appearance
-    adjustedAngle = 0;
+  let finalAngle = 0;
+  
+  if (Math.abs(deviationFromNeutral) <= NEUTRAL_TOLERANCE) {
+    // Within neutral tolerance - report as 0°
+    finalAngle = 0;
   } else {
-    // Outside neutral zone - calculate actual flexion/extension
-    // Subtract the neutral zone to get the "active" bend angle
-    const activeBend = deviationFromStraight - NEUTRAL_ZONE_DEGREES;
-    
-    // Use Z-component for sign determination
-    const signRaw = Math.sign(cross.z + 1e-9);
-    
-    // Auto-detect side: if wrist.x < elbow.x → left arm, invert sign
-    const sideFactor = wrist.x < elbow.x ? -1 : 1;
-    
-    adjustedAngle = activeBend * signRaw * sideFactor;
+    // Outside neutral - calculate actual flexion/extension
+    // Remove the neutral tolerance from the deviation
+    const activeDeviation = Math.abs(deviationFromNeutral) - NEUTRAL_TOLERANCE;
+    finalAngle = activeDeviation * signRaw * sideFactor;
   }
   
-  return adjustedAngle;
+  return finalAngle;
 }
 
 // RIGHT hand specific calculation using anatomical landmark method
