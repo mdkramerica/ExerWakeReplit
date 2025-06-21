@@ -138,6 +138,7 @@ export default function WristResults() {
   
   const flexionPercentage = Math.min((maxFlexion / normalFlexionRange[1]) * 100, 100);
   const extensionPercentage = Math.min((maxExtension / normalExtensionRange[1]) * 100, 100);
+  const totalFrames = userAssessment?.repetitionData?.[0]?.motionData?.length || 0;
   
   const getQualityColor = (score: number) => {
     if (score >= 85) return "bg-green-500";
