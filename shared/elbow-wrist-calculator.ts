@@ -974,10 +974,21 @@ function calculateWristAngleByHandType(
   poseLandmarks?: PoseLandmark[],
   forceHandType?: 'LEFT' | 'RIGHT'
 ): ElbowWristAngles {
-  // Determine hand type
+  // Use session-locked handedness to prevent elbow jumping during assessment
   let handType = forceHandType;
+  
   if (!handType && poseLandmarks && poseLandmarks.length > 16) {
-    handType = determineHandType(handLandmarks, poseLandmarks);
+    if (!recordingSessionHandType) {
+      // First detection - determine and lock handedness for session
+      handType = determineHandType(handLandmarks, poseLandmarks);
+      if (handType !== 'UNKNOWN') {
+        recordingSessionHandType = handType;
+        console.log(`🔒 WRIST SESSION HANDEDNESS LOCKED: ${handType} hand detected and locked for assessment duration`);
+      }
+    } else {
+      // Use locked handedness for consistent tracking
+      handType = recordingSessionHandType;
+    }
   }
   
   console.log(`🔄 DISPATCHER - Using ${handType} hand calculation method`);
