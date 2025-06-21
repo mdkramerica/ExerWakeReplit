@@ -275,7 +275,32 @@ export default function AssessmentResults() {
                     <div className="grid md:grid-cols-2 gap-6">
                       <div className="text-center">
                         <div className="text-3xl font-bold text-blue-600 mb-2">
-                          {parseFloat(userAssessment.maxWristFlexion || userAssessment.wristFlexionAngle || '0').toFixed(1)}°
+                          {(() => {
+                            // Extract wrist angles from motion data since they're not in top-level fields
+                            let maxFlexion = 0;
+                            
+                            if (userAssessment.repetitionData && userAssessment.repetitionData[0]?.motionData) {
+                              userAssessment.repetitionData[0].motionData.forEach(frame => {
+                                if (frame.wristAngles) {
+                                  if (frame.wristAngles.wristFlexionAngle > maxFlexion) {
+                                    maxFlexion = frame.wristAngles.wristFlexionAngle;
+                                  }
+                                }
+                              });
+                            }
+                            
+                            // Fallback to stored values if motion data extraction fails
+                            if (maxFlexion === 0) {
+                              maxFlexion = parseFloat(
+                                userAssessment.maxWristFlexion || 
+                                userAssessment.wristFlexionAngle || 
+                                '0'
+                              );
+                            }
+                            
+                            console.log('Flexion from motion data:', maxFlexion);
+                            return maxFlexion.toFixed(1);
+                          })()}°
                         </div>
                         <div className="text-lg text-gray-700">Maximum Flexion</div>
                         <div className="text-sm text-gray-500 mt-1">Normal: 0-80°</div>
@@ -283,7 +308,32 @@ export default function AssessmentResults() {
                       
                       <div className="text-center">
                         <div className="text-3xl font-bold text-purple-600 mb-2">
-                          {parseFloat(userAssessment.maxWristExtension || userAssessment.wristExtensionAngle || '0').toFixed(1)}°
+                          {(() => {
+                            // Extract wrist angles from motion data since they're not in top-level fields
+                            let maxExtension = 0;
+                            
+                            if (userAssessment.repetitionData && userAssessment.repetitionData[0]?.motionData) {
+                              userAssessment.repetitionData[0].motionData.forEach(frame => {
+                                if (frame.wristAngles) {
+                                  if (frame.wristAngles.wristExtensionAngle > maxExtension) {
+                                    maxExtension = frame.wristAngles.wristExtensionAngle;
+                                  }
+                                }
+                              });
+                            }
+                            
+                            // Fallback to stored values if motion data extraction fails
+                            if (maxExtension === 0) {
+                              maxExtension = parseFloat(
+                                userAssessment.maxWristExtension || 
+                                userAssessment.wristExtensionAngle || 
+                                '0'
+                              );
+                            }
+                            
+                            console.log('Extension from motion data:', maxExtension);
+                            return maxExtension.toFixed(1);
+                          })()}°
                         </div>
                         <div className="text-lg text-gray-700">Maximum Extension</div>
                         <div className="text-sm text-gray-500 mt-1">Normal: 0-70°</div>
@@ -292,8 +342,26 @@ export default function AssessmentResults() {
                     
                     <div className="mt-6 text-center">
                       <div className="text-2xl font-bold text-green-600">
-                        {(parseFloat(userAssessment.maxWristFlexion || userAssessment.wristFlexionAngle || '0') + 
-                          parseFloat(userAssessment.maxWristExtension || userAssessment.wristExtensionAngle || '0')).toFixed(1)}°
+                        {(() => {
+                          // Extract wrist angles from motion data
+                          let maxFlexion = 0;
+                          let maxExtension = 0;
+                          
+                          if (userAssessment.repetitionData && userAssessment.repetitionData[0]?.motionData) {
+                            userAssessment.repetitionData[0].motionData.forEach(frame => {
+                              if (frame.wristAngles) {
+                                if (frame.wristAngles.wristFlexionAngle > maxFlexion) {
+                                  maxFlexion = frame.wristAngles.wristFlexionAngle;
+                                }
+                                if (frame.wristAngles.wristExtensionAngle > maxExtension) {
+                                  maxExtension = frame.wristAngles.wristExtensionAngle;
+                                }
+                              }
+                            });
+                          }
+                          
+                          return (maxFlexion + maxExtension).toFixed(1);
+                        })()}°
                       </div>
                       <div className="text-lg text-gray-700">Total Wrist ROM</div>
                       <div className="text-sm text-gray-500 mt-1">Normal: 150°</div>
@@ -303,12 +371,26 @@ export default function AssessmentResults() {
                       <h5 className="font-medium mb-2 text-gray-900">Clinical Assessment</h5>
                       <p className="text-sm text-gray-700">
                         {(() => {
-                          const flexion = parseFloat(userAssessment.maxWristFlexion || userAssessment.wristFlexionAngle || '0');
-                          const extension = parseFloat(userAssessment.maxWristExtension || userAssessment.wristExtensionAngle || '0');
+                          // Extract wrist angles from motion data for clinical assessment
+                          let maxFlexion = 0;
+                          let maxExtension = 0;
                           
-                          if (flexion >= 60 && extension >= 50) {
+                          if (userAssessment.repetitionData && userAssessment.repetitionData[0]?.motionData) {
+                            userAssessment.repetitionData[0].motionData.forEach(frame => {
+                              if (frame.wristAngles) {
+                                if (frame.wristAngles.wristFlexionAngle > maxFlexion) {
+                                  maxFlexion = frame.wristAngles.wristFlexionAngle;
+                                }
+                                if (frame.wristAngles.wristExtensionAngle > maxExtension) {
+                                  maxExtension = frame.wristAngles.wristExtensionAngle;
+                                }
+                              }
+                            });
+                          }
+                          
+                          if (maxFlexion >= 60 && maxExtension >= 50) {
                             return 'Excellent wrist mobility - within normal functional range';
-                          } else if (flexion >= 40 || extension >= 30) {
+                          } else if (maxFlexion >= 40 || maxExtension >= 30) {
                             return 'Moderate wrist mobility - some limitation present';
                           } else {
                             return 'Limited wrist mobility - significant restriction noted';
