@@ -199,6 +199,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
           });
           
           console.log(`🎯 MOTION ANALYSIS: Using authoritative calculator - Hand: ${finalHandType}, Total ROM: ${authoritativeResults.totalROM.toFixed(1)}°`);
+          console.log(`🎯 SESSION MAXIMUMS MATCH WRIST-RESULTS: Flexion: ${authoritativeResults.maxFlexion.toFixed(1)}°, Extension: ${authoritativeResults.maxExtension.toFixed(1)}°`);
         }
         setCurrentFrame(0);
       } else {
