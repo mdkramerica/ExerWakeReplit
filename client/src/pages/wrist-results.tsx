@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, Download, Share2, TrendingUp, Activity } from "lucide-react";
+import { ArrowLeft, Download, Share2, TrendingUp, Activity, Calculator, Info } from "lucide-react";
 
 interface WristResultsData {
   userAssessment: {
@@ -189,6 +189,80 @@ export default function WristResults() {
             </Button>
           </div>
         </div>
+
+        {/* Calculation Methodology Documentation */}
+        <Card className="border-l-4 border-l-blue-500">
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold text-blue-700 flex items-center gap-2">
+              <Calculator className="w-5 h-5" />
+              Calculation Methodology
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h4 className="font-semibold text-blue-800 mb-2">Maximum Flexion</h4>
+                <p className="text-sm text-gray-700 mb-2">
+                  Calculated using elbow-referenced vector analysis between pose elbow, hand wrist, and middle finger MCP joint.
+                </p>
+                <ul className="text-xs text-gray-600 space-y-1">
+                  <li>• Anatomical angle calculation with ±3° neutral zone</li>
+                  <li>• Positive signed angles indicate forward flexion</li>
+                  <li>• Maximum value across all motion frames</li>
+                </ul>
+              </div>
+              
+              <div className="bg-purple-50 p-4 rounded-lg">
+                <h4 className="font-semibold text-purple-800 mb-2">Maximum Extension</h4>
+                <p className="text-sm text-gray-700 mb-2">
+                  Uses the same elbow-referenced vector method with cross-product direction determination.
+                </p>
+                <ul className="text-xs text-gray-600 space-y-1">
+                  <li>• Negative signed angles indicate backward extension</li>
+                  <li>• Hand-specific elbow selection (LEFT: index 13, RIGHT: index 14)</li>
+                  <li>• Maximum absolute value across all frames</li>
+                </ul>
+              </div>
+              
+              <div className="bg-green-50 p-4 rounded-lg">
+                <h4 className="font-semibold text-green-800 mb-2">Total ROM</h4>
+                <p className="text-sm text-gray-700 mb-2">
+                  Simple arithmetic sum of maximum flexion and extension angles.
+                </p>
+                <ul className="text-xs text-gray-600 space-y-1">
+                  <li>• Formula: Max Flexion + Max Extension</li>
+                  <li>• Represents functional wrist mobility range</li>
+                  <li>• Normal total ROM: ~150° (80° flex + 70° ext)</li>
+                </ul>
+              </div>
+            </div>
+            
+            <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+              <h4 className="font-semibold text-yellow-800 mb-2 flex items-center gap-2">
+                <Info className="w-4 h-4" />
+                Technical Implementation
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700">
+                <div>
+                  <strong>MediaPipe Integration:</strong>
+                  <ul className="mt-1 text-xs space-y-1">
+                    <li>• Holistic pose + hand landmark tracking</li>
+                    <li>• Real-time elbow and wrist position detection</li>
+                    <li>• Session-locked hand type consistency</li>
+                  </ul>
+                </div>
+                <div>
+                  <strong>Vector Calculation:</strong>
+                  <ul className="mt-1 text-xs space-y-1">
+                    <li>• 3D coordinate system with depth (z-axis)</li>
+                    <li>• Normalized vector dot product for angle calculation</li>
+                    <li>• Cross product for flexion/extension classification</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Assessment Overview */}
         <Card>
