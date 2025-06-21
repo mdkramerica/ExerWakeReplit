@@ -978,6 +978,27 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
         
         ctx.fillStyle = '#10b981';
         ctx.fillText(`Total ROM: ${authoritativeWristResults.totalROM.toFixed(1)}°`, wristBoxX + 10, wristBoxY + 180);
+        
+        // Range indicators showing current position relative to maximums
+        const currentFlexion = currentWristAngles.wristFlexionAngle;
+        const currentExtension = currentWristAngles.wristExtensionAngle;
+        const maxFlexion = authoritativeWristResults.maxFlexion;
+        const maxExtension = authoritativeWristResults.maxExtension;
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 11px Arial';
+        ctx.fillText('Range Achievement:', wristBoxX + 10, wristBoxY + 205);
+        
+        // Flexion achievement bar
+        const flexionPercent = maxFlexion > 0 ? (currentFlexion / maxFlexion) * 100 : 0;
+        ctx.fillStyle = '#3b82f6';
+        ctx.font = '10px Arial';
+        ctx.fillText(`Flexion: ${flexionPercent.toFixed(0)}% of max (${maxFlexion.toFixed(1)}°)`, wristBoxX + 10, wristBoxY + 220);
+        
+        // Extension achievement bar
+        const extensionPercent = maxExtension > 0 ? (currentExtension / maxExtension) * 100 : 0;
+        ctx.fillStyle = '#f59e0b';
+        ctx.fillText(`Extension: ${extensionPercent.toFixed(0)}% of max (${maxExtension.toFixed(1)}°)`, wristBoxX + 10, wristBoxY + 235);
       }
       
       // Visual angle indicator with elbow and forearm line
