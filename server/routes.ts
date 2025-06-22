@@ -60,8 +60,8 @@ const auditLog = async (userId: number, action: string, targetEntity?: string, d
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Use recovery storage system
-  const storage = new RecoveryStorage() as unknown as IStorage;
+  // Use database storage directly
+  const { storage } = await import('./storage');
 
   // Clinical Dashboard Authentication
   app.post("/api/auth/login", async (req, res) => {
