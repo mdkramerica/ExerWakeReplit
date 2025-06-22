@@ -42,36 +42,14 @@ import ClinicalSettings from "@/pages/clinical-settings";
 import ClinicalReports from "@/pages/clinical-reports";
 import ClinicalLayout from "@/components/clinical-layout";
 
-function ClinicalRoutes() {
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
   
   if (!isAuthenticated) {
     return <ClinicalLogin />;
   }
   
-  return (
-    <ClinicalLayout>
-      <Switch>
-        <Route path="/dashboard" component={ClinicalDashboard} />
-        <Route path="/patient-dashboard" component={PatientDashboard} />
-        <Route path="/patient-enrollment" component={PatientEnrollment} />
-        <Route path="/study/analytics" component={LongitudinalAnalytics} />
-        <Route path="/study/predictions" component={PredictiveModeling} />
-        <Route path="/study/enroll" component={StudyEnrollment} />
-        <Route path="/study/cohorts" component={StudyCohortOverview} />
-        <Route path="/study/compliance" component={StudyProtocolCompliance} />
-        <Route path="/analytics" component={ClinicalAnalytics} />
-        <Route path="/research" component={ResearchDashboard} />
-        <Route path="/reports" component={ClinicalReports} />
-        <Route path="/settings" component={ClinicalSettings} />
-        <Route path="/alerts" component={ClinicalAlerts} />
-        <Route path="/patients/:id" component={PatientDetail} />
-        <Route path="/patients" component={ClinicalPatients} />
-        <Route path="/" component={ClinicalDashboard} />
-        <Route component={NotFound} />
-      </Switch>
-    </ClinicalLayout>
-  );
+  return <>{children}</>;
 }
 
 function LegacyRoutes() {
@@ -103,8 +81,22 @@ function Router() {
   return (
     <Switch>
       <Route path="/clinical/login" component={ClinicalLogin} />
-      <Route path="/clinical" component={ClinicalRoutes} />
-      <Route path="/clinical/:rest*" component={ClinicalRoutes} />
+      <Route path="/clinical/dashboard" component={() => <ProtectedRoute><ClinicalLayout><ClinicalDashboard /></ClinicalLayout></ProtectedRoute>} />
+      <Route path="/clinical/patient-dashboard" component={() => <ProtectedRoute><ClinicalLayout><PatientDashboard /></ClinicalLayout></ProtectedRoute>} />
+      <Route path="/clinical/patient-enrollment" component={() => <ProtectedRoute><ClinicalLayout><PatientEnrollment /></ClinicalLayout></ProtectedRoute>} />
+      <Route path="/clinical/study/analytics" component={() => <ProtectedRoute><ClinicalLayout><LongitudinalAnalytics /></ClinicalLayout></ProtectedRoute>} />
+      <Route path="/clinical/study/predictions" component={() => <ProtectedRoute><ClinicalLayout><PredictiveModeling /></ClinicalLayout></ProtectedRoute>} />
+      <Route path="/clinical/study/enroll" component={() => <ProtectedRoute><ClinicalLayout><StudyEnrollment /></ClinicalLayout></ProtectedRoute>} />
+      <Route path="/clinical/study/cohorts" component={() => <ProtectedRoute><ClinicalLayout><StudyCohortOverview /></ClinicalLayout></ProtectedRoute>} />
+      <Route path="/clinical/study/compliance" component={() => <ProtectedRoute><ClinicalLayout><StudyProtocolCompliance /></ClinicalLayout></ProtectedRoute>} />
+      <Route path="/clinical/analytics" component={() => <ProtectedRoute><ClinicalLayout><ClinicalAnalytics /></ClinicalLayout></ProtectedRoute>} />
+      <Route path="/clinical/research" component={() => <ProtectedRoute><ClinicalLayout><ResearchDashboard /></ClinicalLayout></ProtectedRoute>} />
+      <Route path="/clinical/reports" component={() => <ProtectedRoute><ClinicalLayout><ClinicalReports /></ClinicalLayout></ProtectedRoute>} />
+      <Route path="/clinical/settings" component={() => <ProtectedRoute><ClinicalLayout><ClinicalSettings /></ClinicalLayout></ProtectedRoute>} />
+      <Route path="/clinical/alerts" component={() => <ProtectedRoute><ClinicalLayout><ClinicalAlerts /></ClinicalLayout></ProtectedRoute>} />
+      <Route path="/clinical/patients/:id" component={() => <ProtectedRoute><ClinicalLayout><PatientDetail /></ClinicalLayout></ProtectedRoute>} />
+      <Route path="/clinical/patients" component={() => <ProtectedRoute><ClinicalLayout><ClinicalPatients /></ClinicalLayout></ProtectedRoute>} />
+      <Route path="/clinical" component={() => <ProtectedRoute><ClinicalLayout><ClinicalDashboard /></ClinicalLayout></ProtectedRoute>} />
       <Route>
         <div className="min-h-screen bg-white">
           <Header />
