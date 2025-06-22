@@ -68,7 +68,7 @@ function ClinicalRoutes() {
         <Route path="/clinical/reports" component={ClinicalReports} />
         <Route path="/clinical/settings" component={ClinicalSettings} />
         <Route path="/clinical" component={ClinicalDashboard} />
-        <Route component={ClinicalDashboard} />
+        <Route component={NotFound} />
       </Switch>
     </ClinicalLayout>
   );
