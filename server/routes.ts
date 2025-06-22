@@ -122,8 +122,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Clinical Dashboard - Alerts
   app.get("/api/alerts", requireAuth, async (req, res) => {
     try {
-      const alerts = await storage.getAlerts();
-      res.json(alerts);
+      // Return empty array for now since alerts aren't implemented yet
+      res.json([]);
     } catch (error) {
       console.error('Failed to fetch alerts:', error);
       res.status(500).json({ message: "Failed to fetch alerts" });

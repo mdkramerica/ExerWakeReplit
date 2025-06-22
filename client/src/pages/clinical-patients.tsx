@@ -248,7 +248,19 @@ export default function ClinicalPatients() {
                       <TableCell>
                         {patient.lastAssessment ? (
                           <div className="text-sm">
-                            <div>{format(new Date(patient.lastAssessment), 'MMM d, yyyy')}</div>
+                            <div>
+                              {(() => {
+                                try {
+                                  const date = new Date(patient.lastAssessment);
+                                  if (isNaN(date.getTime())) {
+                                    return 'Invalid date';
+                                  }
+                                  return format(date, 'MMM d, yyyy');
+                                } catch (error) {
+                                  return 'Invalid date';
+                                }
+                              })()}
+                            </div>
                             <div className="text-muted-foreground text-xs">
                               {patient.assessmentCount || 0} total assessments
                             </div>
