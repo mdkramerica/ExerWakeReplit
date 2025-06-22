@@ -67,16 +67,34 @@ export default function ClinicalAnalytics() {
     enabled: selectedCohort !== 'all' && selectedCohort !== '',
   });
 
-  // Process assessment data for charts
+  // Process assessment data for charts by days post surgery
   const processedData = assessments?.reduce((acc: any, assessment: any) => {
-    const month = new Date(assessment.assessmentDate).toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'short' 
-    });
+    const assessmentDate = new Date(assessment.assessmentDate);
     
-    if (!acc[month]) {
-      acc[month] = {
-        month,
+    // Calculate days post surgery - using a baseline date for demonstration
+    // In a real implementation, this would use patient.surgeryDate
+    const baseDate = new Date('2025-01-01'); // Placeholder for surgery date
+    const daysDiff = Math.floor((assessmentDate.getTime() - baseDate.getTime()) / (1000 * 60 * 60 * 24));
+    
+    // Group into meaningful post-surgery time periods
+    let timeKey;
+    if (daysDiff <= 14) {
+      timeKey = `Day ${daysDiff}`;
+    } else if (daysDiff <= 30) {
+      const weekNumber = Math.floor(daysDiff / 7);
+      timeKey = `Week ${weekNumber}`;
+    } else if (daysDiff <= 90) {
+      const weekNumber = Math.floor(daysDiff / 7);
+      timeKey = `Week ${weekNumber}`;
+    } else {
+      const monthNumber = Math.floor(daysDiff / 30);
+      timeKey = `Month ${monthNumber}`;
+    }
+    
+    if (!acc[timeKey]) {
+      acc[timeKey] = {
+        period: timeKey,
+        dayRange: daysDiff,
         tamScores: [],
         kapandjiScores: [],
         wristFlexionScores: [],
@@ -84,10 +102,10 @@ export default function ClinicalAnalytics() {
       };
     }
     
-    if (assessment.tamScore) acc[month].tamScores.push(Number(assessment.tamScore));
-    if (assessment.kapandjiScore) acc[month].kapandjiScores.push(Number(assessment.kapandjiScore));
-    if (assessment.wristFlexionAngle) acc[month].wristFlexionScores.push(Number(assessment.wristFlexionAngle));
-    if (assessment.percentOfNormalRom) acc[month].romPercentages.push(Number(assessment.percentOfNormalRom));
+    if (assessment.tamScore) acc[timeKey].tamScores.push(Number(assessment.tamScore));
+    if (assessment.kapandjiScore) acc[timeKey].kapandjiScores.push(Number(assessment.kapandjiScore));
+    if (assessment.wristFlexionAngle) acc[timeKey].wristFlexionScores.push(Number(assessment.wristFlexionAngle));
+    if (assessment.percentOfNormalRom) acc[timeKey].romPercentages.push(Number(assessment.percentOfNormalRom));
     
     return acc;
   }, {} as Record<string, any>) || {};
@@ -97,26 +115,25 @@ export default function ClinicalAnalytics() {
   console.log('Processed data:', processedData);
   console.log('Chart data:', Object.values(processedData).slice(0, 3));
 
-  const chartData = Object.values(processedData).map((month: any) => ({
-    month: month.month,
-    avgTamScore: month.tamScores.length > 0 ? 
-      Math.round((month.tamScores.reduce((a: number, b: number) => a + b, 0) / month.tamScores.length) * 10) / 10 : null,
-    avgKapandjiScore: month.kapandjiScores.length > 0 ? 
-      Math.round((month.kapandjiScores.reduce((a: number, b: number) => a + b, 0) / month.kapandjiScores.length) * 10) / 10 : null,
-    avgWristFlexion: month.wristFlexionScores.length > 0 ? 
-      Math.round((month.wristFlexionScores.reduce((a: number, b: number) => a + b, 0) / month.wristFlexionScores.length) * 10) / 10 : null,
-    avgRomPercent: month.romPercentages.length > 0 ? 
-      Math.round((month.romPercentages.reduce((a: number, b: number) => a + b, 0) / month.romPercentages.length) * 10) / 10 : null,
+  const chartData = Object.values(processedData).map((period: any) => ({
+    period: period.period,
+    dayRange: period.dayRange,
+    avgTamScore: period.tamScores.length > 0 ? 
+      Math.round((period.tamScores.reduce((a: number, b: number) => a + b, 0) / period.tamScores.length) * 10) / 10 : null,
+    avgKapandjiScore: period.kapandjiScores.length > 0 ? 
+      Math.round((period.kapandjiScores.reduce((a: number, b: number) => a + b, 0) / period.kapandjiScores.length) * 10) / 10 : null,
+    avgWristFlexion: period.wristFlexionScores.length > 0 ? 
+      Math.round((period.wristFlexionScores.reduce((a: number, b: number) => a + b, 0) / period.wristFlexionScores.length) * 10) / 10 : null,
+    avgRomPercent: period.romPercentages.length > 0 ? 
+      Math.round((period.romPercentages.reduce((a: number, b: number) => a + b, 0) / period.romPercentages.length) * 10) / 10 : null,
     patientCount: Math.max(
-      month.tamScores.length,
-      month.kapandjiScores.length,
-      month.wristFlexionScores.length,
-      month.romPercentages.length
+      period.tamScores.length,
+      period.kapandjiScores.length,
+      period.wristFlexionScores.length,
+      period.romPercentages.length
     ),
   })).sort((a, b) => {
-    const dateA = new Date(a.month + ' 1');
-    const dateB = new Date(b.month + ' 1');
-    return dateA.getTime() - dateB.getTime();
+    return (a.dayRange || 0) - (b.dayRange || 0);
   });
 
   const handleExportData = async () => {
