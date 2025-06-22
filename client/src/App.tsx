@@ -38,6 +38,8 @@ import LongitudinalAnalytics from "@/pages/longitudinal-analytics";
 import PredictiveModeling from "@/pages/predictive-modeling";
 import ResearchDashboard from "@/pages/research-dashboard";
 import StudyProtocolCompliance from "@/pages/study-protocol-compliance";
+import ClinicalSettings from "@/pages/clinical-settings";
+import ClinicalReports from "@/pages/clinical-reports";
 import ClinicalLayout from "@/components/clinical-layout";
 
 function ClinicalRoutes() {
@@ -63,9 +65,8 @@ function ClinicalRoutes() {
         <Route path="/clinical/study/predictions" component={PredictiveModeling} />
         <Route path="/clinical/research" component={ResearchDashboard} />
         <Route path="/clinical/study/compliance" component={StudyProtocolCompliance} />
-        <Route path="/clinical/cohorts" component={() => <div>Cohorts Page (Coming Soon)</div>} />
-        <Route path="/clinical/reports" component={() => <div>Reports Page (Coming Soon)</div>} />
-        <Route path="/clinical/settings" component={() => <div>Settings Page (Coming Soon)</div>} />
+        <Route path="/clinical/reports" component={ClinicalReports} />
+        <Route path="/clinical/settings" component={ClinicalSettings} />
         <Route path="/clinical" component={ClinicalDashboard} />
         <Route component={ClinicalDashboard} />
       </Switch>

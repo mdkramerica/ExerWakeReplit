@@ -73,9 +73,9 @@ export default function ClinicalLayout({ children }: ClinicalLayoutProps) {
             const isActive = location === item.href || location.startsWith(item.href + '/');
             return (
               <Link key={item.name} href={item.href}>
-                <a
+                <span
                   className={cn(
-                    'group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors',
+                    'group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer',
                     isActive
                       ? 'bg-primary text-primary-foreground'
                       : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
@@ -88,7 +88,7 @@ export default function ClinicalLayout({ children }: ClinicalLayoutProps) {
                     )}
                   />
                   {item.name}
-                </a>
+                </span>
               </Link>
             );
           })}
