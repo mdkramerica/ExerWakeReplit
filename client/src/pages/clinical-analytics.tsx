@@ -292,7 +292,7 @@ export default function ClinicalAnalytics() {
               <CardHeader>
                 <CardTitle>Assessment Trends</CardTitle>
                 <CardDescription>
-                  Monthly average scores across the cohort
+                  Recovery progression by days post surgery
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -386,7 +386,7 @@ export default function ClinicalAnalytics() {
             <CardHeader>
               <CardTitle>Assessment Activity</CardTitle>
               <CardDescription>
-                Monthly assessment volume and patient engagement
+                Assessment volume and patient engagement by recovery timeline
               </CardDescription>
             </CardHeader>
             <CardContent>
