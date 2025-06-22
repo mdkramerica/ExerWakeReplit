@@ -52,22 +52,22 @@ function ClinicalRoutes() {
   return (
     <ClinicalLayout>
       <Switch>
-        <Route path="/clinical/dashboard" component={ClinicalDashboard} />
-        <Route path="/clinical/patient-dashboard" component={PatientDashboard} />
-        <Route path="/clinical/patient-enrollment" component={PatientEnrollment} />
-        <Route path="/clinical/study/analytics" component={LongitudinalAnalytics} />
-        <Route path="/clinical/study/predictions" component={PredictiveModeling} />
-        <Route path="/clinical/study/enroll" component={StudyEnrollment} />
-        <Route path="/clinical/study/cohorts" component={StudyCohortOverview} />
-        <Route path="/clinical/study/compliance" component={StudyProtocolCompliance} />
-        <Route path="/clinical/analytics" component={ClinicalAnalytics} />
-        <Route path="/clinical/research" component={ResearchDashboard} />
-        <Route path="/clinical/reports" component={ClinicalReports} />
-        <Route path="/clinical/settings" component={ClinicalSettings} />
-        <Route path="/clinical/alerts" component={ClinicalAlerts} />
-        <Route path="/clinical/patients/:id" component={PatientDetail} />
-        <Route path="/clinical/patients" component={ClinicalPatients} />
-        <Route path="/clinical" component={ClinicalDashboard} />
+        <Route path="/dashboard" component={ClinicalDashboard} />
+        <Route path="/patient-dashboard" component={PatientDashboard} />
+        <Route path="/patient-enrollment" component={PatientEnrollment} />
+        <Route path="/study/analytics" component={LongitudinalAnalytics} />
+        <Route path="/study/predictions" component={PredictiveModeling} />
+        <Route path="/study/enroll" component={StudyEnrollment} />
+        <Route path="/study/cohorts" component={StudyCohortOverview} />
+        <Route path="/study/compliance" component={StudyProtocolCompliance} />
+        <Route path="/analytics" component={ClinicalAnalytics} />
+        <Route path="/research" component={ResearchDashboard} />
+        <Route path="/reports" component={ClinicalReports} />
+        <Route path="/settings" component={ClinicalSettings} />
+        <Route path="/alerts" component={ClinicalAlerts} />
+        <Route path="/patients/:id" component={PatientDetail} />
+        <Route path="/patients" component={ClinicalPatients} />
+        <Route path="/" component={ClinicalDashboard} />
         <Route component={NotFound} />
       </Switch>
     </ClinicalLayout>
