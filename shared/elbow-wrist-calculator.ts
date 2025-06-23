@@ -711,19 +711,22 @@ function calculateElbowReferencedWristAngle(
               z: referenceNorm.x * measurementNorm.y - referenceNorm.y * measurementNorm.x
             };
             
-            // Hand-specific direction determination
-            const isExtension = handType === 'LEFT' ? crossProduct.y > 0 : crossProduct.y < 0;
+            // FINAL CORRECTED LOGIC: Inverted the classification based on visual evidence
+            // From user feedback: clear flexion was showing as extension, so inverting
+            // For RIGHT hand: positive Y = flexion (forward bend), negative Y = extension (backward bend)
+            // For LEFT hand: negative Y = flexion (forward bend), positive Y = extension (backward bend)
+            const isFlexion = handType === 'LEFT' ? crossProduct.y < 0 : crossProduct.y > 0;
             
-            console.log(`🔍 WRIST MOTION - Hand: ${handType}, Angle: ${angleDegrees.toFixed(1)}°, Y: ${crossProduct.y.toFixed(4)}, Extension: ${isExtension}`);
+            console.log(`🔍 WRIST MOTION - Hand: ${handType}, Angle: ${angleDegrees.toFixed(1)}°, Y: ${crossProduct.y.toFixed(4)}, Flexion: ${isFlexion}`);
             
-            if (isExtension) {
-              result.wristExtensionAngle = angleDegrees;
-              result.wristFlexionAngle = 0;
-              console.log(`${handType} Wrist extension: ${result.wristExtensionAngle.toFixed(1)}°`);
-            } else {
+            if (isFlexion) {
               result.wristFlexionAngle = angleDegrees;
               result.wristExtensionAngle = 0;
               console.log(`${handType} Wrist flexion: ${result.wristFlexionAngle.toFixed(1)}°`);
+            } else {
+              result.wristExtensionAngle = angleDegrees;
+              result.wristFlexionAngle = 0;
+              console.log(`${handType} Wrist extension: ${result.wristExtensionAngle.toFixed(1)}°`);
             }
           } else {
             // Neutral position - vectors are aligned
