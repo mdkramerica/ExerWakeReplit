@@ -149,28 +149,37 @@ export default function PatientDailyDashboard() {
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
             Welcome back, {patient.alias}!
           </h1>
-          <p className="text-muted-foreground">
-            Day {patient.daysSinceStart} of your recovery journey • {patient.injuryType}
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Recovery started June 20, 2025
-          </p>
+          <div className="space-y-1">
+            <p className="text-lg font-medium text-gray-700 dark:text-gray-300">
+              Day {patient.daysSinceStart} of your recovery journey
+            </p>
+            <p className="text-base font-medium text-blue-600 dark:text-blue-400">
+              {patient.injuryType}
+            </p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/20 px-3 py-1 rounded-full inline-block">
+              Surgery: June 20, 2025
+            </p>
+          </div>
         </div>
 
         {/* Streak Card */}
-        <Card className="bg-gradient-to-r from-orange-500 to-red-500 text-white border-0">
+        <Card className="bg-gradient-to-r from-orange-500 to-red-500 text-white border-0 shadow-lg">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div className="space-y-2">
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-3">
                   {getStreakIcon(streakData?.currentStreak || 0)}
-                  <span className="text-2xl font-bold">{streakData?.currentStreak || 0} Day Streak</span>
+                  <div>
+                    <div className="text-3xl font-bold text-white">{streakData?.currentStreak || 0} Day Streak</div>
+                    <div className="text-orange-100 text-sm">Since surgery (June 20)</div>
+                  </div>
                 </div>
-                <p className="text-orange-100">{getStreakMessage(streakData?.currentStreak || 0)}</p>
+                <p className="text-orange-100 font-medium">{getStreakMessage(streakData?.currentStreak || 0)}</p>
               </div>
-              <div className="text-right">
-                <div className="text-3xl font-bold">{streakData?.totalCompletions || 0}</div>
-                <div className="text-orange-100 text-sm">Total Completions</div>
+              <div className="text-right space-y-1">
+                <div className="text-4xl font-bold text-white">{streakData?.totalCompletions || 0}</div>
+                <div className="text-orange-100 text-sm font-medium">Total Completions</div>
+                <div className="text-orange-200 text-xs">Best: {streakData?.longestStreak || 0} days</div>
               </div>
             </div>
           </CardContent>
@@ -349,54 +358,118 @@ export default function PatientDailyDashboard() {
                       modifiers={{
                         completed: calendarData?.filter(day => day.status === 'completed').map(day => new Date(day.date)) || [],
                         missed: calendarData?.filter(day => day.status === 'missed').map(day => new Date(day.date)) || [],
+                        pending: calendarData?.filter(day => day.status === 'pending').map(day => new Date(day.date)) || [],
+                        surgeryDate: [new Date('2025-06-20')],
                       }}
                       modifiersStyles={{
-                        completed: { backgroundColor: '#10b981', color: 'white' },
-                        missed: { backgroundColor: '#ef4444', color: 'white' },
+                        completed: { 
+                          backgroundColor: '#10b981', 
+                          color: 'white',
+                          fontWeight: 'bold',
+                          borderRadius: '50%'
+                        },
+                        missed: { 
+                          backgroundColor: '#ef4444', 
+                          color: 'white',
+                          fontWeight: 'bold',
+                          borderRadius: '50%'
+                        },
+                        pending: { 
+                          backgroundColor: '#f59e0b', 
+                          color: 'white',
+                          fontWeight: 'bold',
+                          borderRadius: '50%'
+                        },
+                        surgeryDate: {
+                          backgroundColor: '#3b82f6',
+                          color: 'white',
+                          fontWeight: 'bold',
+                          borderRadius: '50%',
+                          border: '3px solid #1d4ed8'
+                        }
                       }}
                     />
                   </div>
                   
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <h4 className="font-medium">Legend</h4>
+                      <h4 className="font-medium text-gray-900 dark:text-white">Legend</h4>
                       <div className="space-y-2">
                         <div className="flex items-center space-x-2">
-                          <div className="w-4 h-4 bg-green-500 rounded"></div>
-                          <span className="text-sm">Completed</span>
+                          <div className="w-5 h-5 bg-green-500 rounded-full"></div>
+                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Completed (5/5)</span>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <div className="w-4 h-4 bg-red-500 rounded"></div>
-                          <span className="text-sm">Missed</span>
+                          <div className="w-5 h-5 bg-yellow-500 rounded-full"></div>
+                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Partial (1-4/5)</span>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <div className="w-4 h-4 bg-gray-200 rounded"></div>
-                          <span className="text-sm">Future/No Data</span>
+                          <div className="w-5 h-5 bg-red-500 rounded-full"></div>
+                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Missed (0/5)</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <div className="w-5 h-5 bg-blue-500 rounded-full border-2 border-blue-700"></div>
+                          <span className="text-sm font-medium text-blue-700 dark:text-blue-300">Surgery Date (June 20)</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <div className="w-5 h-5 bg-gray-200 rounded-full border border-gray-300"></div>
+                          <span className="text-sm font-medium text-gray-500">Future/Pre-Surgery</span>
                         </div>
                       </div>
                     </div>
                     
                     {selectedDate && (
-                      <div className="space-y-2">
-                        <h4 className="font-medium">
-                          {format(selectedDate, 'MMMM d, yyyy')}
+                      <div className="space-y-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <h4 className="font-semibold text-gray-900 dark:text-white">
+                          {format(selectedDate, 'EEEE, MMMM d, yyyy')}
                         </h4>
                         {calendarData?.find(day => isSameDay(new Date(day.date), selectedDate)) ? (
-                          <div className="text-sm space-y-1">
+                          <div className="space-y-2">
                             {(() => {
                               const dayData = calendarData.find(day => isSameDay(new Date(day.date), selectedDate));
                               const isRecoveryStart = format(selectedDate, 'yyyy-MM-dd') === '2025-06-20';
+                              const statusColors = {
+                                completed: 'bg-green-100 text-green-800 border-green-200',
+                                pending: 'bg-yellow-100 text-yellow-800 border-yellow-200', 
+                                missed: 'bg-red-100 text-red-800 border-red-200',
+                                future: 'bg-gray-100 text-gray-600 border-gray-200'
+                              };
+                              
                               return (
                                 <>
-                                  <p>Status: <Badge variant={dayData?.status === 'completed' ? 'default' : dayData?.status === 'pending' ? 'secondary' : 'outline'}>{dayData?.status}</Badge></p>
-                                  <p>Completed: {dayData?.completedAssessments} of {dayData?.totalAssessments}</p>
-                                  {isRecoveryStart && <p className="text-xs text-blue-600 font-medium">🏥 Recovery Started</p>}
+                                  {isRecoveryStart && (
+                                    <div className="flex items-center space-x-2 p-2 bg-blue-50 border border-blue-200 rounded-md">
+                                      <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                                      <span className="text-sm font-semibold text-blue-800">Surgery & Recovery Start Date</span>
+                                    </div>
+                                  )}
+                                  
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Status:</span>
+                                    <Badge className={`${statusColors[dayData?.status as keyof typeof statusColors]} border font-medium`}>
+                                      {dayData?.status?.charAt(0).toUpperCase() + dayData?.status?.slice(1)}
+                                    </Badge>
+                                  </div>
+                                  
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Assessments:</span>
+                                    <span className="text-sm font-bold text-gray-900 dark:text-white">
+                                      {dayData?.completedAssessments} of {dayData?.totalAssessments}
+                                    </span>
+                                  </div>
+                                  
+                                  {dayData?.status === 'completed' && (
+                                    <div className="flex items-center space-x-2 p-2 bg-green-50 border border-green-200 rounded-md">
+                                      <CheckCircle className="w-4 h-4 text-green-600" />
+                                      <span className="text-sm font-medium text-green-800">Perfect Day!</span>
+                                    </div>
+                                  )}
                                 </>
                               );
                             })()}
                           </div>
                         ) : (
-                          <p className="text-sm text-muted-foreground">No data for this date</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">No data available for this date</p>
                         )}
                       </div>
                     )}
