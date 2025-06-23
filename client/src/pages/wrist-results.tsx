@@ -186,8 +186,8 @@ export default function WristResults() {
           </CardContent>
         </Card>
 
-        {/* Calculation Methodology Documentation */}
-        <Card className="border-l-4 border-l-blue-500">
+        {/* Calculation Methodology Documentation - Hidden */}
+        <Card className="border-l-4 border-l-blue-500 hidden">
           <CardHeader>
             <CardTitle className="text-lg font-semibold text-blue-700 flex items-center gap-2">
               <Calculator className="w-5 h-5" />
@@ -260,8 +260,8 @@ export default function WristResults() {
           </CardContent>
         </Card>
 
-        {/* Detailed Technical Documentation */}
-        <Card className="border-l-4 border-l-amber-500">
+        {/* Detailed Technical Documentation - Hidden */}
+        <Card className="border-l-4 border-l-amber-500 hidden">
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg font-semibold text-amber-700 flex items-center gap-2">
