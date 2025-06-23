@@ -219,18 +219,20 @@ html, body {
   background-color: rgb(249 250 251);
 }
 
-/* Calendar color overrides - most specific selectors */
+/* Calendar color overrides - only for recovery period */
+/* Surgery day (June 20) - Blue square with special styling */
 .calendar-custom tbody tr:nth-child(3) td:nth-child(4) button {
-  background-color: #f59e0b !important;
+  background-color: #3b82f6 !important;
   color: white !important;
   font-weight: bold !important;
-  border-radius: 50% !important;
-  border: 3px solid #3b82f6 !important;
+  border-radius: 6px !important;
+  border: 3px solid #1e40af !important;
   box-shadow: 0 0 0 2px white, 0 0 0 4px #3b82f6 !important;
   width: 36px !important;
   height: 36px !important;
 }
 
+/* Recovery days 21-22 - Green circles */
 .calendar-custom tbody tr:nth-child(3) td:nth-child(5) button,
 .calendar-custom tbody tr:nth-child(3) td:nth-child(6) button {
   background-color: #10b981 !important;
@@ -242,6 +244,7 @@ html, body {
   height: 36px !important;
 }
 
+/* Recovery day 23 - Yellow circle */
 .calendar-custom tbody tr:nth-child(4) td:nth-child(1) button {
   background-color: #f59e0b !important;
   color: white !important;
@@ -250,6 +253,15 @@ html, body {
   border: 2px solid #d97706 !important;
   width: 36px !important;
   height: 36px !important;
+}
+
+/* Ensure days before surgery (18, 19) remain default styling */
+.calendar-custom tbody tr:nth-child(3) td:nth-child(2) button,
+.calendar-custom tbody tr:nth-child(3) td:nth-child(3) button {
+  background-color: transparent !important;
+  color: inherit !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 4px !important;
 }
 
 /* Typography */

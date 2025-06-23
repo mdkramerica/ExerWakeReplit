@@ -100,38 +100,58 @@ export default function PatientDailyDashboard() {
         if (/^\d{1,2}$/.test(dayText)) {
           const dayNum = parseInt(dayText);
           
-          // Clear existing styles
-          button.style.cssText = '';
-          
-          if (dayNum === 21 || dayNum === 22) {
-            // Completed days - Green
-            button.style.cssText = `
-              background-color: #10b981 !important;
-              color: white !important;
-              font-weight: bold !important;
-              border-radius: 50% !important;
-              border: 2px solid #059669 !important;
-              width: 36px !important;
-              height: 36px !important;
-              display: flex !important;
-              align-items: center !important;
-              justify-content: center !important;
-            `;
-          } else if (dayNum === 20 || dayNum === 23) {
-            // Pending days - Yellow
-            button.style.cssText = `
-              background-color: #f59e0b !important;
-              color: white !important;
-              font-weight: bold !important;
-              border-radius: 50% !important;
-              border: ${dayNum === 20 ? '3px solid #3b82f6' : '2px solid #d97706'} !important;
-              width: 36px !important;
-              height: 36px !important;
-              display: flex !important;
-              align-items: center !important;
-              justify-content: center !important;
-              ${dayNum === 20 ? 'box-shadow: 0 0 0 2px white, 0 0 0 4px #3b82f6 !important;' : ''}
-            `;
+          // Only style recovery period days (20-23)
+          if (dayNum >= 20 && dayNum <= 23) {
+            // Clear existing styles
+            button.style.cssText = '';
+            
+            if (dayNum === 20) {
+              // Surgery day - Special blue indicator
+              button.style.cssText = `
+                background-color: #3b82f6 !important;
+                color: white !important;
+                font-weight: bold !important;
+                border-radius: 6px !important;
+                border: 3px solid #1e40af !important;
+                width: 36px !important;
+                height: 36px !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                box-shadow: 0 0 0 2px white, 0 0 0 4px #3b82f6 !important;
+                position: relative !important;
+              `;
+              // Add hospital icon overlay
+              button.setAttribute('data-surgery', 'true');
+            } else if (dayNum === 21 || dayNum === 22) {
+              // Completed recovery days - Green circles
+              button.style.cssText = `
+                background-color: #10b981 !important;
+                color: white !important;
+                font-weight: bold !important;
+                border-radius: 50% !important;
+                border: 2px solid #059669 !important;
+                width: 36px !important;
+                height: 36px !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+              `;
+            } else if (dayNum === 23) {
+              // Pending recovery day - Yellow circle
+              button.style.cssText = `
+                background-color: #f59e0b !important;
+                color: white !important;
+                font-weight: bold !important;
+                border-radius: 50% !important;
+                border: 2px solid #d97706 !important;
+                width: 36px !important;
+                height: 36px !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+              `;
+            }
           }
         }
       });
@@ -159,24 +179,36 @@ export default function PatientDailyDashboard() {
             if (/^\d{1,2}$/.test(dayText)) {
               const dayNum = parseInt(dayText);
               
-              if (dayNum === 21 || dayNum === 22) {
-                button.style.backgroundColor = '#10b981';
-                button.style.color = 'white';
-                button.style.fontWeight = 'bold';
-                button.style.borderRadius = '50%';
-                button.style.border = '2px solid #059669';
-                button.style.width = '36px';
-                button.style.height = '36px';
-              } else if (dayNum === 20 || dayNum === 23) {
-                button.style.backgroundColor = '#f59e0b';
-                button.style.color = 'white';
-                button.style.fontWeight = 'bold';
-                button.style.borderRadius = '50%';
-                button.style.border = dayNum === 20 ? '3px solid #3b82f6' : '2px solid #d97706';
-                button.style.width = '36px';
-                button.style.height = '36px';
+              // Only style recovery period days (20-23)
+              if (dayNum >= 20 && dayNum <= 23) {
                 if (dayNum === 20) {
+                  // Surgery day - Special blue square
+                  button.style.backgroundColor = '#3b82f6';
+                  button.style.color = 'white';
+                  button.style.fontWeight = 'bold';
+                  button.style.borderRadius = '6px';
+                  button.style.border = '3px solid #1e40af';
+                  button.style.width = '36px';
+                  button.style.height = '36px';
                   button.style.boxShadow = '0 0 0 2px white, 0 0 0 4px #3b82f6';
+                } else if (dayNum === 21 || dayNum === 22) {
+                  // Completed recovery days - Green circles
+                  button.style.backgroundColor = '#10b981';
+                  button.style.color = 'white';
+                  button.style.fontWeight = 'bold';
+                  button.style.borderRadius = '50%';
+                  button.style.border = '2px solid #059669';
+                  button.style.width = '36px';
+                  button.style.height = '36px';
+                } else if (dayNum === 23) {
+                  // Pending recovery day - Yellow circle
+                  button.style.backgroundColor = '#f59e0b';
+                  button.style.color = 'white';
+                  button.style.fontWeight = 'bold';
+                  button.style.borderRadius = '50%';
+                  button.style.border = '2px solid #d97706';
+                  button.style.width = '36px';
+                  button.style.height = '36px';
                 }
               }
             }
