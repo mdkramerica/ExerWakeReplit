@@ -1188,6 +1188,156 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Patient Daily Dashboard API endpoints
+  app.get("/api/patients/by-code/:code", async (req, res) => {
+    try {
+      const code = req.params.code;
+      const user = await storage.getUserByCode(code);
+      
+      if (!user) {
+        return res.status(404).json({ message: "Patient not found" });
+      }
+      
+      const daysSinceStart = user.createdAt ? 
+        Math.floor((Date.now() - new Date(user.createdAt).getTime()) / (1000 * 60 * 60 * 24)) + 1 : 1;
+      
+      res.json({
+        id: user.id,
+        alias: user.firstName ? `${user.firstName} ${user.lastName?.charAt(0)}.` : `Patient ${user.code}`,
+        injuryType: user.injuryType || 'General Recovery',
+        daysSinceStart,
+        accessCode: user.code
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch patient profile" });
+    }
+  });
+
+  app.get("/api/patients/:code/daily-assessments", async (req, res) => {
+    try {
+      const code = req.params.code;
+      const user = await storage.getUserByCode(code);
+      
+      if (!user) {
+        return res.status(404).json({ message: "Patient not found" });
+      }
+
+      // Get assessments for injury type
+      const allAssessments = user.injuryType 
+        ? await storage.getAssessmentsForInjuryType(user.injuryType)
+        : await storage.getAssessments();
+
+      const dailyAssessments = allAssessments.slice(0, 3).map(assessment => ({
+        id: assessment.id,
+        name: assessment.name,
+        description: assessment.description || `Complete your ${assessment.name} assessment`,
+        estimatedMinutes: 5,
+        isRequired: true,
+        isCompleted: false,
+        assessmentUrl: `/assessment/${assessment.id}/video/${code}`
+      }));
+
+      res.json(dailyAssessments);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch daily assessments" });
+    }
+  });
+
+  app.get("/api/patients/:code/streak", async (req, res) => {
+    try {
+      const code = req.params.code;
+      const user = await storage.getUserByCode(code);
+      
+      if (!user) {
+        return res.status(404).json({ message: "Patient not found" });
+      }
+
+      // Demo streak data for user 421475
+      if (code === '421475') {
+        res.json({
+          currentStreak: 5,
+          longestStreak: 12,
+          totalCompletions: 23
+        });
+      } else {
+        res.json({
+          currentStreak: 3,
+          longestStreak: 7,
+          totalCompletions: 15
+        });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch streak data" });
+    }
+  });
+
+  app.get("/api/patients/:code/calendar", async (req, res) => {
+    try {
+      const code = req.params.code;
+      const user = await storage.getUserByCode(code);
+      
+      if (!user) {
+        return res.status(404).json({ message: "Patient not found" });
+      }
+
+      // Generate calendar data for last 30 days
+      const calendarData = [];
+      const today = new Date();
+      
+      for (let i = 29; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0];
+        
+        let status = 'future';
+        if (date <= today) {
+          // Better demo patterns for user 421475
+          if (code === '421475') {
+            const dayOfWeek = date.getDay();
+            const rand = Math.random();
+            if (dayOfWeek === 0 || dayOfWeek === 6) {
+              // Weekends - lower completion
+              status = rand > 0.6 ? 'completed' : 'missed';
+            } else {
+              // Weekdays - higher completion
+              status = rand > 0.2 ? 'completed' : rand > 0.1 ? 'pending' : 'missed';
+            }
+          } else {
+            const rand = Math.random();
+            status = rand > 0.7 ? 'completed' : rand > 0.5 ? 'pending' : 'missed';
+          }
+        }
+
+        calendarData.push({
+          date: dateStr,
+          status,
+          completedAssessments: status === 'completed' ? 3 : status === 'pending' ? 1 : 0,
+          totalAssessments: 3
+        });
+      }
+
+      res.json(calendarData);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch calendar data" });
+    }
+  });
+
+  app.post("/api/patients/:code/complete-assessment", async (req, res) => {
+    try {
+      const code = req.params.code;
+      const { assessmentId } = req.body;
+      
+      const user = await storage.getUserByCode(code);
+      if (!user) {
+        return res.status(404).json({ message: "Patient not found" });
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to record completion" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
