@@ -165,6 +165,27 @@ export default function WristResults() {
           </div>
         </div>
 
+        {/* Motion Replay Section */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="text-xl flex items-center gap-2">
+              <Activity className="w-5 h-5" />
+              Motion Replay: Wrist Flexion/Extension
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="aspect-video bg-gray-900 rounded-lg overflow-hidden border-2 border-gray-300">
+                <AssessmentReplay
+                  assessmentName="Wrist Flexion/Extension"
+                  userAssessmentId={userAssessmentId}
+                  onClose={() => {}}
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Calculation Methodology Documentation */}
         <Card className="border-l-4 border-l-blue-500">
           <CardHeader>
