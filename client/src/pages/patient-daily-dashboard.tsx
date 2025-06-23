@@ -373,13 +373,14 @@ export default function PatientDailyDashboard() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid gap-6 md:grid-cols-2">
-                  <div>
+                <div className="grid gap-8 lg:grid-cols-3">
+                  {/* Calendar */}
+                  <div className="lg:col-span-2">
                     <Calendar
                       mode="single"
                       selected={selectedDate}
                       onSelect={setSelectedDate}
-                      className="rounded-md border calendar-custom"
+                      className="rounded-lg border shadow-sm bg-white mx-auto w-fit p-4"
                       modifiers={{
                         completed: calendarData?.filter(day => day.status === 'completed').map(day => new Date(day.date)) || [],
                         missed: calendarData?.filter(day => day.status === 'missed').map(day => new Date(day.date)) || [],
@@ -391,28 +392,28 @@ export default function PatientDailyDashboard() {
                           backgroundColor: '#10b981',
                           color: 'white',
                           fontWeight: 'bold',
-                          borderRadius: '50%',
+                          borderRadius: '8px',
                           border: '2px solid #059669'
                         },
                         missed: { 
                           backgroundColor: '#ef4444',
                           color: 'white',
                           fontWeight: 'bold',
-                          borderRadius: '50%',
+                          borderRadius: '8px',
                           border: '2px solid #dc2626'
                         },
                         pending: { 
                           backgroundColor: '#f59e0b',
                           color: 'white',
                           fontWeight: 'bold',
-                          borderRadius: '50%',
+                          borderRadius: '8px',
                           border: '2px solid #d97706'
                         },
                         surgeryDate: {
                           backgroundColor: '#3b82f6',
                           color: 'white',
                           fontWeight: 'bold',
-                          borderRadius: '50%',
+                          borderRadius: '8px',
                           border: '3px solid #1d4ed8',
                           boxShadow: '0 0 0 2px white, 0 0 0 4px #3b82f6'
                         }
@@ -458,12 +459,12 @@ export default function PatientDailyDashboard() {
                     </div>
                     
                     {selectedDate && (
-                      <div className="space-y-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                        <h4 className="font-semibold text-gray-900 dark:text-white">
+                      <div className="bg-white p-4 rounded-lg border shadow-sm">
+                        <h4 className="font-semibold text-gray-900 mb-3">
                           {format(selectedDate, 'EEEE, MMMM d, yyyy')}
                         </h4>
                         {calendarData?.find(day => isSameDay(new Date(day.date), selectedDate)) ? (
-                          <div className="space-y-2">
+                          <div className="space-y-3">
                             {(() => {
                               const dayData = calendarData.find(day => isSameDay(new Date(day.date), selectedDate));
                               const isRecoveryStart = format(selectedDate, 'yyyy-MM-dd') === '2025-06-20';
@@ -477,22 +478,22 @@ export default function PatientDailyDashboard() {
                               return (
                                 <>
                                   {isRecoveryStart && (
-                                    <div className="flex items-center space-x-2 p-2 bg-blue-50 border border-blue-200 rounded-md">
+                                    <div className="flex items-center space-x-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                                       <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
                                       <span className="text-sm font-semibold text-blue-800">Surgery & Recovery Start Date</span>
                                     </div>
                                   )}
                                   
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Status:</span>
-                                    <Badge className={`${statusColors[dayData?.status as keyof typeof statusColors]} border font-medium`}>
+                                  <div className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
+                                    <span className="text-sm font-medium text-gray-700">Status:</span>
+                                    <Badge className={`${statusColors[dayData?.status as keyof typeof statusColors]} border font-medium px-2 py-1`}>
                                       {dayData?.status?.charAt(0).toUpperCase() + dayData?.status?.slice(1)}
                                     </Badge>
                                   </div>
                                   
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Assessments:</span>
-                                    <span className="text-sm font-bold text-gray-900 dark:text-white">
+                                  <div className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
+                                    <span className="text-sm font-medium text-gray-700">Assessments:</span>
+                                    <span className="text-sm font-bold text-gray-900">
                                       {dayData?.completedAssessments} of {dayData?.totalAssessments}
                                     </span>
                                   </div>
