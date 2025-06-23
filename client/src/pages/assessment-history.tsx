@@ -29,10 +29,12 @@ interface HistoryResponse {
 export default function AssessmentHistory() {
   const { userCode } = useParams<{ userCode: string }>();
 
-  const { data: historyData, isLoading } = useQuery<HistoryResponse>({
+  const { data: historyData, isLoading, error } = useQuery<HistoryResponse>({
     queryKey: [`/api/users/by-code/${userCode}/history`],
     enabled: !!userCode,
   });
+
+
 
   if (isLoading) {
     return (
