@@ -439,43 +439,18 @@ export default function PatientDailyDashboard() {
                       mode="single"
                       selected={selectedDate}
                       onSelect={setSelectedDate}
-                      className="rounded-lg border shadow-sm bg-white mx-auto w-fit p-4"
+                      className="rounded-lg border shadow-sm bg-white mx-auto w-fit p-4 calendar-progress-override"
                       modifiers={{
                         completed: calendarData?.filter(day => day.status === 'completed').map(day => new Date(day.date)) || [],
                         missed: calendarData?.filter(day => day.status === 'missed').map(day => new Date(day.date)) || [],
                         pending: calendarData?.filter(day => day.status === 'pending').map(day => new Date(day.date)) || [],
                         surgeryDate: [new Date('2025-06-20')],
                       }}
-                      modifiersStyles={{
-                        completed: { 
-                          backgroundColor: '#10b981',
-                          color: 'white',
-                          fontWeight: 'bold',
-                          borderRadius: '8px',
-                          border: '2px solid #059669'
-                        },
-                        missed: { 
-                          backgroundColor: '#ef4444',
-                          color: 'white',
-                          fontWeight: 'bold',
-                          borderRadius: '8px',
-                          border: '2px solid #dc2626'
-                        },
-                        pending: { 
-                          backgroundColor: '#f59e0b',
-                          color: 'white',
-                          fontWeight: 'bold',
-                          borderRadius: '8px',
-                          border: '2px solid #d97706'
-                        },
-                        surgeryDate: {
-                          backgroundColor: '#3b82f6',
-                          color: 'white',
-                          fontWeight: 'bold',
-                          borderRadius: '8px',
-                          border: '3px solid #1d4ed8',
-                          boxShadow: '0 0 0 2px white, 0 0 0 4px #3b82f6'
-                        }
+                      modifiersClassNames={{
+                        completed: 'calendar-completed-day',
+                        missed: 'calendar-missed-day', 
+                        pending: 'calendar-pending-day',
+                        surgeryDate: 'calendar-surgery-day'
                       }}
                     />
                   </div>
@@ -568,7 +543,13 @@ export default function PatientDailyDashboard() {
                             })()}
                           </div>
                         ) : (
-                          <p className="text-sm text-gray-500 dark:text-gray-400">No data available for this date</p>
+                          <div className="text-center py-6">
+                            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                              <span className="text-gray-400 text-lg">○</span>
+                            </div>
+                            <p className="text-sm font-medium text-gray-600">Future date</p>
+                            <p className="text-xs text-gray-500 mt-1">Assessments will be available on this day</p>
+                          </div>
                         )}
                       </div>
                     )}
