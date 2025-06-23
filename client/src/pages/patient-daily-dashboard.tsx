@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -147,20 +148,38 @@ export default function PatientDailyDashboard() {
       <div className="max-w-6xl mx-auto space-y-6">
         
         {/* Header */}
-        <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Welcome back, {patient.alias}!
-          </h1>
-          <div className="space-y-1">
-            <p className="text-lg font-medium text-gray-700 dark:text-gray-300">
-              Day {patient.daysSinceStart} of your recovery journey
-            </p>
-            <p className="text-base font-medium text-blue-600 dark:text-blue-400">
-              {patient.injuryType}
-            </p>
-            <p className="text-sm text-gray-600 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/20 px-3 py-1 rounded-full inline-block">
-              Surgery: June 20, 2025
-            </p>
+        <div className="text-center space-y-4">
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+              Welcome back, {patient.alias}!
+            </h1>
+            <div className="space-y-1">
+              <p className="text-lg font-medium text-gray-700 dark:text-gray-300">
+                Day {patient.daysSinceStart} of your recovery journey
+              </p>
+              <p className="text-base font-medium text-blue-600 dark:text-blue-400">
+                {patient.injuryType}
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/20 px-3 py-1 rounded-full inline-block">
+                Surgery: June 20, 2025
+              </p>
+            </div>
+          </div>
+
+          {/* Quick Action Buttons */}
+          <div className="flex flex-wrap gap-3 justify-center">
+            <Link href={`/assessment-history/${userCode}`}>
+              <Button variant="outline" className="flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                View Assessment History
+              </Button>
+            </Link>
+            <Link href={`/assessment-list/${userCode}`}>
+              <Button variant="outline" className="flex items-center gap-2">
+                <Target className="h-4 w-4" />
+                Current Assessments
+              </Button>
+            </Link>
           </div>
         </div>
 
@@ -338,27 +357,7 @@ export default function PatientDailyDashboard() {
                     </Card>
                   )}
                   
-                  {/* Quick Access Buttons */}
-                  <div className="mt-6 flex flex-wrap gap-3 justify-center">
-                    <Link href={`/assessment-history/${userCode}`}>
-                      <Button variant="outline" size="sm" className="flex items-center gap-2">
-                        <Clock className="h-4 w-4" />
-                        View Assessment History
-                      </Button>
-                    </Link>
-                    <Link href={`/assessment-list/${userCode}`}>
-                      <Button variant="outline" size="sm" className="flex items-center gap-2">
-                        <Target className="h-4 w-4" />
-                        All Assessments
-                      </Button>
-                    </Link>
-                    <Link href={`/progress`}>
-                      <Button variant="outline" size="sm" className="flex items-center gap-2">
-                        <TrendingUp className="h-4 w-4" />
-                        Progress Charts
-                      </Button>
-                    </Link>
-                  </div>
+
                 </div>
               )}
             </div>
