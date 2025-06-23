@@ -201,8 +201,8 @@ export default function PatientDailyDashboard() {
                 <div 
                   className="text-3xl font-bold mb-1" 
                   style={{ 
-                    color: '#ffffff',
-                    textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+                    color: '#000000',
+                    textShadow: '0 0 8px rgba(255,255,255,0.8), 0 0 16px rgba(255,255,255,0.6)'
                   }}
                 >
                   {streakData?.currentStreak || 0} Day Streak
@@ -210,8 +210,8 @@ export default function PatientDailyDashboard() {
                 <div 
                   className="text-sm font-medium" 
                   style={{ 
-                    color: '#ffffff',
-                    textShadow: '0 1px 2px rgba(0,0,0,0.3)'
+                    color: '#000000',
+                    textShadow: '0 0 6px rgba(255,255,255,0.8), 0 0 12px rgba(255,255,255,0.6)'
                   }}
                 >
                   Since surgery (June 20)
@@ -222,8 +222,8 @@ export default function PatientDailyDashboard() {
               <div 
                 className="text-4xl font-bold" 
                 style={{ 
-                  color: '#ffffff',
-                  textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+                  color: '#000000',
+                  textShadow: '0 0 8px rgba(255,255,255,0.8), 0 0 16px rgba(255,255,255,0.6)'
                 }}
               >
                 {streakData?.totalCompletions || 0}
@@ -231,8 +231,8 @@ export default function PatientDailyDashboard() {
               <div 
                 className="text-sm font-medium" 
                 style={{ 
-                  color: '#ffffff',
-                  textShadow: '0 1px 2px rgba(0,0,0,0.3)'
+                  color: '#000000',
+                  textShadow: '0 0 6px rgba(255,255,255,0.8), 0 0 12px rgba(255,255,255,0.6)'
                 }}
               >
                 Total Completions
@@ -240,8 +240,8 @@ export default function PatientDailyDashboard() {
               <div 
                 className="text-xs" 
                 style={{ 
-                  color: '#ffffff',
-                  textShadow: '0 1px 2px rgba(0,0,0,0.3)'
+                  color: '#000000',
+                  textShadow: '0 0 4px rgba(255,255,255,0.8), 0 0 8px rgba(255,255,255,0.6)'
                 }}
               >
                 Best Streak: {streakData?.longestStreak || 0} days
@@ -259,7 +259,7 @@ export default function PatientDailyDashboard() {
               className="font-bold text-center text-sm" 
               style={{ 
                 color: '#ffffff',
-                textShadow: '0 1px 2px rgba(0,0,0,0.3)'
+                textShadow: '0 0 4px rgba(0,0,0,0.8)'
               }}
             >
               {getStreakMessage(streakData?.currentStreak || 0)}
