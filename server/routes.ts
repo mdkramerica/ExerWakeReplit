@@ -1320,7 +1320,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             if (date < recoveryStartDate) {
               status = 'future'; // No activity before recovery started
             } else {
-              // Days since recovery started
+              // Days since recovery started  
               const daysSinceRecovery = Math.floor((date.getTime() - recoveryStartDate.getTime()) / (1000 * 60 * 60 * 24));
               
               if (daysSinceRecovery === 0) {
@@ -1351,13 +1351,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         const totalAssessments = uniqueAssessmentTypes.length;
         let completedCount = 0;
+        const currentDaysSinceRecovery = Math.floor((date.getTime() - recoveryStartDate.getTime()) / (1000 * 60 * 60 * 24));
         
         if (status === 'completed') {
           completedCount = totalAssessments;
         } else if (status === 'pending') {
-          if (code === '421475' && daysSinceRecovery === 0) {
+          if (code === '421475' && currentDaysSinceRecovery === 0) {
             completedCount = 2; // June 20 - partial completion
-          } else if (code === '421475' && daysSinceRecovery === 3) {
+          } else if (code === '421475' && currentDaysSinceRecovery === 3) {
             completedCount = 1; // June 23 - only 1 assessment completed today
           } else {
             completedCount = Math.floor(totalAssessments / 2);
@@ -1376,7 +1377,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json(calendarData);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch calendar data" });
+      console.error("Calendar endpoint error:", error);
+      res.status(500).json({ message: "Failed to fetch calendar data", error: error.message });
     }
   });
 
