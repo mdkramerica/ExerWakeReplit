@@ -337,6 +337,28 @@ export default function PatientDailyDashboard() {
                       </CardContent>
                     </Card>
                   )}
+                  
+                  {/* Quick Access Buttons */}
+                  <div className="mt-6 flex flex-wrap gap-3 justify-center">
+                    <Link href={`/assessment-list/${userCode}#patient-history`}>
+                      <Button variant="outline" size="sm" className="flex items-center gap-2">
+                        <Clock className="h-4 w-4" />
+                        View Assessment History
+                      </Button>
+                    </Link>
+                    <Link href={`/assessment-list/${userCode}`}>
+                      <Button variant="outline" size="sm" className="flex items-center gap-2">
+                        <Target className="h-4 w-4" />
+                        All Assessments
+                      </Button>
+                    </Link>
+                    <Link href={`/progress`}>
+                      <Button variant="outline" size="sm" className="flex items-center gap-2">
+                        <TrendingUp className="h-4 w-4" />
+                        Progress Charts
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
               )}
             </div>
