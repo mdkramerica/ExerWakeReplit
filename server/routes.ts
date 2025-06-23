@@ -1227,26 +1227,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Patient not found" });
       }
 
-      // Get all 5 unique assessment types for comprehensive daily practice
-      const uniqueAssessmentTypes = [
-        { id: 26, name: "TAM (Total Active Motion)", description: "Comprehensive finger flexion and extension measurement", duration: 10 },
-        { id: 27, name: "Kapandji Score", description: "Thumb opposition assessment using standardized scoring", duration: 10 },
-        { id: 28, name: "Wrist Flexion/Extension", description: "Measure wrist forward and backward bending range of motion", duration: 10 },
-        { id: 29, name: "Forearm Pronation/Supination", description: "Measure forearm rotation with palm up and palm down movements", duration: 10 },
-        { id: 30, name: "Wrist Radial/Ulnar Deviation", description: "Measure side-to-side wrist movement toward thumb and pinky", duration: 10 }
-      ];
-      
-      const uniqueAssessments = uniqueAssessmentTypes;
+      // Get the actual assessments from storage
+      const coreAssessments = await memoryStorage.getAssessments();
+      const userAssessments = await memoryStorage.getUserAssessments(user.id);
 
-      const dailyAssessments = uniqueAssessments.map(assessment => ({
-        id: assessment.id,
-        name: assessment.name,
-        description: assessment.description || `Complete your ${assessment.name} assessment`,
-        estimatedMinutes: assessment.duration || 5,
-        isRequired: true,
-        isCompleted: false,
-        assessmentUrl: `/assessment/${assessment.id}/video/${code}`
-      }));
+      const dailyAssessments = coreAssessments.map(assessment => {
+        const completed = userAssessments.find(ua => ua.assessmentId === assessment.id && ua.isCompleted);
+        return {
+          id: assessment.id,
+          name: assessment.name,
+          description: assessment.description,
+          estimatedMinutes: Math.floor(assessment.duration / 60) || 10,
+          isRequired: true,
+          isCompleted: !!completed,
+          assessmentUrl: `/assessment/${assessment.id}/video/${code}`
+        };
+      });
 
       res.json(dailyAssessments);
     } catch (error) {
