@@ -174,8 +174,8 @@ export default function PatientDailyDashboard() {
                     <div className="text-orange-100 text-sm font-medium">Since surgery (June 20)</div>
                   </div>
                 </div>
-                <div className="bg-white/10 backdrop-blur-sm px-4 py-2 rounded-lg">
-                  <p className="text-white font-semibold text-center">{getStreakMessage(streakData?.currentStreak || 0)}</p>
+                <div className="bg-white/20 backdrop-blur-md border border-white/30 px-4 py-2 rounded-lg shadow-lg">
+                  <p className="text-white font-bold text-center drop-shadow-lg">{getStreakMessage(streakData?.currentStreak || 0)}</p>
                 </div>
               </div>
               <div className="text-right space-y-1">
@@ -356,7 +356,7 @@ export default function PatientDailyDashboard() {
                       mode="single"
                       selected={selectedDate}
                       onSelect={setSelectedDate}
-                      className="rounded-md border"
+                      className="rounded-md border calendar-custom"
                       modifiers={{
                         completed: calendarData?.filter(day => day.status === 'completed').map(day => new Date(day.date)) || [],
                         missed: calendarData?.filter(day => day.status === 'missed').map(day => new Date(day.date)) || [],
@@ -365,27 +365,29 @@ export default function PatientDailyDashboard() {
                       }}
                       modifiersStyles={{
                         completed: { 
-                          backgroundColor: '#10b981', 
-                          color: 'white',
+                          backgroundColor: '#10b981 !important', 
+                          color: 'white !important',
                           fontWeight: 'bold',
                           borderRadius: '50%',
-                          position: 'relative'
+                          border: '2px solid #059669'
                         },
                         missed: { 
-                          backgroundColor: '#ef4444', 
-                          color: 'white',
+                          backgroundColor: '#ef4444 !important', 
+                          color: 'white !important',
                           fontWeight: 'bold',
-                          borderRadius: '50%'
+                          borderRadius: '50%',
+                          border: '2px solid #dc2626'
                         },
                         pending: { 
-                          backgroundColor: '#f59e0b', 
-                          color: 'white',
+                          backgroundColor: '#f59e0b !important', 
+                          color: 'white !important',
                           fontWeight: 'bold',
-                          borderRadius: '50%'
+                          borderRadius: '50%',
+                          border: '2px solid #d97706'
                         },
                         surgeryDate: {
-                          backgroundColor: '#3b82f6',
-                          color: 'white',
+                          backgroundColor: '#3b82f6 !important',
+                          color: 'white !important',
                           fontWeight: 'bold',
                           borderRadius: '50%',
                           border: '3px solid #1d4ed8',
