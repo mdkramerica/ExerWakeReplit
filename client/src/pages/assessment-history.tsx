@@ -32,6 +32,8 @@ export default function AssessmentHistory() {
   const { data: historyData, isLoading, error } = useQuery<HistoryResponse>({
     queryKey: [`/api/users/by-code/${userCode}/history`],
     enabled: !!userCode,
+    staleTime: 0, // Always refetch to get latest data
+    cacheTime: 0, // Don't cache results
   });
 
 
