@@ -202,7 +202,7 @@ export default function PatientDailyDashboard() {
               <div className="text-right space-y-1">
                 <div className="text-4xl font-bold text-white">{streakData?.totalCompletions || 0}</div>
                 <div className="text-orange-100 text-sm font-medium">Total Completions</div>
-                <div className="text-orange-200 text-xs">Best: {streakData?.longestStreak || 0} days</div>
+                <div className="text-orange-200 text-xs">Best Streak: {streakData?.longestStreak || 0} days</div>
               </div>
             </div>
           </CardContent>

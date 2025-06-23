@@ -1302,27 +1302,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user) {
         return res.status(404).json({ message: "Patient not found" });
       }
-
-      // Accurate streak data based on recovery timeline
-      if (code === '421475') {
-        // User started recovery on June 20, 2025
-        const recoveryStartDate = new Date('2025-06-20');
-        const today = new Date();
-        const daysSinceRecovery = Math.floor((today - recoveryStartDate) / (1000 * 60 * 60 * 24));
+      
+      // Dynamic streak calculation based on user's actual data
+      const recoveryStartDate = user.studyStartDate ? new Date(user.studyStartDate) : new Date(user.createdAt);
+      const today = new Date();
+      const daysSinceRecovery = Math.max(0, Math.floor((today - recoveryStartDate) / (1000 * 60 * 60 * 24)));
+      
+      // Get user's actual assessments to calculate real streaks
+      const userAssessments = await storage.getUserAssessments(user.id);
+      const completedAssessments = userAssessments.filter(ua => ua.isCompleted);
+      const actualCompletions = completedAssessments.length;
+      
+      let currentStreak = 0;
+      let longestStreak = 0;
+      
+      if (actualCompletions > 0) {
+        // Calculate streaks based on actual assessment completion dates
+        const completionDates = completedAssessments
+          .filter(ua => ua.completedAt)
+          .map(ua => new Date(ua.completedAt).toISOString().split('T')[0])
+          .filter((date, index, array) => array.indexOf(date) === index) // Unique dates
+          .sort((a, b) => new Date(b).getTime() - new Date(a).getTime()); // Most recent first
         
-        res.json({
-          currentStreak: Math.min(daysSinceRecovery, 3), // Realistic current streak since June 20
-          longestStreak: Math.min(daysSinceRecovery, 3), // Longest streak since recovery started
-          totalCompletions: Math.max(0, daysSinceRecovery * 5) // Total based on recovery days and 5 assessments
-        });
+        // Calculate current streak from most recent completion
+        let streak = 0;
+        const todayStr = today.toISOString().split('T')[0];
+        let checkDate = new Date(today);
+        
+        for (let i = 0; i < 30; i++) { // Check last 30 days
+          const dateStr = checkDate.toISOString().split('T')[0];
+          if (completionDates.includes(dateStr)) {
+            streak++;
+          } else if (dateStr !== todayStr) {
+            // If we hit a day without completions (and it's not today), streak is broken
+            break;
+          }
+          checkDate.setDate(checkDate.getDate() - 1);
+        }
+        
+        currentStreak = streak;
+        longestStreak = Math.max(streak, Math.ceil(completionDates.length / 5)); // Estimate longest streak
       } else {
-        res.json({
-          currentStreak: 3,
-          longestStreak: 7,
-          totalCompletions: 15
-        });
+        // New user with no completions
+        currentStreak = 0;
+        longestStreak = 0;
       }
+      
+      res.json({
+        currentStreak,
+        longestStreak,
+        totalCompletions: actualCompletions
+      });
     } catch (error) {
+      console.error("Streak endpoint error:", error);
       res.status(500).json({ message: "Failed to fetch streak data" });
     }
   });
