@@ -93,8 +93,14 @@ This is a comprehensive hand rehabilitation assessment platform that combines re
 2. **Hot Reload**: Vite development server with HMR
 3. **Database Testing**: Optional PostgreSQL with migration tools
 
-## Changelog
-- June 23, 2025. Initial setup
+## Recent Changes
+
+### June 23, 2025 - Motion Replay Enhancements
+- Fixed flexion/extension classification bug in wrist assessments
+- Corrected motion replay canvas positioning and visibility
+- Adjusted wrist motion replay playback speed for consistency
+- Removed duplicate angle labels on motion replay canvas
+- Improved angle calculation accuracy using cross product method
 
 ## User Preferences
 

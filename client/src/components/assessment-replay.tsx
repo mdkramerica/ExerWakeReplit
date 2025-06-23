@@ -1232,29 +1232,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
               ctx.fillText(`${displayAngle.toFixed(1)}°`, textX - 15, textY + 3);
             }
             
-            // Draw angle arc for wrist flexion/extension (simplified)
-            if (currentWristAngles && (currentWristAngles.wristFlexionAngle > 3 || currentWristAngles.wristExtensionAngle > 3)) {
-              const arcRadius = 40;
-              const isFlexion = currentWristAngles.wristFlexionAngle > Math.abs(currentWristAngles.wristExtensionAngle);
-              
-              // Simple arc visualization
-              ctx.strokeStyle = isFlexion ? '#ef4444' : '#3b82f6'; // Red for flexion, blue for extension
-              ctx.lineWidth = 3;
-              ctx.setLineDash([]);
-              
-              ctx.beginPath();
-              ctx.arc(wristX, wristY, arcRadius, 0, Math.PI / 2);
-              ctx.stroke();
-              
-              // Add angle value near the arc
-              const displayAngle = isFlexion ? currentWristAngles.wristFlexionAngle : currentWristAngles.wristExtensionAngle;
-              ctx.fillStyle = '#ffffff';
-              ctx.font = 'bold 12px Arial';
-              ctx.strokeStyle = '#000000';
-              ctx.lineWidth = 2;
-              ctx.strokeText(`${displayAngle.toFixed(1)}°`, wristX + 50, wristY - 10);
-              ctx.fillText(`${displayAngle.toFixed(1)}°`, wristX + 50, wristY - 10);
-            }
+            // Remove duplicate angle arc - the main angle arc above already handles this
           } else {
             // Draw wrist-to-hand vector even without elbow
             ctx.strokeStyle = '#f59e0b';
