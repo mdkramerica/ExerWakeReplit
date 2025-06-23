@@ -91,63 +91,74 @@ export default function PatientDailyDashboard() {
   // Force calendar colors with aggressive DOM manipulation
   useEffect(() => {
     const forceCalendarColors = () => {
-      const buttons = document.querySelectorAll('.calendar-custom button, .calendar-custom .rdp-day, .rdp-day');
+      console.log('Applying calendar colors...');
       
-      buttons.forEach((btn) => {
-        const button = btn as HTMLElement;
-        const dayText = button.textContent?.trim() || '';
-        
-        if (/^\d{1,2}$/.test(dayText)) {
-          const dayNum = parseInt(dayText);
+      // Try multiple selectors to find calendar buttons
+      const selectors = [
+        '.calendar-custom button',
+        '.calendar-custom [role="gridcell"] button', 
+        '.rdp-day',
+        'button[name="day"]',
+        '.calendar-custom td button'
+      ];
+      
+      let foundButtons = false;
+      
+      selectors.forEach(selector => {
+        const buttons = document.querySelectorAll(selector);
+        if (buttons.length > 0) {
+          console.log(`Found ${buttons.length} buttons with selector: ${selector}`);
+          foundButtons = true;
           
-          // Clear all existing styles first
-          button.style.cssText = '';
-          
-          // Only style recovery period days (20-23)
-          if (dayNum === 20) {
-            // Surgery day - Special blue square
-            button.style.backgroundColor = '#3b82f6';
-            button.style.color = 'white';
-            button.style.fontWeight = 'bold';
-            button.style.borderRadius = '6px';
-            button.style.border = '3px solid #1e40af';
-            button.style.width = '36px';
-            button.style.height = '36px';
-            button.style.display = 'flex';
-            button.style.alignItems = 'center';
-            button.style.justifyContent = 'center';
-            button.style.boxShadow = '0 0 0 2px white, 0 0 0 4px #3b82f6';
-          } else if (dayNum === 21 || dayNum === 22) {
-            // Completed recovery days - Green circles
-            button.style.backgroundColor = '#10b981';
-            button.style.color = 'white';
-            button.style.fontWeight = 'bold';
-            button.style.borderRadius = '50%';
-            button.style.border = '2px solid #059669';
-            button.style.width = '36px';
-            button.style.height = '36px';
-            button.style.display = 'flex';
-            button.style.alignItems = 'center';
-            button.style.justifyContent = 'center';
-          } else if (dayNum === 23) {
-            // Pending recovery day - Yellow circle
-            button.style.backgroundColor = '#f59e0b';
-            button.style.color = 'white';
-            button.style.fontWeight = 'bold';
-            button.style.borderRadius = '50%';
-            button.style.border = '2px solid #d97706';
-            button.style.width = '36px';
-            button.style.height = '36px';
-            button.style.display = 'flex';
-            button.style.alignItems = 'center';
-            button.style.justifyContent = 'center';
-          }
+          buttons.forEach((btn) => {
+            const button = btn as HTMLElement;
+            const dayText = button.textContent?.trim() || '';
+            
+            if (/^\d{1,2}$/.test(dayText)) {
+              const dayNum = parseInt(dayText);
+              console.log(`Processing day: ${dayNum}`);
+              
+              if (dayNum === 20) {
+                console.log('Styling surgery day 20');
+                button.style.setProperty('background-color', '#3b82f6', 'important');
+                button.style.setProperty('color', 'white', 'important');
+                button.style.setProperty('font-weight', 'bold', 'important');
+                button.style.setProperty('border-radius', '6px', 'important');
+                button.style.setProperty('border', '3px solid #1e40af', 'important');
+                button.style.setProperty('width', '36px', 'important');
+                button.style.setProperty('height', '36px', 'important');
+                button.style.setProperty('box-shadow', '0 0 0 2px white, 0 0 0 4px #3b82f6', 'important');
+              } else if (dayNum === 21 || dayNum === 22) {
+                console.log(`Styling completed day ${dayNum}`);
+                button.style.setProperty('background-color', '#10b981', 'important');
+                button.style.setProperty('color', 'white', 'important');
+                button.style.setProperty('font-weight', 'bold', 'important');
+                button.style.setProperty('border-radius', '50%', 'important');
+                button.style.setProperty('border', '2px solid #059669', 'important');
+                button.style.setProperty('width', '36px', 'important');
+                button.style.setProperty('height', '36px', 'important');
+              } else if (dayNum === 23) {
+                console.log('Styling pending day 23');
+                button.style.setProperty('background-color', '#f59e0b', 'important');
+                button.style.setProperty('color', 'white', 'important');
+                button.style.setProperty('font-weight', 'bold', 'important');
+                button.style.setProperty('border-radius', '50%', 'important');
+                button.style.setProperty('border', '2px solid #d97706', 'important');
+                button.style.setProperty('width', '36px', 'important');
+                button.style.setProperty('height', '36px', 'important');
+              }
+            }
+          });
         }
       });
+      
+      if (!foundButtons) {
+        console.log('No calendar buttons found');
+      }
     };
 
     // Apply colors multiple times to ensure they stick
-    const intervals = [100, 300, 500, 1000, 2000];
+    const intervals = [100, 500, 1000, 2000, 3000];
     const timeouts = intervals.map(delay => setTimeout(forceCalendarColors, delay));
     
     forceCalendarColors();
@@ -168,34 +179,21 @@ export default function PatientDailyDashboard() {
             if (/^\d{1,2}$/.test(dayText)) {
               const dayNum = parseInt(dayText);
               
+              // Add data attribute for CSS targeting
+              button.setAttribute('data-day', dayNum.toString());
+              
               if (dayNum === 20) {
-                // Surgery day - Special blue square
-                button.style.backgroundColor = '#3b82f6';
-                button.style.color = 'white';
-                button.style.fontWeight = 'bold';
-                button.style.borderRadius = '6px';
-                button.style.border = '3px solid #1e40af';
-                button.style.width = '36px';
-                button.style.height = '36px';
-                button.style.boxShadow = '0 0 0 2px white, 0 0 0 4px #3b82f6';
+                button.style.setProperty('background-color', '#3b82f6', 'important');
+                button.style.setProperty('color', 'white', 'important');
+                button.style.setProperty('border-radius', '6px', 'important');
               } else if (dayNum === 21 || dayNum === 22) {
-                // Completed recovery days - Green circles
-                button.style.backgroundColor = '#10b981';
-                button.style.color = 'white';
-                button.style.fontWeight = 'bold';
-                button.style.borderRadius = '50%';
-                button.style.border = '2px solid #059669';
-                button.style.width = '36px';
-                button.style.height = '36px';
+                button.style.setProperty('background-color', '#10b981', 'important');
+                button.style.setProperty('color', 'white', 'important');
+                button.style.setProperty('border-radius', '50%', 'important');
               } else if (dayNum === 23) {
-                // Pending recovery day - Yellow circle
-                button.style.backgroundColor = '#f59e0b';
-                button.style.color = 'white';
-                button.style.fontWeight = 'bold';
-                button.style.borderRadius = '50%';
-                button.style.border = '2px solid #d97706';
-                button.style.width = '36px';
-                button.style.height = '36px';
+                button.style.setProperty('background-color', '#f59e0b', 'important');
+                button.style.setProperty('color', 'white', 'important');
+                button.style.setProperty('border-radius', '50%', 'important');
               }
             }
           });
