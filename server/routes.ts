@@ -48,7 +48,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Simple token validation (in production, use JWT)
       const userId = parseInt(token);
-      const user = await memoryStorage.getClinicalUser(userId);
+      const user = await storage.getClinicalUser(userId);
       if (!user || !user.isActive) {
         return res.status(401).json({ message: 'Invalid token' });
       }
@@ -61,7 +61,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Initialize audit logging helper with storage reference
   auditLog = async (userId: number, action: string, targetEntity?: string, details?: any, req?: any) => {
-    await memoryStorage.createAuditLog({
+    await storage.createAuditLog({
       userId,
       action,
       targetEntity,
@@ -77,7 +77,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { username, password } = loginSchema.parse(req.body);
       console.log(`Login attempt for username: ${username}`);
       
-      const user = await memoryStorage.authenticateClinicalUser(username, password);
+      const user = await storage.authenticateClinicalUser(username, password);
       console.log(`Authentication result:`, user ? 'success' : 'failed');
       
       if (!user) {
@@ -109,7 +109,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Clinical Dashboard - Cohort Management
   app.get("/api/cohorts", requireAuth, async (req, res) => {
     try {
-      const cohorts = await memoryStorage.getCohorts();
+      const cohorts = await storage.getCohorts();
       res.json(cohorts);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch cohorts" });
@@ -119,7 +119,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Clinical Dashboard - Patient Management
   app.get("/api/patients", requireAuth, async (req, res) => {
     try {
-      const patients = await memoryStorage.getPatients();
+      const patients = await storage.getPatients();
       res.json(patients);
     } catch (error) {
       console.error('Failed to fetch patients:', error);
@@ -154,7 +154,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
       
       console.log('Creating patient with data:', patientData);
-      const patient = await memoryStorage.createPatient(patientData);
+      const patient = await storage.createPatient(patientData);
       console.log('Created patient:', patient);
       
       await auditLog(req.user.id, "patient_create", `patient_id:${patient.id}`, patientData, req);
@@ -169,7 +169,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Dashboard API endpoints
   app.get("/api/patients/dashboard", requireAuth, async (req, res) => {
     try {
-      const dashboardData = await memoryStorage.getPatientDashboardData();
+      const dashboardData = await storage.getPatientDashboardData();
       res.json(dashboardData);
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
@@ -179,7 +179,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/dashboard/metrics", requireAuth, async (req, res) => {
     try {
-      const metrics = await memoryStorage.getDashboardMetrics();
+      const metrics = await storage.getDashboardMetrics();
       res.json(metrics);
     } catch (error) {
       console.error("Error fetching dashboard metrics:", error);
@@ -190,7 +190,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/patients/:id/assessments", requireAuth, async (req, res) => {
     try {
       const patientId = parseInt(req.params.id);
-      const assessments = await memoryStorage.getPatientAssessmentHistory(patientId);
+      const assessments = await storage.getPatientAssessmentHistory(patientId);
       res.json({ assessments });
     } catch (error) {
       console.error("Error fetching patient assessments:", error);
@@ -205,7 +205,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const cohortId = parseInt(req.params.cohortId);
       
       console.log(`Checking eligibility for patient ${patientId}, cohort ${cohortId}`);
-      const eligibility = await memoryStorage.checkEligibility(patientId, cohortId);
+      const eligibility = await storage.checkEligibility(patientId, cohortId);
       console.log(`Eligibility result:`, eligibility);
       res.json(eligibility);
     } catch (error) {
