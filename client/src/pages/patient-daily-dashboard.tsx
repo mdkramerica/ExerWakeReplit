@@ -69,22 +69,22 @@ export default function PatientDailyDashboard() {
                    sessionStorage.getItem('userCode');
 
   const { data: patient, isLoading: patientLoading } = useQuery<PatientProfile>({
-    queryKey: ['/api/patients/by-code', userCode],
+    queryKey: [`/api/patients/by-code/${userCode}`],
     enabled: !!userCode,
   });
 
   const { data: dailyAssessments, isLoading: assessmentsLoading } = useQuery<DailyAssessment[]>({
-    queryKey: ['/api/patients/daily-assessments', userCode],
+    queryKey: [`/api/patients/${userCode}/daily-assessments`],
     enabled: !!userCode,
   });
 
   const { data: streakData } = useQuery<StreakData>({
-    queryKey: ['/api/patients/streak', userCode],
+    queryKey: [`/api/patients/${userCode}/streak`],
     enabled: !!userCode,
   });
 
   const { data: calendarData } = useQuery<CalendarDay[]>({
-    queryKey: ['/api/patients/calendar', userCode],
+    queryKey: [`/api/patients/${userCode}/calendar`],
     enabled: !!userCode,
   });
 
@@ -97,9 +97,9 @@ export default function PatientDailyDashboard() {
       }).then(res => res.json());
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/patients/daily-assessments', userCode] });
-      queryClient.invalidateQueries({ queryKey: ['/api/patients/streak', userCode] });
-      queryClient.invalidateQueries({ queryKey: ['/api/patients/calendar', userCode] });
+      queryClient.invalidateQueries({ queryKey: [`/api/patients/${userCode}/daily-assessments`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/patients/${userCode}/streak`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/patients/${userCode}/calendar`] });
       toast({
         title: "Assessment Completed!",
         description: "Great job! Keep up your streak!",
