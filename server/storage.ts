@@ -1271,9 +1271,14 @@ async function initializeDatabase() {
   }
 }
 
+import { DatabaseStorage } from "./database-storage";
+
 export const storage = new DatabaseStorage();
 
-// Initialize and verify database connection
+// Initialize database on startup
+initializeDatabase();
+
+// Test database connection
 (async () => {
   try {
     const testUser = await storage.getUserByCode('TEST');
@@ -1282,6 +1287,3 @@ export const storage = new DatabaseStorage();
     console.log('Database connection established, ready for use');
   }
 })();
-
-// Initialize database on startup
-initializeDatabase();

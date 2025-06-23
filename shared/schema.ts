@@ -485,3 +485,10 @@ export type CohortAnalytics = {
   stdDevWristFlexion: number;
   stdDevWristExtension: number;
 };
+
+// QuickDASH and Study Visit types
+export type InsertQuickDashResponse = z.infer<typeof insertQuickDashResponseSchema>;
+export type QuickDashResponse = typeof quickDashResponses.$inferSelect;
+
+export type InsertStudyVisit = z.infer<typeof insertStudyVisitSchema>;
+export type StudyVisit = typeof studyVisits.$inferSelect;
