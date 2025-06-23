@@ -363,35 +363,64 @@ export default function PatientDailyDashboard() {
                         pending: calendarData?.filter(day => day.status === 'pending').map(day => new Date(day.date)) || [],
                         surgeryDate: [new Date('2025-06-20')],
                       }}
-                      modifiersStyles={{
-                        completed: { 
-                          backgroundColor: '#10b981 !important', 
-                          color: 'white !important',
-                          fontWeight: 'bold',
-                          borderRadius: '50%',
-                          border: '2px solid #059669'
-                        },
-                        missed: { 
-                          backgroundColor: '#ef4444 !important', 
-                          color: 'white !important',
-                          fontWeight: 'bold',
-                          borderRadius: '50%',
-                          border: '2px solid #dc2626'
-                        },
-                        pending: { 
-                          backgroundColor: '#f59e0b !important', 
-                          color: 'white !important',
-                          fontWeight: 'bold',
-                          borderRadius: '50%',
-                          border: '2px solid #d97706'
-                        },
-                        surgeryDate: {
-                          backgroundColor: '#3b82f6 !important',
-                          color: 'white !important',
-                          fontWeight: 'bold',
-                          borderRadius: '50%',
-                          border: '3px solid #1d4ed8',
-                          boxShadow: '0 0 0 2px white, 0 0 0 4px #3b82f6'
+                      components={{
+                        Day: ({ date, ...props }) => {
+                          const dayStr = format(date, 'yyyy-MM-dd');
+                          const dayData = calendarData?.find(d => d.date === dayStr);
+                          
+                          let dayStyle: React.CSSProperties = {
+                            borderRadius: '50%',
+                            fontWeight: 'bold',
+                            minWidth: '32px',
+                            minHeight: '32px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          };
+
+                          if (dayData?.status === 'completed') {
+                            dayStyle = {
+                              ...dayStyle,
+                              backgroundColor: '#10b981',
+                              color: 'white',
+                              border: '2px solid #059669'
+                            };
+                          } else if (dayData?.status === 'pending') {
+                            dayStyle = {
+                              ...dayStyle,
+                              backgroundColor: '#f59e0b',
+                              color: 'white',
+                              border: '2px solid #d97706'
+                            };
+                          } else if (dayData?.status === 'missed') {
+                            dayStyle = {
+                              ...dayStyle,
+                              backgroundColor: '#ef4444',
+                              color: 'white',
+                              border: '2px solid #dc2626'
+                            };
+                          }
+
+                          // Special styling for surgery date
+                          if (dayStr === '2025-06-20') {
+                            dayStyle = {
+                              ...dayStyle,
+                              backgroundColor: '#f59e0b',
+                              color: 'white',
+                              border: '3px solid #3b82f6',
+                              boxShadow: '0 0 0 2px white, 0 0 0 4px #3b82f6'
+                            };
+                          }
+
+                          return (
+                            <button
+                              {...props}
+                              style={dayStyle}
+                              className="hover:opacity-80 transition-opacity"
+                            >
+                              {format(date, 'd')}
+                            </button>
+                          );
                         }
                       }}
                     />
