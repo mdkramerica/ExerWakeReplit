@@ -62,6 +62,115 @@ export default function PatientDailyDashboard() {
   const queryClient = useQueryClient();
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
+  // Force calendar colors with aggressive DOM manipulation
+  useEffect(() => {
+    const forceCalendarColors = () => {
+      const buttons = document.querySelectorAll('.calendar-custom button, .calendar-custom .rdp-day, .rdp-day');
+      
+      buttons.forEach((btn) => {
+        const button = btn as HTMLElement;
+        const dayText = button.textContent?.trim() || '';
+        
+        if (/^\d{1,2}$/.test(dayText)) {
+          const dayNum = parseInt(dayText);
+          
+          // Clear existing styles
+          button.style.cssText = '';
+          
+          if (dayNum === 21 || dayNum === 22) {
+            // Completed days - Green
+            button.style.cssText = `
+              background-color: #10b981 !important;
+              color: white !important;
+              font-weight: bold !important;
+              border-radius: 50% !important;
+              border: 2px solid #059669 !important;
+              width: 36px !important;
+              height: 36px !important;
+              display: flex !important;
+              align-items: center !important;
+              justify-content: center !important;
+            `;
+          } else if (dayNum === 20 || dayNum === 23) {
+            // Pending days - Yellow
+            button.style.cssText = `
+              background-color: #f59e0b !important;
+              color: white !important;
+              font-weight: bold !important;
+              border-radius: 50% !important;
+              border: ${dayNum === 20 ? '3px solid #3b82f6' : '2px solid #d97706'} !important;
+              width: 36px !important;
+              height: 36px !important;
+              display: flex !important;
+              align-items: center !important;
+              justify-content: center !important;
+              ${dayNum === 20 ? 'box-shadow: 0 0 0 2px white, 0 0 0 4px #3b82f6 !important;' : ''}
+            `;
+          }
+        }
+      });
+    };
+
+    // Apply colors multiple times to ensure they stick
+    const intervals = [100, 300, 500, 1000, 2000];
+    const timeouts = intervals.map(delay => setTimeout(forceCalendarColors, delay));
+    
+    forceCalendarColors();
+
+    return () => timeouts.forEach(clearTimeout);
+  }, [calendarData]);
+
+  // Mutation observer to catch any calendar re-renders
+  useEffect(() => {
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach(() => {
+        setTimeout(() => {
+          const buttons = document.querySelectorAll('.calendar-custom button');
+          buttons.forEach((btn) => {
+            const button = btn as HTMLElement;
+            const dayText = button.textContent?.trim() || '';
+            
+            if (/^\d{1,2}$/.test(dayText)) {
+              const dayNum = parseInt(dayText);
+              
+              if (dayNum === 21 || dayNum === 22) {
+                button.style.backgroundColor = '#10b981';
+                button.style.color = 'white';
+                button.style.fontWeight = 'bold';
+                button.style.borderRadius = '50%';
+                button.style.border = '2px solid #059669';
+                button.style.width = '36px';
+                button.style.height = '36px';
+              } else if (dayNum === 20 || dayNum === 23) {
+                button.style.backgroundColor = '#f59e0b';
+                button.style.color = 'white';
+                button.style.fontWeight = 'bold';
+                button.style.borderRadius = '50%';
+                button.style.border = dayNum === 20 ? '3px solid #3b82f6' : '2px solid #d97706';
+                button.style.width = '36px';
+                button.style.height = '36px';
+                if (dayNum === 20) {
+                  button.style.boxShadow = '0 0 0 2px white, 0 0 0 4px #3b82f6';
+                }
+              }
+            }
+          });
+        }, 50);
+      });
+    });
+
+    const calendarElement = document.querySelector('.calendar-custom');
+    if (calendarElement) {
+      observer.observe(calendarElement, {
+        childList: true,
+        subtree: true,
+        attributes: true
+      });
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
   // Get patient profile from URL - handle both /patient/:code and /assessment-list/:code routes
   const pathParts = window.location.pathname.split('/');
   const userCode = pathParts[1] === 'patient' ? pathParts[2] : 
@@ -363,64 +472,35 @@ export default function PatientDailyDashboard() {
                         pending: calendarData?.filter(day => day.status === 'pending').map(day => new Date(day.date)) || [],
                         surgeryDate: [new Date('2025-06-20')],
                       }}
-                      components={{
-                        Day: ({ date, ...props }) => {
-                          const dayStr = format(date, 'yyyy-MM-dd');
-                          const dayData = calendarData?.find(d => d.date === dayStr);
-                          
-                          let dayStyle: React.CSSProperties = {
-                            borderRadius: '50%',
-                            fontWeight: 'bold',
-                            minWidth: '32px',
-                            minHeight: '32px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                          };
-
-                          if (dayData?.status === 'completed') {
-                            dayStyle = {
-                              ...dayStyle,
-                              backgroundColor: '#10b981',
-                              color: 'white',
-                              border: '2px solid #059669'
-                            };
-                          } else if (dayData?.status === 'pending') {
-                            dayStyle = {
-                              ...dayStyle,
-                              backgroundColor: '#f59e0b',
-                              color: 'white',
-                              border: '2px solid #d97706'
-                            };
-                          } else if (dayData?.status === 'missed') {
-                            dayStyle = {
-                              ...dayStyle,
-                              backgroundColor: '#ef4444',
-                              color: 'white',
-                              border: '2px solid #dc2626'
-                            };
-                          }
-
-                          // Special styling for surgery date
-                          if (dayStr === '2025-06-20') {
-                            dayStyle = {
-                              ...dayStyle,
-                              backgroundColor: '#f59e0b',
-                              color: 'white',
-                              border: '3px solid #3b82f6',
-                              boxShadow: '0 0 0 2px white, 0 0 0 4px #3b82f6'
-                            };
-                          }
-
-                          return (
-                            <button
-                              {...props}
-                              style={dayStyle}
-                              className="hover:opacity-80 transition-opacity"
-                            >
-                              {format(date, 'd')}
-                            </button>
-                          );
+                      modifiersStyles={{
+                        completed: { 
+                          backgroundColor: '#10b981',
+                          color: 'white',
+                          fontWeight: 'bold',
+                          borderRadius: '50%',
+                          border: '2px solid #059669'
+                        },
+                        missed: { 
+                          backgroundColor: '#ef4444',
+                          color: 'white',
+                          fontWeight: 'bold',
+                          borderRadius: '50%',
+                          border: '2px solid #dc2626'
+                        },
+                        pending: { 
+                          backgroundColor: '#f59e0b',
+                          color: 'white',
+                          fontWeight: 'bold',
+                          borderRadius: '50%',
+                          border: '2px solid #d97706'
+                        },
+                        surgeryDate: {
+                          backgroundColor: '#3b82f6',
+                          color: 'white',
+                          fontWeight: 'bold',
+                          borderRadius: '50%',
+                          border: '3px solid #1d4ed8',
+                          boxShadow: '0 0 0 2px white, 0 0 0 4px #3b82f6'
                         }
                       }}
                     />

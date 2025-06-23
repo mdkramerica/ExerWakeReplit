@@ -219,6 +219,39 @@ html, body {
   background-color: rgb(249 250 251);
 }
 
+/* Calendar color overrides - most specific selectors */
+.calendar-custom tbody tr:nth-child(3) td:nth-child(4) button {
+  background-color: #f59e0b !important;
+  color: white !important;
+  font-weight: bold !important;
+  border-radius: 50% !important;
+  border: 3px solid #3b82f6 !important;
+  box-shadow: 0 0 0 2px white, 0 0 0 4px #3b82f6 !important;
+  width: 36px !important;
+  height: 36px !important;
+}
+
+.calendar-custom tbody tr:nth-child(3) td:nth-child(5) button,
+.calendar-custom tbody tr:nth-child(3) td:nth-child(6) button {
+  background-color: #10b981 !important;
+  color: white !important;
+  font-weight: bold !important;
+  border-radius: 50% !important;
+  border: 2px solid #059669 !important;
+  width: 36px !important;
+  height: 36px !important;
+}
+
+.calendar-custom tbody tr:nth-child(4) td:nth-child(1) button {
+  background-color: #f59e0b !important;
+  color: white !important;
+  font-weight: bold !important;
+  border-radius: 50% !important;
+  border: 2px solid #d97706 !important;
+  width: 36px !important;
+  height: 36px !important;
+}
+
 /* Typography */
 h1, h2, h3, h4, h5, h6 {
   color: rgb(17 24 39); /* gray-900 */
