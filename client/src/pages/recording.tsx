@@ -8,8 +8,7 @@ import ProgressBar from "@/components/progress-bar";
 import HolisticTracker from "@/components/holistic-tracker";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { calculateCurrentROM, calculateMaxROM, type JointAngles } from "@/lib/rom-calculator";
-import { calculateFingerROM } from "@shared/rom-calculator";
+import { calculateCurrentROM, calculateMaxROM, calculateFingerROM, type JointAngles } from "@/lib/rom-calculator";
 import { calculateWristAngles } from "@shared/wrist-calculator";
 import { calculateElbowReferencedWristAngle, calculateMaxElbowWristAngles, resetRecordingSession } from "@shared/elbow-wrist-calculator";
 
