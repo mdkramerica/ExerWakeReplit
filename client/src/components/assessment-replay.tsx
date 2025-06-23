@@ -948,14 +948,22 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
       ctx.font = 'bold 16px Arial';
       ctx.fillText(`Raw Angle: ${currentWristAngles.forearmToHandAngle.toFixed(1)}°`, wristBoxX + 10, wristBoxY + 45);
       
+      // Calculate frame-synchronized angles for info panel
+      let frameAngles = { wristFlexionAngle: 0, wristExtensionAngle: 0 };
+      if (frame.landmarks && frame.poseLandmarks) {
+        const frameCalc = calculateWristAngleByHandType(frame.landmarks, frame.poseLandmarks);
+        frameCalc.handType = currentWristAngles?.handType || 'RIGHT';
+        frameAngles = frameCalc;
+      }
+      
       // Flexion angle
-      ctx.fillStyle = currentWristAngles.wristFlexionAngle > 0 ? '#3b82f6' : '#6b7280';
+      ctx.fillStyle = frameAngles.wristFlexionAngle > 0 ? '#3b82f6' : '#6b7280';
       ctx.font = '12px Arial';
-      ctx.fillText(`Flexion: ${currentWristAngles.wristFlexionAngle.toFixed(1)}°`, wristBoxX + 10, wristBoxY + 70);
+      ctx.fillText(`Flexion: ${frameAngles.wristFlexionAngle.toFixed(1)}°`, wristBoxX + 10, wristBoxY + 70);
       
       // Extension angle
-      ctx.fillStyle = currentWristAngles.wristExtensionAngle > 0 ? '#f59e0b' : '#6b7280';
-      ctx.fillText(`Extension: ${currentWristAngles.wristExtensionAngle.toFixed(1)}°`, wristBoxX + 130, wristBoxY + 70);
+      ctx.fillStyle = frameAngles.wristExtensionAngle > 0 ? '#f59e0b' : '#6b7280';
+      ctx.fillText(`Extension: ${frameAngles.wristExtensionAngle.toFixed(1)}°`, wristBoxX + 130, wristBoxY + 70);
       
       // Hand type and confidence
       ctx.fillStyle = '#9ca3af';
@@ -980,8 +988,8 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
         ctx.fillText(`Total ROM: ${authoritativeWristResults.totalROM.toFixed(1)}°`, wristBoxX + 10, wristBoxY + 180);
         
         // Range indicators showing current position relative to maximums
-        const currentFlexion = currentWristAngles.wristFlexionAngle;
-        const currentExtension = currentWristAngles.wristExtensionAngle;
+        const currentFlexion = frameAngles.wristFlexionAngle;
+        const currentExtension = frameAngles.wristExtensionAngle;
         const maxFlexion = authoritativeWristResults.maxFlexion;
         const maxExtension = authoritativeWristResults.maxExtension;
         
@@ -1225,10 +1233,16 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
               ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
               ctx.fillRect(textX - 25, textY - 10, 50, 20);
               
-              // Angle text
+              // Angle text using frame-synchronized data
               ctx.fillStyle = '#ffffff';
               ctx.font = 'bold 12px Arial';
-              const displayAngle = Math.abs(isFlexion ? currentWristAngles.wristFlexionAngle : currentWristAngles.wristExtensionAngle);
+              let syncFrameAngles = { wristFlexionAngle: 0, wristExtensionAngle: 0 };
+              if (frame.landmarks && frame.poseLandmarks) {
+                const syncCalc = calculateWristAngleByHandType(frame.landmarks, frame.poseLandmarks);
+                syncCalc.handType = currentWristAngles?.handType || 'RIGHT';
+                syncFrameAngles = syncCalc;
+              }
+              const displayAngle = Math.abs(isFlexion ? syncFrameAngles.wristFlexionAngle : syncFrameAngles.wristExtensionAngle);
               ctx.fillText(`${displayAngle.toFixed(1)}°`, textX - 15, textY + 3);
             }
             
