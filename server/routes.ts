@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
+import { PersistentMemoryStorage } from "./persistent-storage";
 import { RecoveryStorage } from "./database-recovery";
 import { z } from "zod";
 import { 
@@ -26,7 +26,7 @@ const requireAuth = async (req: any, res: any, next: any) => {
   try {
     // Simple token validation (in production, use JWT)
     const userId = parseInt(token);
-    const user = await storage.getClinicalUser(userId);
+    const user = await memoryStorage.getClinicalUser(userId);
     if (!user || !user.isActive) {
       return res.status(401).json({ message: 'Invalid token' });
     }
@@ -49,7 +49,7 @@ const requireRole = (roles: string[]) => {
 
 // Audit logging helper
 const auditLog = async (userId: number, action: string, targetEntity?: string, details?: any, req?: any) => {
-  await storage.createAuditLog({
+  await memoryStorage.createAuditLog({
     userId,
     action,
     targetEntity,
@@ -60,8 +60,7 @@ const auditLog = async (userId: number, action: string, targetEntity?: string, d
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Use database storage directly
-  const { storage } = await import('./storage');
+  // Use memory storage for rollback state
 
   // Clinical Dashboard Authentication
   app.post("/api/auth/login", async (req, res) => {
@@ -69,7 +68,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { username, password } = loginSchema.parse(req.body);
       console.log(`Login attempt for username: ${username}`);
       
-      const user = await storage.authenticateClinicalUser(username, password);
+      const user = await memoryStorage.authenticateClinicalUser(username, password);
       console.log(`Authentication result:`, user ? 'success' : 'failed');
       
       if (!user) {
@@ -101,7 +100,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Clinical Dashboard - Cohort Management
   app.get("/api/cohorts", requireAuth, async (req, res) => {
     try {
-      const cohorts = await storage.getCohorts();
+      const cohorts = await memoryStorage.getCohorts();
       res.json(cohorts);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch cohorts" });
