@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { PersistentMemoryStorage } from "./persistent-storage";
-import { createStorage } from "./storage";
+import { DatabaseStorage } from "./storage";
 import { z } from "zod";
 import { 
   insertUserSchema, 
@@ -33,7 +33,9 @@ let auditLog: any;
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize memory storage for rollback state
-  const memoryStorage = new PersistentMemoryStorage();
+  // Use database storage if enabled, otherwise file storage
+  const useDatabase = process.env.USE_DATABASE === 'true' || process.env.NODE_ENV === 'production';
+  const storage = useDatabase ? new DatabaseStorage() : new PersistentMemoryStorage();
   
   // Initialize authentication middleware with storage reference
   requireAuth = async (req: any, res: any, next: any) => {
@@ -1096,7 +1098,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/users/by-code/:userCode/history", async (req, res) => {
     try {
       const userCode = req.params.userCode;
-      const user = await memoryStorage.getUserByCode(userCode);
+      const user = await storage.getUserByCode(userCode);
       
       if (!user) {
         return res.status(404).json({ message: "User not found" });
