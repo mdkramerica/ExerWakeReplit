@@ -1091,6 +1091,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get assessment history by user code
+  app.get("/api/users/by-code/:userCode/history", async (req, res) => {
+    try {
+      const userCode = req.params.userCode;
+      const user = await memoryStorage.getUserByCode(userCode);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      const userAssessments = await memoryStorage.getUserAssessments(user.id);
+      const assessments = await memoryStorage.getAssessments();
+      
+      // Group by assessment and include session details
+      const history = userAssessments.map(ua => {
+        const assessment = assessments.find(a => a.id === ua.assessmentId);
+        return {
+          ...ua,
+          assessmentName: assessment?.name || 'Unknown',
+          assessmentDescription: assessment?.description || '',
+        };
+      }).sort((a, b) => new Date(b.completedAt || 0).getTime() - new Date(a.completedAt || 0).getTime());
+      
+      res.json({ history });
+    } catch (error) {
+      res.status(400).json({ message: "Failed to retrieve assessment history" });
+    }
+  });
+
   // Get detailed results for a specific user assessment
   app.get("/api/user-assessments/:userAssessmentId/details", async (req, res) => {
     try {
