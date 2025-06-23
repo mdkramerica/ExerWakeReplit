@@ -62,6 +62,32 @@ export default function PatientDailyDashboard() {
   const queryClient = useQueryClient();
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
+  // Get patient profile from URL - handle both /patient/:code and /assessment-list/:code routes
+  const pathParts = window.location.pathname.split('/');
+  const userCode = pathParts[1] === 'patient' ? pathParts[2] : 
+                   pathParts[1] === 'assessment-list' ? pathParts[2] : 
+                   sessionStorage.getItem('userCode');
+
+  const { data: patient, isLoading: patientLoading } = useQuery<PatientProfile>({
+    queryKey: [`/api/patients/by-code/${userCode}`],
+    enabled: !!userCode,
+  });
+
+  const { data: dailyAssessments, isLoading: assessmentsLoading } = useQuery<DailyAssessment[]>({
+    queryKey: [`/api/patients/${userCode}/daily-assessments`],
+    enabled: !!userCode,
+  });
+
+  const { data: streakData } = useQuery<StreakData>({
+    queryKey: [`/api/patients/${userCode}/streak`],
+    enabled: !!userCode,
+  });
+
+  const { data: calendarData } = useQuery<CalendarDay[]>({
+    queryKey: [`/api/patients/${userCode}/calendar`],
+    enabled: !!userCode,
+  });
+
   // Force calendar colors with aggressive DOM manipulation
   useEffect(() => {
     const forceCalendarColors = () => {
@@ -170,32 +196,6 @@ export default function PatientDailyDashboard() {
 
     return () => observer.disconnect();
   }, []);
-
-  // Get patient profile from URL - handle both /patient/:code and /assessment-list/:code routes
-  const pathParts = window.location.pathname.split('/');
-  const userCode = pathParts[1] === 'patient' ? pathParts[2] : 
-                   pathParts[1] === 'assessment-list' ? pathParts[2] : 
-                   sessionStorage.getItem('userCode');
-
-  const { data: patient, isLoading: patientLoading } = useQuery<PatientProfile>({
-    queryKey: [`/api/patients/by-code/${userCode}`],
-    enabled: !!userCode,
-  });
-
-  const { data: dailyAssessments, isLoading: assessmentsLoading } = useQuery<DailyAssessment[]>({
-    queryKey: [`/api/patients/${userCode}/daily-assessments`],
-    enabled: !!userCode,
-  });
-
-  const { data: streakData } = useQuery<StreakData>({
-    queryKey: [`/api/patients/${userCode}/streak`],
-    enabled: !!userCode,
-  });
-
-  const { data: calendarData } = useQuery<CalendarDay[]>({
-    queryKey: [`/api/patients/${userCode}/calendar`],
-    enabled: !!userCode,
-  });
 
   const completeAssessmentMutation = useMutation({
     mutationFn: async (assessmentId: number) => {
