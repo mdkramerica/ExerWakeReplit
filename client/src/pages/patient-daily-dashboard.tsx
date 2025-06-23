@@ -185,13 +185,13 @@ export default function PatientDailyDashboard() {
 
         {/* Streak Card */}
         <Card className="bg-gradient-to-r from-orange-500 to-red-500 text-white border-0 shadow-lg">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-3">
+          <CardContent className="pt-6 pb-6">
+            <div className="flex items-start justify-between min-h-[120px]">
+              <div className="space-y-4 flex-1">
                 <div className="flex items-center space-x-3">
                   {getStreakIcon(streakData?.currentStreak || 0)}
-                  <div>
-                    <div className="text-3xl font-bold text-white">{streakData?.currentStreak || 0} Day Streak</div>
+                  <div className="space-y-1">
+                    <div className="text-3xl font-bold text-white leading-tight">{streakData?.currentStreak || 0} Day Streak</div>
                     <div className="text-orange-100 text-sm font-medium">Since surgery (June 20)</div>
                   </div>
                 </div>
@@ -199,7 +199,7 @@ export default function PatientDailyDashboard() {
                   <p className="text-white font-bold text-center text-sm">{getStreakMessage(streakData?.currentStreak || 0)}</p>
                 </div>
               </div>
-              <div className="text-right space-y-1">
+              <div className="text-right space-y-2 ml-6">
                 <div className="text-4xl font-bold text-white">{streakData?.totalCompletions || 0}</div>
                 <div className="text-orange-100 text-sm font-medium">Total Completions</div>
                 <div className="text-orange-200 text-xs">Best Streak: {streakData?.longestStreak || 0} days</div>
