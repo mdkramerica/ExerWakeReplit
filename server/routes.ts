@@ -14,27 +14,8 @@ import {
   patientEnrollmentSchema
 } from "@shared/schema";
 
-// Authentication middleware
-const requireAuth = async (req: any, res: any, next: any) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader?.startsWith('Bearer ')) {
-    return res.status(401).json({ message: 'Authentication required' });
-  }
-  
-  const token = authHeader.substring(7);
-  try {
-    // Simple token validation (in production, use JWT)
-    const userId = parseInt(token);
-    const user = await memoryStorage.getClinicalUser(userId);
-    if (!user || !user.isActive) {
-      return res.status(401).json({ message: 'Invalid token' });
-    }
-    req.user = user;
-    next();
-  } catch (error) {
-    return res.status(401).json({ message: 'Invalid token' });
-  }
-};
+// Authentication middleware - will be updated with storage reference
+let requireAuth: any;
 
 // Role-based access control
 const requireRole = (roles: string[]) => {
@@ -46,20 +27,46 @@ const requireRole = (roles: string[]) => {
   };
 };
 
-// Audit logging helper
-const auditLog = async (userId: number, action: string, targetEntity?: string, details?: any, req?: any) => {
-  await memoryStorage.createAuditLog({
-    userId,
-    action,
-    targetEntity,
-    details,
-    ipAddress: req?.ip,
-    userAgent: req?.get('User-Agent')
-  });
-};
+// Audit logging helper - will be updated with storage reference
+let auditLog: any;
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Use memory storage for rollback state
+  // Initialize memory storage for rollback state
+  const memoryStorage = new PersistentMemoryStorage();
+  
+  // Initialize authentication middleware with storage reference
+  requireAuth = async (req: any, res: any, next: any) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader?.startsWith('Bearer ')) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    const token = authHeader.substring(7);
+    try {
+      // Simple token validation (in production, use JWT)
+      const userId = parseInt(token);
+      const user = await memoryStorage.getClinicalUser(userId);
+      if (!user || !user.isActive) {
+        return res.status(401).json({ message: 'Invalid token' });
+      }
+      req.user = user;
+      next();
+    } catch (error) {
+      return res.status(401).json({ message: 'Invalid token' });
+    }
+  };
+  
+  // Initialize audit logging helper with storage reference
+  auditLog = async (userId: number, action: string, targetEntity?: string, details?: any, req?: any) => {
+    await memoryStorage.createAuditLog({
+      userId,
+      action,
+      targetEntity,
+      details,
+      ipAddress: req?.ip,
+      userAgent: req?.get('User-Agent')
+    });
+  };
 
   // Clinical Dashboard Authentication
   app.post("/api/auth/login", async (req, res) => {
