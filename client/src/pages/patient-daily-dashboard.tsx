@@ -340,8 +340,21 @@ export default function PatientDailyDashboard() {
                   
                   {/* Quick Access Buttons */}
                   <div className="mt-6 flex flex-wrap gap-3 justify-center">
-                    <Link href={`/assessment-list/${userCode}#patient-history`}>
-                      <Button variant="outline" size="sm" className="flex items-center gap-2">
+                    <Link href={`/assessment-list/${userCode}`}>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex items-center gap-2"
+                        onClick={() => {
+                          // Scroll to history section after navigation
+                          setTimeout(() => {
+                            const historySection = document.getElementById('patient-history');
+                            if (historySection) {
+                              historySection.scrollIntoView({ behavior: 'smooth' });
+                            }
+                          }, 500);
+                        }}
+                      >
                         <Clock className="h-4 w-4" />
                         View Assessment History
                       </Button>
