@@ -219,8 +219,8 @@ html, body {
   background-color: rgb(249 250 251);
 }
 
-/* Calendar styling overrides */
-.calendar-custom button[data-day="20"] {
+/* Calendar styling overrides - persistent through re-renders */
+.calendar-custom .surgery-day {
   background-color: #3b82f6 !important;
   color: white !important;
   font-weight: bold !important;
@@ -231,8 +231,7 @@ html, body {
   box-shadow: 0 0 0 2px white, 0 0 0 4px #3b82f6 !important;
 }
 
-.calendar-custom button[data-day="21"],
-.calendar-custom button[data-day="22"] {
+.calendar-custom .completed-day {
   background-color: #10b981 !important;
   color: white !important;
   font-weight: bold !important;
@@ -242,7 +241,7 @@ html, body {
   height: 36px !important;
 }
 
-.calendar-custom button[data-day="23"] {
+.calendar-custom .pending-day {
   background-color: #f59e0b !important;
   color: white !important;
   font-weight: bold !important;
@@ -250,6 +249,18 @@ html, body {
   border: 2px solid #d97706 !important;
   width: 36px !important;
   height: 36px !important;
+}
+
+/* Ensure special days override default calendar styling */
+.calendar-custom .special-calendar-day {
+  background-color: inherit !important;
+  color: inherit !important;
+}
+
+.calendar-custom .special-calendar-day:hover {
+  background-color: inherit !important;
+  color: inherit !important;
+  opacity: 0.8;
 }
 
 /* Typography */
