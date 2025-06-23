@@ -184,35 +184,35 @@ export default function PatientDailyDashboard() {
         </div>
 
         {/* Streak Card */}
-        <div className="w-full bg-gradient-to-r from-orange-500 to-red-500 rounded-lg shadow-lg border-0 p-6">
+        <div className="w-full bg-gradient-to-r from-orange-500 to-red-500 rounded-lg shadow-lg border-0 p-6" style={{ color: 'white' }}>
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="flex-shrink-0">
                 {getStreakIcon(streakData?.currentStreak || 0)}
               </div>
               <div>
-                <div className="text-3xl font-bold text-white mb-1">
+                <div className="text-3xl font-bold mb-1" style={{ color: '#ffffff' }}>
                   {streakData?.currentStreak || 0} Day Streak
                 </div>
-                <div className="text-white text-sm font-medium">
+                <div className="text-sm font-medium" style={{ color: '#ffffff' }}>
                   Since surgery (June 20)
                 </div>
               </div>
             </div>
             <div className="text-right">
-              <div className="text-4xl font-bold text-white">
+              <div className="text-4xl font-bold" style={{ color: '#ffffff' }}>
                 {streakData?.totalCompletions || 0}
               </div>
-              <div className="text-white text-sm font-medium">
+              <div className="text-sm font-medium" style={{ color: '#ffffff' }}>
                 Total Completions
               </div>
-              <div className="text-white text-xs">
+              <div className="text-xs" style={{ color: '#ffffff' }}>
                 Best Streak: {streakData?.longestStreak || 0} days
               </div>
             </div>
           </div>
           <div className="mt-4 bg-black bg-opacity-30 px-4 py-3 rounded-lg border border-white border-opacity-20">
-            <p className="text-white font-bold text-center text-sm">
+            <p className="font-bold text-center text-sm" style={{ color: '#ffffff' }}>
               {getStreakMessage(streakData?.currentStreak || 0)}
             </p>
           </div>
