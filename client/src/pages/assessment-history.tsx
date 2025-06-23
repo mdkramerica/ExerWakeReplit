@@ -275,16 +275,16 @@ export default function AssessmentHistory() {
                         </div>
                       )}
 
-                      {/* View Details Button */}
+                      {/* View Results Button */}
                       {record.assessmentName?.toLowerCase().includes('wrist') ? (
                         <Link href={`/wrist-results/${userCode}/${record.id}`}>
                           <Button
                             variant="outline"
                             size="sm"
-                            className="text-green-600 border-green-200 hover:bg-green-50"
+                            className="text-blue-600 border-blue-200 hover:bg-blue-50"
                           >
                             <TrendingUp className="w-3 h-3 mr-1" />
-                            View Details
+                            View Results
                           </Button>
                         </Link>
                       ) : (
