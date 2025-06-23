@@ -62,39 +62,39 @@ export default function PatientDailyDashboard() {
   const queryClient = useQueryClient();
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
-  // Get patient profile from URL or session
-  const userCode = window.location.pathname.split('/').pop() || sessionStorage.getItem('userCode');
+  // Get patient profile from URL - handle both /patient/:code and /assessment-list/:code routes
+  const pathParts = window.location.pathname.split('/');
+  const userCode = pathParts[1] === 'patient' ? pathParts[2] : 
+                   pathParts[1] === 'assessment-list' ? pathParts[2] : 
+                   sessionStorage.getItem('userCode');
 
   const { data: patient, isLoading: patientLoading } = useQuery<PatientProfile>({
     queryKey: ['/api/patients/by-code', userCode],
-    queryFn: () => apiRequest(`/api/patients/by-code/${userCode}`),
     enabled: !!userCode,
   });
 
   const { data: dailyAssessments, isLoading: assessmentsLoading } = useQuery<DailyAssessment[]>({
     queryKey: ['/api/patients/daily-assessments', userCode],
-    queryFn: () => apiRequest(`/api/patients/${userCode}/daily-assessments`),
     enabled: !!userCode,
   });
 
   const { data: streakData } = useQuery<StreakData>({
     queryKey: ['/api/patients/streak', userCode],
-    queryFn: () => apiRequest(`/api/patients/${userCode}/streak`),
     enabled: !!userCode,
   });
 
   const { data: calendarData } = useQuery<CalendarDay[]>({
     queryKey: ['/api/patients/calendar', userCode],
-    queryFn: () => apiRequest(`/api/patients/${userCode}/calendar`),
     enabled: !!userCode,
   });
 
   const completeAssessmentMutation = useMutation({
     mutationFn: async (assessmentId: number) => {
-      return apiRequest(`/api/patients/${userCode}/complete-assessment`, {
+      return fetch(`/api/patients/${userCode}/complete-assessment`, {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ assessmentId, completedAt: new Date().toISOString() }),
-      });
+      }).then(res => res.json());
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/patients/daily-assessments', userCode] });

@@ -51,16 +51,10 @@ export default function AssessmentList() {
   const pathParts = window.location.pathname.split('/');
   const userCode = pathParts[1] === 'assessment-list' ? pathParts[2] : null;
 
-  // If user is on /assessments without a code, check for stored user data or redirect to landing
+  // If user is on /assessments without a code, redirect to patient access page
   React.useEffect(() => {
     if (pathParts[1] === 'assessments' && !userCode) {
-      // Check localStorage for recent user code
-      const storedUserCode = localStorage.getItem('currentUserCode');
-      if (storedUserCode) {
-        navigate(`/assessment-list/${storedUserCode}`);
-      } else {
-        navigate('/');
-      }
+      navigate('/patient');
     }
   }, [pathParts, userCode, navigate]);
 
