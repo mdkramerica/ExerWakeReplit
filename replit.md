@@ -109,7 +109,7 @@ This is a comprehensive hand rehabilitation assessment platform that combines re
 - Enhanced wrist assessment history with Total ROM card alongside flexion/extension values
 - Updated wrist "View Details" button to match "View Results" styling and routing
 - Removed assessment overview data cards for cleaner interface layout
-- Added red highlighting for low TAM finger ROM values (threshold: <240°) in assessment history
+- Added red highlighting for low TAM finger ROM values (threshold: <225°) in assessment history
 
 ## User Preferences
 
