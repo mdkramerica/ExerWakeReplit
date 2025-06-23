@@ -436,6 +436,7 @@ export default function PatientDailyDashboard() {
                   {/* Calendar */}
                   <div className="lg:col-span-2">
                     <Calendar
+                      key={`calendar-${calendarData?.length || 0}`}
                       mode="single"
                       selected={selectedDate}
                       onSelect={setSelectedDate}

@@ -47,7 +47,8 @@ main, section, article, .card, [data-testid="card"] {
   background: linear-gradient(to right, #f97316, #dc2626) !important;
 }
 
-/* Calendar progress styling - force specific colors */
+/* Calendar progress styling - force specific colors with higher specificity */
+.calendar-progress-override button.calendar-completed-day,
 .calendar-progress-override .calendar-completed-day {
   background-color: #10b981 !important;
   color: #ffffff !important;
@@ -56,6 +57,7 @@ main, section, article, .card, [data-testid="card"] {
   border: 2px solid #059669 !important;
 }
 
+.calendar-progress-override button.calendar-pending-day,
 .calendar-progress-override .calendar-pending-day {
   background-color: #f59e0b !important;
   color: #ffffff !important;
@@ -64,6 +66,7 @@ main, section, article, .card, [data-testid="card"] {
   border: 2px solid #d97706 !important;
 }
 
+.calendar-progress-override button.calendar-missed-day,
 .calendar-progress-override .calendar-missed-day {
   background-color: #ef4444 !important;
   color: #ffffff !important;
@@ -72,11 +75,19 @@ main, section, article, .card, [data-testid="card"] {
   border: 2px solid #dc2626 !important;
 }
 
+.calendar-progress-override button.calendar-surgery-day,
 .calendar-progress-override .calendar-surgery-day {
   background-color: #3b82f6 !important;
   color: #ffffff !important;
   font-weight: bold !important;
   border-radius: 8px !important;
+  border: 3px solid #1d4ed8 !important;
+  box-shadow: 0 0 0 2px white, 0 0 0 4px #3b82f6 !important;
+}
+
+/* Surgery date takes precedence over other statuses */
+.calendar-progress-override button.calendar-surgery-day.calendar-pending-day {
+  background-color: #3b82f6 !important;
   border: 3px solid #1d4ed8 !important;
   box-shadow: 0 0 0 2px white, 0 0 0 4px #3b82f6 !important;
 }
