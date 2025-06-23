@@ -1126,6 +1126,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           maxWristExtension: ua.maxWristExtension,
           handType: ua.handType,
           sessionNumber: ua.sessionNumber,
+          // Include repetition data for accurate recalculation
+          repetitionData: ua.repetitionData,
         };
       }).sort((a, b) => new Date(b.completedAt || 0).getTime() - new Date(a.completedAt || 0).getTime());
       

@@ -104,6 +104,8 @@ This is a comprehensive hand rehabilitation assessment platform that combines re
 - Fixed session maximum calculation to use real motion data instead of incorrect stored values
 - Synchronized canvas display with calculation engine to eliminate timing lag
 - Enhanced wrist results calculator to prioritize motion data over potentially incorrect database values
+- Added Kapandji score display to patient history entries (supports both kapandjiScore and totalActiveRom fields)
+- Fixed wrist flexion/extension consistency between history display and view details using centralized calculator
 
 ## User Preferences
 

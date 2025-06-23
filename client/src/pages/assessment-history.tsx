@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Calendar, Clock, TrendingUp, History, CheckCircle } from 'lucide-react';
+import { calculateWristResults } from '@shared/wrist-results-calculator';
 
 interface UserAssessment {
   id: number;
@@ -20,6 +21,7 @@ interface UserAssessment {
   maxWristExtension?: number;
   handType?: string;
   sessionNumber?: number;
+  repetitionData?: any[];
 }
 
 interface HistoryResponse {
@@ -210,35 +212,47 @@ export default function AssessmentHistory() {
                         )}
 
                         {/* Kapandji Score Details */}
-                        {record.assessmentName?.includes('Kapandji') && record.kapandjiScore && (
+                        {record.assessmentName?.includes('Kapandji') && (record.kapandjiScore || record.totalActiveRom) && (
                           <div className="mt-3">
                             <div className="text-sm font-medium text-gray-700 mb-2">Kapandji Score</div>
                             <div className="flex gap-3">
-                              <div className="px-3 py-2 rounded-lg border-2 bg-blue-50 border-blue-300">
-                                <div className="font-bold text-xs text-blue-700">Score</div>
-                                <div className="font-bold text-lg text-blue-900">{record.kapandjiScore}/10</div>
+                              <div className={`px-4 py-3 rounded-lg border-2 ${
+                                (record.kapandjiScore ? parseFloat(record.kapandjiScore.toString()) : parseFloat(record.totalActiveRom || '0')) < 8 ? 'bg-red-50 border-red-300' : 'bg-green-50 border-green-300'
+                              }`}>
+                                <div className={`font-bold text-xs ${
+                                  (record.kapandjiScore ? parseFloat(record.kapandjiScore.toString()) : parseFloat(record.totalActiveRom || '0')) < 8 ? 'text-red-700' : 'text-green-700'
+                                }`}>Score</div>
+                                <div className={`font-bold text-2xl ${
+                                  (record.kapandjiScore ? parseFloat(record.kapandjiScore.toString()) : parseFloat(record.totalActiveRom || '0')) < 8 ? 'text-red-900' : 'text-green-900'
+                                }`}>
+                                  {Math.round(record.kapandjiScore ? parseFloat(record.kapandjiScore.toString()) : parseFloat(record.totalActiveRom || '0'))}/10
+                                </div>
                               </div>
                             </div>
                           </div>
                         )}
 
-                        {/* Wrist Assessment Details */}
-                        {record.assessmentName?.includes('Wrist') && (record.maxWristFlexion || record.maxWristExtension) && (
+                        {/* Wrist Assessment Details - Use Centralized Calculator */}
+                        {record.assessmentName?.includes('Wrist') && (
                           <div className="mt-3">
                             <div className="text-sm font-medium text-gray-700 mb-2">Wrist Range of Motion</div>
                             <div className="flex gap-3">
-                              {record.maxWristFlexion && (
-                                <div className="px-3 py-2 rounded-lg border-2 bg-orange-50 border-orange-300">
-                                  <div className="font-bold text-xs text-orange-700">Flexion</div>
-                                  <div className="font-bold text-lg text-orange-900">{record.maxWristFlexion}°</div>
-                                </div>
-                              )}
-                              {record.maxWristExtension && (
-                                <div className="px-3 py-2 rounded-lg border-2 bg-blue-50 border-blue-300">
-                                  <div className="font-bold text-xs text-blue-700">Extension</div>
-                                  <div className="font-bold text-lg text-blue-900">{record.maxWristExtension}°</div>
-                                </div>
-                              )}
+                              {(() => {
+                                // Use the centralized calculator for consistent values
+                                const wristResults = calculateWristResults(record);
+                                return (
+                                  <>
+                                    <div className="px-3 py-2 rounded-lg border-2 bg-orange-50 border-orange-300">
+                                      <div className="font-bold text-xs text-orange-700">Flexion</div>
+                                      <div className="font-bold text-lg text-orange-900">{wristResults.maxFlexion.toFixed(0)}°</div>
+                                    </div>
+                                    <div className="px-3 py-2 rounded-lg border-2 bg-blue-50 border-blue-300">
+                                      <div className="font-bold text-xs text-blue-700">Extension</div>
+                                      <div className="font-bold text-lg text-blue-900">{wristResults.maxExtension.toFixed(0)}°</div>
+                                    </div>
+                                  </>
+                                );
+                              })()}
                             </div>
                           </div>
                         )}
