@@ -154,6 +154,12 @@ export default function WristResults() {
           </div>
           
           <div className="flex space-x-2">
+            <Link href="/progress-charts">
+              <Button variant="outline" size="sm">
+                <TrendingUp className="w-4 h-4 mr-2" />
+                Progress Charts
+              </Button>
+            </Link>
             <Button variant="outline" size="sm">
               <Share2 className="w-4 h-4 mr-2" />
               Share

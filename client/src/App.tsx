@@ -63,6 +63,7 @@ function LegacyRoutes() {
       <Route path="/assessments" component={DailyAssessments} />
       <Route path="/daily-assessments" component={DailyAssessments} />
       <Route path="/progress" component={ProgressCharts} />
+      <Route path="/progress-charts" component={ProgressCharts} />
       <Route path="/injury-selection" component={InjurySelection} />
       <Route path="/assessment-list/:code" component={() => <PatientDailyDashboard />} />
       <Route path="/demo" component={DemoAccess} />

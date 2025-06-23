@@ -191,7 +191,7 @@ export default function AssessmentList() {
                 Daily Assessments
               </Button>
             </Link>
-            <Link href="/progress">
+            <Link href="/progress-charts">
               <Button variant="outline" size="sm">
                 <TrendingUp className="h-4 w-4 mr-2" />
                 Progress Charts
