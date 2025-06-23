@@ -17,7 +17,7 @@ export class PersistentMemoryStorage {
   private injuryTypes: any[] = [];
   private clinicalUsers = new Map<number, any>();
   private clinicalUsersByUsername = new Map<string, any>();
-  private patients = new Map<number, any>();
+  public patients = new Map<number, any>();
   private nextUserAssessmentId = 1;
   private dataDir = './data';
   private dataFile = path.join(this.dataDir, 'storage.json');
@@ -178,7 +178,7 @@ export class PersistentMemoryStorage {
       { name: 'Phalanx Fracture', description: 'Finger bone fracture' }
     ];
 
-    // Create demo user and test users with study tracking
+    // Create comprehensive user data including patient codes
     const predefinedUsers = [
       {
         id: 1,
@@ -199,6 +199,16 @@ export class PersistentMemoryStorage {
         studyStartDate: new Date('2025-06-21T10:00:00.000Z'),
         studyDurationDays: 28,
         studyEndDate: new Date('2025-07-19T10:00:00.000Z')
+      },
+      {
+        id: 23,
+        code: '421475',
+        createdAt: new Date('2025-06-22T14:30:00.000Z'),
+        isFirstTime: false,
+        injuryType: 'Carpal Tunnel',
+        studyStartDate: new Date('2025-06-22T14:30:00.000Z'),
+        studyDurationDays: 84,
+        studyEndDate: new Date('2025-09-14T14:30:00.000Z')
       },
       {
         id: 2,
@@ -227,12 +237,14 @@ export class PersistentMemoryStorage {
       this.userByCode.set(user.code, user);
     });
 
-    // Create sample completed assessments with daily completion tracking
+      // Create comprehensive assessment history including the missing patient data
     const sampleAssessments = [
+      // DEMO01 user assessments
       {
         id: 6,
         userId: 1,
         assessmentId: 3,
+        assessmentName: 'Wrist Flexion/Extension',
         sessionNumber: 1,
         isCompleted: true,
         completedAt: new Date('2025-06-20T18:24:59.559Z'),
@@ -264,6 +276,7 @@ export class PersistentMemoryStorage {
         id: 7,
         userId: 1,
         assessmentId: 2,
+        assessmentName: 'Kapandji Score',
         sessionNumber: 1,
         isCompleted: true,
         completedAt: new Date('2025-06-19T15:30:00.000Z'),
@@ -281,6 +294,78 @@ export class PersistentMemoryStorage {
           totalDuration: 10,
           averageQuality: 88
         }
+      },
+      // Patient 421475 comprehensive assessment data
+      {
+        id: 26,
+        userId: 23,
+        assessmentId: 1,
+        assessmentName: 'TAM (Total Active Motion)',
+        sessionNumber: 1,
+        isCompleted: true,
+        completedAt: new Date('2025-06-22T15:45:00.000Z'),
+        completedOn: '2025-06-22',
+        postOpDay: 0,
+        qualityScore: 92,
+        totalActiveRom: 245,
+        indexFingerRom: 240,
+        middleFingerRom: 248,
+        ringFingerRom: 246,
+        pinkyFingerRom: 245,
+        handType: 'RIGHT',
+        shareToken: 'share_tam_421475',
+        romData: {
+          assessmentId: "1",
+          repetitionsCompleted: 5,
+          totalDuration: 300,
+          averageQuality: 92
+        }
+      },
+      {
+        id: 27,
+        userId: 23,
+        assessmentId: 2,
+        assessmentName: 'Kapandji Score',
+        sessionNumber: 1,
+        isCompleted: true,
+        completedAt: new Date('2025-06-22T16:15:00.000Z'),
+        completedOn: '2025-06-22',
+        postOpDay: 0,
+        qualityScore: 89,
+        kapandjiScore: 9,
+        totalActiveRom: 9,
+        handType: 'RIGHT',
+        shareToken: 'share_kapandji_421475',
+        romData: {
+          assessmentId: "2",
+          repetitionsCompleted: 1,
+          totalDuration: 180,
+          averageQuality: 89
+        }
+      },
+      {
+        id: 28,
+        userId: 23,
+        assessmentId: 3,
+        assessmentName: 'Wrist Flexion/Extension',
+        sessionNumber: 1,
+        isCompleted: true,
+        completedAt: new Date('2025-06-22T16:45:00.000Z'),
+        completedOn: '2025-06-22',
+        postOpDay: 0,
+        qualityScore: 94,
+        maxWristFlexion: 68,
+        maxWristExtension: 62,
+        wristFlexionAngle: 68,
+        wristExtensionAngle: 62,
+        handType: 'RIGHT',
+        shareToken: 'share_wrist_421475',
+        romData: {
+          assessmentId: "3",
+          repetitionsCompleted: 3,
+          totalDuration: 240,
+          averageQuality: 94
+        }
       }
     ];
 
@@ -294,7 +379,37 @@ export class PersistentMemoryStorage {
     this.clinicalUsersByUsername = new Map();
     this.createDefaultClinicalUsers();
 
-    console.log('Memory storage initialized with 5 assessments, sample completed data, and 3 clinical users');
+    // Initialize patients data to support patient lookup routes
+    const patientsData = [
+      {
+        id: 5,
+        patientId: '000001',
+        alias: 'Patient 000001',
+        accessCode: '000001',
+        injuryType: 'Trigger Finger',
+        cohortId: 1,
+        status: 'active',
+        isActive: true,
+        createdAt: new Date('2025-06-21T10:00:00.000Z')
+      },
+      {
+        id: 23,
+        patientId: '421475',
+        alias: 'Patient 421475',
+        accessCode: '421475',
+        injuryType: 'Carpal Tunnel',
+        cohortId: 2,
+        status: 'active',
+        isActive: true,
+        createdAt: new Date('2025-06-22T14:30:00.000Z')
+      }
+    ];
+    
+    patientsData.forEach(patient => {
+      this.patients.set(patient.id, patient);
+    });
+
+    console.log('Memory storage initialized with 5 assessments, comprehensive patient data, and 3 clinical users');
   }
 
   private createDefaultClinicalUsers() {
