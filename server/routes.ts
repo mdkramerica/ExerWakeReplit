@@ -1,7 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { PersistentMemoryStorage } from "./persistent-storage";
-import { RecoveryStorage } from "./database-recovery";
 import { z } from "zod";
 import { 
   insertUserSchema, 
@@ -110,7 +109,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Clinical Dashboard - Patient Management
   app.get("/api/patients", requireAuth, async (req, res) => {
     try {
-      const patients = await storage.getPatients();
+      const patients = await memoryStorage.getPatients();
       res.json(patients);
     } catch (error) {
       console.error('Failed to fetch patients:', error);
@@ -145,7 +144,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
       
       console.log('Creating patient with data:', patientData);
-      const patient = await storage.createPatient(patientData);
+      const patient = await memoryStorage.createPatient(patientData);
       console.log('Created patient:', patient);
       
       await auditLog(req.user.id, "patient_create", `patient_id:${patient.id}`, patientData, req);
@@ -160,7 +159,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Dashboard API endpoints
   app.get("/api/patients/dashboard", requireAuth, async (req, res) => {
     try {
-      const dashboardData = await storage.getPatientDashboardData();
+      const dashboardData = await memoryStorage.getPatientDashboardData();
       res.json(dashboardData);
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
@@ -170,7 +169,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/dashboard/metrics", requireAuth, async (req, res) => {
     try {
-      const metrics = await storage.getDashboardMetrics();
+      const metrics = await memoryStorage.getDashboardMetrics();
       res.json(metrics);
     } catch (error) {
       console.error("Error fetching dashboard metrics:", error);
@@ -181,7 +180,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/patients/:id/assessments", requireAuth, async (req, res) => {
     try {
       const patientId = parseInt(req.params.id);
-      const assessments = await storage.getPatientAssessmentHistory(patientId);
+      const assessments = await memoryStorage.getPatientAssessmentHistory(patientId);
       res.json({ assessments });
     } catch (error) {
       console.error("Error fetching patient assessments:", error);
@@ -196,7 +195,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const cohortId = parseInt(req.params.cohortId);
       
       console.log(`Checking eligibility for patient ${patientId}, cohort ${cohortId}`);
-      const eligibility = await storage.checkEligibility(patientId, cohortId);
+      const eligibility = await memoryStorage.checkEligibility(patientId, cohortId);
       console.log(`Eligibility result:`, eligibility);
       res.json(eligibility);
     } catch (error) {
@@ -213,7 +212,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         patientId
       });
       
-      const patient = await storage.enrollPatient(enrollmentData);
+      const patient = await memoryStorage.enrollPatient(enrollmentData);
       
       await auditLog(req.user.id, "patient_enroll", `patient_id:${patient.id}`, enrollmentData, req);
       
@@ -232,7 +231,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid access code format" });
       }
       
-      const patient = await storage.getPatientByAccessCode(code);
+      const patient = await memoryStorage.getPatientByAccessCode(code);
       
       if (!patient) {
         return res.status(404).json({ message: "Patient not found" });
@@ -254,7 +253,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         studyEnrollmentDate: new Date(),
       });
       
-      const patient = await storage.createPatient(enrollmentData);
+      const patient = await memoryStorage.createPatient(enrollmentData);
       
       // Create baseline study visit schedule (weeks 0-12)
       if (enrollmentData.surgeryDate) {
@@ -269,7 +268,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const windowEnd = new Date(scheduledDate);
           windowEnd.setDate(windowEnd.getDate() + 2);
           
-          await storage.createStudyVisit({
+          await memoryStorage.createStudyVisit({
             patientId: patient.id,
             scheduledWeek: week,
             scheduledDate,
@@ -292,7 +291,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/patients/:id", requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const patient = await storage.getPatientWithDetails(id);
+      const patient = await memoryStorage.getPatientWithDetails(id);
       
       if (!patient) {
         return res.status(404).json({ message: "Patient not found" });
@@ -317,7 +316,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updates = insertPatientSchema.partial().parse(req.body);
       
       // Check access permissions
-      const existingPatient = await storage.getPatient(id);
+      const existingPatient = await memoryStorage.getPatient(id);
       if (!existingPatient) {
         return res.status(404).json({ message: "Patient not found" });
       }
@@ -326,7 +325,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Access denied" });
       }
       
-      const patient = await storage.updatePatient(id, updates);
+      const patient = await memoryStorage.updatePatient(id, updates);
       
       await auditLog(req.user.id, "patient_update", `patient_id:${id}`, updates, req);
       
@@ -343,7 +342,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;
       
       // Check access permissions
-      const patient = await storage.getPatient(patientId);
+      const patient = await memoryStorage.getPatient(patientId);
       if (!patient) {
         return res.status(404).json({ message: "Patient not found" });
       }
@@ -352,7 +351,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Access denied" });
       }
       
-      const assessments = await storage.getPatientAssessments(patientId, limit);
+      const assessments = await memoryStorage.getPatientAssessments(patientId, limit);
       res.json(assessments);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch assessments" });
@@ -369,7 +368,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       // Check access permissions
-      const patient = await storage.getPatient(patientId);
+      const patient = await memoryStorage.getPatient(patientId);
       if (!patient) {
         return res.status(404).json({ message: "Patient not found" });
       }
@@ -378,7 +377,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Access denied" });
       }
       
-      const assessment = await storage.createPatientAssessment(assessmentData);
+      const assessment = await memoryStorage.createPatientAssessment(assessmentData);
       
       await auditLog(req.user.id, "assessment_create", `patient_id:${patientId}`, assessmentData, req);
       
@@ -392,7 +391,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/cohorts/:id/analytics", requireAuth, async (req, res) => {
     try {
       const cohortId = parseInt(req.params.id);
-      const analytics = await storage.getCohortAnalytics(cohortId);
+      const analytics = await memoryStorage.getCohortAnalytics(cohortId);
       
       if (!analytics) {
         return res.status(404).json({ message: "Cohort not found or no data available" });
@@ -410,7 +409,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 500;
       
       // For researchers, return de-identified data
-      const assessments = await storage.getCohortAssessments(cohortId, limit);
+      const assessments = await memoryStorage.getCohortAssessments(cohortId, limit);
       
       if (req.user.role === 'researcher') {
         // Remove identifying information for researchers
@@ -434,7 +433,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/alerts", requireAuth, async (req, res) => {
     try {
       const patientId = req.query.patientId ? parseInt(req.query.patientId as string) : undefined;
-      const alerts = await storage.getOutlierAlerts(patientId);
+      const alerts = await memoryStorage.getOutlierAlerts(patientId);
       res.json(alerts);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch alerts" });
@@ -444,7 +443,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/alerts/:id/resolve", requireAuth, requireRole(['clinician', 'admin']), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const success = await storage.resolveOutlierAlert(id);
+      const success = await memoryStorage.resolveOutlierAlert(id);
       
       if (!success) {
         return res.status(404).json({ message: "Alert not found" });
@@ -470,7 +469,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
       const downloadUrl = `/api/export/download/${Math.random().toString(36).substring(2)}`;
       
-      const exportRequest = await storage.createDataExport({
+      const exportRequest = await memoryStorage.createDataExport({
         requestedBy: req.user.id,
         exportType,
         filters,
@@ -493,7 +492,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Assessment Types
   app.get("/api/assessment-types", requireAuth, async (req, res) => {
     try {
-      const assessmentTypes = await storage.getAssessmentTypes();
+      const assessmentTypes = await memoryStorage.getAssessmentTypes();
       res.json(assessmentTypes);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch assessment types" });
@@ -505,13 +504,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/demo/reset", async (req, res) => {
     try {
       // Reset demo user's assessments and progress
-      const demoUser = await storage.getUserByCode('DEMO01');
+      const demoUser = await memoryStorage.getUserByCode('DEMO01');
       if (!demoUser) {
         return res.status(404).json({ message: "Demo user not found" });
       }
 
       // Delete all user assessments for demo user
-      await storage.resetUserAssessments(demoUser.id);
+      await memoryStorage.resetUserAssessments(demoUser.id);
 
       res.json({ message: "Demo data reset successfully" });
     } catch (error) {
@@ -525,11 +524,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { code } = z.object({ code: z.string().length(6) }).parse(req.body);
       
-      let user = await storage.getUserByCode(code);
+      let user = await memoryStorage.getUserByCode(code);
       
       if (!user) {
         // Create new user with any valid 6-digit code
-        user = await storage.createUser({ code, isFirstTime: true });
+        user = await memoryStorage.createUser({ code, isFirstTime: true });
         
         if (!user) {
           return res.status(400).json({ message: "Failed to create user" });
@@ -554,7 +553,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid code format" });
       }
       
-      const user = await storage.getUserByCode(code);
+      const user = await memoryStorage.getUserByCode(code);
       
       if (!user) {
         return res.status(404).json({ message: "User not found" });
@@ -575,7 +574,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updates.isFirstTime = false;
       }
       
-      const user = await storage.updateUser(id, updates);
+      const user = await memoryStorage.updateUser(id, updates);
       
       if (!user) {
         return res.status(404).json({ message: "User not found" });
@@ -590,7 +589,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Injury type routes
   app.get("/api/injury-types", async (req, res) => {
     try {
-      const injuryTypes = await storage.getInjuryTypes();
+      const injuryTypes = await memoryStorage.getInjuryTypes();
       res.json({ injuryTypes });
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch injury types" });
@@ -600,7 +599,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Assessment routes
   app.get("/api/assessments", async (req, res) => {
     try {
-      const assessments = await storage.getAssessments();
+      const assessments = await memoryStorage.getAssessments();
       console.log('API /assessments returning:', assessments.length, 'assessments');
       res.json({ assessments });
     } catch (error) {
@@ -612,7 +611,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/assessments/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const assessment = await storage.getAssessment(id);
+      const assessment = await memoryStorage.getAssessment(id);
       
       if (!assessment) {
         return res.status(404).json({ message: "Assessment not found" });
@@ -628,7 +627,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/users/:userId", async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
-      const user = await storage.getUserById(userId);
+      const user = await memoryStorage.getUserById(userId);
       
       if (!user) {
         return res.status(404).json({ message: "User not found" });
@@ -644,18 +643,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/users/:userId/assessments", async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
-      const user = await storage.getUserById(userId);
+      const user = await memoryStorage.getUserById(userId);
       
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
 
-      const userAssessments = await storage.getUserAssessments(userId);
+      const userAssessments = await memoryStorage.getUserAssessments(userId);
       
       // Get assessments based on user's injury type
       const allAssessments = user.injuryType 
-        ? await storage.getAssessmentsForInjuryType(user.injuryType)
-        : await storage.getAssessments();
+        ? await memoryStorage.getAssessmentsForInjuryType(user.injuryType)
+        : await memoryStorage.getAssessments();
       
       // Combine assessments with user progress and sort by orderIndex
       const assessmentsWithProgress = allAssessments.map(assessment => {
@@ -696,13 +695,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const assessmentId = parseInt(req.params.assessmentId);
       
       // Get the assessment to include its name
-      const assessment = await storage.getAssessment(assessmentId);
+      const assessment = await memoryStorage.getAssessment(assessmentId);
       if (!assessment) {
         return res.status(404).json({ message: 'Assessment not found' });
       }
 
       // Create new user assessment
-      const userAssessment = await storage.createUserAssessment({
+      const userAssessment = await memoryStorage.createUserAssessment({
         userId,
         assessmentId,
         assessmentName: assessment.name,
@@ -833,7 +832,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (allMotionFrames.length > 0) {
           try {
             // Get the assessment to determine which calculation to use
-            const assessment = await storage.getAssessment(assessmentId);
+            const assessment = await memoryStorage.getAssessment(assessmentId);
             
             if (assessment?.name === "Kapandji Score") {
               // Use Kapandji-specific scoring for thumb opposition
@@ -914,12 +913,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Find existing user assessments to determine session number
-      const existingAssessments = await storage.getUserAssessments(userId);
+      const existingAssessments = await memoryStorage.getUserAssessments(userId);
       const sessionCount = existingAssessments.filter(ua => ua.assessmentId === assessmentId).length;
       const sessionNumber = sessionCount + 1;
       
       // Create new assessment (don't update existing ones - allow multiple sessions)
-      const userAssessment = await storage.createUserAssessment({
+      const userAssessment = await memoryStorage.createUserAssessment({
         userId,
         assessmentId,
         sessionNumber,
@@ -967,8 +966,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/users/:userId/progress", async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
-      const userAssessments = await storage.getUserAssessments(userId);
-      const allAssessments = await storage.getAssessments();
+      const userAssessments = await memoryStorage.getUserAssessments(userId);
+      const allAssessments = await memoryStorage.getAssessments();
       
       const completed = userAssessments.filter(ua => ua.isCompleted).length;
       const total = allAssessments.length;
@@ -986,10 +985,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/users/:userId/history", async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
-      const userAssessments = await storage.getUserAssessments(userId);
+      const userAssessments = await memoryStorage.getUserAssessments(userId);
       
       // Get all assessments to join with user assessments
-      const allAssessments = await storage.getAssessments();
+      const allAssessments = await memoryStorage.getAssessments();
       
       // Filter only completed assessments and join with assessment details
       const completedAssessments = userAssessments
@@ -1031,7 +1030,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let userAssessment = null;
       for (let userId = 1; userId <= 100; userId++) { // Increased search range
         try {
-          const userAssessments = await storage.getUserAssessments(userId);
+          const userAssessments = await memoryStorage.getUserAssessments(userId);
           const found = userAssessments.find(ua => ua.id === userAssessmentId);
           if (found) {
             userAssessment = found;
@@ -1066,8 +1065,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/users/:userId/assessment-history", async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
-      const userAssessments = await storage.getUserAssessments(userId);
-      const assessments = await storage.getAssessments();
+      const userAssessments = await memoryStorage.getUserAssessments(userId);
+      const assessments = await memoryStorage.getAssessments();
       
       // Group by assessment and include session details
       const history = userAssessments.map(ua => {
@@ -1096,19 +1095,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Try direct lookup first via getUserAssessmentById
       try {
-        userAssessment = await storage.getUserAssessmentById(userAssessmentId);
+        userAssessment = await memoryStorage.getUserAssessmentById(userAssessmentId);
         if (userAssessment) {
-          user = await storage.getUserById(userAssessment.userId);
+          user = await memoryStorage.getUserById(userAssessment.userId);
         }
       } catch (e) {
         // Fallback to searching through all users
         for (let userId = 1; userId <= 100; userId++) {
           try {
-            const userAssessments = await storage.getUserAssessments(userId);
+            const userAssessments = await memoryStorage.getUserAssessments(userId);
             const found = userAssessments.find(ua => ua.id === userAssessmentId);
             if (found) {
               userAssessment = found;
-              user = await storage.getUserById(userId);
+              user = await memoryStorage.getUserById(userId);
               break;
             }
           } catch (e) {
@@ -1122,7 +1121,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Get the assessment details to include the assessment name
-      const assessment = await storage.getAssessment(userAssessment.assessmentId);
+      const assessment = await memoryStorage.getAssessment(userAssessment.assessmentId);
       
       // Add assessment name to user assessment for display purposes
       const userAssessmentWithName = {
@@ -1156,7 +1155,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Invalid user assessment ID" });
       }
 
-      const shareToken = await storage.generateShareToken(userAssessmentId);
+      const shareToken = await memoryStorage.generateShareToken(userAssessmentId);
       res.json({ shareToken, shareUrl: `/shared/${shareToken}` });
     } catch (error) {
       console.error("Error generating share token:", error);
@@ -1169,13 +1168,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { token } = req.params;
       
-      const userAssessment = await storage.getUserAssessmentByShareToken(token);
+      const userAssessment = await memoryStorage.getUserAssessmentByShareToken(token);
       if (!userAssessment) {
         return res.status(404).json({ error: "Shared assessment not found" });
       }
 
       // Get assessment details for display
-      const assessment = await storage.getAssessment(userAssessment.assessmentId);
+      const assessment = await memoryStorage.getAssessment(userAssessment.assessmentId);
       if (!assessment) {
         return res.status(404).json({ error: "Assessment not found" });
       }
@@ -1191,7 +1190,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/patients/by-code/:code", async (req, res) => {
     try {
       const code = req.params.code;
-      const user = await storage.getUserByCode(code);
+      const user = await memoryStorage.getUserByCode(code);
       
       if (!user) {
         return res.status(404).json({ message: "Patient not found" });
@@ -1215,7 +1214,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/patients/:code/daily-assessments", async (req, res) => {
     try {
       const code = req.params.code;
-      const user = await storage.getUserByCode(code);
+      const user = await memoryStorage.getUserByCode(code);
       
       if (!user) {
         return res.status(404).json({ message: "Patient not found" });
@@ -1251,7 +1250,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/patients/:code/streak", async (req, res) => {
     try {
       const code = req.params.code;
-      const user = await storage.getUserByCode(code);
+      const user = await memoryStorage.getUserByCode(code);
       
       if (!user) {
         return res.status(404).json({ message: "Patient not found" });
@@ -1284,7 +1283,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/patients/:code/calendar", async (req, res) => {
     try {
       const code = req.params.code;
-      const user = await storage.getUserByCode(code);
+      const user = await memoryStorage.getUserByCode(code);
       
       if (!user) {
         return res.status(404).json({ message: "Patient not found" });
@@ -1298,7 +1297,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const recoveryStartDate = new Date('2025-06-20');
       
       // Get unique assessments count for this calculation
-      const allAssessments = await storage.getAssessments();
+      const allAssessments = await memoryStorage.getAssessments();
       const uniqueAssessmentTypes = [
         { id: 26, name: "TAM (Total Active Motion)" },
         { id: 27, name: "Kapandji Score" },
@@ -1386,7 +1385,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const code = req.params.code;
       const { assessmentId } = req.body;
       
-      const user = await storage.getUserByCode(code);
+      const user = await memoryStorage.getUserByCode(code);
       if (!user) {
         return res.status(404).json({ message: "Patient not found" });
       }
