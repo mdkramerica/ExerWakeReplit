@@ -174,7 +174,7 @@ export default function PatientDailyDashboard() {
                     <div className="text-orange-100 text-sm">Since surgery (June 20)</div>
                   </div>
                 </div>
-                <p className="text-orange-100 font-medium">{getStreakMessage(streakData?.currentStreak || 0)}</p>
+                <p className="text-white font-medium bg-orange-600/20 px-3 py-1 rounded-lg">{getStreakMessage(streakData?.currentStreak || 0)}</p>
               </div>
               <div className="text-right space-y-1">
                 <div className="text-4xl font-bold text-white">{streakData?.totalCompletions || 0}</div>
@@ -394,25 +394,35 @@ export default function PatientDailyDashboard() {
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <h4 className="font-medium text-gray-900 dark:text-white">Legend</h4>
-                      <div className="space-y-2">
-                        <div className="flex items-center space-x-2">
-                          <div className="w-5 h-5 bg-green-500 rounded-full"></div>
+                      <div className="space-y-3">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                            <CheckCircle className="w-4 h-4 text-white" />
+                          </div>
                           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Completed (5/5)</span>
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <div className="w-5 h-5 bg-yellow-500 rounded-full"></div>
+                        <div className="flex items-center space-x-3">
+                          <div className="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center">
+                            <Clock className="w-4 h-4 text-white" />
+                          </div>
                           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Partial (1-4/5)</span>
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <div className="w-5 h-5 bg-red-500 rounded-full"></div>
+                        <div className="flex items-center space-x-3">
+                          <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
+                            <span className="text-white text-xs font-bold">✕</span>
+                          </div>
                           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Missed (0/5)</span>
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <div className="w-5 h-5 bg-blue-500 rounded-full border-2 border-blue-700"></div>
+                        <div className="flex items-center space-x-3">
+                          <div className="w-6 h-6 bg-blue-500 rounded-full border-2 border-blue-700 flex items-center justify-center">
+                            <span className="text-white text-xs font-bold">🏥</span>
+                          </div>
                           <span className="text-sm font-medium text-blue-700 dark:text-blue-300">Surgery Date (June 20)</span>
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <div className="w-5 h-5 bg-gray-200 rounded-full border border-gray-300"></div>
+                        <div className="flex items-center space-x-3">
+                          <div className="w-6 h-6 bg-gray-200 rounded-full border border-gray-300 flex items-center justify-center">
+                            <span className="text-gray-400 text-xs">○</span>
+                          </div>
                           <span className="text-sm font-medium text-gray-500">Future/Pre-Surgery</span>
                         </div>
                       </div>
