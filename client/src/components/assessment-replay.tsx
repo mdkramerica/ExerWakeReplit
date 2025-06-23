@@ -1191,13 +1191,46 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
             ctx.fillText('WRIST', wristX - 20, wristY - 15);
             
             // Draw angle arc to visualize wrist flexion/extension
-            const wristToMcpVector = { x: mcpX - wristX, y: mcpY - wristY };
-            const elbowToWristVector = { x: poseWristX - elbowX, y: poseWristY - elbowY };
-            
-            // Calculate angle between forearm and hand vectors
-            const forearmAngle = Math.atan2(elbowToWristVector.y, elbowToWristVector.x);
-            const handAngle = Math.atan2(wristToMcpVector.y, wristToMcpVector.x);
-            let angleArc = handAngle - forearmAngle;
+            if (currentWristAngles) {
+              const wristToMcpVector = { x: mcpX - wristX, y: mcpY - wristY };
+              const elbowToWristVector = { x: wristX - elbowX, y: wristY - elbowY };
+              
+              // Calculate angle between forearm and hand vectors
+              const forearmAngle = Math.atan2(elbowToWristVector.y, elbowToWristVector.x);
+              const handAngle = Math.atan2(wristToMcpVector.y, wristToMcpVector.x);
+              
+              // Draw angle arc visualization
+              const arcRadius = 40;
+              const startAngle = Math.min(forearmAngle, handAngle);
+              const endAngle = Math.max(forearmAngle, handAngle);
+              
+              // Color based on flexion/extension
+              const isFlexion = currentWristAngles.wristFlexionAngle > Math.abs(currentWristAngles.wristExtensionAngle);
+              ctx.strokeStyle = isFlexion ? '#ef4444' : '#3b82f6'; // Red for flexion, blue for extension
+              ctx.lineWidth = 3;
+              ctx.setLineDash([]);
+              
+              // Draw arc
+              ctx.beginPath();
+              ctx.arc(wristX, wristY, arcRadius, startAngle, endAngle);
+              ctx.stroke();
+              
+              // Draw angle measurement
+              const midAngle = (startAngle + endAngle) / 2;
+              const textRadius = arcRadius + 20;
+              const textX = wristX + Math.cos(midAngle) * textRadius;
+              const textY = wristY + Math.sin(midAngle) * textRadius;
+              
+              // Background for text
+              ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+              ctx.fillRect(textX - 25, textY - 10, 50, 20);
+              
+              // Angle text
+              ctx.fillStyle = '#ffffff';
+              ctx.font = 'bold 12px Arial';
+              const displayAngle = Math.abs(isFlexion ? currentWristAngles.wristFlexionAngle : currentWristAngles.wristExtensionAngle);
+              ctx.fillText(`${displayAngle.toFixed(1)}°`, textX - 15, textY + 3);
+            }
             
             // Normalize angle to [-π, π]
             while (angleArc > Math.PI) angleArc -= 2 * Math.PI;
