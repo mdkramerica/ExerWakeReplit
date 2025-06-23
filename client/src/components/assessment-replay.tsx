@@ -39,6 +39,12 @@ const HAND_CONNECTIONS = [
 ];
 
 export default function AssessmentReplay({ assessmentName, userAssessmentId, recordingData = [], onClose }: AssessmentReplayProps) {
+  // Check assessment types first
+  const isKapandjiAssessment = assessmentName === "Kapandji Score" || 
+                              assessmentName?.includes("Kapandji");
+  const isWristAssessment = assessmentName === "Wrist Flexion/Extension" ||
+                           assessmentName?.toLowerCase().includes("wrist");
+
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentFrame, setCurrentFrame] = useState(0);
@@ -77,12 +83,6 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
   // Use actual recorded motion data or provided recording data
   const actualMotionData = (motionData as any)?.motionData || recordingData;
   const replayData: ReplayData[] = actualMotionData.length > 0 ? actualMotionData : [];
-
-  // Check assessment types
-  const isKapandjiAssessment = assessmentName === "Kapandji Score" || 
-                              assessmentName?.includes("Kapandji");
-  const isWristAssessment = assessmentName === "Wrist Flexion/Extension" ||
-                           assessmentName?.toLowerCase().includes("wrist");
 
   // Load Exer logo image
   useEffect(() => {
@@ -1356,7 +1356,9 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
     let intervalId: NodeJS.Timeout | null = null;
 
     if (isPlaying) {
-      intervalId = setInterval(playAnimation, 33); // ~30 FPS
+      // Adjust interval based on assessment type for consistent playback speed
+      const baseInterval = isWristAssessment ? 80 : 33; // Much slower for wrist assessments
+      intervalId = setInterval(playAnimation, baseInterval);
     }
 
     return () => {
