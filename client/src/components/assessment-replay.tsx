@@ -1256,28 +1256,37 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
           }
         }
         
+        // Calculate wrist angles directly for THIS frame to avoid timing lag
+        let frameWristAngles = { wristFlexionAngle: 0, wristExtensionAngle: 0 };
+        
+        if (frame.landmarks && frame.poseLandmarks) {
+          // Calculate real-time angles for this specific frame
+          const frameCalculation = calculateWristAngleByHandType(frame.landmarks, frame.poseLandmarks);
+          frameCalculation.handType = currentWristAngles?.handType || 'RIGHT';
+          frameWristAngles = frameCalculation;
+          
+          console.log(`🎨 FRAME-SYNC DISPLAY: Frame ${currentFrame} - Flexion: ${frameWristAngles.wristFlexionAngle.toFixed(1)}°, Extension: ${frameWristAngles.wristExtensionAngle.toFixed(1)}°`);
+        }
+        
         // Add angle indicator text near middle MCP - show flexion/extension angle
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 12px Arial';
         
-        // Debug: Log the actual angle values being displayed
-        console.log(`🎨 CANVAS DISPLAY: Frame ${currentFrame} - Flexion: ${currentWristAngles.wristFlexionAngle.toFixed(1)}°, Extension: ${currentWristAngles.wristExtensionAngle.toFixed(1)}°`);
-        
         // Use minimal threshold for displaying extension/flexion vs neutral
         const motionThreshold = 0.1; // degrees - very small threshold
         
-        if (currentWristAngles.wristFlexionAngle > motionThreshold) {
+        if (frameWristAngles.wristFlexionAngle > motionThreshold) {
           // Show flexion angle in red
           ctx.fillStyle = '#ef4444';
-          ctx.fillText(`${currentWristAngles.wristFlexionAngle.toFixed(1)}° FLEXION`, mcpX + 10, mcpY - 10);
-        } else if (currentWristAngles.wristExtensionAngle > motionThreshold) {
+          ctx.fillText(`${frameWristAngles.wristFlexionAngle.toFixed(1)}° FLEXION`, mcpX + 10, mcpY - 10);
+        } else if (frameWristAngles.wristExtensionAngle > motionThreshold) {
           // Show extension angle in orange
           ctx.fillStyle = '#f59e0b';
-          ctx.fillText(`${currentWristAngles.wristExtensionAngle.toFixed(1)}° EXTENSION`, mcpX + 10, mcpY - 10);
+          ctx.fillText(`${frameWristAngles.wristExtensionAngle.toFixed(1)}° EXTENSION`, mcpX + 10, mcpY - 10);
         } else {
           // Show neutral position - only when both angles are essentially zero
           ctx.fillStyle = '#10b981';
-          ctx.fillText(`NEUTRAL (F:${currentWristAngles.wristFlexionAngle.toFixed(1)}° E:${currentWristAngles.wristExtensionAngle.toFixed(1)}°)`, mcpX + 10, mcpY - 10);
+          ctx.fillText(`NEUTRAL (F:${frameWristAngles.wristFlexionAngle.toFixed(1)}° E:${frameWristAngles.wristExtensionAngle.toFixed(1)}°)`, mcpX + 10, mcpY - 10);
         }
       }
     }
