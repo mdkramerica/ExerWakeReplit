@@ -1232,49 +1232,28 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
               ctx.fillText(`${displayAngle.toFixed(1)}°`, textX - 15, textY + 3);
             }
             
-            // Normalize angle to [-π, π]
-            while (angleArc > Math.PI) angleArc -= 2 * Math.PI;
-            while (angleArc < -Math.PI) angleArc += 2 * Math.PI;
-            
-            // Draw angle arc for wrist flexion/extension
-            if (currentWristAngles.wristFlexionAngle > 0 || currentWristAngles.wristExtensionAngle > 0) {
-              const arcRadius = 50;
-              let startAngle = forearmAngle;
-              let endAngle = handAngle;
+            // Draw angle arc for wrist flexion/extension (simplified)
+            if (currentWristAngles && (currentWristAngles.wristFlexionAngle > 3 || currentWristAngles.wristExtensionAngle > 3)) {
+              const arcRadius = 40;
+              const isFlexion = currentWristAngles.wristFlexionAngle > Math.abs(currentWristAngles.wristExtensionAngle);
               
-              // Ensure proper arc direction
-              if (Math.abs(endAngle - startAngle) > Math.PI) {
-                if (endAngle > startAngle) {
-                  endAngle -= 2 * Math.PI;
-                } else {
-                  endAngle += 2 * Math.PI;
-                }
-              }
+              // Simple arc visualization
+              ctx.strokeStyle = isFlexion ? '#ef4444' : '#3b82f6'; // Red for flexion, blue for extension
+              ctx.lineWidth = 3;
+              ctx.setLineDash([]);
               
               ctx.beginPath();
-              ctx.arc(wristX, wristY, arcRadius, startAngle, endAngle, false);
-              
-              if (currentWristAngles.wristFlexionAngle > 0) {
-                ctx.strokeStyle = '#ec4899'; // Pink for flexion
-                ctx.lineWidth = 4;
-              } else if (currentWristAngles.wristExtensionAngle > 0) {
-                ctx.strokeStyle = '#f59e0b'; // Orange for extension
-                ctx.lineWidth = 4;
-              }
+              ctx.arc(wristX, wristY, arcRadius, 0, Math.PI / 2);
               ctx.stroke();
               
-              // Add angle value on the arc
-              const midAngle = (startAngle + endAngle) / 2;
-              const textRadius = arcRadius + 15;
-              const textX = wristX + Math.cos(midAngle) * textRadius;
-              const textY = wristY + Math.sin(midAngle) * textRadius;
-              
-              ctx.fillStyle = currentWristAngles.wristFlexionAngle > 0 ? '#ec4899' : '#f59e0b';
-              ctx.font = 'bold 14px Arial';
-              const angleText = currentWristAngles.wristFlexionAngle > 0 
-                ? `${currentWristAngles.wristFlexionAngle.toFixed(1)}°`
-                : `${currentWristAngles.wristExtensionAngle.toFixed(1)}°`;
-              ctx.fillText(angleText, textX - 15, textY);
+              // Add angle value near the arc
+              const displayAngle = isFlexion ? currentWristAngles.wristFlexionAngle : currentWristAngles.wristExtensionAngle;
+              ctx.fillStyle = '#ffffff';
+              ctx.font = 'bold 12px Arial';
+              ctx.strokeStyle = '#000000';
+              ctx.lineWidth = 2;
+              ctx.strokeText(`${displayAngle.toFixed(1)}°`, wristX + 50, wristY - 10);
+              ctx.fillText(`${displayAngle.toFixed(1)}°`, wristX + 50, wristY - 10);
             }
           } else {
             // Draw wrist-to-hand vector even without elbow
