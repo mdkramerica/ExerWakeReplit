@@ -42,6 +42,11 @@ main, section, article, .card, [data-testid="card"] {
   background-color: transparent !important;
 }
 
+/* Exception for streak card - override the universal rule */
+.streak-card-override {
+  background: linear-gradient(to right, #f97316, #dc2626) !important;
+}
+
 /* Fix text visibility - ensure proper contrast */
 .text-muted-foreground {
   color: rgb(107 114 128) !important;

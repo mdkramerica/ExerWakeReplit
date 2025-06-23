@@ -184,35 +184,84 @@ export default function PatientDailyDashboard() {
         </div>
 
         {/* Streak Card */}
-        <div className="w-full bg-gradient-to-r from-orange-500 to-red-500 rounded-lg shadow-lg border-0 p-6" style={{ color: 'white' }}>
-          <div className="flex items-center justify-between">
+        <div 
+          className="w-full rounded-lg shadow-lg border-0 p-6 streak-card-override" 
+          style={{ 
+            background: 'linear-gradient(to right, #f97316, #dc2626)',
+            color: '#ffffff',
+            minHeight: '140px'
+          }}
+        >
+          <div className="flex items-center justify-between h-full">
             <div className="flex items-center space-x-4">
               <div className="flex-shrink-0">
                 {getStreakIcon(streakData?.currentStreak || 0)}
               </div>
               <div>
-                <div className="text-3xl font-bold mb-1" style={{ color: '#ffffff' }}>
+                <div 
+                  className="text-3xl font-bold mb-1" 
+                  style={{ 
+                    color: '#ffffff',
+                    textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+                  }}
+                >
                   {streakData?.currentStreak || 0} Day Streak
                 </div>
-                <div className="text-sm font-medium" style={{ color: '#ffffff' }}>
+                <div 
+                  className="text-sm font-medium" 
+                  style={{ 
+                    color: '#ffffff',
+                    textShadow: '0 1px 2px rgba(0,0,0,0.3)'
+                  }}
+                >
                   Since surgery (June 20)
                 </div>
               </div>
             </div>
             <div className="text-right">
-              <div className="text-4xl font-bold" style={{ color: '#ffffff' }}>
+              <div 
+                className="text-4xl font-bold" 
+                style={{ 
+                  color: '#ffffff',
+                  textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+                }}
+              >
                 {streakData?.totalCompletions || 0}
               </div>
-              <div className="text-sm font-medium" style={{ color: '#ffffff' }}>
+              <div 
+                className="text-sm font-medium" 
+                style={{ 
+                  color: '#ffffff',
+                  textShadow: '0 1px 2px rgba(0,0,0,0.3)'
+                }}
+              >
                 Total Completions
               </div>
-              <div className="text-xs" style={{ color: '#ffffff' }}>
+              <div 
+                className="text-xs" 
+                style={{ 
+                  color: '#ffffff',
+                  textShadow: '0 1px 2px rgba(0,0,0,0.3)'
+                }}
+              >
                 Best Streak: {streakData?.longestStreak || 0} days
               </div>
             </div>
           </div>
-          <div className="mt-4 bg-black bg-opacity-30 px-4 py-3 rounded-lg border border-white border-opacity-20">
-            <p className="font-bold text-center text-sm" style={{ color: '#ffffff' }}>
+          <div 
+            className="mt-4 px-4 py-3 rounded-lg border"
+            style={{ 
+              background: 'rgba(0,0,0,0.3)',
+              borderColor: 'rgba(255,255,255,0.2)'
+            }}
+          >
+            <p 
+              className="font-bold text-center text-sm" 
+              style={{ 
+                color: '#ffffff',
+                textShadow: '0 1px 2px rgba(0,0,0,0.3)'
+              }}
+            >
               {getStreakMessage(streakData?.currentStreak || 0)}
             </p>
           </div>
