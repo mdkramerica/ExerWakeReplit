@@ -95,12 +95,15 @@ This is a comprehensive hand rehabilitation assessment platform that combines re
 
 ## Recent Changes
 
-### June 23, 2025 - Motion Replay Enhancements
+### June 23, 2025 - Motion Replay Enhancements & Session Maximum Fixes
 - Fixed flexion/extension classification bug in wrist assessments
 - Corrected motion replay canvas positioning and visibility
 - Adjusted wrist motion replay playback speed for consistency
 - Removed duplicate angle labels on motion replay canvas
 - Improved angle calculation accuracy using cross product method
+- Fixed session maximum calculation to use real motion data instead of incorrect stored values
+- Synchronized canvas display with calculation engine to eliminate timing lag
+- Enhanced wrist results calculator to prioritize motion data over potentially incorrect database values
 
 ## User Preferences
 

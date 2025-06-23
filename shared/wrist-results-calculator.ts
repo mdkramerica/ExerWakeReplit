@@ -34,26 +34,13 @@ export function calculateWristResults(userAssessment: any): WristResultsData {
     0
   );
 
-  // If we have stored values, use them as authoritative
-  if (maxFlexion > 0 || maxExtension > 0) {
-    console.log(`✅ USING STORED VALUES - Flexion: ${maxFlexion.toFixed(1)}°, Extension: ${maxExtension.toFixed(1)}°`);
-    return {
-      maxFlexion,
-      maxExtension,
-      totalROM: maxFlexion + maxExtension,
-      frameCount: userAssessment?.repetitionData?.[0]?.motionData?.length || 0,
-      handType: userAssessment.handType || 'UNKNOWN',
-      averageConfidence: 1.0
-    };
-  }
-
-  // Fallback: Calculate from motion data using the EXACT same method as wrist-results page
+  // Always calculate from motion data first for accuracy - stored values may be incorrect
   if (userAssessment.repetitionData && userAssessment.repetitionData[0]?.motionData) {
-    console.log('🔄 CALCULATING FROM MOTION DATA - Using wrist-results methodology');
+    console.log('🔄 CALCULATING FROM MOTION DATA - Primary calculation method');
     
     const motionData = userAssessment.repetitionData[0].motionData;
     
-    // Calculate wrist angles for all frames - EXACT same as wrist-results.tsx
+    // Calculate wrist angles for all frames
     const wristAnglesAllFrames = motionData.map((frame: any) => {
       if (frame.landmarks && frame.poseLandmarks) {
         return calculateWristAngleByHandType(frame.landmarks, frame.poseLandmarks);
@@ -62,14 +49,16 @@ export function calculateWristResults(userAssessment: any): WristResultsData {
     }).filter(Boolean);
     
     if (wristAnglesAllFrames.length > 0) {
-      // Extract maximum values - EXACT same logic as wrist-results.tsx
+      // Extract maximum values with debug logging
       const allFlexionAngles = wristAnglesAllFrames.map((w: any) => w.wristFlexionAngle).filter((angle: number) => !isNaN(angle) && angle >= 0);
       const allExtensionAngles = wristAnglesAllFrames.map((w: any) => w.wristExtensionAngle).filter((angle: number) => !isNaN(angle) && angle >= 0);
       
       const calculatedMaxFlexion = allFlexionAngles.length > 0 ? Math.max(...allFlexionAngles) : 0;
       const calculatedMaxExtension = allExtensionAngles.length > 0 ? Math.max(...allExtensionAngles) : 0;
       
-      console.log(`✅ CALCULATED VALUES - Flexion: ${calculatedMaxFlexion.toFixed(1)}°, Extension: ${calculatedMaxExtension.toFixed(1)}°`);
+      console.log(`✅ CALCULATED VALUES - Flexion: ${calculatedMaxFlexion.toFixed(1)}° (from ${allFlexionAngles.length} flexion frames), Extension: ${calculatedMaxExtension.toFixed(1)}° (from ${allExtensionAngles.length} extension frames)`);
+      console.log(`📊 Sample flexion angles: [${allFlexionAngles.slice(0, 5).map(a => a.toFixed(1)).join(', ')}${allFlexionAngles.length > 5 ? '...' : ''}]`);
+      console.log(`📊 Sample extension angles: [${allExtensionAngles.slice(0, 5).map(a => a.toFixed(1)).join(', ')}${allExtensionAngles.length > 5 ? '...' : ''}]`);
       
       return {
         maxFlexion: calculatedMaxFlexion,
@@ -81,6 +70,21 @@ export function calculateWristResults(userAssessment: any): WristResultsData {
       };
     }
   }
+
+  // If we have stored values and no motion data, use them as fallback
+  if (maxFlexion > 0 || maxExtension > 0) {
+    console.log(`⚠️ USING STORED VALUES AS FALLBACK - Flexion: ${maxFlexion.toFixed(1)}°, Extension: ${maxExtension.toFixed(1)}° (no motion data available)`);
+    return {
+      maxFlexion,
+      maxExtension,
+      totalROM: maxFlexion + maxExtension,
+      frameCount: userAssessment?.repetitionData?.[0]?.motionData?.length || 0,
+      handType: userAssessment.handType || 'UNKNOWN',
+      averageConfidence: 1.0
+    };
+  }
+
+
 
   // Last resort fallback
   console.log('⚠️ NO DATA AVAILABLE - Using fallback values');
