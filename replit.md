@@ -106,6 +106,10 @@ This is a comprehensive hand rehabilitation assessment platform that combines re
 - Enhanced wrist results calculator to prioritize motion data over potentially incorrect database values
 - Added Kapandji score display to patient history entries (supports both kapandjiScore and totalActiveRom fields)
 - Fixed wrist flexion/extension consistency between history display and view details using centralized calculator
+- Enhanced wrist assessment history with Total ROM card alongside flexion/extension values
+- Updated wrist "View Details" button to match "View Results" styling and routing
+- Removed assessment overview data cards for cleaner interface layout
+- Added red highlighting for low TAM finger ROM values (threshold: <240°) in assessment history
 
 ## User Preferences
 
