@@ -84,9 +84,13 @@ export default function Recording() {
       return response;
     },
     onSuccess: (data) => {
-      // Invalidate both assessment list and progress queries to refresh the UI
+      // Invalidate all relevant queries to refresh the UI completely
       queryClient.invalidateQueries({ queryKey: [`/api/users/${currentUser.id}/assessments`] });
       queryClient.invalidateQueries({ queryKey: [`/api/users/${currentUser.id}/progress`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/patients/${currentUser.code}/daily-assessments`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/patients/${currentUser.code}/streak`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/patients/${currentUser.code}/calendar`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/patients/by-code/${currentUser.code}`] });
       
       const userAssessmentId = data?.userAssessment?.id;
       
