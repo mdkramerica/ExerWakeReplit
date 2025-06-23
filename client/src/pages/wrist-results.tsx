@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, Download, Share2, TrendingUp, Activity, Calculator, Info, FileText, ChevronDown, ChevronUp } from "lucide-react";
 import { calculateWristResults, getWristClinicalInterpretation, getWristPercentages } from "@shared/wrist-results-calculator";
+import AssessmentReplay from "@/components/assessment-replay";
 
 interface WristResultsData {
   userAssessment: {
