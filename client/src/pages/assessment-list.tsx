@@ -485,20 +485,20 @@ export default function AssessmentList() {
                         )}
 
                         {/* Kapandji Score Breakdown */}
-                        {record.assessmentName?.includes('Kapandji') && record.totalActiveRom !== null && record.totalActiveRom !== undefined && (
+                        {record.assessmentName?.includes('Kapandji') && (record.totalActiveRom !== null && record.totalActiveRom !== undefined || record.kapandjiScore !== null && record.kapandjiScore !== undefined) && (
                           <div className="mt-3">
                             <div className="text-sm font-medium text-gray-700 mb-2">Kapandji Opposition Score</div>
                             <div className="flex gap-3">
                               <div className={`px-4 py-3 rounded-lg border-2 ${
-                                parseFloat(record.totalActiveRom) < 8 ? 'bg-red-50 border-red-300' : 'bg-green-50 border-green-300'
+                                (record.kapandjiScore ? parseFloat(record.kapandjiScore) : parseFloat(record.totalActiveRom || '0')) < 8 ? 'bg-red-50 border-red-300' : 'bg-green-50 border-green-300'
                               }`}>
                                 <div className={`font-bold text-xs ${
-                                  parseFloat(record.totalActiveRom) < 8 ? 'text-red-700' : 'text-green-700'
+                                  (record.kapandjiScore ? parseFloat(record.kapandjiScore) : parseFloat(record.totalActiveRom || '0')) < 8 ? 'text-red-700' : 'text-green-700'
                                 }`}>Score</div>
                                 <div className={`font-bold text-2xl ${
-                                  parseFloat(record.totalActiveRom) < 8 ? 'text-red-900' : 'text-green-900'
+                                  (record.kapandjiScore ? parseFloat(record.kapandjiScore) : parseFloat(record.totalActiveRom || '0')) < 8 ? 'text-red-900' : 'text-green-900'
                                 }`}>
-                                  {Math.round(parseFloat(record.totalActiveRom))}/10
+                                  {Math.round(record.kapandjiScore ? parseFloat(record.kapandjiScore) : parseFloat(record.totalActiveRom || '0'))}/10
                                 </div>
                               </div>
                             </div>
