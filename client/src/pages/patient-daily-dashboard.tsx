@@ -191,8 +191,8 @@ export default function PatientDailyDashboard() {
                 <div className="flex items-center space-x-3">
                   {getStreakIcon(streakData?.currentStreak || 0)}
                   <div className="space-y-1">
-                    <div className="text-3xl font-bold text-white leading-tight">{streakData?.currentStreak || 0} Day Streak</div>
-                    <div className="text-orange-100 text-sm font-medium">Since surgery (June 20)</div>
+                    <div className="text-3xl font-bold text-white leading-tight drop-shadow-lg">{streakData?.currentStreak || 0} Day Streak</div>
+                    <div className="text-white text-sm font-medium drop-shadow-md">Since surgery (June 20)</div>
                   </div>
                 </div>
                 <div className="bg-gray-900 border-2 border-white px-4 py-2 rounded-lg shadow-xl">
@@ -200,9 +200,9 @@ export default function PatientDailyDashboard() {
                 </div>
               </div>
               <div className="text-right space-y-2 ml-6">
-                <div className="text-4xl font-bold text-white">{streakData?.totalCompletions || 0}</div>
-                <div className="text-orange-100 text-sm font-medium">Total Completions</div>
-                <div className="text-orange-200 text-xs">Best Streak: {streakData?.longestStreak || 0} days</div>
+                <div className="text-4xl font-bold text-white drop-shadow-lg">{streakData?.totalCompletions || 0}</div>
+                <div className="text-white text-sm font-medium drop-shadow-md">Total Completions</div>
+                <div className="text-white text-xs drop-shadow-md">Best Streak: {streakData?.longestStreak || 0} days</div>
               </div>
             </div>
           </CardContent>
