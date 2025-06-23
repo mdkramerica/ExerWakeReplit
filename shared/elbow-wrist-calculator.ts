@@ -859,51 +859,42 @@ function calculateAnatomicalWristAngle(
   const clampedDot = Math.max(-1, Math.min(1, dotProduct));
   const rawAngle = Math.acos(clampedDot) * (180 / Math.PI);
   
-  // Sign determination using cross product Z-component
+  // SIMPLIFIED COORDINATE SYSTEM: Use direct anatomical approach
+  // Calculate signed angle using cross product Y-component for consistent direction
   const cross = {
     x: uForearm.y * uHand.z - uForearm.z * uHand.y,
     y: uForearm.z * uHand.x - uForearm.x * uHand.z,
     z: uForearm.x * uHand.y - uForearm.y * uHand.x
   };
   
-  // IMPROVED SENSITIVITY: Tighter neutral zone for better clinical detection
-  // Based on observation that raw angles range 44-66° for this dataset
+  // Use cross product Y-component for direction determination
+  // This is more reliable than complex multi-factor calculations
+  const direction = cross.y;
   
-  const NEUTRAL_CENTER = 55; // degrees - center of observed neutral range
-  const NEUTRAL_TOLERANCE = 3; // degrees - ±3° around center considered neutral (reduced from 10°)
+  // Calculate deviation from neutral (180° = straight alignment)
+  const neutralAngle = 180;
+  const deviationFromNeutral = Math.abs(rawAngle - neutralAngle);
   
-  // Calculate deviation from the data-driven neutral center
-  const deviationFromNeutral = Math.abs(rawAngle - NEUTRAL_CENTER);
+  // Simple direction-based classification using Y cross product
+  let signedAngle = 0;
   
-  let wristBendAngle = 0;
-  
-  if (deviationFromNeutral <= NEUTRAL_TOLERANCE) {
-    // Within tight neutral tolerance (52-58°) - report as neutral
-    wristBendAngle = 0;
+  if (deviationFromNeutral <= 3) {
+    // Near neutral position
+    signedAngle = 0;
   } else {
-    // Outside neutral - calculate actual bend with improved sensitivity
-    // Use higher scaling factor for better clinical resolution
-    const bendMagnitude = (deviationFromNeutral - NEUTRAL_TOLERANCE) * 3; // Increased scale factor from 2 to 3
-    
-    // Use cross product for direction (flexion vs extension)
-    const signRaw = Math.sign(cross.z + 1e-9);
-    const sideFactor = wrist.x < elbow.x ? -1 : 1;
-    
-    // For this coordinate system, determine flexion/extension based on angle direction
-    let directionSign = signRaw * sideFactor;
-    
-    // If raw angle is below neutral center, it's one direction; above is the other
-    if (rawAngle < NEUTRAL_CENTER) {
-      directionSign *= -1; // Invert for angles below neutral
+    // Apply direction based on cross product Y-component
+    // Positive Y = flexion, Negative Y = extension for consistent anatomical reference
+    if (direction > 0) {
+      signedAngle = deviationFromNeutral; // Positive for flexion
+    } else {
+      signedAngle = -deviationFromNeutral; // Negative for extension
     }
     
-    wristBendAngle = bendMagnitude * directionSign;
-    
-    // Clamp to reasonable physiological range
-    wristBendAngle = Math.max(-90, Math.min(90, wristBendAngle));
+    // Clamp to physiological range
+    signedAngle = Math.max(-90, Math.min(90, signedAngle));
   }
   
-  return wristBendAngle;
+  return signedAngle;
 }
 
 // RIGHT hand specific calculation using anatomical landmark method
