@@ -152,6 +152,9 @@ export default function PatientDailyDashboard() {
           <p className="text-muted-foreground">
             Day {patient.daysSinceStart} of your recovery journey • {patient.injuryType}
           </p>
+          <p className="text-sm text-muted-foreground">
+            Recovery started June 20, 2025
+          </p>
         </div>
 
         {/* Streak Card */}
