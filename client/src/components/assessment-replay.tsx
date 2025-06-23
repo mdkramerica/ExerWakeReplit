@@ -1260,18 +1260,24 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 12px Arial';
         
-        if (currentWristAngles.wristFlexionAngle > 0) {
+        // Debug: Log the actual angle values being displayed
+        console.log(`🎨 CANVAS DISPLAY: Frame ${currentFrame} - Flexion: ${currentWristAngles.wristFlexionAngle.toFixed(1)}°, Extension: ${currentWristAngles.wristExtensionAngle.toFixed(1)}°`);
+        
+        // Use minimal threshold for displaying extension/flexion vs neutral
+        const motionThreshold = 0.1; // degrees - very small threshold
+        
+        if (currentWristAngles.wristFlexionAngle > motionThreshold) {
           // Show flexion angle in red
           ctx.fillStyle = '#ef4444';
           ctx.fillText(`${currentWristAngles.wristFlexionAngle.toFixed(1)}° FLEXION`, mcpX + 10, mcpY - 10);
-        } else if (currentWristAngles.wristExtensionAngle > 0) {
+        } else if (currentWristAngles.wristExtensionAngle > motionThreshold) {
           // Show extension angle in orange
           ctx.fillStyle = '#f59e0b';
           ctx.fillText(`${currentWristAngles.wristExtensionAngle.toFixed(1)}° EXTENSION`, mcpX + 10, mcpY - 10);
         } else {
-          // Show neutral position
+          // Show neutral position - only when both angles are essentially zero
           ctx.fillStyle = '#10b981';
-          ctx.fillText('NEUTRAL', mcpX + 10, mcpY - 10);
+          ctx.fillText(`NEUTRAL (F:${currentWristAngles.wristFlexionAngle.toFixed(1)}° E:${currentWristAngles.wristExtensionAngle.toFixed(1)}°)`, mcpX + 10, mcpY - 10);
         }
       }
     }
