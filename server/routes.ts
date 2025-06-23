@@ -1105,12 +1105,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const assessments = await memoryStorage.getAssessments();
       
       // Group by assessment and include session details
-      const history = userAssessments.map(ua => {
+      const history = userAssessments.filter(ua => ua.isCompleted).map(ua => {
         const assessment = assessments.find(a => a.id === ua.assessmentId);
         return {
-          ...ua,
-          assessmentName: assessment?.name || 'Unknown',
-          assessmentDescription: assessment?.description || '',
+          id: ua.id,
+          assessmentName: assessment?.name || 'Unknown Assessment',
+          assessmentId: ua.assessmentId,
+          completedAt: ua.completedAt,
+          qualityScore: ua.qualityScore,
+          totalActiveRom: ua.totalActiveRom,
+          indexFingerRom: ua.indexFingerRom,
+          middleFingerRom: ua.middleFingerRom,
+          ringFingerRom: ua.ringFingerRom,
+          pinkyFingerRom: ua.pinkyFingerRom,
+          kapandjiScore: ua.kapandjiScore,
+          maxWristFlexion: ua.maxWristFlexion,
+          maxWristExtension: ua.maxWristExtension,
+          handType: ua.handType,
+          sessionNumber: ua.sessionNumber,
         };
       }).sort((a, b) => new Date(b.completedAt || 0).getTime() - new Date(a.completedAt || 0).getTime());
       
