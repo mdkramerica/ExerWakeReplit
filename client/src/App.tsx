@@ -40,6 +40,7 @@ import ResearchDashboard from "@/pages/research-dashboard";
 import StudyProtocolCompliance from "@/pages/study-protocol-compliance";
 import ClinicalSettings from "@/pages/clinical-settings";
 import ClinicalReports from "@/pages/clinical-reports";
+import PatientDailyDashboard from "@/pages/patient-daily-dashboard";
 import ClinicalLayout from "@/components/clinical-layout";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -97,6 +98,8 @@ function Router() {
       <Route path="/clinical/patients/:id" component={() => <ProtectedRoute><ClinicalLayout><PatientDetail /></ClinicalLayout></ProtectedRoute>} />
       <Route path="/clinical/patients" component={() => <ProtectedRoute><ClinicalLayout><ClinicalPatients /></ClinicalLayout></ProtectedRoute>} />
       <Route path="/clinical" component={() => <ProtectedRoute><ClinicalLayout><ClinicalDashboard /></ClinicalLayout></ProtectedRoute>} />
+      <Route path="/patient/:code" component={PatientDailyDashboard} />
+      <Route path="/patient" component={PatientDailyDashboard} />
       <Route>
         <div className="min-h-screen bg-white">
           <Header />

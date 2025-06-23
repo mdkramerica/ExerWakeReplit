@@ -244,6 +244,40 @@ export const injuryTypes = pgTable("injury_types", {
   icon: text("icon").notNull(),
 });
 
+// Daily assessment completions for gamification
+export const dailyCompletions = pgTable("daily_completions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  completionDate: date("completion_date").notNull(),
+  assessmentsCompleted: integer("assessments_completed").notNull().default(0),
+  totalAssessments: integer("total_assessments").notNull().default(0),
+  streakDay: integer("streak_day").default(1),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Assessment schedule templates by injury type
+export const assessmentSchedules = pgTable("assessment_schedules", {
+  id: serial("id").primaryKey(),
+  injuryType: text("injury_type").notNull(),
+  assessmentId: integer("assessment_id").references(() => assessmentTypes.id).notNull(),
+  isRequired: boolean("is_required").default(true),
+  frequency: text("frequency").notNull().default("daily"), // "daily", "weekly", "biweekly"
+  estimatedMinutes: integer("estimated_minutes").default(5),
+  dayOfWeek: integer("day_of_week"), // 0-6 for weekly assessments
+  isActive: boolean("is_active").default(true),
+});
+
+// User streaks and achievements
+export const userStreaks = pgTable("user_streaks", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().unique(),
+  currentStreak: integer("current_streak").default(0),
+  longestStreak: integer("longest_streak").default(0),
+  totalCompletions: integer("total_completions").default(0),
+  lastCompletionDate: date("last_completion_date"),
+  lastStreakUpdate: timestamp("last_streak_update").defaultNow(),
+});
+
 // Clinical dashboard schemas
 export const insertClinicalUserSchema = createInsertSchema(clinicalUsers).omit({
   id: true,
@@ -290,6 +324,20 @@ export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({
 export const insertDataExportSchema = createInsertSchema(dataExports).omit({
   id: true,
   createdAt: true,
+});
+
+export const insertDailyCompletionSchema = createInsertSchema(dailyCompletions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertAssessmentScheduleSchema = createInsertSchema(assessmentSchedules).omit({
+  id: true,
+});
+
+export const insertUserStreakSchema = createInsertSchema(userStreaks).omit({
+  id: true,
+  lastStreakUpdate: true,
 });
 
 // QuickDASH questionnaire responses (study-specific)
