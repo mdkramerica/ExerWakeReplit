@@ -1489,7 +1489,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
   }, [isDragging]);
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 bg-white p-6 min-h-screen">
+    <div className="w-full space-y-4 bg-white p-4">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between text-gray-900">
@@ -1503,9 +1503,10 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
           <div className="space-y-4">
             <canvas
               ref={canvasRef}
-              width={640}
-              height={480}
+              width={800}
+              height={500}
               className="w-full border-2 border-gray-300 rounded-lg bg-gray-900"
+              style={{ maxWidth: '100%', height: '500px' }}
               onMouseDown={handleCanvasMouseDown}
               onMouseMove={handleCanvasMouseMove}
               onMouseUp={handleCanvasMouseUp}

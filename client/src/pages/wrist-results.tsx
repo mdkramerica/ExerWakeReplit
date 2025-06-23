@@ -175,7 +175,7 @@ export default function WristResults() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="aspect-video bg-gray-900 rounded-lg overflow-hidden border-2 border-gray-300">
+              <div className="w-full bg-gray-900 rounded-lg overflow-hidden border-2 border-gray-300">
                 <AssessmentReplay
                   assessmentName="Wrist Flexion/Extension"
                   userAssessmentId={userAssessmentId}
