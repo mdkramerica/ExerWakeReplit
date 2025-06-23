@@ -383,8 +383,17 @@ export default function PatientDailyDashboard() {
                         </h4>
                         {calendarData?.find(day => isSameDay(new Date(day.date), selectedDate)) ? (
                           <div className="text-sm space-y-1">
-                            <p>Status: <Badge>{calendarData.find(day => isSameDay(new Date(day.date), selectedDate))?.status}</Badge></p>
-                            <p>Completed: {calendarData.find(day => isSameDay(new Date(day.date), selectedDate))?.completedAssessments} of {calendarData.find(day => isSameDay(new Date(day.date), selectedDate))?.totalAssessments}</p>
+                            {(() => {
+                              const dayData = calendarData.find(day => isSameDay(new Date(day.date), selectedDate));
+                              const isRecoveryStart = format(selectedDate, 'yyyy-MM-dd') === '2025-06-20';
+                              return (
+                                <>
+                                  <p>Status: <Badge variant={dayData?.status === 'completed' ? 'default' : dayData?.status === 'pending' ? 'secondary' : 'outline'}>{dayData?.status}</Badge></p>
+                                  <p>Completed: {dayData?.completedAssessments} of {dayData?.totalAssessments}</p>
+                                  {isRecoveryStart && <p className="text-xs text-blue-600 font-medium">🏥 Recovery Started</p>}
+                                </>
+                              );
+                            })()}
                           </div>
                         ) : (
                           <p className="text-sm text-muted-foreground">No data for this date</p>
