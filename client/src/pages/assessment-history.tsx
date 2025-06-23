@@ -250,6 +250,10 @@ export default function AssessmentHistory() {
                                       <div className="font-bold text-xs text-blue-700">Extension</div>
                                       <div className="font-bold text-lg text-blue-900">{wristResults.maxExtension.toFixed(0)}°</div>
                                     </div>
+                                    <div className="px-3 py-2 rounded-lg border-2 bg-green-50 border-green-300">
+                                      <div className="font-bold text-xs text-green-700">Total ROM</div>
+                                      <div className="font-bold text-lg text-green-900">{wristResults.totalROM.toFixed(0)}°</div>
+                                    </div>
                                   </>
                                 );
                               })()}
