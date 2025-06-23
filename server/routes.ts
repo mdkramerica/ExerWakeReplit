@@ -1222,10 +1222,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Patient not found" });
       }
 
-      // Get assessments for injury type
-      const allAssessments = user.injuryType 
-        ? await storage.getAssessmentsForInjuryType(user.injuryType)
-        : await storage.getAssessments();
+      // Get assessments - use all available assessments for now
+      const allAssessments = await storage.getAssessments();
 
       const dailyAssessments = allAssessments.slice(0, 3).map(assessment => ({
         id: assessment.id,
