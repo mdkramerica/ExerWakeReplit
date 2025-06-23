@@ -184,43 +184,39 @@ export default function PatientDailyDashboard() {
         </div>
 
         {/* Streak Card */}
-        <Card className="bg-gradient-to-r from-orange-500 to-red-500 text-white border-0 shadow-lg overflow-visible">
-          <CardContent className="p-6">
-            <div className="grid grid-cols-12 gap-4 items-center">
-              <div className="col-span-8">
-                <div className="flex items-center space-x-4 mb-4">
-                  <div className="flex-shrink-0">
-                    {getStreakIcon(streakData?.currentStreak || 0)}
-                  </div>
-                  <div>
-                    <div className="text-3xl font-bold text-white leading-none mb-1">
-                      {streakData?.currentStreak || 0} Day Streak
-                    </div>
-                    <div className="text-white text-sm font-medium opacity-90">
-                      Since surgery (June 20)
-                    </div>
-                  </div>
-                </div>
-                <div className="bg-black bg-opacity-30 backdrop-blur-sm border border-white border-opacity-20 px-4 py-3 rounded-lg">
-                  <p className="text-white font-bold text-center text-sm">
-                    {getStreakMessage(streakData?.currentStreak || 0)}
-                  </p>
-                </div>
+        <div className="w-full bg-gradient-to-r from-orange-500 to-red-500 rounded-lg shadow-lg border-0 p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="flex-shrink-0">
+                {getStreakIcon(streakData?.currentStreak || 0)}
               </div>
-              <div className="col-span-4 text-right">
-                <div className="text-4xl font-bold text-white mb-1">
-                  {streakData?.totalCompletions || 0}
+              <div>
+                <div className="text-3xl font-bold text-white mb-1">
+                  {streakData?.currentStreak || 0} Day Streak
                 </div>
-                <div className="text-white text-sm font-medium opacity-90 mb-1">
-                  Total Completions
-                </div>
-                <div className="text-white text-xs opacity-75">
-                  Best Streak: {streakData?.longestStreak || 0} days
+                <div className="text-white text-sm font-medium">
+                  Since surgery (June 20)
                 </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+            <div className="text-right">
+              <div className="text-4xl font-bold text-white">
+                {streakData?.totalCompletions || 0}
+              </div>
+              <div className="text-white text-sm font-medium">
+                Total Completions
+              </div>
+              <div className="text-white text-xs">
+                Best Streak: {streakData?.longestStreak || 0} days
+              </div>
+            </div>
+          </div>
+          <div className="mt-4 bg-black bg-opacity-30 px-4 py-3 rounded-lg border border-white border-opacity-20">
+            <p className="text-white font-bold text-center text-sm">
+              {getStreakMessage(streakData?.currentStreak || 0)}
+            </p>
+          </div>
+        </div>
 
         <Tabs defaultValue="today" className="space-y-6">
           <TabsList className="grid w-full grid-cols-3">
