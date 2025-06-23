@@ -174,8 +174,8 @@ export default function PatientDailyDashboard() {
                     <div className="text-orange-100 text-sm font-medium">Since surgery (June 20)</div>
                   </div>
                 </div>
-                <div className="bg-white/20 backdrop-blur-md border border-white/30 px-4 py-2 rounded-lg shadow-lg">
-                  <p className="text-white font-bold text-center drop-shadow-lg">{getStreakMessage(streakData?.currentStreak || 0)}</p>
+                <div className="bg-gray-900 border-2 border-white px-4 py-2 rounded-lg shadow-xl">
+                  <p className="text-white font-bold text-center text-sm">{getStreakMessage(streakData?.currentStreak || 0)}</p>
                 </div>
               </div>
               <div className="text-right space-y-1">
