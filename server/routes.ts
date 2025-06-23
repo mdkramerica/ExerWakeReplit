@@ -522,7 +522,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // User routes
   app.post("/api/users/verify-code", async (req, res) => {
     try {
-      const { code } = z.object({ code: z.string().length(6) }).parse(req.body);
+      const { code } = z.object({ code: z.string().min(6) }).parse(req.body);
       
       let user = await memoryStorage.getUserByCode(code);
       
@@ -549,7 +549,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { code } = req.params;
       
-      if (!code || code.length !== 6) {
+      if (!code || code.length < 6) {
         return res.status(400).json({ message: "Invalid code format" });
       }
       

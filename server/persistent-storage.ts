@@ -191,6 +191,16 @@ export class PersistentMemoryStorage {
         studyEndDate: new Date('2025-07-18T18:24:59.559Z')
       },
       {
+        id: 5,
+        code: '000001',
+        createdAt: new Date('2025-06-21T10:00:00.000Z'),
+        isFirstTime: false,
+        injuryType: 'Trigger Finger',
+        studyStartDate: new Date('2025-06-21T10:00:00.000Z'),
+        studyDurationDays: 28,
+        studyEndDate: new Date('2025-07-19T10:00:00.000Z')
+      },
+      {
         id: 2,
         code: 'TEST01',
         createdAt: new Date('2025-06-19T10:30:00.000Z'),
@@ -410,9 +420,9 @@ export class PersistentMemoryStorage {
   }
 
   async createUser(userData: any): Promise<any> {
-    // Allow creation of users with any 6-digit access code
-    if (!userData.code || userData.code.length !== 6) {
-      console.log(`Persistent storage createUser rejected invalid code format: ${userData.code}`);
+    // Allow creation of users with any access code (including demo codes)
+    if (!userData.code) {
+      console.log(`Persistent storage createUser rejected missing code`);
       return null;
     }
     
