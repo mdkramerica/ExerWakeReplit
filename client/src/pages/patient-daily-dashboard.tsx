@@ -166,15 +166,17 @@ export default function PatientDailyDashboard() {
         <Card className="bg-gradient-to-r from-orange-500 to-red-500 text-white border-0 shadow-lg">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <div className="flex items-center space-x-3">
                   {getStreakIcon(streakData?.currentStreak || 0)}
                   <div>
                     <div className="text-3xl font-bold text-white">{streakData?.currentStreak || 0} Day Streak</div>
-                    <div className="text-orange-100 text-sm">Since surgery (June 20)</div>
+                    <div className="text-orange-100 text-sm font-medium">Since surgery (June 20)</div>
                   </div>
                 </div>
-                <p className="text-white font-medium bg-orange-600/20 px-3 py-1 rounded-lg">{getStreakMessage(streakData?.currentStreak || 0)}</p>
+                <div className="bg-white/10 backdrop-blur-sm px-4 py-2 rounded-lg">
+                  <p className="text-white font-semibold text-center">{getStreakMessage(streakData?.currentStreak || 0)}</p>
+                </div>
               </div>
               <div className="text-right space-y-1">
                 <div className="text-4xl font-bold text-white">{streakData?.totalCompletions || 0}</div>
@@ -366,7 +368,8 @@ export default function PatientDailyDashboard() {
                           backgroundColor: '#10b981', 
                           color: 'white',
                           fontWeight: 'bold',
-                          borderRadius: '50%'
+                          borderRadius: '50%',
+                          position: 'relative'
                         },
                         missed: { 
                           backgroundColor: '#ef4444', 
@@ -385,7 +388,8 @@ export default function PatientDailyDashboard() {
                           color: 'white',
                           fontWeight: 'bold',
                           borderRadius: '50%',
-                          border: '3px solid #1d4ed8'
+                          border: '3px solid #1d4ed8',
+                          boxShadow: '0 0 0 2px white, 0 0 0 4px #3b82f6'
                         }
                       }}
                     />

@@ -1326,9 +1326,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
               if (daysSinceRecovery === 0) {
                 // First day (June 20) - partial completion
                 status = 'pending';
-              } else if (daysSinceRecovery <= 3) {
-                // First few days - good completion pattern
+              } else if (daysSinceRecovery === 1 || daysSinceRecovery === 2) {
+                // June 21-22 - completed days
                 status = 'completed';
+              } else if (daysSinceRecovery === 3) {
+                // Today (June 23) - only 1 assessment completed, show as pending
+                status = 'pending';
               } else {
                 // Future realistic pattern
                 const dayOfWeek = date.getDay();
@@ -1347,10 +1350,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         const totalAssessments = uniqueAssessmentTypes.length;
+        let completedCount = 0;
+        
+        if (status === 'completed') {
+          completedCount = totalAssessments;
+        } else if (status === 'pending') {
+          if (code === '421475' && daysSinceRecovery === 0) {
+            completedCount = 2; // June 20 - partial completion
+          } else if (code === '421475' && daysSinceRecovery === 3) {
+            completedCount = 1; // June 23 - only 1 assessment completed today
+          } else {
+            completedCount = Math.floor(totalAssessments / 2);
+          }
+        } else {
+          completedCount = 0;
+        }
+        
         calendarData.push({
           date: dateStr,
           status,
-          completedAssessments: status === 'completed' ? totalAssessments : status === 'pending' ? Math.floor(totalAssessments / 2) : 0,
+          completedAssessments: completedCount,
           totalAssessments
         });
       }
