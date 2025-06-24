@@ -541,6 +541,7 @@ export default function AssessmentList() {
           </CardContent>
         </Card>
       )}
+      </div>
     </div>
   );
 }
