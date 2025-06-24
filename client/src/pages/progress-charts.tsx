@@ -85,8 +85,10 @@ export default function ProgressCharts() {
 
   // Process data for charts
   const getChartData = (assessmentName: string): ChartDataPoint[] => {
-    const relevantHistory = userHistory.filter(h => h.assessmentName === 'TAM (Total Active Motion)');
-    const target = targetROM[injuryType]?.[assessmentName] || 270;
+    const relevantHistory = assessmentName.includes('Kapandji') 
+      ? userHistory.filter(h => h.assessmentName?.includes('Kapandji'))
+      : userHistory.filter(h => h.assessmentName === 'TAM (Total Active Motion)');
+    const target = assessmentName.includes('Kapandji') ? 10 : (targetROM[injuryType]?.[assessmentName] || 270);
     
     return relevantHistory.map(item => {
       // Calculate post-op day
@@ -128,7 +130,7 @@ export default function ProgressCharts() {
   const CustomTooltip = ({ active, payload, label, assessmentName }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
-      const target = targetROM[injuryType]?.[assessmentName] || 100;
+      const target = assessmentName.includes('Kapandji') ? 10 : (targetROM[injuryType]?.[assessmentName] || 100);
       const unit = assessmentName.includes('Kapandji') ? '' : '°';
       
       return (
@@ -233,7 +235,7 @@ export default function ProgressCharts() {
 
         {displayAssessments.map((assessmentName) => {
           const chartData = getChartData(assessmentName);
-          const target = targetROM[injuryType]?.[assessmentName] || 100;
+          const target = assessmentName.includes('Kapandji') ? 10 : (targetROM[injuryType]?.[assessmentName] || 100);
           const unit = assessmentName.includes('Kapandji') ? '' : '°';
           const latestValue = chartData[chartData.length - 1]?.value || 0;
           const percentageOfTarget = Math.round((latestValue / target) * 100);
@@ -253,7 +255,7 @@ export default function ProgressCharts() {
                       <div className="flex items-center gap-2">
                         <Badge variant="outline">
                           <Target className="h-3 w-3 mr-1" />
-                          Target: {target}{unit}
+                          Target: {target}{assessmentName.includes('Kapandji') ? '' : unit}
                         </Badge>
                         <Badge variant={percentageOfTarget >= 80 ? "default" : "secondary"}>
                           Current: {latestValue}{unit} ({percentageOfTarget}%)
@@ -273,8 +275,12 @@ export default function ProgressCharts() {
                             label={{ value: 'Post-op Day', position: 'insideBottom', offset: -5 }}
                           />
                           <YAxis 
-                            label={{ value: `ROM (${unit})`, angle: -90, position: 'insideLeft' }}
-                            domain={[0, Math.max(300, target + 50)]}
+                            label={{ 
+                              value: assessmentName.includes('Kapandji') ? 'Score' : `ROM (${unit})`, 
+                              angle: -90, 
+                              position: 'insideLeft' 
+                            }}
+                            domain={assessmentName.includes('Kapandji') ? [0, 12] : [0, Math.max(300, target + 50)]}
                           />
                           <Tooltip content={<CustomTooltip assessmentName={assessmentName} />} />
                           <ReferenceLine 
@@ -283,7 +289,7 @@ export default function ProgressCharts() {
                             strokeDasharray="10 5"
                             strokeWidth={4}
                             label={{ 
-                              value: `Target: ${target}°`, 
+                              value: `Target: ${target}${unit}`, 
                               position: "topRight", 
                               offset: 10,
                               style: { 
