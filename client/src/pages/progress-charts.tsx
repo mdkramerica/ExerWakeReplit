@@ -82,7 +82,7 @@ export default function ProgressCharts() {
   const studyStartDate = user?.user?.studyStartDate || user?.user?.createdAt;
   const userHistory = history?.history || [];
   const userAssessments = assessments?.assessments || [];
-
+  
   // Process data for charts
   const getChartData = (assessmentName: string): ChartDataPoint[] => {
     let relevantHistory;
@@ -158,11 +158,20 @@ export default function ProgressCharts() {
   // Get assessment types based on injury
   const assessmentTypes = Object.keys(targetROM[injuryType] || {});
   
+  // Filter out assessments with no data
+  const assessmentTypesWithData = assessmentTypes.filter(assessmentName => {
+    if (assessmentName.includes('Kapandji')) {
+      const kapandjiHistory = userHistory.filter(h => h.assessmentName === 'Kapandji Score');
+      return kapandjiHistory.length > 0;
+    }
+    return true; // Show other assessment types by default
+  });
+  
   // For Metacarpal ORIF, show digit breakdown
   const showDigitBreakdown = injuryType === 'Metacarpal ORIF';
   const displayAssessments = showDigitBreakdown ? 
     ['TAM (Total Active Motion)', 'Index Finger TAM', 'Middle Finger TAM', 'Ring Finger TAM', 'Pinky Finger TAM'] :
-    assessmentTypes;
+    assessmentTypesWithData;
 
   // Calculate days remaining based on study duration
   const studyDuration = injuryType === 'Trigger Finger' || injuryType === 'Metacarpal ORIF' || injuryType === 'Phalanx Fracture' ? 28 : 84;
@@ -223,7 +232,7 @@ export default function ProgressCharts() {
 
       {/* Progress Charts */}
       <Tabs defaultValue={displayAssessments[0]} className="space-y-6">
-        <TabsList className={`grid w-full ${showDigitBreakdown ? 'grid-cols-5' : 'grid-cols-2 lg:grid-cols-5'}`}>
+        <TabsList className={`grid w-full grid-cols-${Math.min(displayAssessments.length, 5)}`}>
           {displayAssessments.map((assessmentName) => (
             <TabsTrigger key={assessmentName} value={assessmentName} className="text-xs">
               {assessmentName
@@ -242,6 +251,8 @@ export default function ProgressCharts() {
           const unit = assessmentName.includes('Kapandji') ? '' : '°';
           const latestValue = chartData[chartData.length - 1]?.value || 0;
           const percentageOfTarget = Math.round((latestValue / target) * 100);
+          
+
 
           return (
             <TabsContent key={assessmentName} value={assessmentName} className="space-y-6">
