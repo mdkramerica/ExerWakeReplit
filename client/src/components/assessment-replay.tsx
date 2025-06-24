@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Play, Pause, RotateCcw, Download } from "lucide-react";
 import { calculateFingerROM, type JointAngles } from "@shared/rom-calculator";
 import { calculateKapandjiScore, calculateMaxKapandjiScore, type KapandjiScore } from "@shared/kapandji-calculator";
-import { calculateWristAngleByHandType, getRecordingSessionElbowSelection, setReplayMode, type ElbowWristAngles } from "@shared/elbow-wrist-calculator";
+import { calculateWristAngleByHandType, calculateElbowReferencedWristAngleWithForce, getRecordingSessionElbowSelection, setReplayMode, type ElbowWristAngles } from "@shared/elbow-wrist-calculator";
 import { calculateWristResults } from "@shared/wrist-results-calculator";
 // Remove the import since we'll load the image directly
 
@@ -150,11 +150,17 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
             return result;
           }
           
-          // Use the EXACT same calculation as wrist-results page
+          // Use the EXACT same calculation as wrist-results page with forced hand type
           if (frame.landmarks && frame.poseLandmarks) {
-            // This mirrors the calculation in wrist-results.tsx
-            const calculated = calculateWristAngleByHandType(frame.landmarks, frame.poseLandmarks);
-            calculated.handType = sessionHandType !== 'UNKNOWN' ? sessionHandType : 'RIGHT';
+            // Use the authoritative hand type determination
+            const forceHandType = sessionHandType !== 'UNKNOWN' ? sessionHandType : 'RIGHT';
+            
+            // This mirrors the exact calculation in wrist-results-calculator.ts
+            const calculated = calculateElbowReferencedWristAngleWithForce(
+              frame.landmarks, 
+              frame.poseLandmarks, 
+              forceHandType
+            );
             return calculated;
           }
           
@@ -948,12 +954,21 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
       ctx.font = 'bold 16px Arial';
       ctx.fillText(`Raw Angle: ${currentWristAngles.forearmToHandAngle.toFixed(1)}°`, wristBoxX + 10, wristBoxY + 45);
       
-      // Calculate frame-synchronized angles for info panel
+      // Calculate frame-synchronized angles for info panel using EXACT same method as results calculator
       let frameAngles = { wristFlexionAngle: 0, wristExtensionAngle: 0 };
       if (frame.landmarks && frame.poseLandmarks) {
-        const frameCalc = calculateWristAngleByHandType(frame.landmarks, frame.poseLandmarks);
-        frameCalc.handType = currentWristAngles?.handType || 'RIGHT';
+        // Use the same hand type determination as the authoritative calculation
+        const determinedHandType = authoritativeWristResults?.handType || currentWristAngles?.handType || 'RIGHT';
+        
+        // Force the same calculation method used in wrist-results-calculator
+        const frameCalc = calculateElbowReferencedWristAngleWithForce(
+          frame.landmarks, 
+          frame.poseLandmarks, 
+          determinedHandType
+        );
         frameAngles = frameCalc;
+        
+        console.log(`FRAME ${currentFrame}: ${determinedHandType} hand - Flexion: ${frameCalc.wristFlexionAngle.toFixed(1)}°, Extension: ${frameCalc.wristExtensionAngle.toFixed(1)}°`);
       }
       
       // Flexion angle
