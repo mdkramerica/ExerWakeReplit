@@ -95,7 +95,11 @@ This is a comprehensive hand rehabilitation assessment platform that combines re
 
 ## Recent Changes
 
-### June 24, 2025 - TAM Visibility-Based Temporal Validation & Database Migration
+### June 24, 2025 - Patient Logout System & TAM Visibility-Based Temporal Validation
+- **Implemented universal patient logout functionality across all patient pages**
+- **Created PatientHeader component with logout button and patient identification**
+- **Added session cleanup and redirection to login page on logout**
+- **Consistent navigation experience with patient code display and logout access**
 - **Enhanced temporal validation with visibility-based decision logic**
 - **System now preserves legitimate high ROM values for clearly visible fingers**
 - **Bypasses temporal filtering when fingers are visible in ≥80% of frames**
@@ -133,3 +137,4 @@ This is a comprehensive hand rehabilitation assessment platform that combines re
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+Patient interface navigation: Consistent logout functionality accessible from all patient pages.

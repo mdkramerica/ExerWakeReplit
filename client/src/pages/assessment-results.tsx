@@ -7,6 +7,7 @@ import { Link } from "wouter";
 import { useState } from "react";
 import AssessmentReplay from "@/components/assessment-replay";
 import { calculateWristResults, getWristClinicalInterpretation, getWristPercentages } from "@shared/wrist-results-calculator";
+import { PatientHeader } from "@/components/patient-header";
 
 export default function AssessmentResults() {
   const [, params] = useRoute("/assessment-results/:code/:userAssessmentId");
