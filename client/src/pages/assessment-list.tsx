@@ -195,8 +195,14 @@ export default function AssessmentList() {
           
           {/* Central Navigation Buttons */}
           <div className="flex flex-wrap gap-3 mt-4 pt-4 border-t">
-            <Link href="/daily-assessments">
+            <Link href={`/patient/${userCode}`}>
               <Button variant="default" size="sm">
+                <Activity className="h-4 w-4 mr-2" />
+                Dashboard
+              </Button>
+            </Link>
+            <Link href="/daily-assessments">
+              <Button variant="outline" size="sm">
                 <Calendar className="h-4 w-4 mr-2" />
                 Daily Assessments
               </Button>

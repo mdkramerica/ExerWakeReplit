@@ -45,7 +45,7 @@ export default function Landing() {
       if (data.isFirstTime && !data.hasInjuryType) {
         setLocation("/injury-selection");
       } else {
-        setLocation(`/assessment-list/${data.user.code}`);
+        setLocation(`/patient/${data.user.code}`);
       }
     },
     onError: (error) => {
