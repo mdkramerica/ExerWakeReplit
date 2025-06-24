@@ -95,6 +95,14 @@ This is a comprehensive hand rehabilitation assessment platform that combines re
 
 ## Recent Changes
 
+### June 24, 2025 - TAM Occlusion Detection Research & Database Migration
+- Completed comprehensive analysis of finger occlusion issues in TAM assessments
+- Documented complete implementation plan for MediaPipe tracking improvements
+- Created TAM_OCCLUSION_DETECTION_IMPLEMENTATION_PLAN.md with phased approach
+- Identified index finger ROM overestimation when occluded by other fingers
+- Research-based solution combining confidence filtering, z-depth analysis, and anatomical constraints
+- Implementation plan ready for future development when needed
+
 ### June 24, 2025 - Database Migration & Production Deployment Ready
 - Completed full PostgreSQL database migration from file-based storage
 - Migrated all 9 users, 27 user assessments, and 3 clinical users successfully
