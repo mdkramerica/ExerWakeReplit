@@ -102,7 +102,7 @@ function Router() {
       <Route path="/clinical/patients" component={() => <ProtectedRoute><ClinicalLayout><ClinicalPatients /></ClinicalLayout></ProtectedRoute>} />
       <Route path="/clinical" component={() => <ProtectedRoute><ClinicalLayout><ClinicalDashboard /></ClinicalLayout></ProtectedRoute>} />
       <Route path="/patient/:code" component={() => <PatientDailyDashboard />} />
-      <Route path="/assessment-list/:userCode" component={() => <AssessmentList />} />
+      <Route path="/assessment-list/:userCode" component={() => <PatientDailyDashboard />} />
       <Route path="/assessment-history/:userCode" component={() => <AssessmentHistory />} />
       <Route path="/patient" component={() => <PatientAccess />} />
       <Route>

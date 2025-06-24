@@ -174,10 +174,10 @@ export default function PatientDailyDashboard() {
                 View Assessment History
               </Button>
             </Link>
-            <Link href={`/assessment-list/${userCode}`}>
+            <Link href={`/progress-charts`}>
               <Button variant="outline" className="flex items-center gap-2">
-                <Target className="h-4 w-4" />
-                Current Assessments
+                <TrendingUp className="h-4 w-4" />
+                Progress Charts
               </Button>
             </Link>
           </div>
