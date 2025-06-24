@@ -39,6 +39,14 @@ export default function AssessmentHistory() {
     cacheTime: 0, // Don't cache results
   });
 
+  // Fetch user data for the PatientHeader
+  const { data: userData } = useQuery({
+    queryKey: [`/api/users/by-code/${userCode}`],
+    enabled: !!userCode
+  });
+
+  const user = (userData as any)?.user;
+
 
 
   if (isLoading) {
@@ -84,7 +92,7 @@ export default function AssessmentHistory() {
       {/* Patient Header with Logout */}
       <PatientHeader 
         patientCode={userCode || ''} 
-        patientAlias={userData?.alias}
+        patientAlias={user?.alias}
       />
       
       <div className="p-4">
