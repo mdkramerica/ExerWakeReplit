@@ -11,7 +11,7 @@ import { Link } from "wouter";
 const targetROM = {
   'Carpal Tunnel': {
     'TAM (Total Active Motion)': 260,
-    'Kapandji Score': 8,
+    'Kapandji Score': 10,
     'Wrist Flexion/Extension': 60,
     'Forearm Pronation/Supination': 80,
     'Wrist Radial/Ulnar Deviation': 30
@@ -21,7 +21,7 @@ const targetROM = {
   },
   'Distal Radius Fracture': {
     'TAM (Total Active Motion)': 240,
-    'Kapandji Score': 7,
+    'Kapandji Score': 10,
     'Wrist Flexion/Extension': 50,
     'Forearm Pronation/Supination': 70,
     'Wrist Radial/Ulnar Deviation': 25
@@ -85,9 +85,12 @@ export default function ProgressCharts() {
 
   // Process data for charts
   const getChartData = (assessmentName: string): ChartDataPoint[] => {
-    const relevantHistory = assessmentName.includes('Kapandji') 
-      ? userHistory.filter(h => h.assessmentName?.includes('Kapandji'))
-      : userHistory.filter(h => h.assessmentName === 'TAM (Total Active Motion)');
+    let relevantHistory;
+    if (assessmentName.includes('Kapandji')) {
+      relevantHistory = userHistory.filter(h => h.assessmentName === 'Kapandji Score');
+    } else {
+      relevantHistory = userHistory.filter(h => h.assessmentName === 'TAM (Total Active Motion)');
+    }
     const target = assessmentName.includes('Kapandji') ? 10 : (targetROM[injuryType]?.[assessmentName] || 270);
     
     return relevantHistory.map(item => {
@@ -109,7 +112,7 @@ export default function ProgressCharts() {
       } else if (assessmentName === 'Pinky Finger TAM') {
         value = parseFloat(item.pinkyFingerRom) || 0;
       } else if (assessmentName.includes('Kapandji')) {
-        value = parseFloat(item.totalActiveRom) || 0;
+        value = parseFloat(item.kapandjiScore || item.totalActiveRom) || 0;
       } else if (assessmentName.includes('Flexion/Extension')) {
         value = (item.wristFlexionAngle || 0) + (item.wristExtensionAngle || 0);
       } else if (assessmentName.includes('Pronation/Supination')) {
