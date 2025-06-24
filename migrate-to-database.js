@@ -79,21 +79,20 @@ async function migrateData() {
       for (const ua of storageData.userAssessments) {
         await pool.query(`
           INSERT INTO user_assessments (
-            id, user_id, assessment_id, session_number, is_completed, completed_at, completed_on,
-            post_op_day, quality_score, index_finger_rom, middle_finger_rom, ring_finger_rom, 
+            id, user_id, assessment_id, session_number, is_completed, completed_at,
+            quality_score, index_finger_rom, middle_finger_rom, ring_finger_rom, 
             pinky_finger_rom, wrist_flexion_angle, wrist_extension_angle, max_wrist_flexion,
-            max_wrist_extension, total_active_rom, kapandji_score, hand_type, repetition_data,
-            motion_data, max_mcp_angle, max_pip_angle, max_dip_angle, middle_finger_mcp,
+            max_wrist_extension, total_active_rom, hand_type, repetition_data,
+            max_mcp_angle, max_pip_angle, max_dip_angle, middle_finger_mcp,
             middle_finger_pip, middle_finger_dip, ring_finger_mcp, ring_finger_pip,
             ring_finger_dip, pinky_finger_mcp, pinky_finger_pip, pinky_finger_dip, share_token
           )
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31)
           ON CONFLICT (id) DO UPDATE SET
             is_completed = EXCLUDED.is_completed,
             completed_at = EXCLUDED.completed_at,
             quality_score = EXCLUDED.quality_score,
-            repetition_data = EXCLUDED.repetition_data,
-            motion_data = EXCLUDED.motion_data
+            repetition_data = EXCLUDED.repetition_data
         `, [
           ua.id,
           ua.userId,
@@ -101,8 +100,6 @@ async function migrateData() {
           ua.sessionNumber || 1,
           ua.isCompleted || false,
           ua.completedAt || null,
-          ua.completedOn || null,
-          ua.postOpDay || null,
           ua.qualityScore || null,
           ua.indexFingerRom || null,
           ua.middleFingerRom || null,
@@ -113,10 +110,8 @@ async function migrateData() {
           ua.maxWristFlexion || null,
           ua.maxWristExtension || null,
           ua.totalActiveRom || null,
-          ua.kapandjiScore || null,
           ua.handType || null,
           ua.repetitionData ? JSON.stringify(ua.repetitionData) : null,
-          ua.motionData ? JSON.stringify(ua.motionData) : null,
           ua.maxMcpAngle || null,
           ua.maxPipAngle || null,
           ua.maxDipAngle || null,

@@ -1271,7 +1271,8 @@ async function initializeDatabase() {
   }
 }
 
-export const storage = new DatabaseStorage();
+// Use DatabaseStorage when DATABASE_URL is available (production and development)
+export const storage = process.env.DATABASE_URL ? new DatabaseStorage() : new MemStorage();
 
 // Initialize and verify database connection
 (async () => {
