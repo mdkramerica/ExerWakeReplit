@@ -299,14 +299,14 @@ export default function PatientDailyDashboard() {
                     <Alert className="bg-green-50 border-green-200">
                       <CheckCircle className="h-4 w-4 text-green-600" />
                       <AlertDescription className="text-green-800">
-                        Fantastic! You've completed all today's assessments!
+                        Outstanding! You've completed all {totalToday} assessments today! Keep building that streak - you're doing amazing work on your recovery journey!
                       </AlertDescription>
                     </Alert>
                   ) : (
                     <Alert>
                       <Clock className="h-4 w-4" />
                       <AlertDescription>
-                        {todayAssessments.length} assessments remaining today
+                        {todayAssessments.length} assessments remaining today. You've got this! Complete them all to keep your streak going.
                       </AlertDescription>
                     </Alert>
                   )}
@@ -408,9 +408,9 @@ export default function PatientDailyDashboard() {
                     <Card>
                       <CardContent className="pt-6 text-center">
                         <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
-                        <h3 className="font-medium mb-2">No assessments today!</h3>
+                        <h3 className="font-medium mb-2">Perfect rest day! 🌟</h3>
                         <p className="text-sm text-muted-foreground">
-                          Take a well-deserved rest day.
+                          Take this well-deserved break. Your consistent effort is paying off - recovery includes proper rest too!
                         </p>
                       </CardContent>
                     </Card>

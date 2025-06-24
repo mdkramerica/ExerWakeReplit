@@ -1448,14 +1448,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
               return completedDate === dateStr && ua.isCompleted;
             });
             
-            if (assessmentsForDate.length > 0) {
-              // User has completed assessments on this date
+            if (date.toDateString() === today.toDateString()) {
+              // Today - use actual completion data
+              completedCount = assessmentsForDate.length;
+              status = completedCount === totalAssessments ? 'completed' : 'pending';
+            } else if (assessmentsForDate.length > 0) {
+              // Past dates with completed assessments
               completedCount = assessmentsForDate.length;
               status = completedCount >= totalAssessments ? 'completed' : 'pending';
-            } else if (date.toDateString() === today.toDateString()) {
-              // Today - assessments available but not completed
-              status = 'pending';
-              completedCount = 0;
             } else if (date < today) {
               // Past dates with no assessments - show realistic patterns
               const dateStr = date.toISOString().split('T')[0];
