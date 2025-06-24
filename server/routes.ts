@@ -884,29 +884,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
               
               console.log('Raw allFingersROM object:', JSON.stringify(allFingersROM, null, 2));
               
-              indexFingerRom = allFingersROM.index?.totalActiveRom || null;
-              middleFingerRom = allFingersROM.middle?.totalActiveRom || null;
-              ringFingerRom = allFingersROM.ring?.totalActiveRom || null;
-              pinkyFingerRom = allFingersROM.pinky?.totalActiveRom || null;
+              // Check temporal validation quality
+              const temporalQuality = allFingersROM.temporalQuality || {};
+              console.log('Temporal validation quality scores:', temporalQuality);
               
-              // Store individual joint angles for detailed breakdown
-              middleFingerMcp = allFingersROM.middle?.mcpAngle || null;
-              middleFingerPip = allFingersROM.middle?.pipAngle || null;
-              middleFingerDip = allFingersROM.middle?.dipAngle || null;
+              // Apply temporal quality thresholds for TAM assessments
+              const TEMPORAL_QUALITY_THRESHOLD = 0.7; // 70% temporal consistency required
               
-              ringFingerMcp = allFingersROM.ring?.mcpAngle || null;
-              ringFingerPip = allFingersROM.ring?.pipAngle || null;
-              ringFingerDip = allFingersROM.ring?.dipAngle || null;
+              indexFingerRom = (temporalQuality.index >= TEMPORAL_QUALITY_THRESHOLD) 
+                ? allFingersROM.index?.totalActiveRom || null
+                : null;
+              middleFingerRom = (temporalQuality.middle >= TEMPORAL_QUALITY_THRESHOLD)
+                ? allFingersROM.middle?.totalActiveRom || null
+                : null;
+              ringFingerRom = (temporalQuality.ring >= TEMPORAL_QUALITY_THRESHOLD)
+                ? allFingersROM.ring?.totalActiveRom || null
+                : null;
+              pinkyFingerRom = (temporalQuality.pinky >= TEMPORAL_QUALITY_THRESHOLD)
+                ? allFingersROM.pinky?.totalActiveRom || null
+                : null;
               
-              pinkyFingerMcp = allFingersROM.pinky?.mcpAngle || null;
-              pinkyFingerPip = allFingersROM.pinky?.pipAngle || null;
-              pinkyFingerDip = allFingersROM.pinky?.dipAngle || null;
+              // Log temporal validation results
+              ['index', 'middle', 'ring', 'pinky'].forEach(finger => {
+                const quality = temporalQuality[finger] || 0;
+                const status = quality >= TEMPORAL_QUALITY_THRESHOLD ? 'ACCEPTED' : 'REJECTED';
+                console.log(`${finger.toUpperCase()} finger temporal validation: ${(quality * 100).toFixed(1)}% - ${status}`);
+              });
               
-              console.log('Multi-finger ROM calculated:', {
+              // Store individual joint angles for detailed breakdown (only if temporally valid)
+              middleFingerMcp = (temporalQuality.middle >= TEMPORAL_QUALITY_THRESHOLD)
+                ? allFingersROM.middle?.mcpAngle || null
+                : null;
+              middleFingerPip = (temporalQuality.middle >= TEMPORAL_QUALITY_THRESHOLD)
+                ? allFingersROM.middle?.pipAngle || null
+                : null;
+              middleFingerDip = (temporalQuality.middle >= TEMPORAL_QUALITY_THRESHOLD)
+                ? allFingersROM.middle?.dipAngle || null
+                : null;
+              
+              ringFingerMcp = (temporalQuality.ring >= TEMPORAL_QUALITY_THRESHOLD)
+                ? allFingersROM.ring?.mcpAngle || null
+                : null;
+              ringFingerPip = (temporalQuality.ring >= TEMPORAL_QUALITY_THRESHOLD)
+                ? allFingersROM.ring?.pipAngle || null
+                : null;
+              ringFingerDip = (temporalQuality.ring >= TEMPORAL_QUALITY_THRESHOLD)
+                ? allFingersROM.ring?.dipAngle || null
+                : null;
+              
+              pinkyFingerMcp = (temporalQuality.pinky >= TEMPORAL_QUALITY_THRESHOLD)
+                ? allFingersROM.pinky?.mcpAngle || null
+                : null;
+              pinkyFingerPip = (temporalQuality.pinky >= TEMPORAL_QUALITY_THRESHOLD)
+                ? allFingersROM.pinky?.pipAngle || null
+                : null;
+              pinkyFingerDip = (temporalQuality.pinky >= TEMPORAL_QUALITY_THRESHOLD)
+                ? allFingersROM.pinky?.dipAngle || null
+                : null;
+              
+              console.log('Multi-finger ROM calculated with temporal validation:', {
                 index: indexFingerRom,
                 middle: middleFingerRom,
                 ring: ringFingerRom,
-                pinky: pinkyFingerRom
+                pinky: pinkyFingerRom,
+                temporalQuality: temporalQuality
               });
               
               console.log('Individual joint angles calculated:', {
