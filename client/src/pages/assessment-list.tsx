@@ -8,6 +8,7 @@ import { CheckCircle, Clock, Play, Eye, Calendar, History, RotateCcw, TrendingUp
 import { useLocation, Link } from "wouter";
 import AssessmentReplay from "@/components/assessment-replay";
 import { getInjuryIcon } from "@/components/medical-icons";
+import { PatientHeader } from "@/components/patient-header";
 
 interface Assessment {
   id: number;
@@ -244,8 +245,8 @@ export default function AssessmentList() {
               <div key={assessment.id} className="assessment-card">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                      {getInjuryIcon(assessment.name)}
+                    <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                      <Activity className="w-6 h-6" />
                     </div>
                     <div>
                       <h3 className="font-medium text-gray-900">{assessment.name}</h3>
