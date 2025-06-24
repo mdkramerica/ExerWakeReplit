@@ -78,6 +78,12 @@ export default function AssessmentResults() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Patient Header with Logout */}
+      <PatientHeader 
+        patientCode={params?.code || ''} 
+        patientAlias={user?.alias} 
+      />
+      
       {showReplay && (
         <AssessmentReplay
           assessmentName={userAssessment.assessmentName || "Assessment"}

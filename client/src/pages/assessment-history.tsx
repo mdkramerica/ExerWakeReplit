@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Calendar, Clock, TrendingUp, History, CheckCircle } from 'lucide-react';
 import { calculateWristResults } from '@shared/wrist-results-calculator';
+import { PatientHeader } from '@/components/patient-header';
 
 interface UserAssessment {
   id: number;
@@ -79,8 +80,15 @@ export default function AssessmentHistory() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+      {/* Patient Header with Logout */}
+      <PatientHeader 
+        patientCode={userCode || ''} 
+        patientAlias={userData?.alias}
+      />
+      
+      <div className="p-4">
+        <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -346,6 +354,7 @@ export default function AssessmentHistory() {
             </div>
           </CardContent>
         </Card>
+        </div>
       </div>
     </div>
   );
