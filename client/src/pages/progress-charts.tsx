@@ -317,22 +317,7 @@ export default function ProgressCharts() {
                               }
                             }}
                           />
-                          <ReferenceLine 
-                            y={270} 
-                            stroke="#059669" 
-                            strokeDasharray="10 5"
-                            strokeWidth={4}
-                            label={{ 
-                              value: "Target: 270°", 
-                              position: "topRight",
-                              offset: 10,
-                              style: { 
-                                fill: '#059669', 
-                                fontWeight: 'bold', 
-                                fontSize: '14px'
-                              }
-                            }}
-                          />
+
                           <Line 
                             type="monotone" 
                             dataKey="value" 
