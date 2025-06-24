@@ -442,9 +442,9 @@ export default function PatientDailyDashboard() {
                       onSelect={setSelectedDate}
                       className="rounded-lg border shadow-sm bg-white mx-auto w-fit p-4 calendar-progress-override"
                       modifiers={{
-                        completed: calendarData?.filter(day => day.status === 'completed').map(day => new Date(day.date)) || [],
-                        missed: calendarData?.filter(day => day.status === 'missed').map(day => new Date(day.date)) || [],
-                        pending: calendarData?.filter(day => day.status === 'pending').map(day => new Date(day.date)) || [],
+                        completed: calendarData?.filter(day => day.status === 'completed').map(day => new Date(day.date + 'T12:00:00')) || [],
+                        missed: calendarData?.filter(day => day.status === 'missed').map(day => new Date(day.date + 'T12:00:00')) || [],
+                        pending: calendarData?.filter(day => day.status === 'pending').map(day => new Date(day.date + 'T12:00:00')) || [],
                         surgeryDate: [new Date(2025, 5, 20)], // June 20, 2025 (month is 0-indexed)
                       }}
                       modifiersClassNames={{
@@ -529,7 +529,7 @@ export default function PatientDailyDashboard() {
                                   <div className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
                                     <span className="text-sm font-medium text-gray-700">Assessments:</span>
                                     <span className="text-sm font-bold text-gray-900">
-                                      {dayData?.completedAssessments} of {dayData?.totalAssessments}
+                                      {dayData?.completedAssessments || 0} of {dayData?.totalAssessments || 0}
                                     </span>
                                   </div>
                                   

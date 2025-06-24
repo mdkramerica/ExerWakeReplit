@@ -1414,6 +1414,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Generate calendar data for last 30 days
       const calendarData = [];
       const today = new Date(2025, 5, 23); // Current date - June 23, 2025
+
       
       // Fixed surgery/recovery start date for all users
       const recoveryStartDate = new Date(2025, 5, 20); // June 20, 2025 (month is 0-indexed)
@@ -1433,30 +1434,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         let status = 'future';
         let completedCount = 0;
         
-        if (date <= today) {
-          if (date < recoveryStartDate) {
-            // Before recovery started - no activity
-            status = 'future';
-            completedCount = 0;
+        if (date < recoveryStartDate) {
+          // Before recovery started - no activity
+          status = 'future';
+          completedCount = 0;
+        } else if (date.toDateString() === today.toDateString()) {
+          // Today - use actual completion data
+          const assessmentsForDate = userAssessments.filter(ua => {
+            const completedDate = ua.completedAt ? new Date(ua.completedAt).toISOString().split('T')[0] : null;
+            return completedDate === dateStr && ua.isCompleted;
+          });
+          
+          completedCount = assessmentsForDate.length;
+          status = completedCount === totalAssessments ? 'completed' : 'pending';
+        } else if (date < today) {
+          // Past dates - check actual completions vs realistic simulation
+          const assessmentsForDate = userAssessments.filter(ua => {
+            const completedDate = ua.completedAt ? new Date(ua.completedAt).toISOString().split('T')[0] : null;
+            return completedDate === dateStr && ua.isCompleted;
+          });
+          
+          if (assessmentsForDate.length > 0) {
+            // Past dates with completed assessments
+            completedCount = assessmentsForDate.length;
+            status = completedCount >= totalAssessments ? 'completed' : 'pending';
           } else {
-            // Calculate days since recovery started
-            const daysSinceRecovery = Math.floor((date.getTime() - recoveryStartDate.getTime()) / (1000 * 60 * 60 * 24));
-            
-            // Check if user has actual assessments for this date
-            const assessmentsForDate = userAssessments.filter(ua => {
-              const completedDate = ua.completedAt ? new Date(ua.completedAt).toISOString().split('T')[0] : null;
-              return completedDate === dateStr && ua.isCompleted;
-            });
-            
-            if (date.toDateString() === today.toDateString()) {
-              // Today - use actual completion data
-              completedCount = assessmentsForDate.length;
-              status = completedCount === totalAssessments ? 'completed' : 'pending';
-            } else if (assessmentsForDate.length > 0) {
-              // Past dates with completed assessments
-              completedCount = assessmentsForDate.length;
-              status = completedCount >= totalAssessments ? 'completed' : 'pending';
-            } else if (date < today) {
               // Past dates with no assessments - show realistic patterns
               const dateStr = date.toISOString().split('T')[0];
               
@@ -1486,9 +1488,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   status = daysSinceRecovery % 3 === 0 ? 'completed' : 'pending';
                   completedCount = status === 'completed' ? totalAssessments : Math.floor(totalAssessments * 0.4);
                 }
-              }
             }
           }
+        } else {
+          // Future dates
+          status = 'future';
+          completedCount = 0;
         }
         
         calendarData.push({
