@@ -47,8 +47,8 @@ export default function AssessmentList() {
   const [, navigate] = useLocation();
   const [showReplay, setShowReplay] = useState<string | null>(null);
   const queryClient = useQueryClient();
-
-  // Get user code from URL path - handle both /assessments and /assessment-list/:code routes
+  
+  // Get user code from URL path - handle /assessment-list/:userCode route
   const pathParts = window.location.pathname.split('/');
   const userCode = pathParts[1] === 'assessment-list' ? pathParts[2] : null;
 
@@ -164,7 +164,16 @@ export default function AssessmentList() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gray-50">
+      {/* Patient Header with Logout */}
+      {userCode && !userCode.startsWith('DEMO') && (
+        <PatientHeader 
+          patientCode={userCode} 
+          patientAlias={userData?.user?.alias} 
+        />
+      )}
+      
+      <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
       {/* Central Navigation Hub */}
       <Card className="medical-card mb-6">
         <CardHeader>
@@ -236,10 +245,7 @@ export default function AssessmentList() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                      {(() => {
-                        const IconComponent = getInjuryIcon(assessment.name);
-                        return <IconComponent className="w-6 h-6 text-blue-600" />;
-                      })()}
+                      {getInjuryIcon(assessment.name)}
                     </div>
                     <div>
                       <h3 className="font-medium text-gray-900">{assessment.name}</h3>
