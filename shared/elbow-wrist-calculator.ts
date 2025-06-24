@@ -306,11 +306,22 @@ export function calculateElbowReferencedWristAngleWithForce(
   // ANATOMICAL ELBOW LOCKING: Lock elbow based on hand type for anatomical consistency
   // RIGHT hand ALWAYS uses RIGHT elbow, LEFT hand ALWAYS uses LEFT elbow
   
+  // Reset session lock if hand type changes to prevent elbow mismatch
+  if (recordingSessionElbowLocked && recordingSessionHandType && recordingSessionHandType !== forceHandType) {
+    console.log(`🔄 HAND TYPE CHANGED: ${recordingSessionHandType} → ${forceHandType}, resetting session lock`);
+    recordingSessionElbowLocked = false;
+    recordingSessionElbowIndex = undefined;
+    recordingSessionWristIndex = undefined;
+    recordingSessionShoulderIndex = undefined;
+    recordingSessionHandType = undefined;
+  }
+  
   if (!recordingSessionElbowLocked) {
     const useLeftElbow = forceHandType === 'LEFT';
     recordingSessionElbowIndex = useLeftElbow ? 13 : 14;
     recordingSessionWristIndex = useLeftElbow ? 15 : 16;
     recordingSessionShoulderIndex = useLeftElbow ? 11 : 12;
+    recordingSessionHandType = forceHandType;
     recordingSessionElbowLocked = true;
     
     console.log(`🔒 ANATOMICAL SESSION LOCKED: ${forceHandType} hand uses ${useLeftElbow ? 'LEFT' : 'RIGHT'} elbow (index ${recordingSessionElbowIndex})`);

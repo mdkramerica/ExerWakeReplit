@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Play, Pause, RotateCcw, Download } from "lucide-react";
 import { calculateFingerROM, type JointAngles } from "@shared/rom-calculator";
 import { calculateKapandjiScore, calculateMaxKapandjiScore, type KapandjiScore } from "@shared/kapandji-calculator";
-import { calculateWristAngleByHandType, calculateElbowReferencedWristAngleWithForce, getRecordingSessionElbowSelection, setReplayMode, type ElbowWristAngles } from "@shared/elbow-wrist-calculator";
+import { calculateWristAngleByHandType, calculateElbowReferencedWristAngleWithForce, getRecordingSessionElbowSelection, setReplayMode, clearSessionLock, type ElbowWristAngles } from "@shared/elbow-wrist-calculator";
 import { calculateWristResults } from "@shared/wrist-results-calculator";
 // Remove the import since we'll load the image directly
 
@@ -150,16 +150,41 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
             return result;
           }
           
-          // Use the EXACT same calculation as wrist-results page with forced hand type
+          // Use the EXACT same calculation as wrist-results page
           if (frame.landmarks && frame.poseLandmarks) {
-            // Use the authoritative hand type determination
-            const forceHandType = sessionHandType !== 'UNKNOWN' ? sessionHandType : 'RIGHT';
+            // DETERMINE CORRECT HAND TYPE BASED ON PROXIMITY TO ELBOWS
+            // Calculate distances to both elbows to determine which hand this is
+            const handWrist = frame.landmarks[0]; // Hand wrist landmark
+            const leftElbow = frame.poseLandmarks[13];
+            const rightElbow = frame.poseLandmarks[14];
+            
+            let detectedHandType = 'RIGHT'; // default
+            
+            if (leftElbow && rightElbow && handWrist) {
+              const distanceToLeft = Math.sqrt(
+                Math.pow(handWrist.x - leftElbow.x, 2) +
+                Math.pow(handWrist.y - leftElbow.y, 2) +
+                Math.pow(handWrist.z - (leftElbow.z || 0), 2)
+              );
+              const distanceToRight = Math.sqrt(
+                Math.pow(handWrist.x - rightElbow.x, 2) +
+                Math.pow(handWrist.y - rightElbow.y, 2) +
+                Math.pow(handWrist.z - (rightElbow.z || 0), 2)
+              );
+              
+              // Use closest elbow to determine hand type
+              detectedHandType = distanceToLeft < distanceToRight ? 'LEFT' : 'RIGHT';
+              console.log(`FRAME HAND DETECTION: Left dist: ${distanceToLeft.toFixed(3)}, Right dist: ${distanceToRight.toFixed(3)} → ${detectedHandType} hand`);
+            }
+            
+            // Override with session hand type if available and consistent
+            const finalHandType = sessionHandType !== 'UNKNOWN' ? sessionHandType : detectedHandType;
             
             // This mirrors the exact calculation in wrist-results-calculator.ts
             const calculated = calculateElbowReferencedWristAngleWithForce(
               frame.landmarks, 
               frame.poseLandmarks, 
-              forceHandType
+              finalHandType
             );
             return calculated;
           }
@@ -316,10 +341,32 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
             confidence: 0.8
           };
           
-          // Use the EXACT same forced calculation method as session maximum calculation
+          // Use the EXACT same hand detection method as session maximum calculation
           if (frame.landmarks && frame.poseLandmarks) {
-            // Determine consistent hand type (same as session maximum calculation)
+            // DETERMINE CORRECT HAND TYPE BASED ON PROXIMITY TO ELBOWS (same as session calc)
+            const handWrist = frame.landmarks[0];
+            const leftElbow = frame.poseLandmarks[13];
+            const rightElbow = frame.poseLandmarks[14];
+            
             let frameHandType = 'RIGHT'; // default
+            
+            if (leftElbow && rightElbow && handWrist) {
+              const distanceToLeft = Math.sqrt(
+                Math.pow(handWrist.x - leftElbow.x, 2) +
+                Math.pow(handWrist.y - leftElbow.y, 2) +
+                Math.pow(handWrist.z - (leftElbow.z || 0), 2)
+              );
+              const distanceToRight = Math.sqrt(
+                Math.pow(handWrist.x - rightElbow.x, 2) +
+                Math.pow(handWrist.y - rightElbow.y, 2) +
+                Math.pow(handWrist.z - (rightElbow.z || 0), 2)
+              );
+              
+              // Use closest elbow
+              frameHandType = distanceToLeft < distanceToRight ? 'LEFT' : 'RIGHT';
+            }
+            
+            // Override with authoritative hand type if available
             if (authoritativeWristResults?.handType && authoritativeWristResults.handType !== 'UNKNOWN') {
               frameHandType = authoritativeWristResults.handType;
             } else if (maxWristAngles?.handType && maxWristAngles.handType !== 'UNKNOWN') {
