@@ -445,7 +445,7 @@ export default function PatientDailyDashboard() {
                         completed: calendarData?.filter(day => day.status === 'completed').map(day => new Date(day.date)) || [],
                         missed: calendarData?.filter(day => day.status === 'missed').map(day => new Date(day.date)) || [],
                         pending: calendarData?.filter(day => day.status === 'pending').map(day => new Date(day.date)) || [],
-                        surgeryDate: [new Date('2025-06-20')],
+                        surgeryDate: [new Date(2025, 5, 20)], // June 20, 2025 (month is 0-indexed)
                       }}
                       modifiersClassNames={{
                         completed: 'calendar-completed-day',

@@ -1413,10 +1413,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Generate calendar data for last 30 days
       const calendarData = [];
-      const today = new Date('2025-06-23'); // Current date
+      const today = new Date(2025, 5, 23); // Current date - June 23, 2025
       
       // Fixed surgery/recovery start date for all users
-      const recoveryStartDate = new Date('2025-06-20');
+      const recoveryStartDate = new Date(2025, 5, 20); // June 20, 2025 (month is 0-indexed)
       
       // Get actual assessments count
       const allAssessments = await storage.getAssessments();
