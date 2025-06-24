@@ -95,13 +95,16 @@ This is a comprehensive hand rehabilitation assessment platform that combines re
 
 ## Recent Changes
 
-### June 24, 2025 - TAM Occlusion Detection Research & Database Migration
-- Completed comprehensive analysis of finger occlusion issues in TAM assessments
-- Documented complete implementation plan for MediaPipe tracking improvements
-- Created TAM_OCCLUSION_DETECTION_IMPLEMENTATION_PLAN.md with phased approach
-- Identified index finger ROM overestimation when occluded by other fingers
-- Research-based solution combining confidence filtering, z-depth analysis, and anatomical constraints
-- Implementation plan ready for future development when needed
+### June 24, 2025 - TAM Visibility-Based Temporal Validation & Database Migration
+- **Enhanced temporal validation with visibility-based decision logic**
+- **System now preserves legitimate high ROM values for clearly visible fingers**
+- **Bypasses temporal filtering when fingers are visible in ≥80% of frames**
+- **Maintains protection against tracking artifacts for occluded fingers**
+- Frame-to-frame validation applied selectively based on finger visibility assessment
+- MediaPipe visibility scores used to distinguish genuine ROM from tracking errors
+- Quality scoring differentiates between bypassed (1.0) and validated (0.3-0.9) measurements
+- Enhanced logging documents visibility assessment and validation decisions
+- Successfully completed PostgreSQL database migration for production deployment
 
 ### June 24, 2025 - Database Migration & Production Deployment Ready
 - Completed full PostgreSQL database migration from file-based storage

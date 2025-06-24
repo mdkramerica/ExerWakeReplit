@@ -9,6 +9,7 @@ export interface HandLandmark {
   x: number;
   y: number;
   z: number;
+  visibility?: number; // MediaPipe visibility score (0-1)
 }
 
 // Temporal consistency tracking
@@ -36,6 +37,13 @@ const TEMPORAL_CONFIG: TemporalValidationConfig = {
   smoothingWindowSize: 5,       // frames
   minValidFrames: 10,           // minimum frames for assessment
   temporalQualityThreshold: 0.8 // quality score threshold
+};
+
+// Visibility-based validation configuration
+const VISIBILITY_CONFIG = {
+  minLandmarkVisibility: 0.7,   // MediaPipe visibility threshold
+  minFingerVisibility: 0.8,     // Average finger visibility required
+  bypassTemporalIfVisible: true // Skip temporal validation for clearly visible fingers
 };
 
 // MediaPipe hand landmark indices for each finger
@@ -149,6 +157,47 @@ export function requireConsistentFrames(
   return { isValid, quality };
 }
 
+// Check if finger is clearly visible based on landmark visibility
+export function assessFingerVisibility(landmarks: HandLandmark[], fingerType: 'INDEX' | 'MIDDLE' | 'RING' | 'PINKY'): {
+  isVisible: boolean;
+  avgVisibility: number;
+  reason: string;
+} {
+  const finger = FINGER_LANDMARKS[fingerType];
+  const allIndices = [...finger.MCP, ...finger.PIP, ...finger.DIP];
+  
+  // Get unique landmark indices for this finger
+  const uniqueIndices = [...new Set(allIndices)];
+  
+  let totalVisibility = 0;
+  let visibleLandmarks = 0;
+  
+  uniqueIndices.forEach(idx => {
+    const landmark = landmarks[idx];
+    if (landmark && landmark.visibility !== undefined) {
+      totalVisibility += landmark.visibility;
+      if (landmark.visibility >= VISIBILITY_CONFIG.minLandmarkVisibility) {
+        visibleLandmarks++;
+      }
+    } else {
+      // If no visibility data, assume visible (fallback for older data)
+      totalVisibility += 1;
+      visibleLandmarks++;
+    }
+  });
+  
+  const avgVisibility = totalVisibility / uniqueIndices.length;
+  const visibilityRatio = visibleLandmarks / uniqueIndices.length;
+  
+  const isVisible = avgVisibility >= VISIBILITY_CONFIG.minFingerVisibility && visibilityRatio >= 0.8;
+  
+  const reason = isVisible 
+    ? `Clearly visible (${(avgVisibility * 100).toFixed(1)}% avg visibility)`
+    : `Poor visibility (${(avgVisibility * 100).toFixed(1)}% avg visibility, ${visibleLandmarks}/${uniqueIndices.length} landmarks visible)`;
+  
+  return { isVisible, avgVisibility, reason };
+}
+
 // Calculate temporal quality score
 export function calculateTemporalQuality(romHistory: number[]): number {
   if (romHistory.length < 2) return 0.5;
@@ -247,19 +296,60 @@ export function calculateAllFingersMaxROM(motionFrames: Array<{landmarks: HandLa
     const pipHistory: number[] = [];
     const dipHistory: number[] = [];
     
+    // Assess overall finger visibility across all frames
+    const visibilityAssessments = motionFrames.map(frame => 
+      frame.landmarks && frame.landmarks.length >= 21 
+        ? assessFingerVisibility(frame.landmarks, finger)
+        : { isVisible: false, avgVisibility: 0, reason: 'No landmarks' }
+    );
+    
+    const visibleFrames = visibilityAssessments.filter(v => v.isVisible).length;
+    const totalFrames = visibilityAssessments.length;
+    const overallVisibilityRatio = visibleFrames / totalFrames;
+    
+    // Determine if finger is consistently well-visible (bypass temporal validation)
+    const isClearlyVisible = overallVisibilityRatio >= 0.8; // 80% of frames must be clearly visible
+    
+    console.log(`${finger} finger visibility assessment: ${visibleFrames}/${totalFrames} frames clearly visible (${(overallVisibilityRatio * 100).toFixed(1)}%) - ${isClearlyVisible ? 'BYPASSING temporal validation' : 'APPLYING temporal validation'}`);
+    
     // Process each frame and build ROM history
-    motionFrames.forEach(frame => {
+    motionFrames.forEach((frame, frameIndex) => {
       if (frame.landmarks && frame.landmarks.length >= 21) {
         const rom = calculateFingerROM(frame.landmarks, finger);
+        const frameVisibility = visibilityAssessments[frameIndex];
         
-        // Validate temporal consistency
-        const totalROMValid = validateTemporalConsistency(rom.totalActiveRom, romHistory);
-        const mcpValid = validateTemporalConsistency(rom.mcpAngle, mcpHistory);
-        const pipValid = validateTemporalConsistency(rom.pipAngle, pipHistory);
-        const dipValid = validateTemporalConsistency(rom.dipAngle, dipHistory);
+        // Determine if we should apply temporal validation for this frame
+        let shouldApplyTemporal = true;
         
-        // Only accept ROM values if temporally consistent
-        if (totalROMValid && mcpValid && pipValid && dipValid) {
+        if (isClearlyVisible && VISIBILITY_CONFIG.bypassTemporalIfVisible) {
+          // Bypass temporal validation for clearly visible fingers
+          shouldApplyTemporal = false;
+        }
+        
+        let acceptFrame = true;
+        
+        if (shouldApplyTemporal) {
+          // Apply temporal consistency validation
+          const totalROMValid = validateTemporalConsistency(rom.totalActiveRom, romHistory);
+          const mcpValid = validateTemporalConsistency(rom.mcpAngle, mcpHistory);
+          const pipValid = validateTemporalConsistency(rom.pipAngle, pipHistory);
+          const dipValid = validateTemporalConsistency(rom.dipAngle, dipHistory);
+          
+          acceptFrame = totalROMValid && mcpValid && pipValid && dipValid;
+          
+          if (!acceptFrame) {
+            // Log detailed rejection reasons for clinical documentation
+            const rejectionReasons = [];
+            if (!totalROMValid) rejectionReasons.push(`TAM change: ${romHistory.length > 0 ? Math.abs(rom.totalActiveRom - romHistory[romHistory.length - 1]).toFixed(1) : 'N/A'}°`);
+            if (!mcpValid) rejectionReasons.push(`MCP change: ${mcpHistory.length > 0 ? Math.abs(rom.mcpAngle - mcpHistory[mcpHistory.length - 1]).toFixed(1) : 'N/A'}°`);
+            if (!pipValid) rejectionReasons.push(`PIP change: ${pipHistory.length > 0 ? Math.abs(rom.pipAngle - pipHistory[pipHistory.length - 1]).toFixed(1) : 'N/A'}°`);
+            if (!dipValid) rejectionReasons.push(`DIP change: ${dipHistory.length > 0 ? Math.abs(rom.dipAngle - dipHistory[dipHistory.length - 1]).toFixed(1) : 'N/A'}°`);
+            
+            console.log(`${finger} finger ROM REJECTED due to temporal inconsistency: TAM=${rom.totalActiveRom.toFixed(1)}° (${rejectionReasons.join(', ')}) - threshold: ${TEMPORAL_CONFIG.maxROMChangePerFrame}°`);
+          }
+        }
+        
+        if (acceptFrame) {
           romHistory.push(rom.totalActiveRom);
           mcpHistory.push(rom.mcpAngle);
           pipHistory.push(rom.pipAngle);
@@ -269,14 +359,12 @@ export function calculateAllFingersMaxROM(motionFrames: Array<{landmarks: HandLa
           maxPip = Math.max(maxPip, rom.pipAngle);
           maxDip = Math.max(maxDip, rom.dipAngle);
           maxTotal = Math.max(maxTotal, rom.totalActiveRom);
-        } else {
-          console.log(`${finger} finger ROM rejected due to temporal inconsistency: TAM=${rom.totalActiveRom}°`);
         }
       }
     });
 
-    // Apply smoothing to final ROM values if we have enough data
-    if (romHistory.length >= TEMPORAL_CONFIG.minValidFrames) {
+    // Apply smoothing to final ROM values if we have enough data AND temporal validation was applied
+    if (romHistory.length >= TEMPORAL_CONFIG.minValidFrames && !isClearlyVisible) {
       const smoothedMaxTotal = applySmoothingFilter([...romHistory].sort((a, b) => b - a).slice(0, 3));
       const smoothedMaxMcp = applySmoothingFilter([...mcpHistory].sort((a, b) => b - a).slice(0, 3));
       const smoothedMaxPip = applySmoothingFilter([...pipHistory].sort((a, b) => b - a).slice(0, 3));
@@ -290,18 +378,23 @@ export function calculateAllFingersMaxROM(motionFrames: Array<{landmarks: HandLa
       };
       
       temporalQuality[finger.toLowerCase()] = calculateTemporalQuality(romHistory);
-      console.log(`${finger} finger temporal validation: ${romHistory.length} valid frames, quality: ${Math.round(temporalQuality[finger.toLowerCase()] * 100)}%`);
+      console.log(`${finger} finger temporal validation: ${romHistory.length} valid frames, quality: ${Math.round(temporalQuality[finger.toLowerCase()] * 100)}%, final ROM: ${Math.round(smoothedMaxTotal * 100) / 100}°`);
     } else {
-      // Insufficient data for temporal validation, use raw values but mark low quality
+      // Use raw values for clearly visible fingers or insufficient data
       maxROMByFinger[finger.toLowerCase()] = {
-        mcpAngle: maxMcp,
-        pipAngle: maxPip,
-        dipAngle: maxDip,
-        totalActiveRom: maxTotal
+        mcpAngle: Math.round(maxMcp * 100) / 100,
+        pipAngle: Math.round(maxPip * 100) / 100,
+        dipAngle: Math.round(maxDip * 100) / 100,
+        totalActiveRom: Math.round(maxTotal * 100) / 100
       };
       
-      temporalQuality[finger.toLowerCase()] = 0.3; // Low quality due to insufficient data
-      console.log(`${finger} finger insufficient data for temporal validation: ${romHistory.length} frames`);
+      if (isClearlyVisible) {
+        temporalQuality[finger.toLowerCase()] = 1.0; // Perfect quality for clearly visible fingers
+        console.log(`${finger} finger clearly visible: ${romHistory.length} frames, bypassed temporal validation, final ROM: ${Math.round(maxTotal * 100) / 100}° (RAW)`);
+      } else {
+        temporalQuality[finger.toLowerCase()] = 0.3; // Low quality due to insufficient data
+        console.log(`${finger} finger insufficient data for temporal validation: ${romHistory.length} frames, using raw ROM: ${Math.round(maxTotal * 100) / 100}°`);
+      }
     }
   });
 
