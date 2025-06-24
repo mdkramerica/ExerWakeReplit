@@ -178,37 +178,42 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
         console.log(`REPLAY: Processed ${wristAnglesAllFrames.length} frames with forced hand type = ${sessionHandType}`);
         
         if (wristAnglesAllFrames.length > 0) {
-          // DIRECTLY ACCESS THE ASSESSMENT DATA TO GET THE SAME VALUES AS WRIST-RESULTS PAGE
-          console.log(`🔧 DEBUG: Using userAssessment data directly for consistency`);
-          console.log(`🔧 DEBUG: userAssessment structure:`, userAssessment);
-          
           // Use the EXACT same calculation that wrist-results.tsx uses
           const authoritativeResults = calculateWristResults(userAssessment);
           
-          console.log(`🎯 MOTION ANALYSIS - USING REAL ASSESSMENT DATA:`);
-          console.log(`  - Max Flexion: ${authoritativeResults.maxFlexion.toFixed(1)}° (from assessment data)`);
-          console.log(`  - Max Extension: ${authoritativeResults.maxExtension.toFixed(1)}° (from assessment data)`);
-          console.log(`  - Total ROM: ${authoritativeResults.totalROM.toFixed(1)}° (from assessment data)`);
-          console.log(`  - Hand Type: ${authoritativeResults.handType}`);
-          
           // Store the authoritative results for display
           setAuthoritativeWristResults(authoritativeResults);
-          console.log(`🔧 DEBUG: Stored authoritative results:`, authoritativeResults);
+          
+          // CALCULATE SESSION MAXIMUMS FROM ACTUAL MOTION REPLAY FRAMES
+          // This ensures motion replay shows real frame-by-frame maximums
+          const allFlexionAngles = wristAnglesAllFrames.map(w => w.wristFlexionAngle).filter(angle => !isNaN(angle) && angle >= 0);
+          const allExtensionAngles = wristAnglesAllFrames.map(w => w.wristExtensionAngle).filter(angle => !isNaN(angle) && angle >= 0);
+          
+          const replayMaxFlexion = allFlexionAngles.length > 0 ? Math.max(...allFlexionAngles) : 0;
+          const replayMaxExtension = allExtensionAngles.length > 0 ? Math.max(...allExtensionAngles) : 0;
           
           // Use session hand type consistently
           const finalHandType = sessionHandType !== 'UNKNOWN' ? sessionHandType : authoritativeResults.handType;
           
           setMaxWristAngles({
-            forearmToHandAngle: 90, // Not used for display in wrist assessments
-            wristFlexionAngle: authoritativeResults.maxFlexion,
-            wristExtensionAngle: authoritativeResults.maxExtension,
+            forearmToHandAngle: 90,
+            wristFlexionAngle: replayMaxFlexion,
+            wristExtensionAngle: replayMaxExtension,
             elbowDetected: true,
             handType: finalHandType,
             confidence: authoritativeResults.averageConfidence
           });
           
-          console.log(`🎯 MOTION ANALYSIS: Using REAL assessment data - Hand: ${finalHandType}, Total ROM: ${authoritativeResults.totalROM.toFixed(1)}°`);
-          console.log(`🎯 SESSION MAXIMUMS NOW MATCH WRIST-RESULTS: Flexion: ${authoritativeResults.maxFlexion.toFixed(1)}°, Extension: ${authoritativeResults.maxExtension.toFixed(1)}°`);
+              console.log(`🎯 MOTION REPLAY MAXIMUMS: Flexion: ${replayMaxFlexion.toFixed(1)}°, Extension: ${replayMaxExtension.toFixed(1)}° (from ${allFlexionAngles.length} flexion, ${allExtensionAngles.length} extension frames)`);
+          console.log(`🎯 AUTHORITATIVE RESULTS: Flexion: ${authoritativeResults.maxFlexion.toFixed(1)}°, Extension: ${authoritativeResults.maxExtension.toFixed(1)}°`);
+          
+          // Log sample angles for debugging
+          if (allFlexionAngles.length > 0) {
+            console.log(`📊 Sample flexion angles: [${allFlexionAngles.slice(0, 5).map(a => a.toFixed(1)).join(', ')}...]`);
+          }
+          if (allExtensionAngles.length > 0) {
+            console.log(`📊 Sample extension angles: [${allExtensionAngles.slice(0, 5).map(a => a.toFixed(1)).join(', ')}...]`);
+          }
         }
         setCurrentFrame(0);
       } else {
@@ -311,28 +316,30 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
             confidence: 0.8
           };
           
-          // Use the EXACT same calculation method as wrist-results page for frame-by-frame analysis
-          if (frame.wristAngles && frame.wristAngles.elbowDetected) {
+          // Use the EXACT same forced calculation method as session maximum calculation
+          if (frame.landmarks && frame.poseLandmarks) {
+            // Determine consistent hand type (same as session maximum calculation)
+            let frameHandType = 'RIGHT'; // default
+            if (authoritativeWristResults?.handType && authoritativeWristResults.handType !== 'UNKNOWN') {
+              frameHandType = authoritativeWristResults.handType;
+            } else if (maxWristAngles?.handType && maxWristAngles.handType !== 'UNKNOWN') {
+              frameHandType = maxWristAngles.handType;
+            }
+            
+            // Use IDENTICAL calculation method as session maximums
+            currentWrist = calculateElbowReferencedWristAngleWithForce(
+              frame.landmarks, 
+              frame.poseLandmarks, 
+              frameHandType
+            );
+            
+            console.log(`MOTION FRAME ${currentFrame}: ${frameHandType} hand - Flexion: ${currentWrist.wristFlexionAngle.toFixed(1)}°, Extension: ${currentWrist.wristExtensionAngle.toFixed(1)}°`);
+          } else if (frame.wristAngles && frame.wristAngles.elbowDetected) {
             currentWrist = { ...frame.wristAngles };
-          } else if (frame.landmarks && frame.poseLandmarks) {
-            // Use the same calculateWristAngleByHandType as wrist-results page
-            currentWrist = calculateWristAngleByHandType(frame.landmarks, frame.poseLandmarks);
-          }
-          
-          // Force session hand type consistency with wrist-results page
-          if (maxWristAngles?.handType && maxWristAngles.handType !== 'UNKNOWN') {
-            currentWrist.handType = maxWristAngles.handType;
-            console.log(`MOTION FRAME ${currentFrame}: Using consistent hand type = ${maxWristAngles.handType} (matches wrist-results)`);
-          } else if (frame.sessionHandType && frame.sessionHandType !== 'UNKNOWN') {
-            currentWrist.handType = frame.sessionHandType;
-            console.log(`MOTION FRAME ${currentFrame}: Using frame session hand type = ${frame.sessionHandType}`);
-          } else if (frame.handedness && frame.handedness !== 'UNKNOWN') {
-            currentWrist.handType = frame.handedness as 'LEFT' | 'RIGHT';
-            console.log(`MOTION FRAME ${currentFrame}: Using frame handedness = ${frame.handedness}`);
+            console.log(`MOTION FRAME ${currentFrame}: Using recorded angles - Flexion: ${currentWrist.wristFlexionAngle.toFixed(1)}°, Extension: ${currentWrist.wristExtensionAngle.toFixed(1)}°`);
           }
           
           setCurrentWristAngles(currentWrist);
-          console.log(`MOTION FRAME ${currentFrame}: Calculations match wrist-results - Flexion: ${currentWrist.wristFlexionAngle.toFixed(1)}°, Extension: ${currentWrist.wristExtensionAngle.toFixed(1)}°`);
         } else {
           // Calculate ROM for standard assessments
           const rom = calculateFingerROM(frame.landmarks, selectedDigit);
@@ -986,27 +993,28 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
       ctx.fillText(`Hand: ${currentWristAngles.handType}`, wristBoxX + 10, wristBoxY + 95);
       ctx.fillText(`Confidence: ${(currentWristAngles.confidence * 100).toFixed(1)}%`, wristBoxX + 10, wristBoxY + 110);
       
-      // Session Maximum angles from authoritative calculator
-      if (authoritativeWristResults) {
+      // Session Maximum angles from motion replay frames
+      if (maxWristAngles) {
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 11px Arial';
-        ctx.fillText('Session Maximum (Authoritative):', wristBoxX + 10, wristBoxY + 135);
+        ctx.fillText('Session Maximum (Motion Replay):', wristBoxX + 10, wristBoxY + 135);
         
         ctx.fillStyle = '#3b82f6';
         ctx.font = '10px Arial';
-        ctx.fillText(`Max Flexion: ${authoritativeWristResults.maxFlexion.toFixed(1)}°`, wristBoxX + 10, wristBoxY + 150);
+        ctx.fillText(`Max Flexion: ${maxWristAngles.wristFlexionAngle.toFixed(1)}°`, wristBoxX + 10, wristBoxY + 150);
         
         ctx.fillStyle = '#f59e0b';
-        ctx.fillText(`Max Extension: ${authoritativeWristResults.maxExtension.toFixed(1)}°`, wristBoxX + 10, wristBoxY + 165);
+        ctx.fillText(`Max Extension: ${maxWristAngles.wristExtensionAngle.toFixed(1)}°`, wristBoxX + 10, wristBoxY + 165);
         
+        const totalReplayROM = maxWristAngles.wristFlexionAngle + maxWristAngles.wristExtensionAngle;
         ctx.fillStyle = '#10b981';
-        ctx.fillText(`Total ROM: ${authoritativeWristResults.totalROM.toFixed(1)}°`, wristBoxX + 10, wristBoxY + 180);
+        ctx.fillText(`Total ROM: ${totalReplayROM.toFixed(1)}°`, wristBoxX + 10, wristBoxY + 180);
         
-        // Range indicators showing current position relative to maximums
+        // Range indicators showing current position relative to motion replay maximums
         const currentFlexion = frameAngles.wristFlexionAngle;
         const currentExtension = frameAngles.wristExtensionAngle;
-        const maxFlexion = authoritativeWristResults.maxFlexion;
-        const maxExtension = authoritativeWristResults.maxExtension;
+        const maxFlexion = maxWristAngles.wristFlexionAngle;
+        const maxExtension = maxWristAngles.wristExtensionAngle;
         
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 11px Arial';
@@ -1018,7 +1026,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
         ctx.font = '10px Arial';
         ctx.fillText(`Flexion: ${flexionPercent.toFixed(0)}% of max (${maxFlexion.toFixed(1)}°)`, wristBoxX + 10, wristBoxY + 220);
         
-        // Extension achievement bar
+        // Extension achievement bar  
         const extensionPercent = maxExtension > 0 ? (currentExtension / maxExtension) * 100 : 0;
         ctx.fillStyle = '#f59e0b';
         ctx.fillText(`Extension: ${extensionPercent.toFixed(0)}% of max (${maxExtension.toFixed(1)}°)`, wristBoxX + 10, wristBoxY + 235);
