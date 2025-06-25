@@ -12,7 +12,8 @@ const targetROM = {
   'Carpal Tunnel': {
     'TAM (Total Active Motion)': 260,
     'Kapandji Score': 10,
-    'Wrist Flexion/Extension': 60,
+    'Wrist Flexion': 80,
+    'Wrist Extension': 70,
     'Forearm Pronation/Supination': 80,
     'Wrist Radial/Ulnar Deviation': 30
   },
@@ -22,14 +23,16 @@ const targetROM = {
   'Distal Radius Fracture': {
     'TAM (Total Active Motion)': 240,
     'Kapandji Score': 10,
-    'Wrist Flexion/Extension': 50,
+    'Wrist Flexion': 70,
+    'Wrist Extension': 60,
     'Forearm Pronation/Supination': 70,
     'Wrist Radial/Ulnar Deviation': 25
   },
   'CMC Arthroplasty': {
     'TAM (Total Active Motion)': 220,
     'Kapandji Score': 8,
-    'Wrist Flexion/Extension': 55,
+    'Wrist Flexion': 75,
+    'Wrist Extension': 65,
     'Forearm Pronation/Supination': 75,
     'Wrist Radial/Ulnar Deviation': 28
   },
@@ -85,18 +88,31 @@ export default function ProgressCharts() {
   
   // Process data for charts
   const getChartData = (assessmentName: string): ChartDataPoint[] => {
-    let relevantHistory;
-    if (assessmentName.includes('Kapandji')) {
-      relevantHistory = userHistory.filter(h => h.assessmentName === 'Kapandji Score');
-    } else {
-      relevantHistory = userHistory.filter(h => h.assessmentName === 'TAM (Total Active Motion)');
-    }
-    const target = assessmentName.includes('Kapandji') ? 10 : (targetROM[injuryType]?.[assessmentName] || 270);
-    
+    const relevantHistory = userHistory.filter(item => {
+      if (assessmentName === 'TAM (Total Active Motion)') {
+        return item.assessmentName === 'TAM (Total Active Motion)';
+      } else if (assessmentName.includes('Finger TAM')) {
+        return item.assessmentName === 'TAM (Total Active Motion)';
+      } else if (assessmentName.includes('Kapandji')) {
+        return item.assessmentName === 'Kapandji Score';
+      } else if (assessmentName === 'Wrist Flexion' || assessmentName === 'Wrist Extension') {
+        return item.assessmentName.includes('Flexion/Extension') || 
+               item.assessmentName.includes('Flexion') || 
+               item.assessmentName.includes('Extension') ||
+               item.assessmentName.includes('Wrist');
+      } else if (assessmentName.includes('Pronation/Supination')) {
+        return item.assessmentName.includes('Pronation/Supination');
+      } else if (assessmentName.includes('Radial/Ulnar')) {
+        return item.assessmentName.includes('Radial/Ulnar');
+      }
+      return false;
+    });
+
+    const target = assessmentName.includes('Kapandji') ? 10 : (targetROM[injuryType]?.[assessmentName] || 100);
+    const startDate = new Date(userCode === 'DEMO01' ? '2025-06-01' : user?.user?.createdAt || Date.now());
+
     return relevantHistory.map(item => {
-      // Calculate post-op day
-      const itemDate = new Date(item.completedAt);
-      const startDate = new Date(studyStartDate);
+      const itemDate = new Date(item.completedAt!);
       const day = Math.floor((itemDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
       
       // Get the appropriate value based on assessment type
@@ -113,8 +129,12 @@ export default function ProgressCharts() {
         value = parseFloat(item.pinkyFingerRom) || 0;
       } else if (assessmentName.includes('Kapandji')) {
         value = parseFloat(item.kapandjiScore || item.totalActiveRom) || 0;
-      } else if (assessmentName.includes('Flexion/Extension')) {
-        value = (item.wristFlexionAngle || 0) + (item.wristExtensionAngle || 0);
+      } else if (assessmentName === 'Wrist Flexion') {
+        // Use stored wrist flexion values - calculator ensures accuracy during save
+        value = parseFloat(item.maxWristFlexion || item.wristFlexionAngle) || 0;
+      } else if (assessmentName === 'Wrist Extension') {
+        // Use stored wrist extension values - calculator ensures accuracy during save
+        value = parseFloat(item.maxWristExtension || item.wristExtensionAngle) || 0;
       } else if (assessmentName.includes('Pronation/Supination')) {
         value = (item.forearmPronationAngle || 0) + (item.forearmSupinationAngle || 0);
       } else if (assessmentName.includes('Radial/Ulnar')) {
@@ -163,6 +183,14 @@ export default function ProgressCharts() {
     if (assessmentName.includes('Kapandji')) {
       const kapandjiHistory = userHistory.filter(h => h.assessmentName === 'Kapandji Score');
       return kapandjiHistory.length > 0;
+    } else if (assessmentName === 'Wrist Flexion' || assessmentName === 'Wrist Extension') {
+      const wristHistory = userHistory.filter(h => 
+        h.assessmentName.includes('Flexion/Extension') || 
+        h.assessmentName.includes('Flexion') || 
+        h.assessmentName.includes('Extension') ||
+        h.assessmentName.includes('Wrist')
+      );
+      return wristHistory.length > 0;
     }
     return true; // Show other assessment types by default
   });
@@ -240,7 +268,9 @@ export default function ProgressCharts() {
                 .replace('Wrist ', '')
                 .replace('Forearm ', '')
                 .replace(' Finger TAM', '')
-                .replace('TAM', 'Total')}
+                .replace('TAM', 'Total')
+                .replace('Flexion', 'Flex')
+                .replace('Extension', 'Ext')}
             </TabsTrigger>
           ))}
         </TabsList>
