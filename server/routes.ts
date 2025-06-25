@@ -1164,14 +1164,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userAssessments = await storage.getUserAssessments(user.id);
       const assessments = await storage.getAssessments();
       
+      // Debug: Check if DASH assessment exists
+      const dashAssessment = assessments.find(a => a.id === 6);
+      console.log('DASH assessment found:', dashAssessment);
+      
       // Group by assessment and include session details
       const history = userAssessments.filter(ua => ua.isCompleted).map(ua => {
         const assessment = assessments.find(a => a.id === ua.assessmentId);
         
         // Special handling for DASH assessments (assessmentId 6)
-        const assessmentName = assessment?.name || 'Unknown Assessment';
+        let assessmentName = assessment?.name || 'Unknown Assessment';
         if (ua.assessmentId === 6) {
-          console.log('DASH assessment mapping:', { assessmentId: ua.assessmentId, dashScore: ua.dashScore, assessmentName });
+          // Force correct name for DASH assessments
+          assessmentName = 'DASH Survey';
+          console.log('DASH assessment mapping:', { assessmentId: ua.assessmentId, dashScore: ua.dashScore, assessmentName, assessment: assessment?.name });
         }
         
         return {

@@ -159,7 +159,7 @@ export default function ProgressCharts() {
       } else if (assessmentName.includes('Kapandji')) {
         value = parseFloat(item.kapandjiScore || item.totalActiveRom) || 0;
       } else if (assessmentName === 'DASH Score') {
-        // DASH scores come from Unknown Assessment entries with dashScore field
+        // DASH scores come from DASH Survey assessments with dashScore field
         value = parseFloat(item.dashScore) || 0;
         console.log('DASH Score data for', item.assessmentName, ':', { dashScore: item.dashScore, finalValue: value, hasData: !!item.dashScore });
       } else if (assessmentName === 'Wrist Flexion') {
