@@ -18,7 +18,8 @@ const targetROM = {
     'Wrist Radial/Ulnar Deviation': 30
   },
   'Trigger Finger': {
-    'TAM (Total Active Motion)': 260
+    'TAM (Total Active Motion)': 260,
+    'DASH Score': 10
   },
   'Distal Radius Fracture': {
     'TAM (Total Active Motion)': 240,
@@ -26,7 +27,8 @@ const targetROM = {
     'Wrist Flexion': 70,
     'Wrist Extension': 60,
     'Forearm Pronation/Supination': 70,
-    'Wrist Radial/Ulnar Deviation': 25
+    'Wrist Radial/Ulnar Deviation': 25,
+    'DASH Score': 20
   },
   'CMC Arthroplasty': {
     'TAM (Total Active Motion)': 220,
@@ -34,17 +36,20 @@ const targetROM = {
     'Wrist Flexion': 75,
     'Wrist Extension': 65,
     'Forearm Pronation/Supination': 75,
-    'Wrist Radial/Ulnar Deviation': 28
+    'Wrist Radial/Ulnar Deviation': 28,
+    'DASH Score': 25
   },
   'Metacarpal ORIF': {
     'TAM (Total Active Motion)': 270,
     'Index Finger TAM': 270,
     'Middle Finger TAM': 270,
     'Ring Finger TAM': 270,
-    'Pinky Finger TAM': 270
+    'Pinky Finger TAM': 270,
+    'DASH Score': 15
   },
   'Phalanx Fracture': {
-    'TAM (Total Active Motion)': 260
+    'TAM (Total Active Motion)': 260,
+    'DASH Score': 18
   }
 };
 
@@ -105,6 +110,8 @@ export default function ProgressCharts() {
         return item.assessmentName === 'TAM (Total Active Motion)';
       } else if (assessmentName.includes('Kapandji')) {
         return item.assessmentName === 'Kapandji Score';
+      } else if (assessmentName === 'DASH Score') {
+        return item.assessmentName === 'DASH Survey';
       } else if (assessmentName === 'Wrist Flexion' || assessmentName === 'Wrist Extension') {
         return item.assessmentName.includes('Flexion/Extension') || 
                item.assessmentName.includes('Flexion') || 
@@ -145,6 +152,8 @@ export default function ProgressCharts() {
         value = parseFloat(item.pinkyFingerRom) || 0;
       } else if (assessmentName.includes('Kapandji')) {
         value = parseFloat(item.kapandjiScore || item.totalActiveRom) || 0;
+      } else if (assessmentName === 'DASH Score') {
+        value = parseFloat(item.dashScore) || 0;
       } else if (assessmentName === 'Wrist Flexion') {
         // Use stored wrist flexion values - calculator ensures accuracy during save
         value = parseFloat(item.maxWristFlexion || item.wristFlexionAngle) || 0;
