@@ -1183,6 +1183,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           maxWristExtension: ua.maxWristExtension,
           handType: ua.handType,
           sessionNumber: ua.sessionNumber,
+          // Include DASH score data
+          dashScore: ua.dashScore,
           // Include repetition data for accurate recalculation
           repetitionData: ua.repetitionData,
         };

@@ -227,6 +227,9 @@ export default function ProgressCharts() {
         h.assessmentName.includes('Wrist')
       );
       return wristHistory.length > 0;
+    } else if (assessmentName === 'DASH Score') {
+      const dashHistory = userHistory.filter(h => h.assessmentName === 'DASH Survey');
+      return dashHistory.length > 0;
     }
     return true; // Show other assessment types by default
   });
