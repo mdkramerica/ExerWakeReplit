@@ -61,7 +61,23 @@ interface PatientProfile {
 export default function PatientDailyDashboard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+
+  // Debug logging for calendar data
+  useEffect(() => {
+    if (calendarData) {
+      console.log('Calendar data loaded:', calendarData.length, 'days');
+      console.log('June 25th data:', calendarData.find(d => d.date === '2025-06-25'));
+    }
+  }, [calendarData]);
+
+  useEffect(() => {
+    if (selectedDate) {
+      console.log('Selected date changed:', selectedDate);
+      const dayData = calendarData?.find(day => isSameDay(new Date(day.date + 'T12:00:00'), selectedDate));
+      console.log('Found day data for selected date:', dayData);
+    }
+  }, [selectedDate, calendarData]);
 
   // Get patient profile from URL - handle both /patient/:code and /assessment-list/:code routes
   const pathParts = window.location.pathname.split('/');
@@ -439,7 +455,10 @@ export default function PatientDailyDashboard() {
                       key={`calendar-${calendarData?.length || 0}`}
                       mode="single"
                       selected={selectedDate}
-                      onSelect={setSelectedDate}
+                      onSelect={(date) => {
+                        console.log('Calendar date selected:', date);
+                        setSelectedDate(date);
+                      }}
                       className="rounded-lg border shadow-sm bg-white mx-auto w-fit p-4 calendar-progress-override"
                       modifiers={{
                         completed: calendarData?.filter(day => day.status === 'completed').map(day => new Date(day.date + 'T12:00:00')) || [],
@@ -498,11 +517,13 @@ export default function PatientDailyDashboard() {
                         <h4 className="font-semibold text-gray-900 mb-3">
                           {format(selectedDate, 'EEEE, MMMM d, yyyy')}
                         </h4>
-                        {calendarData?.find(day => isSameDay(new Date(day.date), selectedDate)) ? (
-                          <div className="space-y-3">
-                            {(() => {
-                              const dayData = calendarData.find(day => isSameDay(new Date(day.date), selectedDate));
-                              const isRecoveryStart = format(selectedDate, 'yyyy-MM-dd') === '2025-06-20';
+                        {(() => {
+                          const dayData = calendarData?.find(day => isSameDay(new Date(day.date + 'T12:00:00'), selectedDate));
+                          console.log('Rendering details for:', format(selectedDate, 'yyyy-MM-dd'), 'found data:', dayData);
+                          return dayData ? (
+                            <div className="space-y-3">
+                              {(() => {
+                                const isRecoveryStart = format(selectedDate, 'yyyy-MM-dd') === '2025-06-20';
                               const statusColors = {
                                 completed: 'bg-green-100 text-green-800 border-green-200',
                                 pending: 'bg-yellow-100 text-yellow-800 border-yellow-200', 
@@ -548,18 +569,19 @@ export default function PatientDailyDashboard() {
                                     </div>
                                   )}
                                 </>
-                              );
-                            })()}
-                          </div>
-                        ) : (
-                          <div className="text-center py-6">
-                            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                              <span className="text-gray-400 text-lg">○</span>
+                                );
+                              })()}
                             </div>
-                            <p className="text-sm font-medium text-gray-600">Future date</p>
-                            <p className="text-xs text-gray-500 mt-1">Assessments will be available on this day</p>
-                          </div>
-                        )}
+                          ) : (
+                            <div className="text-center py-6">
+                              <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <span className="text-gray-400 text-lg">○</span>
+                              </div>
+                              <p className="text-sm font-medium text-gray-600">No data available</p>
+                              <p className="text-xs text-gray-500 mt-1">Select a different date to view details</p>
+                            </div>
+                          );
+                        })()}
                       </div>
                     )}
                   </div>
