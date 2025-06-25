@@ -1419,7 +1419,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Generate calendar data for last 30 days
       const calendarData = [];
-      const today = new Date(2025, 5, 23); // Current date - June 23, 2025
+      const today = new Date(); // Use actual current date instead of hardcoded
 
       
       // Fixed surgery/recovery start date for all users
@@ -1444,57 +1444,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Before recovery started - no activity
           status = 'future';
           completedCount = 0;
-        } else if (date.toDateString() === today.toDateString()) {
-          // Today - use actual completion data
+        } else if (date <= today) {
+          // Today and past dates - use actual completion data
           const assessmentsForDate = userAssessments.filter(ua => {
             const completedDate = ua.completedAt ? new Date(ua.completedAt).toISOString().split('T')[0] : null;
             return completedDate === dateStr && ua.isCompleted;
           });
           
-          completedCount = assessmentsForDate.length;
-          status = completedCount === totalAssessments ? 'completed' : 'pending';
-        } else if (date < today) {
-          // Past dates - check actual completions vs realistic simulation
-          const assessmentsForDate = userAssessments.filter(ua => {
-            const completedDate = ua.completedAt ? new Date(ua.completedAt).toISOString().split('T')[0] : null;
-            return completedDate === dateStr && ua.isCompleted;
-          });
+          console.log(`Calendar check for ${dateStr}: Found ${assessmentsForDate.length} completed assessments`);
           
           if (assessmentsForDate.length > 0) {
-            // Past dates with completed assessments
+            // Dates with completed assessments
             completedCount = assessmentsForDate.length;
             status = completedCount >= totalAssessments ? 'completed' : 'pending';
+            console.log(`Date ${dateStr}: ${completedCount}/${totalAssessments} assessments, status: ${status}`);
           } else {
-              // Past dates with no assessments - show realistic patterns
-              const dateStr = date.toISOString().split('T')[0];
-              
-              if (dateStr === '2025-06-20') {
-                // Surgery day - partial completion
-                status = 'pending';
-                completedCount = 2;
-              } else if (dateStr === '2025-06-21') {
-                // Day after surgery - completed
-                status = 'completed';
-                completedCount = totalAssessments;
-              } else if (dateStr === '2025-06-22') {
-                // Yesterday - completed 
-                status = 'completed';
-                completedCount = totalAssessments;
-              } else if (daysSinceRecovery <= 7) {
-                // First week - mostly completed with some partial
-                status = daysSinceRecovery % 2 === 0 ? 'completed' : 'pending';
-                completedCount = status === 'completed' ? totalAssessments : Math.floor(totalAssessments * 0.6);
-              } else {
-                // Older dates - realistic progression
-                const dayOfWeek = date.getDay();
-                if (dayOfWeek === 0 || dayOfWeek === 6) {
-                  status = 'missed';
-                  completedCount = 0;
-                } else {
-                  status = daysSinceRecovery % 3 === 0 ? 'completed' : 'pending';
-                  completedCount = status === 'completed' ? totalAssessments : Math.floor(totalAssessments * 0.4);
-                }
-            }
+            // Past dates with no actual assessments - default to pending
+            status = 'pending';
+            completedCount = 0;
           }
         } else {
           // Future dates

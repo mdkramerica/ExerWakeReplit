@@ -533,6 +533,14 @@ export default function PatientDailyDashboard() {
                                     </span>
                                   </div>
                                   
+                                  {dayData?.completedAssessments > 0 && dayData?.status === 'pending' && (
+                                    <div className="p-2 bg-blue-50 border border-blue-200 rounded-md">
+                                      <span className="text-xs font-medium text-blue-700">
+                                        Partial completion - {dayData.completedAssessments} assessments done
+                                      </span>
+                                    </div>
+                                  )}
+                                  
                                   {dayData?.status === 'completed' && (
                                     <div className="flex items-center space-x-2 p-2 bg-green-50 border border-green-200 rounded-md">
                                       <CheckCircle className="w-4 h-4 text-green-600" />
