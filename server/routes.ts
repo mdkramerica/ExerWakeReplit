@@ -649,6 +649,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get user history with proper DASH score mapping
+  app.get("/api/users/:userId/history", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      // Find user by ID - check all users since we don't have getUserById
+      const allUsers = await storage.getUsers();
+      const user = allUsers.find(u => u.id === userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      const userAssessments = await storage.getUserAssessments(user.id);
+      const assessments = await storage.getAssessments();
+      
+      // Group by assessment and include session details with proper DASH mapping
+      const history = userAssessments.filter(ua => ua.isCompleted).map(ua => {
+        const assessment = assessments.find(a => a.id === ua.assessmentId);
+        
+        // Special handling for DASH assessments (assessmentId 6)
+        let assessmentName = assessment?.name || 'Unknown Assessment';
+        if (ua.assessmentId === 6) {
+          assessmentName = 'DASH Survey';
+        }
+        
+        return {
+          id: ua.id,
+          assessmentName,
+          assessmentId: ua.assessmentId,
+          completedAt: ua.completedAt,
+          qualityScore: ua.qualityScore,
+          totalActiveRom: ua.totalActiveRom,
+          indexFingerRom: ua.indexFingerRom,
+          middleFingerRom: ua.middleFingerRom,
+          ringFingerRom: ua.ringFingerRom,
+          pinkyFingerRom: ua.pinkyFingerRom,
+          kapandjiScore: ua.kapandjiScore,
+          maxWristFlexion: ua.maxWristFlexion,
+          maxWristExtension: ua.maxWristExtension,
+          wristFlexionAngle: ua.wristFlexionAngle,
+          wristExtensionAngle: ua.wristExtensionAngle,
+          forearmPronationAngle: ua.forearmPronationAngle,
+          forearmSupinationAngle: ua.forearmSupinationAngle,
+          wristRadialDeviationAngle: ua.wristRadialDeviationAngle,
+          wristUlnarDeviationAngle: ua.wristUlnarDeviationAngle,
+          handType: ua.handType,
+          sessionNumber: ua.sessionNumber,
+          dashScore: ua.dashScore,
+          repetitionData: ua.repetitionData,
+        };
+      }).sort((a, b) => new Date(b.completedAt || 0).getTime() - new Date(a.completedAt || 0).getTime());
+      
+      res.json({ history });
+    } catch (error) {
+      res.status(400).json({ message: "Failed to retrieve assessment history" });
+    }
+  });
+
   // User assessment routes
   app.get("/api/users/:userId/assessments", async (req, res) => {
     try {
