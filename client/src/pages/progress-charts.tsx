@@ -160,6 +160,7 @@ export default function ProgressCharts() {
         value = parseFloat(item.kapandjiScore || item.totalActiveRom) || 0;
       } else if (assessmentName === 'DASH Score') {
         value = parseFloat(item.dashScore) || 0;
+        console.log('DASH Score data for', item.assessmentName, ':', { dashScore: item.dashScore, finalValue: value });
       } else if (assessmentName === 'Wrist Flexion') {
         // Use stored wrist flexion values - calculator ensures accuracy during save
         value = parseFloat(item.maxWristFlexion || item.wristFlexionAngle) || 0;
@@ -218,9 +219,12 @@ export default function ProgressCharts() {
 
   // Get assessment types based on injury
   const assessmentTypes = Object.keys(targetROM[injuryType] || {});
+  console.log('All assessment types for injury:', assessmentTypes);
+  console.log('Checking assessment data availability...');
   
   // Filter out assessments with no data
   const assessmentTypesWithData = assessmentTypes.filter(assessmentName => {
+    console.log(`Checking data for assessment: ${assessmentName}`);
     if (assessmentName.includes('Kapandji')) {
       const kapandjiHistory = userHistory.filter(h => h.assessmentName === 'Kapandji Score');
       return kapandjiHistory.length > 0;
