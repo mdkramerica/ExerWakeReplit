@@ -15,7 +15,8 @@ const targetROM = {
     'Wrist Flexion': 80,
     'Wrist Extension': 70,
     'Forearm Pronation/Supination': 80,
-    'Wrist Radial/Ulnar Deviation': 30
+    'Wrist Radial/Ulnar Deviation': 30,
+    'DASH Score': 15
   },
   'Trigger Finger': {
     'TAM (Total Active Motion)': 260,
