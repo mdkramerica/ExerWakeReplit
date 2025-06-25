@@ -1,4 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -86,10 +87,22 @@ export default function ProgressCharts() {
     enabled: !!userId,
   });
 
+  const queryClient = useQueryClient();
+
   const { data: history } = useQuery({
     queryKey: [`/api/users/${userId}/history`],
     enabled: !!userId,
+    staleTime: 0, // Force fresh data to bypass cache
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
+
+  // Clear cache for history to force fresh data on mount
+  React.useEffect(() => {
+    if (userId) {
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${userId}/history`] });
+    }
+  }, [userId, queryClient]);
 
   const { data: assessments } = useQuery({
     queryKey: [`/api/users/${userId}/assessments`],
@@ -116,8 +129,8 @@ export default function ProgressCharts() {
         return item.assessmentName === 'Kapandji Score';
       } else if (assessmentName === 'DASH Score') {
         console.log('Filtering for DASH Score');
-        console.log('Unknown Assessment items:', userHistory.filter(h => h.assessmentName === 'Unknown Assessment'));
-        return item.assessmentName === 'DASH Survey' || item.assessmentName === 'Unknown Assessment' || item.assessmentId === 6;
+        console.log('DASH items found:', userHistory.filter(h => h.assessmentId === 6));
+        return item.assessmentId === 6;
       } else if (assessmentName === 'Wrist Flexion' || assessmentName === 'Wrist Extension') {
         return item.assessmentName.includes('Flexion/Extension') || 
                item.assessmentName.includes('Flexion') || 
