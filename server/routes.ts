@@ -871,7 +871,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               ringFingerRom = kapandjiResult.details.ringTip ? 5 : 0;
               pinkyFingerRom = kapandjiResult.details.littleTip ? 6 : 0;
               
-              console.log('Kapandji assessment completed with score:', totalActiveRom);
+              console.log('Kapandji assessment completed with score:', kapandjiScore, '(saved to kapandjiScore field)');
               
             } else {
               // Use standard ROM calculation for other assessments
@@ -1061,6 +1061,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             maxPipAngle: ua.maxPipAngle,
             maxDipAngle: ua.maxDipAngle,
             totalActiveRom: ua.totalActiveRom,
+            kapandjiScore: ua.kapandjiScore,
             indexFingerRom: ua.indexFingerRom,
             middleFingerRom: ua.middleFingerRom,
             ringFingerRom: ua.ringFingerRom,
