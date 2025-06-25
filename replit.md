@@ -95,6 +95,15 @@ This is a comprehensive hand rehabilitation assessment platform that combines re
 
 ## Recent Changes
 
+### June 25, 2025 - Progress Charts Separation & Calendar Functionality Fixes
+- **Separated wrist flexion and extension into individual progress charts with dedicated targets**
+- **Fixed calendar progress tracking to use actual current date instead of hardcoded dates**
+- **Enhanced calendar logic to prioritize real assessment completion data over demo patterns**
+- **Resolved calendar date selection issues with proper timezone handling**
+- **Fixed "Cannot access uninitialized variable" error in patient dashboard component**
+- **Calendar now correctly displays assessment details when clicking on dates with completed assessments**
+- **Added debug logging for calendar data tracking and date selection verification**
+
 ### June 24, 2025 - Patient Logout System & TAM Visibility-Based Temporal Validation
 - **Implemented universal patient logout functionality across all patient pages**
 - **Created PatientHeader component with logout button and patient identification**

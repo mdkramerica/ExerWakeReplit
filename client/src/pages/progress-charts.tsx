@@ -111,6 +111,12 @@ export default function ProgressCharts() {
     const target = assessmentName.includes('Kapandji') ? 10 : (targetROM[injuryType]?.[assessmentName] || 100);
     const startDate = new Date(userCode === 'DEMO01' ? '2025-06-01' : user?.user?.createdAt || Date.now());
 
+    console.log(`Processing ${relevantHistory.length} items for ${assessmentName}`);
+    if (relevantHistory.length > 0) {
+      console.log('Sample item keys:', Object.keys(relevantHistory[0]));
+      console.log('Sample item:', relevantHistory[0]);
+    }
+
     return relevantHistory.map(item => {
       const itemDate = new Date(item.completedAt!);
       const day = Math.floor((itemDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
@@ -132,9 +138,19 @@ export default function ProgressCharts() {
       } else if (assessmentName === 'Wrist Flexion') {
         // Use stored wrist flexion values - calculator ensures accuracy during save
         value = parseFloat(item.maxWristFlexion || item.wristFlexionAngle) || 0;
+        console.log(`Wrist Flexion data for ${item.assessmentName}:`, {
+          maxWristFlexion: item.maxWristFlexion,
+          wristFlexionAngle: item.wristFlexionAngle,
+          finalValue: value
+        });
       } else if (assessmentName === 'Wrist Extension') {
         // Use stored wrist extension values - calculator ensures accuracy during save
         value = parseFloat(item.maxWristExtension || item.wristExtensionAngle) || 0;
+        console.log(`Wrist Extension data for ${item.assessmentName}:`, {
+          maxWristExtension: item.maxWristExtension,
+          wristExtensionAngle: item.wristExtensionAngle,
+          finalValue: value
+        });
       } else if (assessmentName.includes('Pronation/Supination')) {
         value = (item.forearmPronationAngle || 0) + (item.forearmSupinationAngle || 0);
       } else if (assessmentName.includes('Radial/Ulnar')) {
