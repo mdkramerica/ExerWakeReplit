@@ -43,6 +43,7 @@ import ClinicalReports from "@/pages/clinical-reports";
 import PatientDailyDashboard from "@/pages/patient-daily-dashboard";
 import PatientAccess from "@/pages/patient-access";
 import AssessmentHistory from "@/pages/assessment-history";
+import DashAssessmentPage from "@/pages/dash-assessment-page";
 import ClinicalLayout from "@/components/clinical-layout";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -101,6 +102,8 @@ function Router() {
       <Route path="/clinical/patients/:id" component={() => <ProtectedRoute><ClinicalLayout><PatientDetail /></ClinicalLayout></ProtectedRoute>} />
       <Route path="/clinical/patients" component={() => <ProtectedRoute><ClinicalLayout><ClinicalPatients /></ClinicalLayout></ProtectedRoute>} />
       <Route path="/clinical" component={() => <ProtectedRoute><ClinicalLayout><ClinicalDashboard /></ClinicalLayout></ProtectedRoute>} />
+      <Route path="/patient/:code/dashboard" component={() => <PatientDailyDashboard />} />
+      <Route path="/patient/:code/dash-assessment" component={() => <DashAssessmentPage />} />
       <Route path="/patient/:code" component={() => <PatientDailyDashboard />} />
       <Route path="/assessment-list/:userCode" component={() => <PatientDailyDashboard />} />
       <Route path="/assessment-history/:userCode" component={() => <AssessmentHistory />} />

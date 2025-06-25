@@ -18,7 +18,9 @@ import {
   Star,
   Zap,
   TrendingUp,
-  PlayCircle
+  PlayCircle,
+  AlertCircle,
+  FileText
 } from 'lucide-react';
 import { format, startOfDay, isSameDay, differenceInDays } from 'date-fns';
 import { apiRequest } from '@/lib/queryClient';
@@ -34,6 +36,14 @@ interface DailyAssessment {
   isCompleted: boolean;
   completedAt?: string;
   assessmentUrl: string;
+  assessmentType?: string;
+}
+
+interface DashReminderData {
+  isDashDue: boolean;
+  daysSinceLastDash: number;
+  lastDashScore?: number;
+  lastDashDate?: string;
 }
 
 interface StreakData {
