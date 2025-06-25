@@ -1071,7 +1071,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         maxWristExtension: maxWristExtension !== null ? String(maxWristExtension) : null,
         
         // DASH assessment data
-        dashScore: dashScore !== null ? dashScore : null
+        dashScore: dashScore !== null ? dashScore : null,
+        responses: responses ? JSON.stringify(responses) : null
       });
       
       res.json({ userAssessment });

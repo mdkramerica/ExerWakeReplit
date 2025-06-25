@@ -107,7 +107,7 @@ export default function DashResults() {
   if (!assessmentData?.userAssessment) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <PatientHeader patientCode={userCode} />
+        <PatientHeader patientCode={userCode || ""} />
         <div className="max-w-4xl mx-auto p-6">
           <Card className="border-red-200 bg-red-50">
             <CardContent className="p-6 text-center">
@@ -124,8 +124,8 @@ export default function DashResults() {
     );
   }
 
-  const { userAssessment } = assessmentData;
-  const responses = userAssessment.responses || {};
+  const { userAssessment } = assessmentData as any;
+  const responses = userAssessment.responses || "{}";
   const dashScore = userAssessment.dashScore || 0;
   const interpretation = getDashScoreInterpretation(dashScore);
   
@@ -143,7 +143,7 @@ export default function DashResults() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <PatientHeader patientCode={userCode} />
+      <PatientHeader patientCode={userCode || ""} />
       
       <div className="max-w-6xl mx-auto p-6">
         {/* Header */}
@@ -224,18 +224,18 @@ export default function DashResults() {
                   <CardHeader>
                     <CardTitle className="text-lg">{category.name}</CardTitle>
                     <CardDescription>
-                      {category.stats.answered} of {category.stats.total} questions answered
+                      {category.stats?.answered || 0} of {category.stats?.total || 0} questions answered
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
-                        <span className="text-2xl font-bold">{category.stats.score.toFixed(1)}</span>
-                        <Badge variant={category.stats.score <= 30 ? "secondary" : category.stats.score <= 50 ? "outline" : "destructive"}>
-                          {category.stats.score <= 30 ? "Good" : category.stats.score <= 50 ? "Moderate" : "High Impact"}
+                        <span className="text-2xl font-bold">{category.stats?.score?.toFixed(1) || "0.0"}</span>
+                        <Badge variant={(category.stats?.score || 0) <= 30 ? "secondary" : (category.stats?.score || 0) <= 50 ? "outline" : "destructive"}>
+                          {(category.stats?.score || 0) <= 30 ? "Good" : (category.stats?.score || 0) <= 50 ? "Moderate" : "High Impact"}
                         </Badge>
                       </div>
-                      <Progress value={category.stats.score} className="h-2" />
+                      <Progress value={category.stats?.score || 0} className="h-2" />
                       <p className="text-sm text-gray-600">
                         Average difficulty level in {category.name.toLowerCase()} activities
                       </p>
