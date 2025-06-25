@@ -1066,6 +1066,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
             middleFingerRom: ua.middleFingerRom,
             ringFingerRom: ua.ringFingerRom,
             pinkyFingerRom: ua.pinkyFingerRom,
+            // Wrist assessment fields
+            maxWristFlexion: ua.maxWristFlexion,
+            maxWristExtension: ua.maxWristExtension,
+            wristFlexionAngle: ua.wristFlexionAngle,
+            wristExtensionAngle: ua.wristExtensionAngle,
+            // Other motion fields
+            forearmPronationAngle: ua.forearmPronationAngle,
+            forearmSupinationAngle: ua.forearmSupinationAngle,
+            wristRadialDeviationAngle: ua.wristRadialDeviationAngle,
+            wristUlnarDeviationAngle: ua.wristUlnarDeviationAngle,
             sessionNumber: ua.sessionNumber || 1,
             repetitionData: ua.repetitionData,
             handType: ua.handType
