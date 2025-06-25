@@ -745,6 +745,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let maxDipAngle: number | null = null;
       let totalActiveRom: number | null = null;
       
+      // Kapandji-specific scoring (dedicated field)
+      let kapandjiScore: number | null = null;
+      
       // Individual finger ROM calculations
       let indexFingerRom: number | null = null;
       let middleFingerRom: number | null = null;
@@ -858,8 +861,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
               
               console.log('Kapandji score result:', JSON.stringify(kapandjiResult, null, 2));
               
-              // Store Kapandji score in totalActiveRom field for simplicity
-              totalActiveRom = kapandjiResult.maxScore;
+              // Store Kapandji score in CORRECT dedicated field
+              kapandjiScore = kapandjiResult.maxScore;
+              totalActiveRom = kapandjiResult.maxScore; // Keep for backward compatibility display
               
               // Store details in individual finger fields for display
               indexFingerRom = kapandjiResult.details.indexTip ? 3 : (kapandjiResult.details.indexMiddlePhalanx ? 2 : (kapandjiResult.details.indexProximalPhalanx ? 1 : 0));
@@ -982,6 +986,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         maxPipAngle: maxPipAngle !== null ? String(maxPipAngle) : null,
         maxDipAngle: maxDipAngle !== null ? String(maxDipAngle) : null,
         totalActiveRom: totalActiveRom !== null ? String(totalActiveRom) : null,
+        kapandjiScore: kapandjiScore !== null ? String(kapandjiScore) : null,
         indexFingerRom: indexFingerRom !== null ? String(indexFingerRom) : null,
         middleFingerRom: middleFingerRom !== null ? String(middleFingerRom) : null,
         ringFingerRom: ringFingerRom !== null ? String(ringFingerRom) : null,
