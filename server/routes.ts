@@ -653,15 +653,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/users/:userId/history", async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
-      // Find user by ID - check all users since we don't have getUserById
-      const allUsers = await storage.getUsers();
-      const user = allUsers.find(u => u.id === userId);
+      // Get user assessments first, then lookup user by code if needed
+      const userAssessments = await storage.getUserAssessments(userId);
       
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
+      if (!userAssessments || userAssessments.length === 0) {
+        return res.json({ history: [] });
       }
       
-      const userAssessments = await storage.getUserAssessments(user.id);
       const assessments = await storage.getAssessments();
       
       // Group by assessment and include session details with proper DASH mapping

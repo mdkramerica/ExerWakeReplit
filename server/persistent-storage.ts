@@ -520,6 +520,18 @@ export class PersistentMemoryStorage {
         videoUrl: null, 
         repetitions: 3,
         injuryTypes: ['Carpal Tunnel', 'Distal Radius Fracture', 'CMC Arthroplasty']
+      },
+      { 
+        id: 6, 
+        name: 'DASH Survey', 
+        description: 'Disabilities of the Arm, Shoulder and Hand questionnaire', 
+        duration: 600, 
+        orderIndex: 6, 
+        isActive: true, 
+        instructions: 'Complete the DASH questionnaire about your arm, shoulder and hand function', 
+        videoUrl: null, 
+        repetitions: 1,
+        injuryTypes: ['Trigger Finger', 'Carpal Tunnel', 'Distal Radius Fracture', 'CMC Arthroplasty', 'Metacarpal ORIF', 'Phalanx Fracture']
       }
     ];
   }
