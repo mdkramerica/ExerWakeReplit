@@ -1167,9 +1167,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Group by assessment and include session details
       const history = userAssessments.filter(ua => ua.isCompleted).map(ua => {
         const assessment = assessments.find(a => a.id === ua.assessmentId);
+        
+        // Special handling for DASH assessments (assessmentId 6)
+        const assessmentName = assessment?.name || 'Unknown Assessment';
+        if (ua.assessmentId === 6) {
+          console.log('DASH assessment mapping:', { assessmentId: ua.assessmentId, dashScore: ua.dashScore, assessmentName });
+        }
+        
         return {
           id: ua.id,
-          assessmentName: assessment?.name || 'Unknown Assessment',
+          assessmentName,
           assessmentId: ua.assessmentId,
           completedAt: ua.completedAt,
           qualityScore: ua.qualityScore,
@@ -1181,9 +1188,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           kapandjiScore: ua.kapandjiScore,
           maxWristFlexion: ua.maxWristFlexion,
           maxWristExtension: ua.maxWristExtension,
+          wristFlexionAngle: ua.wristFlexionAngle,
+          wristExtensionAngle: ua.wristExtensionAngle,
+          forearmPronationAngle: ua.forearmPronationAngle,
+          forearmSupinationAngle: ua.forearmSupinationAngle,
+          wristRadialDeviationAngle: ua.wristRadialDeviationAngle,
+          wristUlnarDeviationAngle: ua.wristUlnarDeviationAngle,
           handType: ua.handType,
           sessionNumber: ua.sessionNumber,
-          // Include DASH score data
+          // Include DASH score data - ensure it's always included for DASH assessments
           dashScore: ua.dashScore,
           // Include repetition data for accurate recalculation
           repetitionData: ua.repetitionData,

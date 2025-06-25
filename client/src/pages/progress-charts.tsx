@@ -159,8 +159,9 @@ export default function ProgressCharts() {
       } else if (assessmentName.includes('Kapandji')) {
         value = parseFloat(item.kapandjiScore || item.totalActiveRom) || 0;
       } else if (assessmentName === 'DASH Score') {
+        // DASH scores come from Unknown Assessment entries with dashScore field
         value = parseFloat(item.dashScore) || 0;
-        console.log('DASH Score data for', item.assessmentName, ':', { dashScore: item.dashScore, finalValue: value });
+        console.log('DASH Score data for', item.assessmentName, ':', { dashScore: item.dashScore, finalValue: value, hasData: !!item.dashScore });
       } else if (assessmentName === 'Wrist Flexion') {
         // Use stored wrist flexion values - calculator ensures accuracy during save
         value = parseFloat(item.maxWristFlexion || item.wristFlexionAngle) || 0;
@@ -183,11 +184,22 @@ export default function ProgressCharts() {
         value = (item.wristRadialDeviationAngle || 0) + (item.wristUlnarDeviationAngle || 0);
       }
       
+      // Calculate percentage based on assessment type
+      let percentage;
+      if (assessmentName === 'DASH Score') {
+        // DASH Score: lower is better, so invert the percentage
+        // 0 = 100% (perfect), target = 0% (poor)
+        percentage = Math.max(0, Math.round(((target - value) / target) * 100));
+      } else {
+        // Other assessments: higher is better
+        percentage = Math.round((value / target) * 100);
+      }
+      
       return {
         day: Math.max(1, day),
         value,
         date: itemDate.toLocaleDateString(),
-        percentage: Math.round((value / target) * 100)
+        percentage
       };
     }).sort((a, b) => a.day - b.day);
   };
@@ -196,7 +208,20 @@ export default function ProgressCharts() {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       const target = assessmentName.includes('Kapandji') ? 10 : (targetROM[injuryType]?.[assessmentName] || 100);
-      const unit = assessmentName.includes('Kapandji') ? '' : '°';
+      
+      // Determine unit and scoring description based on assessment type
+      let unit = '°';
+      let scoringDescription = 'Higher is better';
+      let deltaLabel = 'Δ from target';
+      
+      if (assessmentName.includes('Kapandji')) {
+        unit = '';
+        scoringDescription = 'Higher is better (0-10 scale)';
+      } else if (assessmentName === 'DASH Score') {
+        unit = ' pts';
+        scoringDescription = 'Lower is better (0-100 scale)';
+        deltaLabel = 'Δ from target (lower is better)';
+      }
       
       return (
         <div className="bg-white p-3 border rounded-lg shadow-lg">
@@ -206,10 +231,11 @@ export default function ProgressCharts() {
             Value: {data.value}{unit}
           </p>
           <p className="text-green-600">
-            {data.percentage}% of target ({target}{unit})
+            {data.percentage}% progress (target: {target}{unit})
           </p>
+          <p className="text-xs text-muted-foreground">{scoringDescription}</p>
           <p className="text-sm text-muted-foreground">
-            Δ from target: {data.value - target > 0 ? '+' : ''}{data.value - target}{unit}
+            {deltaLabel}: {data.value - target > 0 ? '+' : ''}{data.value - target}{unit}
           </p>
         </div>
       );
