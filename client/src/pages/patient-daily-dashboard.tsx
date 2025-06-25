@@ -63,22 +63,6 @@ export default function PatientDailyDashboard() {
   const queryClient = useQueryClient();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
 
-  // Debug logging for calendar data
-  useEffect(() => {
-    if (calendarData) {
-      console.log('Calendar data loaded:', calendarData.length, 'days');
-      console.log('June 25th data:', calendarData.find(d => d.date === '2025-06-25'));
-    }
-  }, [calendarData]);
-
-  useEffect(() => {
-    if (selectedDate) {
-      console.log('Selected date changed:', selectedDate);
-      const dayData = calendarData?.find(day => isSameDay(new Date(day.date + 'T12:00:00'), selectedDate));
-      console.log('Found day data for selected date:', dayData);
-    }
-  }, [selectedDate, calendarData]);
-
   // Get patient profile from URL - handle both /patient/:code and /assessment-list/:code routes
   const pathParts = window.location.pathname.split('/');
   const userCode = pathParts[1] === 'patient' ? pathParts[2] : 
@@ -104,6 +88,22 @@ export default function PatientDailyDashboard() {
     queryKey: [`/api/patients/${userCode}/calendar`],
     enabled: !!userCode,
   });
+
+  // Debug logging for calendar data
+  useEffect(() => {
+    if (calendarData) {
+      console.log('Calendar data loaded:', calendarData.length, 'days');
+      console.log('June 25th data:', calendarData.find(d => d.date === '2025-06-25'));
+    }
+  }, [calendarData]);
+
+  useEffect(() => {
+    if (selectedDate) {
+      console.log('Selected date changed:', selectedDate);
+      const dayData = calendarData?.find(day => isSameDay(new Date(day.date + 'T12:00:00'), selectedDate));
+      console.log('Found day data for selected date:', dayData);
+    }
+  }, [selectedDate, calendarData]);
 
 
 
