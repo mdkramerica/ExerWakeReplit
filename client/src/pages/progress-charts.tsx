@@ -117,7 +117,7 @@ export default function ProgressCharts() {
       } else if (assessmentName === 'DASH Score') {
         console.log('Filtering for DASH Score');
         console.log('Unknown Assessment items:', userHistory.filter(h => h.assessmentName === 'Unknown Assessment'));
-        return item.assessmentName === 'DASH Survey' || item.assessmentName === 'Unknown Assessment';
+        return item.assessmentName === 'DASH Survey' || item.assessmentName === 'Unknown Assessment' || item.assessmentId === 6;
       } else if (assessmentName === 'Wrist Flexion' || assessmentName === 'Wrist Extension') {
         return item.assessmentName.includes('Flexion/Extension') || 
                item.assessmentName.includes('Flexion') || 
