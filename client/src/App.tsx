@@ -44,6 +44,7 @@ import PatientDailyDashboard from "@/pages/patient-daily-dashboard";
 import PatientAccess from "@/pages/patient-access";
 import AssessmentHistory from "@/pages/assessment-history";
 import DashAssessmentPage from "@/pages/dash-assessment-page";
+import DashResults from "@/pages/dash-results";
 import ClinicalLayout from "@/components/clinical-layout";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {

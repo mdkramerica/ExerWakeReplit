@@ -95,6 +95,16 @@ This is a comprehensive hand rehabilitation assessment platform that combines re
 
 ## Recent Changes
 
+### June 25, 2025 - DASH Score Display & Assessment Completion Fixes
+- **Fixed critical DASH score display issue by adding missing assessment definition (ID 6)**
+- **DASH assessments now properly display as "DASH Survey" instead of "Unknown Assessment"**
+- **Resolved database inconsistency between user assessments and assessment definitions**
+- **Added DASH score field to assessment completion endpoint for proper data storage**
+- **Fixed frontend API endpoint URL to include assessmentId parameter for DASH completion**
+- **DASH scores now use authentic 0-100 scale where lower scores indicate better function**
+- **Enhanced server endpoint mapping to properly handle DASH survey data processing**
+- **System maintains data integrity with real assessment scores and authentic user progress tracking**
+
 ### June 25, 2025 - Progress Charts Separation & Calendar Functionality Fixes
 - **Separated wrist flexion and extension into individual progress charts with dedicated targets**
 - **Fixed calendar progress tracking to use actual current date instead of hardcoded dates**
