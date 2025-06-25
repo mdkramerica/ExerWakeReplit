@@ -792,7 +792,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         wristFlexionAngle: reqWristFlexionAngle,
         wristExtensionAngle: reqWristExtensionAngle,
         maxWristFlexion: reqMaxWristFlexion,
-        maxWristExtension: reqMaxWristExtension
+        maxWristExtension: reqMaxWristExtension,
+        dashScore,
+        responses
       } = req.body;
       
       // Calculate ROM values from repetition data for trigger finger assessments
@@ -1066,7 +1068,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         wristFlexionAngle: wristFlexionAngle !== null ? String(wristFlexionAngle) : null,
         wristExtensionAngle: wristExtensionAngle !== null ? String(wristExtensionAngle) : null,
         maxWristFlexion: maxWristFlexion !== null ? String(maxWristFlexion) : null,
-        maxWristExtension: maxWristExtension !== null ? String(maxWristExtension) : null
+        maxWristExtension: maxWristExtension !== null ? String(maxWristExtension) : null,
+        
+        // DASH assessment data
+        dashScore: dashScore !== null ? dashScore : null
       });
       
       res.json({ userAssessment });

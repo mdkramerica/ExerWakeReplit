@@ -23,13 +23,13 @@ export default function DashAssessmentPage() {
 
   const completeDashMutation = useMutation({
     mutationFn: async (data: { responses: Record<number, number>; dashScore: number }) => {
-      return fetch(`/api/users/${userId}/assessments/complete`, {
+      return fetch(`/api/users/${userId}/assessments/6/complete`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          assessmentId: 6, // DASH Survey assessment ID
           responses: data.responses,
           dashScore: data.dashScore,
+          qualityScore: 100, // DASH assessments always have perfect quality
           completedAt: new Date().toISOString()
         })
       }).then(res => res.json());
