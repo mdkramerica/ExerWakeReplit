@@ -104,6 +104,9 @@ export default function ProgressCharts() {
   
   // Process data for charts
   const getChartData = (assessmentName: string): ChartDataPoint[] => {
+    console.log(`Looking for assessment: ${assessmentName}`);
+    console.log('Available assessments in history:', userHistory.map(h => h.assessmentName));
+    
     const relevantHistory = userHistory.filter(item => {
       if (assessmentName === 'TAM (Total Active Motion)') {
         return item.assessmentName === 'TAM (Total Active Motion)';
@@ -112,7 +115,9 @@ export default function ProgressCharts() {
       } else if (assessmentName.includes('Kapandji')) {
         return item.assessmentName === 'Kapandji Score';
       } else if (assessmentName === 'DASH Score') {
-        return item.assessmentName === 'DASH Survey';
+        console.log('Filtering for DASH Score');
+        console.log('Unknown Assessment items:', userHistory.filter(h => h.assessmentName === 'Unknown Assessment'));
+        return item.assessmentName === 'DASH Survey' || item.assessmentName === 'Unknown Assessment';
       } else if (assessmentName === 'Wrist Flexion' || assessmentName === 'Wrist Extension') {
         return item.assessmentName.includes('Flexion/Extension') || 
                item.assessmentName.includes('Flexion') || 
@@ -228,7 +233,7 @@ export default function ProgressCharts() {
       );
       return wristHistory.length > 0;
     } else if (assessmentName === 'DASH Score') {
-      const dashHistory = userHistory.filter(h => h.assessmentName === 'DASH Survey');
+      const dashHistory = userHistory.filter(h => h.assessmentName === 'DASH Survey' || h.assessmentName === 'Unknown Assessment');
       return dashHistory.length > 0;
     }
     return true; // Show other assessment types by default
