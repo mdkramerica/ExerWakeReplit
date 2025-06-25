@@ -1347,6 +1347,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       });
 
+      // Add DASH assessment reminder logic
+      const today = new Date();
+      const recoveryStartDate = user.studyStartDate ? new Date(user.studyStartDate) : new Date(user.createdAt);
+      const daysSinceStart = Math.floor((today.getTime() - recoveryStartDate.getTime()) / (1000 * 60 * 60 * 24));
+      
+      // Check for DASH assessments (weekly reminders)
+      const dashAssessments = userAssessments.filter(ua => ua.assessmentId === 6); // DASH Survey ID
+      const lastDashAssessment = dashAssessments
+        .filter(ua => ua.isCompleted && ua.completedAt)
+        .sort((a, b) => new Date(b.completedAt!).getTime() - new Date(a.completedAt!).getTime())[0];
+      
+      let daysSinceLastDash = 0;
+      if (lastDashAssessment) {
+        daysSinceLastDash = Math.floor((today.getTime() - new Date(lastDashAssessment.completedAt!).getTime()) / (1000 * 60 * 60 * 24));
+      } else {
+        daysSinceLastDash = daysSinceStart;
+      }
+      
+      // Show DASH assessment if it's been 6+ days since last completion or if it's the first week
+      if (daysSinceLastDash >= 6 || (daysSinceStart >= 6 && !lastDashAssessment)) {
+        dailyAssessments.push({
+          id: 6,
+          name: "DASH Survey",
+          description: "Weekly assessment of arm, shoulder and hand function",
+          estimatedMinutes: 10,
+          isRequired: false,
+          isCompleted: false,
+          assessmentUrl: `/patient/${code}/dash-assessment`,
+          assessmentType: "DASH"
+        });
+      }
+
       res.json(dailyAssessments);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch daily assessments" });
