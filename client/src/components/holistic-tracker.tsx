@@ -1,5 +1,6 @@
 import { useEffect, useRef, useCallback, useState } from "react";
 import { calculateElbowReferencedWristAngle, calculateElbowReferencedWristAngleWithForce, resetRecordingSession, getRecordingSessionElbowSelection } from "@shared/elbow-wrist-calculator";
+import { calculateWristDeviation } from "@shared/rom-calculator";
 
 // MediaPipe type declarations for window object
 declare global {
@@ -34,6 +35,7 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType,
   const handTypeConfidenceRef = useRef(0);
 
   const isWristAssessment = assessmentType?.toLowerCase().includes('wrist');
+  const isRadialUlnarDeviation = assessmentType?.toLowerCase().includes('radial') || assessmentType?.toLowerCase().includes('ulnar') || assessmentType?.toLowerCase().includes('deviation');
 
   // Use locked hand type when recording starts, or reset if none provided
   useEffect(() => {
@@ -287,33 +289,68 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType,
       
       // Calculate wrist angles for wrist assessments during recording
       let wristAngles = null;
-      if (isWristAssessment && handLandmarks.length >= 21 && poseLandmarks.length > 16) {
+      let wristDeviation = null;
+      
+      if ((isWristAssessment || isRadialUlnarDeviation) && handLandmarks.length >= 21 && poseLandmarks.length > 16) {
         // Use locked hand type if available, otherwise use current detection
         const handTypeForCalculation = lastHandTypeRef.current !== 'UNKNOWN' ? lastHandTypeRef.current : currentDetection.handType;
         
         if (handTypeForCalculation !== 'UNKNOWN') {
           console.log(`🎯 WRIST ASSESSMENT - Calling calculation with hand type: ${handTypeForCalculation}`);
-          wristAngles = calculateElbowReferencedWristAngleWithForce(
-            handLandmarks.map((landmark: any) => ({
-              x: landmark.x,
-              y: landmark.y,
-              z: landmark.z
-            })),
-            poseLandmarks.map((landmark: any) => ({
-              x: landmark.x,
-              y: landmark.y,
-              z: landmark.z,
-              visibility: landmark.visibility
-            })),
-            handTypeForCalculation
-          );
           
-          // Ensure hand type is consistent
-          if (wristAngles) {
-            wristAngles.handType = handTypeForCalculation;
-            console.log(`✅ WRIST CALCULATION SUCCESS: Flexion=${wristAngles.wristFlexionAngle?.toFixed(1)}°, Extension=${wristAngles.wristExtensionAngle?.toFixed(1)}°`);
-          } else {
-            console.log(`❌ WRIST CALCULATION FAILED - returned null`);
+          // Calculate flexion/extension for regular wrist assessments
+          if (isWristAssessment && !isRadialUlnarDeviation) {
+            wristAngles = calculateElbowReferencedWristAngleWithForce(
+              handLandmarks.map((landmark: any) => ({
+                x: landmark.x,
+                y: landmark.y,
+                z: landmark.z
+              })),
+              poseLandmarks.map((landmark: any) => ({
+                x: landmark.x,
+                y: landmark.y,
+                z: landmark.z,
+                visibility: landmark.visibility
+              })),
+              handTypeForCalculation
+            );
+            
+            // Ensure hand type is consistent
+            if (wristAngles) {
+              wristAngles.handType = handTypeForCalculation;
+              console.log(`✅ WRIST CALCULATION SUCCESS: Flexion=${wristAngles.wristFlexionAngle?.toFixed(1)}°, Extension=${wristAngles.wristExtensionAngle?.toFixed(1)}°`);
+            } else {
+              console.log(`❌ WRIST CALCULATION FAILED - returned null`);
+            }
+          }
+          
+          // Calculate radial/ulnar deviation for deviation assessments
+          if (isRadialUlnarDeviation) {
+            const deviation = calculateWristDeviation(
+              poseLandmarks.map((landmark: any) => ({
+                x: landmark.x,
+                y: landmark.y,
+                z: landmark.z,
+                visibility: landmark.visibility
+              })),
+              handLandmarks.map((landmark: any) => ({
+                x: landmark.x,
+                y: landmark.y,
+                z: landmark.z,
+                visibility: landmark.visibility
+              })),
+              handTypeForCalculation === 'LEFT'
+            );
+            
+            wristDeviation = {
+              deviationAngle: deviation,
+              radialDeviation: deviation > 0 ? deviation : 0,
+              ulnarDeviation: deviation < 0 ? Math.abs(deviation) : 0,
+              handType: handTypeForCalculation,
+              confidence: currentDetection?.confidence || 0.8
+            };
+            
+            console.log(`✅ DEVIATION CALCULATION SUCCESS: ${deviation.toFixed(1)}° (${deviation > 0 ? 'Radial' : 'Ulnar'})`);
           }
         } else {
           console.log('⚠️ No hand type available for wrist calculation');

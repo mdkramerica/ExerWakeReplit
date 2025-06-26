@@ -462,3 +462,210 @@ export function calculateAllFingersMaxROM(motionFrames: Array<{landmarks: HandLa
 
   return { ...maxROMByFinger, temporalQuality };
 }
+
+// Wrist Radial/Ulnar Deviation Assessment
+export interface WristDeviationResult {
+  radialDeviation: number;
+  ulnarDeviation: number;
+  maxRadialDeviation: number;
+  maxUlnarDeviation: number;
+  reproductibilityValid: boolean;
+  confidence: number;
+}
+
+export interface Vector3D {
+  x: number;
+  y: number;
+  z: number;
+}
+
+// Vector utility functions
+function createVector(landmark: HandLandmark): Vector3D {
+  return { x: landmark.x, y: landmark.y, z: landmark.z };
+}
+
+function subtractVectors(a: Vector3D, b: Vector3D): Vector3D {
+  return { x: a.x - b.x, y: a.y - b.y, z: a.z - b.z };
+}
+
+function addVectors(a: Vector3D, b: Vector3D): Vector3D {
+  return { x: a.x + b.x, y: a.y + b.y, z: a.z + b.z };
+}
+
+function scaleVector(v: Vector3D, scale: number): Vector3D {
+  return { x: v.x * scale, y: v.y * scale, z: v.z * scale };
+}
+
+function dotProduct(a: Vector3D, b: Vector3D): number {
+  return a.x * b.x + a.y * b.y + a.z * b.z;
+}
+
+function crossProduct(a: Vector3D, b: Vector3D): Vector3D {
+  return {
+    x: a.y * b.z - a.z * b.y,
+    y: a.z * b.x - a.x * b.z,
+    z: a.x * b.y - a.y * b.x
+  };
+}
+
+function vectorMagnitude(v: Vector3D): number {
+  return Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+}
+
+function calculateAngleDegrees(a: Vector3D, b: Vector3D): number {
+  const dot = dotProduct(a, b);
+  const magA = vectorMagnitude(a);
+  const magB = vectorMagnitude(b);
+  
+  if (magA === 0 || magB === 0) return 0;
+  
+  const cosAngle = Math.max(-1, Math.min(1, dot / (magA * magB)));
+  return Math.acos(cosAngle) * (180 / Math.PI);
+}
+
+/**
+ * Calculate wrist radial/ulnar deviation angle
+ * Returns positive for radial deviation (toward thumb), negative for ulnar deviation (toward pinky)
+ */
+export function calculateWristDeviation(
+  poseLandmarks: HandLandmark[],
+  handLandmarks: HandLandmark[],
+  isLeftHand: boolean
+): number {
+  try {
+    // Get pose landmarks (elbow and wrist)
+    const elbowIndex = isLeftHand ? 13 : 14;
+    const wristIndex = isLeftHand ? 15 : 16;
+    
+    if (!poseLandmarks[elbowIndex] || !poseLandmarks[wristIndex]) {
+      console.warn('Missing elbow or wrist landmarks for deviation calculation');
+      return 0;
+    }
+
+    const elbow = createVector(poseLandmarks[elbowIndex]);
+    const wrist = createVector(poseLandmarks[wristIndex]);
+
+    // Get hand landmarks with fallback to pose landmarks
+    let indexMCP: Vector3D, pinkyMCP: Vector3D;
+    
+    if (handLandmarks && handLandmarks.length > 17 && 
+        handLandmarks[5]?.visibility && handLandmarks[5].visibility > 0.7 &&
+        handLandmarks[17]?.visibility && handLandmarks[17].visibility > 0.7) {
+      // Use hand landmarks (more precise)
+      indexMCP = createVector(handLandmarks[5]);  // Index MCP
+      pinkyMCP = createVector(handLandmarks[17]); // Pinky MCP
+    } else {
+      // Fallback to pose landmarks (index and pinky fingertips)
+      const indexTipIndex = isLeftHand ? 19 : 20;
+      const pinkyTipIndex = isLeftHand ? 21 : 22;
+      
+      if (!poseLandmarks[indexTipIndex] || !poseLandmarks[pinkyTipIndex]) {
+        console.warn('Missing fingertip landmarks for deviation calculation');
+        return 0;
+      }
+      
+      indexMCP = createVector(poseLandmarks[indexTipIndex]);
+      pinkyMCP = createVector(poseLandmarks[pinkyTipIndex]);
+    }
+
+    // Calculate vectors
+    const forearmVector = subtractVectors(wrist, elbow);  // Forearm axis
+    const handMidpoint = scaleVector(addVectors(indexMCP, pinkyMCP), 0.5);
+    const handVector = subtractVectors(handMidpoint, wrist);  // Hand axis
+
+    // Calculate angle between vectors
+    const angle = calculateAngleDegrees(forearmVector, handVector);
+    
+    // Determine sign using cross product (positive = radial, negative = ulnar)
+    const cross = crossProduct(forearmVector, handVector);
+    const sign = isLeftHand ? -cross.z : cross.z;
+    
+    // Apply anatomical limits (-35° to +25°)
+    const signedAngle = sign >= 0 ? angle : -angle;
+    const limitedAngle = Math.max(-35, Math.min(25, signedAngle));
+    
+    return Math.round(limitedAngle * 100) / 100;
+    
+  } catch (error) {
+    console.error('Error calculating wrist deviation:', error);
+    return 0;
+  }
+}
+
+/**
+ * Process wrist deviation data from multiple frames with reproducibility validation
+ */
+export function processWristDeviationData(
+  frameData: Array<{
+    poseLandmarks: HandLandmark[];
+    handLandmarks: HandLandmark[];
+    isLeftHand: boolean;
+    timestamp: number;
+  }>
+): WristDeviationResult {
+  const deviations: number[] = [];
+  const confidenceScores: number[] = [];
+  
+  frameData.forEach(frame => {
+    const deviation = calculateWristDeviation(
+      frame.poseLandmarks,
+      frame.handLandmarks,
+      frame.isLeftHand
+    );
+    
+    // Calculate confidence based on landmark visibility
+    let confidence = 0.5;
+    
+    if (frame.handLandmarks && frame.handLandmarks[5] && frame.handLandmarks[17]) {
+      const indexVisibility = frame.handLandmarks[5].visibility || 0;
+      const pinkyVisibility = frame.handLandmarks[17].visibility || 0;
+      confidence = (indexVisibility + pinkyVisibility) / 2;
+    }
+    
+    // Only include high-confidence measurements
+    if (confidence > 0.7 && Math.abs(deviation) <= 35) {
+      deviations.push(deviation);
+      confidenceScores.push(confidence);
+    }
+  });
+
+  if (deviations.length === 0) {
+    return {
+      radialDeviation: 0,
+      ulnarDeviation: 0,
+      maxRadialDeviation: 0,
+      maxUlnarDeviation: 0,
+      reproductibilityValid: false,
+      confidence: 0
+    };
+  }
+
+  // Separate radial and ulnar deviations
+  const radialDeviations = deviations.filter(d => d > 0);
+  const ulnarDeviations = deviations.filter(d => d < 0).map(d => Math.abs(d));
+  
+  const maxRadial = radialDeviations.length > 0 ? Math.max(...radialDeviations) : 0;
+  const maxUlnar = ulnarDeviations.length > 0 ? Math.max(...ulnarDeviations) : 0;
+  
+  // Check reproducibility (AMA guidelines: ±5° for ROM < 50°)
+  const radialReproducible = checkReproducibility(radialDeviations, 5);
+  const ulnarReproducible = checkReproducibility(ulnarDeviations, 5);
+  
+  const averageConfidence = confidenceScores.reduce((sum, c) => sum + c, 0) / confidenceScores.length;
+  
+  return {
+    radialDeviation: maxRadial,
+    ulnarDeviation: maxUlnar,
+    maxRadialDeviation: maxRadial,
+    maxUlnarDeviation: maxUlnar,
+    reproductibilityValid: radialReproducible && ulnarReproducible,
+    confidence: averageConfidence
+  };
+}
+
+function checkReproducibility(values: number[], tolerance: number): boolean {
+  if (values.length < 2) return true;
+  
+  const mean = values.reduce((sum, v) => sum + v, 0) / values.length;
+  return values.every(v => Math.abs(v - mean) <= tolerance);
+}

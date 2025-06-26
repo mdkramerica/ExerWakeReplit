@@ -1,0 +1,107 @@
+Logic Module — Wrist Radial & Ulnar Deviation
+(fits into the existing ROMAssessment → romMath.ts pipeline)
+
+1 · Standardised Test Setup
+Step	Standard AMA-style instructions (mirrored in on-screen prompts)
+Patient position	Seated, shoulder neutral (0 ° abd/add), elbow flexed ≈ 90 °, forearm pronated resting on a desk so the dorsum of the hand faces the camera.
+Camera view	Frontal, centred on forearm–hand; distance ≈ 50–70 cm so the whole hand fits the frame. (No change from seated “hands close-up” step already in the flow.)
+Motion sequence	➊ Neutral wrist → ➋ Actively move hand toward thumb (radial dev) → ➌ Return to neutral → ➍ Move toward little finger (ulnar dev). Examiner (or on-screen voice) cues each motion.
+Trials	3 consecutive reps each direction; software stores the largest reproducible angle per AMA 3-measurement rule.
+
+2 · Landmark Selection
+We combine Pose and Hands stream for high precision:
+
+Landmark source	Index	Description	Use
+Pose	elbowL (13) or elbowR (14)	Reference forearm axis	
+Pose	wristL (15) or wristR (16)	Wrist joint centre	
+Hands	index_mcp (5) & pinky_mcp (17)	Define hand long axis vector
+(mid-point of 5 & 17 approximates mid-Metacarpal)	
+
+(If Hands ROI confidence < 0.5 fallback to Pose hand landmarks.)
+
+3 · Mathematical Definition
+text
+Copy
+Edit
+Forearm vector  F  = wrist  –  elbow
+Hand-plane vector  H  = midpoint(index_mcp, pinky_mcp)  –  wrist
+Deviation angle θ  =  arccos( (F·H) / |F|·|H| )
+
+Sign rule:  
+  θ > 0  ➜  radial deviation (toward thumb)  
+  θ < 0  ➜  ulnar deviation  (toward little finger)
+
+For display convert to absolute degrees |θ|; store sign separately.
+Because the elbow is fixed and the motion occurs largely in the coronal plane, this 3-point method reproduces goniometer technique (forearm long axis vs 3rd metacarpal axis).
+
+4 · Pseudocode (TypeScript)
+ts
+Copy
+Edit
+import { NormalizedLandmarkList } from "@mediapipe/pose";
+import { calcAngleDeg, vec } from "./vectorUtils";
+
+/** returns +deg for radial, -deg for ulnar */
+export function wristDeviation(
+  poseLm: NormalizedLandmarkList,
+  handLm: NormalizedLandmarkList,
+  isLeft: boolean
+): number {
+  const elbow = vec(poseLm[isLeft ? 13 : 14]);
+  const wrist = vec(poseLm[isLeft ? 15 : 16]);
+
+  // If Hands landmarks present use them, else estimate with Pose index finger tip
+  let indexMCP, pinkyMCP;
+  if (handLm?.length) {
+    indexMCP = vec(handLm[5]);
+    pinkyMCP = vec(handLm[17]);
+  } else {
+    indexMCP = vec(poseLm[isLeft ? 19 : 20]);      // index tip as fallback
+    pinkyMCP = vec(poseLm[isLeft ? 21 : 22]);      // pinky tip
+  }
+
+  const handMid = indexMCP.add(pinkyMCP).scale(0.5);
+
+  const F = wrist.sub(elbow);      // forearm axis
+  const H = handMid.sub(wrist);    // hand axis
+
+  const theta = calcAngleDeg(F, H);   // 0–180°
+  const cross = F.cross(H).z;         // sign in Z (camera) axis
+  const signed = (isLeft ? -cross : cross) >= 0 ? theta : -theta;
+
+  return signed;  // +radial, -ulnar
+}
+calcAngleDeg is a helper returning acos((a·b)/|a||b|) in degrees.
+vec wraps an (x,y,z) into a small vector class with .sub() .add() .scale().
+
+5 · Consistency & AMA Compliance Logic
+ts
+Copy
+Edit
+/** inside ROMAssessment attempt loop */
+const trial = wristDeviation(poseLm, handLm, isLeft);
+currentTrials.push(trial);
+
+if (currentTrials.length === 3) {
+  const best = Math.max(...currentTrials.map(Math.abs));
+  const withinTol = checkReproducibility(currentTrials, 5); // ≤5° spread
+  if (!withinTol) promptRepeat();
+  else storeResult({ bestDeg: best, direction: best > 0 ? "radial" : "ulnar" });
+}
+checkReproducibility follows AMA 6th tolerance: trials must be within ±5 ° if ROM < 50 °, or ±10 % of mean if ROM ≥ 50 °.
+
+6 · Normative Reference for Report
+Motion	Normal ROM (AAOS)
+Radial Deviation	20 °
+Ulnar Deviation	30 °
+
+In the generated report:
+
+yaml
+Copy
+Edit
+Left wrist
+  Radial Deviation: 12° (Deficit 40 % vs normal 20°)
+  Ulnar  Deviation: 25° (Deficit 17 % vs normal 30°)  ⚑ Pain at 18°
+7 · UI/UX Integration
+Animated overlay shows neutral hand silhouette and target direction.
