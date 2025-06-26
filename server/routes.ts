@@ -1472,75 +1472,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/users/:userId/assessments/today", async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
-      const user = await storage.getUser(userId);
       
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
       // Get today's date in YYYY-MM-DD format
       const today = new Date().toISOString().split('T')[0];
+      console.log('API: Today\'s date:', today, 'for user', userId);
       
-      // Get all assessments for this injury type
+      // Get all assessments and user assessments
       const coreAssessments = await storage.getAssessments();
       const userAssessments = await storage.getUserAssessments(userId);
+      
+      console.log('API: Found', coreAssessments.length, 'core assessments and', userAssessments.length, 'user assessments');
       
       // Filter assessments completed today
       const completedToday = userAssessments.filter(ua => {
         if (!ua.isCompleted || !ua.completedAt) return false;
         const completedDate = new Date(ua.completedAt).toISOString().split('T')[0];
-        return completedDate === today;
+        const isToday = completedDate === today;
+        if (isToday) {
+          console.log('API: Assessment', ua.assessmentId, 'completed today at', ua.completedAt);
+        }
+        return isToday;
       });
 
+      console.log('API: Completed today count:', completedToday.length);
+
       // Create assessment list with today's completion status
-      const todayAssessments = coreAssessments.map(assessment => {
+      const todayAssessments = coreAssessments.filter(assessment => assessment.id <= 5).map(assessment => {
         const completedAssessment = completedToday.find(ua => ua.assessmentId === assessment.id);
         return {
           id: assessment.id,
           name: assessment.name,
           description: assessment.description,
-          estimatedMinutes: Math.floor(assessment.duration / 60) || 10,
+          estimatedMinutes: Math.floor((assessment.duration || 600) / 60),
           isRequired: true,
           isCompleted: !!completedAssessment,
-          completedAt: completedAssessment?.completedAt,
-          assessmentUrl: `/assessment/${assessment.id}/video/${user.code}`
+          completedAt: completedAssessment?.completedAt || null,
+          assessmentUrl: `/assessment/${assessment.id}/video/DEMO02`
         };
       });
 
-      // Add DASH if due
-      const dashAssessments = userAssessments.filter(ua => ua.assessmentId === 6);
-      const lastDashAssessment = dashAssessments
-        .filter(ua => ua.isCompleted && ua.completedAt)
-        .sort((a, b) => new Date(b.completedAt!).getTime() - new Date(a.completedAt!).getTime())[0];
-      
-      const recoveryStartDate = user.studyStartDate ? new Date(user.studyStartDate) : new Date(user.createdAt);
-      const daysSinceStart = Math.floor((new Date().getTime() - recoveryStartDate.getTime()) / (1000 * 60 * 60 * 24));
-      
-      let daysSinceLastDash = 0;
-      if (lastDashAssessment) {
-        daysSinceLastDash = Math.floor((new Date().getTime() - new Date(lastDashAssessment.completedAt!).getTime()) / (1000 * 60 * 60 * 24));
-      } else {
-        daysSinceLastDash = daysSinceStart;
-      }
-      
-      // Check if DASH completed today
-      const dashCompletedToday = completedToday.find(ua => ua.assessmentId === 6);
-      
-      if ((daysSinceLastDash >= 6 || (daysSinceStart >= 6 && !lastDashAssessment)) && !dashCompletedToday) {
-        todayAssessments.push({
-          id: 6,
-          name: "DASH Survey", 
-          description: "Weekly assessment of arm, shoulder and hand function",
-          estimatedMinutes: 10,
-          isRequired: false,
-          isCompleted: false,
-          assessmentUrl: `/patient/${user.code}/dash-assessment`
-        });
-      }
-
+      console.log('API: Returning', todayAssessments.length, 'assessments for today');
       res.json({ assessments: todayAssessments });
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch today's assessments" });
+      console.error('API: Error in today\'s assessments endpoint:', error);
+      console.error('API: Full error:', error);
+      res.status(500).json({ message: "Failed to fetch today's assessments", error: String(error) });
     }
   });
 
