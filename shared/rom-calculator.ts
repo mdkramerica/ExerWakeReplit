@@ -3,14 +3,6 @@ export interface JointAngles {
   pipAngle: number;
   dipAngle: number;
   totalActiveRom: number;
-  // Extension deficit tracking
-  mcpExtensionDeficit?: number;
-  pipExtensionDeficit?: number;
-  dipExtensionDeficit?: number;
-  // Raw flexion values before deficit adjustment
-  mcpFlexion?: number;
-  pipFlexion?: number;
-  dipFlexion?: number;
 }
 
 export interface HandLandmark {
@@ -78,9 +70,9 @@ const FINGER_LANDMARKS = {
   }
 };
 
-// Calculate joint angle between three points
-// Returns angle with proper sign: positive for flexion, negative for hyperextension
-function calculateJointAngle(p1: HandLandmark, p2: HandLandmark, p3: HandLandmark): number {
+// Calculate flexion angle between three points
+// Returns 0° for straight finger, positive for flexion
+function calculateFlexionAngle(p1: HandLandmark, p2: HandLandmark, p3: HandLandmark): number {
   // Vector from p2 to p1 (proximal segment)
   const v1 = {
     x: p1.x - p2.x,
@@ -115,27 +107,11 @@ function calculateJointAngle(p1: HandLandmark, p2: HandLandmark, p3: HandLandmar
   const angleRad = Math.acos(clampedCos);
   const totalAngle = (angleRad * 180) / Math.PI;
   
-  // Convert to flexion/extension angle: 180° = straight (0°), smaller angles = flexion, larger = hyperextension
-  const jointAngle = 180 - totalAngle;
+  // Convert to flexion angle: 180° = straight (0° flexion), smaller angles = more flexion
+  const flexionAngle = 180 - totalAngle;
   
-  return jointAngle;
-}
-
-// Calculate flexion angle (ensures non-negative, ignores hyperextension)
-function calculateFlexionAngle(p1: HandLandmark, p2: HandLandmark, p3: HandLandmark): number {
-  const jointAngle = calculateJointAngle(p1, p2, p3);
-  // Only return positive flexion angles, ignore hyperextension
-  return Math.max(0, jointAngle);
-}
-
-// Calculate extension deficit (how far short of 0° extension)
-function calculateExtensionDeficit(allAngles: number[]): number {
-  // Find the minimum angle (closest to full extension)
-  const minAngle = Math.min(...allAngles);
-  
-  // If minimum angle is positive, there's an extension deficit
-  // If negative (hyperextension), no deficit
-  return Math.max(0, minAngle);
+  // Ensure non-negative values (straight finger = 0°, flexed finger = positive)
+  return Math.max(0, flexionAngle);
 }
 
 // Temporal consistency validation
@@ -191,12 +167,7 @@ export function assessFingerVisibility(landmarks: HandLandmark[], fingerType: 'I
   const allIndices = [...finger.MCP, ...finger.PIP, ...finger.DIP];
   
   // Get unique landmark indices for this finger
-  const uniqueIndices: number[] = [];
-  allIndices.forEach(idx => {
-    if (uniqueIndices.indexOf(idx) === -1) {
-      uniqueIndices.push(idx);
-    }
-  });
+  const uniqueIndices = [...new Set(allIndices)];
   
   let totalVisibility = 0;
   let visibleLandmarks = 0;
@@ -265,55 +236,33 @@ export function calculateFingerROM(landmarks: HandLandmark[], fingerType: 'INDEX
       mcpAngle: 0,
       pipAngle: 0,
       dipAngle: 0,
-      totalActiveRom: 0,
-      mcpExtensionDeficit: 0,
-      pipExtensionDeficit: 0,
-      dipExtensionDeficit: 0,
-      mcpFlexion: 0,
-      pipFlexion: 0,
-      dipFlexion: 0
+      totalActiveRom: 0
     };
   }
   
-  // Calculate raw joint angles (can be positive for flexion, negative for hyperextension)
+  // Calculate flexion angles using correct landmark triplets
   // MCP: wrist (0) -> MCP joint (5) -> PIP joint (6)
-  const mcpRawAngle = calculateJointAngle(
+  const mcpAngle = calculateFlexionAngle(
     landmarks[finger.MCP[0]], // wrist (0)
     landmarks[finger.MCP[1]], // MCP joint (5)
     landmarks[finger.MCP[2]]  // PIP joint (6)
   );
   
   // PIP: MCP joint (5) -> PIP joint (6) -> DIP joint (7)
-  const pipRawAngle = calculateJointAngle(
+  const pipAngle = calculateFlexionAngle(
     landmarks[finger.PIP[0]], // MCP joint (5)
     landmarks[finger.PIP[1]], // PIP joint (6)
     landmarks[finger.PIP[2]]  // DIP joint (7)
   );
   
   // DIP: PIP joint (6) -> DIP joint (7) -> fingertip (8)
-  const dipRawAngle = calculateJointAngle(
+  const dipAngle = calculateFlexionAngle(
     landmarks[finger.DIP[0]], // PIP joint (6)
     landmarks[finger.DIP[1]], // DIP joint (7)
     landmarks[finger.DIP[2]]  // fingertip (8)
   );
   
-  // Get flexion angles (positive values only, ignore hyperextension)
-  const mcpFlexion = Math.max(0, mcpRawAngle);
-  const pipFlexion = Math.max(0, pipRawAngle);
-  const dipFlexion = Math.max(0, dipRawAngle);
-  
-  // Calculate extension deficits (cannot reach 0° extension)
-  // If raw angle is positive at minimum position, there's an extension deficit
-  const mcpExtensionDeficit = Math.max(0, mcpRawAngle > 0 ? mcpRawAngle : 0);
-  const pipExtensionDeficit = Math.max(0, pipRawAngle > 0 ? pipRawAngle : 0);
-  const dipExtensionDeficit = Math.max(0, dipRawAngle > 0 ? dipRawAngle : 0);
-  
-  // TAM calculation: Flexion ROM minus extension deficits
-  const mcpAngle = Math.max(0, mcpFlexion - mcpExtensionDeficit);
-  const pipAngle = Math.max(0, pipFlexion - pipExtensionDeficit);
-  const dipAngle = Math.max(0, dipFlexion - dipExtensionDeficit);
-  
-  // Total active range of motion (clinical TAM)
+  // Total active range of motion
   const totalActiveRom = mcpAngle + pipAngle + dipAngle;
   
   if (confidence) {
@@ -324,13 +273,7 @@ export function calculateFingerROM(landmarks: HandLandmark[], fingerType: 'INDEX
     mcpAngle: Math.round(mcpAngle * 100) / 100, // Round to 2 decimal places
     pipAngle: Math.round(pipAngle * 100) / 100,
     dipAngle: Math.round(dipAngle * 100) / 100,
-    totalActiveRom: Math.round(totalActiveRom * 100) / 100,
-    mcpExtensionDeficit: Math.round(mcpExtensionDeficit * 100) / 100,
-    pipExtensionDeficit: Math.round(pipExtensionDeficit * 100) / 100,
-    dipExtensionDeficit: Math.round(dipExtensionDeficit * 100) / 100,
-    mcpFlexion: Math.round(mcpFlexion * 100) / 100,
-    pipFlexion: Math.round(pipFlexion * 100) / 100,
-    dipFlexion: Math.round(dipFlexion * 100) / 100
+    totalActiveRom: Math.round(totalActiveRom * 100) / 100
   };
 }
 
@@ -347,14 +290,11 @@ export function calculateAllFingersMaxROM(motionFrames: Array<{landmarks: HandLa
   const temporalQuality: {[key: string]: number} = {};
 
   fingers.forEach(finger => {
-    // Track both flexion and extension angles for TAM calculation
-    const mcpFlexionAngles: number[] = [];
-    const pipFlexionAngles: number[] = [];
-    const dipFlexionAngles: number[] = [];
-    const mcpRawAngles: number[] = [];
-    const pipRawAngles: number[] = [];
-    const dipRawAngles: number[] = [];
+    let maxMcp = 0, maxPip = 0, maxDip = 0, maxTotal = 0;
     const romHistory: number[] = [];
+    const mcpHistory: number[] = [];
+    const pipHistory: number[] = [];
+    const dipHistory: number[] = [];
     
     // Assess overall finger visibility across all frames
     const visibilityAssessments = motionFrames.map(frame => 
@@ -372,127 +312,89 @@ export function calculateAllFingersMaxROM(motionFrames: Array<{landmarks: HandLa
     
     console.log(`${finger} finger visibility assessment: ${visibleFrames}/${totalFrames} frames clearly visible (${(overallVisibilityRatio * 100).toFixed(1)}%) - ${isClearlyVisible ? 'BYPASSING temporal validation' : 'APPLYING temporal validation'}`);
     
-    // Process each frame to collect flexion and extension data
+    // Process each frame and build ROM history
     motionFrames.forEach((frame, frameIndex) => {
       if (frame.landmarks && frame.landmarks.length >= 21) {
-        const fingerLandmarks = FINGER_LANDMARKS[finger];
-        
-        // Calculate raw joint angles (can be positive for flexion, negative for hyperextension)
-        const mcpRawAngle = calculateJointAngle(
-          frame.landmarks[fingerLandmarks.MCP[0]],
-          frame.landmarks[fingerLandmarks.MCP[1]],
-          frame.landmarks[fingerLandmarks.MCP[2]]
-        );
-        
-        const pipRawAngle = calculateJointAngle(
-          frame.landmarks[fingerLandmarks.PIP[0]],
-          frame.landmarks[fingerLandmarks.PIP[1]],
-          frame.landmarks[fingerLandmarks.PIP[2]]
-        );
-        
-        const dipRawAngle = calculateJointAngle(
-          frame.landmarks[fingerLandmarks.DIP[0]],
-          frame.landmarks[fingerLandmarks.DIP[1]],
-          frame.landmarks[fingerLandmarks.DIP[2]]
-        );
-        
-        // Get flexion angles (positive values only)
-        const mcpFlexion = Math.max(0, mcpRawAngle);
-        const pipFlexion = Math.max(0, pipRawAngle);
-        const dipFlexion = Math.max(0, dipRawAngle);
-        
+        const rom = calculateFingerROM(frame.landmarks, finger);
         const frameVisibility = visibilityAssessments[frameIndex];
+        
+        // Determine if we should apply temporal validation for this frame
+        let shouldApplyTemporal = true;
+        
+        if (isClearlyVisible && VISIBILITY_CONFIG.bypassTemporalIfVisible) {
+          // Bypass temporal validation for clearly visible fingers
+          shouldApplyTemporal = false;
+        }
+        
         let acceptFrame = true;
         
-        // Apply temporal validation if needed
-        if (!isClearlyVisible || !VISIBILITY_CONFIG.bypassTemporalIfVisible) {
-          const currentTotalROM = mcpFlexion + pipFlexion + dipFlexion;
-          const totalROMValid = validateTemporalConsistency(currentTotalROM, romHistory);
+        if (shouldApplyTemporal) {
+          // Apply temporal consistency validation
+          const totalROMValid = validateTemporalConsistency(rom.totalActiveRom, romHistory);
+          const mcpValid = validateTemporalConsistency(rom.mcpAngle, mcpHistory);
+          const pipValid = validateTemporalConsistency(rom.pipAngle, pipHistory);
+          const dipValid = validateTemporalConsistency(rom.dipAngle, dipHistory);
           
-          if (!totalROMValid && romHistory.length > 0) {
-            acceptFrame = false;
-            console.log(`${finger} finger ROM REJECTED due to temporal inconsistency: TAM=${currentTotalROM.toFixed(1)}° - change: ${Math.abs(currentTotalROM - romHistory[romHistory.length - 1]).toFixed(1)}°`);
+          acceptFrame = totalROMValid && mcpValid && pipValid && dipValid;
+          
+          if (!acceptFrame) {
+            // Log detailed rejection reasons for clinical documentation
+            const rejectionReasons = [];
+            if (!totalROMValid) rejectionReasons.push(`TAM change: ${romHistory.length > 0 ? Math.abs(rom.totalActiveRom - romHistory[romHistory.length - 1]).toFixed(1) : 'N/A'}°`);
+            if (!mcpValid) rejectionReasons.push(`MCP change: ${mcpHistory.length > 0 ? Math.abs(rom.mcpAngle - mcpHistory[mcpHistory.length - 1]).toFixed(1) : 'N/A'}°`);
+            if (!pipValid) rejectionReasons.push(`PIP change: ${pipHistory.length > 0 ? Math.abs(rom.pipAngle - pipHistory[pipHistory.length - 1]).toFixed(1) : 'N/A'}°`);
+            if (!dipValid) rejectionReasons.push(`DIP change: ${dipHistory.length > 0 ? Math.abs(rom.dipAngle - dipHistory[dipHistory.length - 1]).toFixed(1) : 'N/A'}°`);
+            
+            console.log(`${finger} finger ROM REJECTED due to temporal inconsistency: TAM=${rom.totalActiveRom.toFixed(1)}° (${rejectionReasons.join(', ')}) - threshold: ${TEMPORAL_CONFIG.maxROMChangePerFrame}°`);
           }
         }
         
         if (acceptFrame) {
-          mcpFlexionAngles.push(mcpFlexion);
-          pipFlexionAngles.push(pipFlexion);
-          dipFlexionAngles.push(dipFlexion);
-          mcpRawAngles.push(mcpRawAngle);
-          pipRawAngles.push(pipRawAngle);
-          dipRawAngles.push(dipRawAngle);
-          romHistory.push(mcpFlexion + pipFlexion + dipFlexion);
+          romHistory.push(rom.totalActiveRom);
+          mcpHistory.push(rom.mcpAngle);
+          pipHistory.push(rom.pipAngle);
+          dipHistory.push(rom.dipAngle);
+          
+          maxMcp = Math.max(maxMcp, rom.mcpAngle);
+          maxPip = Math.max(maxPip, rom.pipAngle);
+          maxDip = Math.max(maxDip, rom.dipAngle);
+          maxTotal = Math.max(maxTotal, rom.totalActiveRom);
         }
       }
     });
 
-    // Calculate TAM with extension deficit adjustment
-    if (mcpFlexionAngles.length > 0 && pipFlexionAngles.length > 0 && dipFlexionAngles.length > 0) {
-      // Find maximum flexion for each joint
-      const maxMcpFlexion = Math.max(...mcpFlexionAngles);
-      const maxPipFlexion = Math.max(...pipFlexionAngles);
-      const maxDipFlexion = Math.max(...dipFlexionAngles);
-      
-      // Find minimum extension (extension deficit) for each joint
-      // If the minimum raw angle is positive, there's an extension deficit
-      const mcpExtensionDeficit = Math.max(0, Math.min(...mcpRawAngles));
-      const pipExtensionDeficit = Math.max(0, Math.min(...pipRawAngles));
-      const dipExtensionDeficit = Math.max(0, Math.min(...dipRawAngles));
-      
-      // Clinical TAM calculation: Flexion ROM minus extension deficits
-      const mcpTAM = Math.max(0, maxMcpFlexion - mcpExtensionDeficit);
-      const pipTAM = Math.max(0, maxPipFlexion - pipExtensionDeficit);
-      const dipTAM = Math.max(0, maxDipFlexion - dipExtensionDeficit);
-      const totalTAM = mcpTAM + pipTAM + dipTAM;
-      
-      // Log the TAM calculation details
-      console.log(`${finger} finger TAM calculation:`);
-      console.log(`  MCP: ${maxMcpFlexion.toFixed(1)}° flexion - ${mcpExtensionDeficit.toFixed(1)}° deficit = ${mcpTAM.toFixed(1)}°`);
-      console.log(`  PIP: ${maxPipFlexion.toFixed(1)}° flexion - ${pipExtensionDeficit.toFixed(1)}° deficit = ${pipTAM.toFixed(1)}°`);
-      console.log(`  DIP: ${maxDipFlexion.toFixed(1)}° flexion - ${dipExtensionDeficit.toFixed(1)}° deficit = ${dipTAM.toFixed(1)}°`);
-      console.log(`  Total TAM: ${totalTAM.toFixed(1)}° (${romHistory.length} frames processed)`);
+    // Apply smoothing to final ROM values if we have enough data AND temporal validation was applied
+    if (romHistory.length >= TEMPORAL_CONFIG.minValidFrames && !isClearlyVisible) {
+      const smoothedMaxTotal = applySmoothingFilter([...romHistory].sort((a, b) => b - a).slice(0, 3));
+      const smoothedMaxMcp = applySmoothingFilter([...mcpHistory].sort((a, b) => b - a).slice(0, 3));
+      const smoothedMaxPip = applySmoothingFilter([...pipHistory].sort((a, b) => b - a).slice(0, 3));
+      const smoothedMaxDip = applySmoothingFilter([...dipHistory].sort((a, b) => b - a).slice(0, 3));
       
       maxROMByFinger[finger.toLowerCase()] = {
-        mcpAngle: Math.round(mcpTAM * 100) / 100,
-        pipAngle: Math.round(pipTAM * 100) / 100,
-        dipAngle: Math.round(dipTAM * 100) / 100,
-        totalActiveRom: Math.round(totalTAM * 100) / 100,
-        mcpExtensionDeficit: Math.round(mcpExtensionDeficit * 100) / 100,
-        pipExtensionDeficit: Math.round(pipExtensionDeficit * 100) / 100,
-        dipExtensionDeficit: Math.round(dipExtensionDeficit * 100) / 100,
-        mcpFlexion: Math.round(maxMcpFlexion * 100) / 100,
-        pipFlexion: Math.round(maxPipFlexion * 100) / 100,
-        dipFlexion: Math.round(maxDipFlexion * 100) / 100
+        mcpAngle: Math.round(smoothedMaxMcp * 100) / 100,
+        pipAngle: Math.round(smoothedMaxPip * 100) / 100,
+        dipAngle: Math.round(smoothedMaxDip * 100) / 100,
+        totalActiveRom: Math.round(smoothedMaxTotal * 100) / 100
       };
       
-      // Set quality based on visibility and data amount
+      temporalQuality[finger.toLowerCase()] = calculateTemporalQuality(romHistory);
+      console.log(`${finger} finger temporal validation: ${romHistory.length} valid frames, quality: ${Math.round(temporalQuality[finger.toLowerCase()] * 100)}%, final ROM: ${Math.round(smoothedMaxTotal * 100) / 100}°`);
+    } else {
+      // Use raw values for clearly visible fingers or insufficient data
+      maxROMByFinger[finger.toLowerCase()] = {
+        mcpAngle: Math.round(maxMcp * 100) / 100,
+        pipAngle: Math.round(maxPip * 100) / 100,
+        dipAngle: Math.round(maxDip * 100) / 100,
+        totalActiveRom: Math.round(maxTotal * 100) / 100
+      };
+      
       if (isClearlyVisible) {
         temporalQuality[finger.toLowerCase()] = 1.0; // Perfect quality for clearly visible fingers
-        console.log(`${finger} finger clearly visible: ${romHistory.length} frames, bypassed temporal validation, final TAM: ${totalTAM.toFixed(1)}°`);
-      } else if (romHistory.length >= TEMPORAL_CONFIG.minValidFrames) {
-        temporalQuality[finger.toLowerCase()] = calculateTemporalQuality(romHistory);
-        console.log(`${finger} finger temporal validation: ${romHistory.length} valid frames, quality: ${Math.round(temporalQuality[finger.toLowerCase()] * 100)}%, final TAM: ${totalTAM.toFixed(1)}°`);
+        console.log(`${finger} finger clearly visible: ${romHistory.length} frames, bypassed temporal validation, final ROM: ${Math.round(maxTotal * 100) / 100}° (RAW)`);
       } else {
         temporalQuality[finger.toLowerCase()] = 0.3; // Low quality due to insufficient data
-        console.log(`${finger} finger insufficient data: ${romHistory.length} frames, final TAM: ${totalTAM.toFixed(1)}°`);
+        console.log(`${finger} finger insufficient data for temporal validation: ${romHistory.length} frames, using raw ROM: ${Math.round(maxTotal * 100) / 100}°`);
       }
-    } else {
-      // No valid data for this finger
-      maxROMByFinger[finger.toLowerCase()] = {
-        mcpAngle: 0,
-        pipAngle: 0,
-        dipAngle: 0,
-        totalActiveRom: 0,
-        mcpExtensionDeficit: 0,
-        pipExtensionDeficit: 0,
-        dipExtensionDeficit: 0,
-        mcpFlexion: 0,
-        pipFlexion: 0,
-        dipFlexion: 0
-      };
-      temporalQuality[finger.toLowerCase()] = 0;
-      console.log(`${finger} finger: No valid data available`);
     }
   });
 

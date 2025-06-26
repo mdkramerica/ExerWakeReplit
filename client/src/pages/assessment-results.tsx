@@ -373,13 +373,12 @@ export default function AssessmentResults() {
                     <h4 className="font-medium mb-3 text-gray-900">Comprehensive ROM Analysis - All Digits</h4>
                     <div className="space-y-4">
                       {(() => {
-                        // Use stored database values - these are calculated with extension deficits
                         const allFingers = [
                           { 
                             name: 'Index Finger', 
                             key: 'index', 
                             romValue: userAssessment.indexFingerRom,
-                            mcpAngle: userAssessment.maxMcpAngle, // Index finger uses shared max angles
+                            mcpAngle: userAssessment.maxMcpAngle,
                             pipAngle: userAssessment.maxPipAngle,
                             dipAngle: userAssessment.maxDipAngle,
                             highlight: false 
