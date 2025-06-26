@@ -14,6 +14,7 @@ import Recording from "@/pages/recording";
 import ThankYou from "@/pages/thank-you";
 import AssessmentResults from "@/pages/assessment-results";
 import WristResults from "@/pages/wrist-results";
+import WristDeviationResults from "@/pages/wrist-deviation-results";
 import JointTest from "@/pages/joint-test";
 import SharedAssessment from "@/pages/shared-assessment";
 import Overview from "@/pages/overview";
@@ -75,6 +76,7 @@ function LegacyRoutes() {
       <Route path="/assessment/:id/record/:code" component={Recording} />
       <Route path="/assessment-results/:code/:userAssessmentId" component={AssessmentResults} />
       <Route path="/wrist-results/:userCode/:userAssessmentId" component={WristResults} />
+      <Route path="/wrist-deviation-results/:userCode/:userAssessmentId" component={WristDeviationResults} />
       <Route path="/joint-test" component={JointTest} />
       <Route path="/shared/:token" component={SharedAssessment} />
       <Route path="/thank-you" component={ThankYou} />

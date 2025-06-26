@@ -106,11 +106,17 @@ export default function Recording() {
       
       // Navigate to specialized results page based on assessment type
       if (userAssessmentId) {
-        const isWristAssessment = assessment?.name?.toLowerCase().includes('wrist') || 
-                                 assessment?.name?.toLowerCase().includes('flexion') || 
-                                 assessment?.name?.toLowerCase().includes('extension');
+        const isRadialUlnarDeviation = assessment?.name?.toLowerCase().includes('radial') || 
+                                      assessment?.name?.toLowerCase().includes('ulnar') || 
+                                      assessment?.name?.toLowerCase().includes('deviation');
+        const isWristFlexionExtension = (assessment?.name?.toLowerCase().includes('wrist') || 
+                                        assessment?.name?.toLowerCase().includes('flexion') || 
+                                        assessment?.name?.toLowerCase().includes('extension')) && 
+                                       !isRadialUlnarDeviation;
         
-        if (isWristAssessment) {
+        if (isRadialUlnarDeviation) {
+          setLocation(`/wrist-deviation-results/${currentUser.code}/${userAssessmentId}`);
+        } else if (isWristFlexionExtension) {
           setLocation(`/wrist-results/${currentUser.code}/${userAssessmentId}`);
         } else {
           setLocation(`/assessment-results/${currentUser.code}/${userAssessmentId}`);
