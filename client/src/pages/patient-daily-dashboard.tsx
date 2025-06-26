@@ -35,7 +35,7 @@ interface DailyAssessment {
   estimatedMinutes: number;
   isRequired: boolean;
   isCompleted: boolean;
-  completedAt?: string;
+  completedAt?: string | null;
   assessmentUrl: string;
   assessmentType?: string;
 }
@@ -85,12 +85,12 @@ export default function PatientDailyDashboard() {
     enabled: !!userCode,
   });
 
-  const { data: todayAssessmentsResponse, isLoading: assessmentsLoading } = useQuery({
+  const { data: todayAssessmentsResponse, isLoading: assessmentsLoading } = useQuery<{assessments: DailyAssessment[]}>({
     queryKey: [`/api/users/${patient?.id}/assessments/today`],
     enabled: !!patient?.id,
   });
 
-  const dailyAssessments = todayAssessmentsResponse?.assessments || [];
+  const dailyAssessments: DailyAssessment[] = todayAssessmentsResponse?.assessments || [];
 
   const { data: streakData } = useQuery<StreakData>({
     queryKey: [`/api/patients/${userCode}/streak`],
@@ -175,7 +175,7 @@ export default function PatientDailyDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
       {/* Patient Header with Logo and Logout */}
-      <PatientHeader patientCode={userCode} patientAlias={patient?.alias || undefined} />
+      <PatientHeader patientCode={userCode || ''} patientAlias={patient?.alias || undefined} />
       
       <div className="max-w-6xl mx-auto space-y-6 p-4">
         
