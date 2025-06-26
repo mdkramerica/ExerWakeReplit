@@ -480,6 +480,7 @@ export default function Recording() {
                   isRecording={isRecording}
                   assessmentType={assessment.name}
                   sessionMaxWristAngles={sessionMaxWristAngles}
+                  lockedHandType={sessionHandType}
                 />
                 
                 {/* Recording indicator with countdown timer */}

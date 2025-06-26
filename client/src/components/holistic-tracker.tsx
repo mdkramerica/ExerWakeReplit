@@ -16,9 +16,10 @@ interface HolisticTrackerProps {
   isRecording: boolean;
   assessmentType: string;
   sessionMaxWristAngles?: any;
+  lockedHandType?: 'LEFT' | 'RIGHT' | 'UNKNOWN';
 }
 
-export default function HolisticTracker({ onUpdate, isRecording, assessmentType, sessionMaxWristAngles }: HolisticTrackerProps) {
+export default function HolisticTracker({ onUpdate, isRecording, assessmentType, sessionMaxWristAngles, lockedHandType }: HolisticTrackerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const holisticRef = useRef<any>(null);
@@ -34,15 +35,21 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType,
 
   const isWristAssessment = assessmentType?.toLowerCase().includes('wrist');
 
-  // Reset hand type tracking and session state when recording starts
+  // Use locked hand type when recording starts, or reset if none provided
   useEffect(() => {
     if (isRecording) {
-      lastHandTypeRef.current = 'UNKNOWN';
-      handTypeConfidenceRef.current = 0;
+      if (lockedHandType && lockedHandType !== 'UNKNOWN') {
+        lastHandTypeRef.current = lockedHandType;
+        handTypeConfidenceRef.current = 1;
+        console.log(`🔒 Using locked hand type for recording: ${lockedHandType}`);
+      } else {
+        lastHandTypeRef.current = 'UNKNOWN';
+        handTypeConfidenceRef.current = 0;
+        console.log('No locked hand type provided, resetting for new recording');
+      }
       resetRecordingSession(); // Clear elbow session lock for new recording
-      console.log('Reset hand type tracking and session state for new recording');
     }
-  }, [isRecording]);
+  }, [isRecording, lockedHandType]);
 
   // CDN fallback loader
   const loadMediaPipeFromCDN = async (): Promise<void> => {
@@ -245,7 +252,7 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType,
         }))
       );
       
-      // Implement aggressive hand type locking for faster detection
+      // Only attempt new hand type detection if no locked hand type exists
       if (lastHandTypeRef.current === 'UNKNOWN') {
         // Force detection based on any available pose landmarks
         if (poseLandmarks && poseLandmarks.length > 16) {
@@ -262,13 +269,15 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType,
             console.log(`🔒 FORCE LOCKED onto ${forceHandType} hand based on elbow visibility (L:${(leftElbow.visibility || 0).toFixed(2)} vs R:${(rightElbow.visibility || 0).toFixed(2)})`);
           }
         }
-      }
-      
-      // Secondary locking for valid detections
-      if (currentDetection && currentDetection.handType !== 'UNKNOWN' && lastHandTypeRef.current === 'UNKNOWN') {
-        lastHandTypeRef.current = currentDetection.handType;
-        handTypeConfidenceRef.current = 1;
-        console.log(`🔒 DETECTION LOCKED onto ${currentDetection.handType} hand`);
+        
+        // Secondary locking for valid detections only if no lock exists
+        if (currentDetection && currentDetection.handType !== 'UNKNOWN') {
+          lastHandTypeRef.current = currentDetection.handType;
+          handTypeConfidenceRef.current = 1;
+          console.log(`🔒 DETECTION LOCKED onto ${currentDetection.handType} hand`);
+        }
+      } else {
+        console.log(`🔒 MAINTAINING LOCKED HAND TYPE: ${lastHandTypeRef.current} (ignoring new detection: ${currentDetection?.handType})`);
       }
       
       // Debug logging to track detection issues
