@@ -118,6 +118,29 @@ export default function PatientDailyDashboard() {
     }
   }, [selectedDate, calendarData]);
 
+  // Auto-refresh dashboard when user returns from assessment
+  useEffect(() => {
+    const handleFocus = () => {
+      console.log('Dashboard focus event - refreshing data');
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${patient?.id}/assessments/today`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/patients/${userCode}/streak`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/patients/${userCode}/calendar`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/patients/by-code/${userCode}`] });
+    };
+
+    window.addEventListener('focus', handleFocus);
+    
+    // Also refresh when component mounts (user navigates back)
+    const refreshTimer = setTimeout(() => {
+      handleFocus();
+    }, 100);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      clearTimeout(refreshTimer);
+    };
+  }, [patient?.id, userCode, queryClient]);
+
 
 
   const completeAssessmentMutation = useMutation({
