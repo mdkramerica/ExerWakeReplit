@@ -25,7 +25,7 @@ export default function Recording() {
   const [landmarksCount, setLandmarksCount] = useState(0);
   const [trackingQuality, setTrackingQuality] = useState("Poor");
   const [handPosition, setHandPosition] = useState("Not Detected");
-  const [detectedHandType, setDetectedHandType] = useState<string>("");
+  const [detectedHandType, setDetectedHandType] = useState<'LEFT' | 'RIGHT' | 'UNKNOWN'>('UNKNOWN');
   const [recordedData, setRecordedData] = useState<any[]>([]);
   const [currentLandmarks, setCurrentLandmarks] = useState<any[]>([]);
   const [recordingMotionData, setRecordingMotionData] = useState<any[]>([]);
@@ -138,10 +138,9 @@ export default function Recording() {
             recordingStartTimeRef.current = startTime;
             setRecordingMotionData([]);
             recordingMotionDataRef.current = [];
-            // Reset session hand type for new recording
-            setSessionHandType('UNKNOWN');
+            // Keep the locked session hand type from record button press
             resetRecordingSession();
-            console.log('🔄 Reset session hand type and elbow lock for new recording');
+            console.log('🔄 Recording started - maintaining locked hand type:', sessionHandType);
             setMaxROM({ mcpAngle: 0, pipAngle: 0, dipAngle: 0, totalActiveRom: 0 });
             return 0;
           }
@@ -167,6 +166,11 @@ export default function Recording() {
   }, [isRecording, isCountingDown, assessment?.duration]);
 
   const startRecording = () => {
+    // Lock the current detected hand type immediately when record button is pressed
+    const currentDetectedHand = detectedHandType !== 'UNKNOWN' ? detectedHandType : 'LEFT';
+    setSessionHandType(currentDetectedHand);
+    console.log(`🔒 RECORD BUTTON PRESSED - Locking hand type to: ${currentDetectedHand}`);
+    
     setIsCountingDown(true);
     setCountdownTimer(3); // 3 second countdown
     console.log('Starting 3 second countdown...');
@@ -290,13 +294,17 @@ export default function Recording() {
       setDetectedHandType(data.handType);
     }
     
-    // Lock onto session hand type for consistency
-    if (data.lockedHandType && data.lockedHandType !== 'UNKNOWN' && sessionHandType === 'UNKNOWN') {
-      setSessionHandType(data.lockedHandType);
-      console.log(`🔒 Session locked to ${data.lockedHandType} hand`);
-    } else if (data.detectedHandSide && data.detectedHandSide !== 'UNKNOWN' && sessionHandType === 'UNKNOWN') {
-      setSessionHandType(data.detectedHandSide);
-      console.log(`🔒 Session locked to ${data.detectedHandSide} hand from MediaPipe detection`);
+    // Only update detected hand type if no session lock exists
+    if (sessionHandType === 'UNKNOWN') {
+      if (data.lockedHandType && data.lockedHandType !== 'UNKNOWN') {
+        setSessionHandType(data.lockedHandType);
+        console.log(`🔒 Session locked to ${data.lockedHandType} hand`);
+      } else if (data.detectedHandSide && data.detectedHandSide !== 'UNKNOWN') {
+        setSessionHandType(data.detectedHandSide);
+        console.log(`🔒 Session locked to ${data.detectedHandSide} hand from MediaPipe detection`);
+      }
+    } else {
+      console.log(`🔒 Maintaining session lock: ${sessionHandType} (ignoring new detection: ${data.detectedHandSide})`);
     }
     
     // Log current hand type status for debugging
