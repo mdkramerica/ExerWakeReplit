@@ -409,21 +409,26 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
           
           setCurrentWristAngles(currentWrist);
         } else {
-          // Calculate ROM for standard assessments
+          // Calculate ROM for standard assessments using stored session maximums
           try {
-            if (frame.landmarks && frame.landmarks.length >= 21) {
-              const rom = calculateFingerROM(frame.landmarks, selectedDigit);
-              if (rom && typeof rom.mcpAngle === 'number' && typeof rom.pipAngle === 'number' && typeof rom.dipAngle === 'number') {
-                setCurrentROM(rom);
+            if (frame.landmarks && frame.landmarks.length >= 21 && maxROMData) {
+              // Use the stored session maximum ROM data with extension deficits
+              const fingerData = maxROMData[selectedDigit];
+              if (fingerData) {
+                setCurrentROM({
+                  mcpAngle: fingerData.mcpAngle || 0,
+                  pipAngle: fingerData.pipAngle || 0,
+                  dipAngle: fingerData.dipAngle || 0,
+                  totalActiveRom: fingerData.totalActiveRom || 0
+                });
               } else {
-                console.warn('Invalid ROM calculation result:', rom);
                 setCurrentROM({ mcpAngle: 0, pipAngle: 0, dipAngle: 0, totalActiveRom: 0 });
               }
             } else {
               setCurrentROM({ mcpAngle: 0, pipAngle: 0, dipAngle: 0, totalActiveRom: 0 });
             }
           } catch (error) {
-            console.error('Error calculating current ROM:', error);
+            console.error('Error displaying ROM data:', error);
             setCurrentROM({ mcpAngle: 0, pipAngle: 0, dipAngle: 0, totalActiveRom: 0 });
           }
         }

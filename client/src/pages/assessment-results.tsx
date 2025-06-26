@@ -379,9 +379,9 @@ export default function AssessmentResults() {
                             name: 'Index Finger', 
                             key: 'index', 
                             romValue: userAssessment.indexFingerRom,
-                            mcpAngle: userAssessment.indexFingerMcp || userAssessment.maxMcpAngle,
-                            pipAngle: userAssessment.indexFingerPip || userAssessment.maxPipAngle,
-                            dipAngle: userAssessment.indexFingerDip || userAssessment.maxDipAngle,
+                            mcpAngle: userAssessment.maxMcpAngle, // Index finger uses shared max angles
+                            pipAngle: userAssessment.maxPipAngle,
+                            dipAngle: userAssessment.maxDipAngle,
                             highlight: false 
                           },
                           { 
