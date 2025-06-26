@@ -698,6 +698,56 @@ export default function Recording() {
                       </div>
                     </div>
                   </div>
+
+              {/* Wrist Radial/Ulnar Deviation Display */}
+              {wristDeviation && (assessment?.name?.toLowerCase().includes('radial') || assessment?.name?.toLowerCase().includes('ulnar') || assessment?.name?.toLowerCase().includes('deviation')) && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h3 className="font-semibold text-gray-900 mb-3 flex items-center">
+                    <Hand className="w-5 h-5 text-blue-600 mr-2" />
+                    Wrist Deviation Analysis
+                    {poseLandmarks.length > 0 && (
+                      <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                        Pose Enhanced
+                      </span>
+                    )}
+                  </h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="text-center p-3 bg-white rounded border">
+                      <div className="text-orange-600 font-medium text-sm">Radial Deviation</div>
+                      <div className="text-xl font-bold text-orange-800">
+                        {wristDeviation.radialDeviation?.toFixed(1) || '0.0'}°
+                      </div>
+                      <div className="text-xs text-orange-600 mt-1">
+                        Normal: 20°
+                      </div>
+                    </div>
+                    <div className="text-center p-3 bg-white rounded border">
+                      <div className="text-purple-600 font-medium text-sm">Ulnar Deviation</div>
+                      <div className="text-xl font-bold text-purple-800">
+                        {wristDeviation.ulnarDeviation?.toFixed(1) || '0.0'}°
+                      </div>
+                      <div className="text-xs text-purple-600 mt-1">
+                        Normal: 30°
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {isRecording && (
+                    <div className="border-t border-blue-200 pt-3 mt-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="text-center p-2 bg-orange-100 rounded">
+                          <div className="text-orange-700 font-medium text-xs">Max Radial</div>
+                          <div className="text-lg font-bold text-orange-800">{sessionMaxDeviation.maxRadialDeviation.toFixed(1)}°</div>
+                        </div>
+                        <div className="text-center p-2 bg-purple-100 rounded">
+                          <div className="text-purple-700 font-medium text-xs">Max Ulnar</div>
+                          <div className="text-lg font-bold text-purple-800">{sessionMaxDeviation.maxUlnarDeviation.toFixed(1)}°</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
                   {poseLandmarks.length > 0 && (
                     <div className="mt-3 text-center">
                       <div className="text-xs text-green-700 bg-green-100 px-3 py-1 rounded-full inline-block">
