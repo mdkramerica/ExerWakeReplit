@@ -57,12 +57,12 @@ const targetROM = {
 
 // DASH target scores by injury type (lower is better for DASH)
 const dashTargets = {
-  'Carpal Tunnel': 15,
-  'Trigger Finger': 10,
-  'Distal Radius Fracture': 20,
-  'CMC Arthroplasty': 25,
-  'Metacarpal ORIF': 15,
-  'Phalanx Fracture': 18
+  'Carpal Tunnel': 10,      // Minimal disability target
+  'Trigger Finger': 8,      // Excellent recovery target  
+  'Distal Radius Fracture': 12,  // Good functional recovery
+  'CMC Arthroplasty': 15,   // Realistic post-surgery target
+  'Metacarpal ORIF': 10,    // Minimal disability target
+  'Phalanx Fracture': 12    // Good recovery target
 };
 
 interface ChartDataPoint {
