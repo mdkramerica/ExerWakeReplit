@@ -1511,6 +1511,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       });
 
+      console.log('API: Starting DASH assessment check...');
+      
+      // Check if DASH assessment should be shown (weekly - every 6-7 days)
+      const dashAssessments = userAssessments.filter(ua => ua.assessmentId === 6);
+      const lastDashAssessment = dashAssessments
+        .filter(ua => ua.isCompleted && ua.completedAt)
+        .sort((a, b) => new Date(b.completedAt!).getTime() - new Date(a.completedAt!).getTime())[0];
+      
+      // Get user to determine recovery start date
+      const user = await storage.getUserByCode('DEMO02'); // For now, using static code
+      const recoveryStartDate = user?.createdAt ? new Date(user.createdAt) : new Date();
+      const daysSinceStart = Math.floor((Date.now() - recoveryStartDate.getTime()) / (1000 * 60 * 60 * 24));
+      
+      let daysSinceLastDash = 0;
+      if (lastDashAssessment) {
+        daysSinceLastDash = Math.floor((Date.now() - new Date(lastDashAssessment.completedAt!).getTime()) / (1000 * 60 * 60 * 24));
+      } else {
+        daysSinceLastDash = daysSinceStart;
+      }
+      
+      // Check if DASH completed today
+      const dashCompletedToday = completedToday.find(ua => ua.assessmentId === 6);
+      
+      console.log('API: DASH check - days since start:', daysSinceStart, 'days since last DASH:', daysSinceLastDash, 'completed today:', !!dashCompletedToday);
+      console.log('API: Last DASH assessment date:', lastDashAssessment?.completedAt || 'none');
+      console.log('API: DASH due condition:', (daysSinceLastDash >= 6 || (daysSinceStart >= 6 && !lastDashAssessment)) && !dashCompletedToday);
+      
+      // Add DASH if it's due (every 6-7 days) and not completed today
+      if ((daysSinceLastDash >= 6 || (daysSinceStart >= 6 && !lastDashAssessment)) && !dashCompletedToday) {
+        console.log('API: Adding DASH assessment to today\'s list');
+        todayAssessments.push({
+          id: 6,
+          name: "DASH Survey", 
+          description: "Weekly assessment of arm, shoulder and hand function",
+          estimatedMinutes: 10,
+          isRequired: false,
+          isCompleted: false,
+          completedAt: null,
+          assessmentUrl: `/patient/DEMO02/dash-assessment`
+        });
+      }
+
       console.log('API: Returning', todayAssessments.length, 'assessments for today');
       res.json({ assessments: todayAssessments });
     } catch (error) {
