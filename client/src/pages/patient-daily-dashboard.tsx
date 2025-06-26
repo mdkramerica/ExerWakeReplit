@@ -213,7 +213,7 @@ export default function PatientDailyDashboard() {
         <div 
           className="w-full rounded-lg shadow-lg border-0 p-6 streak-card-override" 
           style={{ 
-            background: 'linear-gradient(to right, #0ea5e9, #06b6d4)',
+            background: 'linear-gradient(to right, #4ECDC4, #40E0D0)',
             color: '#ffffff',
             minHeight: '140px'
           }}

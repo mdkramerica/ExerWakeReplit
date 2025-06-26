@@ -44,7 +44,7 @@ main, section, article, .card, [data-testid="card"] {
 
 /* Exception for streak card - override the universal rule */
 .streak-card-override {
-  background: linear-gradient(to right, #0ea5e9, #06b6d4) !important;
+  background: linear-gradient(to right, #4ECDC4, #40E0D0) !important;
 }
 
 /* Calendar progress styling - force specific colors with higher specificity */
