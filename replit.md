@@ -95,6 +95,13 @@ This is a comprehensive hand rehabilitation assessment platform that combines re
 
 ## Recent Changes
 
+### June 26, 2025 - DEMO02 User Deployment Fix
+- **Fixed missing DEMO02 user on deployed site by adding to production database**
+- **Added DEMO02 with Wrist Fracture injury type and sample assessment data**
+- **Verified DEMO02 login functionality through API endpoint testing**
+- **Created DASH assessment definition (ID 6) in production database**
+- **DEMO02 now fully functional with TAM, Kapandji, and DASH assessment history**
+
 ### June 25, 2025 - DASH Score Display & Assessment Completion Fixes
 - **Fixed critical DASH score display issue by adding missing assessment definition (ID 6)**
 - **DASH assessments now properly display as "DASH Survey" instead of "Unknown Assessment"**
