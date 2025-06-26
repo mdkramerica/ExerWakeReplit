@@ -46,6 +46,13 @@ const VISIBILITY_CONFIG = {
   bypassTemporalIfVisible: true // Skip temporal validation for clearly visible fingers
 };
 
+// Anatomical limits for joint angles (based on clinical studies)
+const ANATOMICAL_LIMITS = {
+  MCP: { min: 0, max: 95 },   // Metacarpophalangeal joint: 0-95 degrees
+  PIP: { min: 0, max: 115 },  // Proximal interphalangeal joint: 0-115 degrees
+  DIP: { min: 0, max: 90 }    // Distal interphalangeal joint: 0-90 degrees
+};
+
 // MediaPipe hand landmark indices for each finger
 const FINGER_LANDMARKS = {
   INDEX: {
@@ -137,6 +144,49 @@ export function applySmoothingFilter(romHistory: number[]): number {
   return recentValues.reduce((sum, val) => sum + val, 0) / recentValues.length;
 }
 
+// Validate joint angles against anatomical limits
+export function validateAnatomicalLimits(angles: JointAngles): { 
+  isValid: boolean; 
+  correctedAngles: JointAngles; 
+  violations: string[] 
+} {
+  const violations: string[] = [];
+  let correctedAngles = { ...angles };
+  
+  // Check and correct MCP angle
+  if (angles.mcpAngle > ANATOMICAL_LIMITS.MCP.max) {
+    violations.push(`MCP: ${angles.mcpAngle.toFixed(1)}° > ${ANATOMICAL_LIMITS.MCP.max}°`);
+    correctedAngles.mcpAngle = ANATOMICAL_LIMITS.MCP.max;
+  } else if (angles.mcpAngle < ANATOMICAL_LIMITS.MCP.min) {
+    correctedAngles.mcpAngle = ANATOMICAL_LIMITS.MCP.min;
+  }
+  
+  // Check and correct PIP angle
+  if (angles.pipAngle > ANATOMICAL_LIMITS.PIP.max) {
+    violations.push(`PIP: ${angles.pipAngle.toFixed(1)}° > ${ANATOMICAL_LIMITS.PIP.max}°`);
+    correctedAngles.pipAngle = ANATOMICAL_LIMITS.PIP.max;
+  } else if (angles.pipAngle < ANATOMICAL_LIMITS.PIP.min) {
+    correctedAngles.pipAngle = ANATOMICAL_LIMITS.PIP.min;
+  }
+  
+  // Check and correct DIP angle
+  if (angles.dipAngle > ANATOMICAL_LIMITS.DIP.max) {
+    violations.push(`DIP: ${angles.dipAngle.toFixed(1)}° > ${ANATOMICAL_LIMITS.DIP.max}°`);
+    correctedAngles.dipAngle = ANATOMICAL_LIMITS.DIP.max;
+  } else if (angles.dipAngle < ANATOMICAL_LIMITS.DIP.min) {
+    correctedAngles.dipAngle = ANATOMICAL_LIMITS.DIP.min;
+  }
+  
+  // Recalculate total ROM with corrected values
+  correctedAngles.totalActiveRom = correctedAngles.mcpAngle + correctedAngles.pipAngle + correctedAngles.dipAngle;
+  
+  return {
+    isValid: violations.length === 0,
+    correctedAngles,
+    violations
+  };
+}
+
 // Validate ROM over multiple frames for consistency
 export function requireConsistentFrames(
   currentROM: number,
@@ -166,8 +216,13 @@ export function assessFingerVisibility(landmarks: HandLandmark[], fingerType: 'I
   const finger = FINGER_LANDMARKS[fingerType];
   const allIndices = [...finger.MCP, ...finger.PIP, ...finger.DIP];
   
-  // Get unique landmark indices for this finger
-  const uniqueIndices = [...new Set(allIndices)];
+  // Get unique landmark indices for this finger (avoiding Set iteration)
+  const uniqueIndices: number[] = [];
+  allIndices.forEach(idx => {
+    if (!uniqueIndices.includes(idx)) {
+      uniqueIndices.push(idx);
+    }
+  });
   
   let totalVisibility = 0;
   let visibleLandmarks = 0;
@@ -262,19 +317,26 @@ export function calculateFingerROM(landmarks: HandLandmark[], fingerType: 'INDEX
     landmarks[finger.DIP[2]]  // fingertip (8)
   );
   
-  // Total active range of motion
-  const totalActiveRom = mcpAngle + pipAngle + dipAngle;
-  
-  if (confidence) {
-    console.log(`${fingerType} ROM calculated with ${Math.round(confidence.confidence * 100)}% confidence: TAM=${Math.round(totalActiveRom)}°`);
-  }
-  
-  return {
-    mcpAngle: Math.round(mcpAngle * 100) / 100, // Round to 2 decimal places
+  // Create initial ROM object
+  const initialROM: JointAngles = {
+    mcpAngle: Math.round(mcpAngle * 100) / 100,
     pipAngle: Math.round(pipAngle * 100) / 100,
     dipAngle: Math.round(dipAngle * 100) / 100,
-    totalActiveRom: Math.round(totalActiveRom * 100) / 100
+    totalActiveRom: Math.round((mcpAngle + pipAngle + dipAngle) * 100) / 100
   };
+  
+  // Apply anatomical validation and correction
+  const validation = validateAnatomicalLimits(initialROM);
+  
+  if (!validation.isValid) {
+    console.log(`${fingerType} anatomical limits exceeded: ${validation.violations.join(', ')} - applying corrections`);
+  }
+  
+  if (confidence) {
+    console.log(`${fingerType} ROM calculated with ${Math.round(confidence.confidence * 100)}% confidence: TAM=${Math.round(validation.correctedAngles.totalActiveRom)}°`);
+  }
+  
+  return validation.correctedAngles;
 }
 
 // Calculate max ROM for all fingers with temporal validation
