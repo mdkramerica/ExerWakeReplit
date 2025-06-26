@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Play, Pause, RotateCcw, Download } from "lucide-react";
 import { calculateFingerROM, type JointAngles } from "@shared/rom-calculator";
 import { calculateKapandjiScore, calculateMaxKapandjiScore, type KapandjiScore } from "@shared/kapandji-calculator";
-import { calculateWristAngleByHandType, calculateElbowReferencedWristAngleWithForce, getRecordingSessionElbowSelection, setReplayMode, clearSessionLock, type ElbowWristAngles } from "@shared/elbow-wrist-calculator";
+import { calculateWristAngleByHandType, calculateElbowReferencedWristAngleWithForce, getRecordingSessionElbowSelection, setReplayMode, type ElbowWristAngles } from "@shared/elbow-wrist-calculator";
 import { calculateWristResults } from "@shared/wrist-results-calculator";
 // Remove the import since we'll load the image directly
 
@@ -409,18 +409,14 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
           
           setCurrentWristAngles(currentWrist);
         } else {
-          // Calculate ROM for standard assessments using stored session maximums
+          // Calculate ROM for standard assessments
           try {
-            if (frame.landmarks && frame.landmarks.length >= 21 && maxROMData) {
-              // Use the stored session maximum ROM data with extension deficits
-              const fingerData = maxROMData[selectedDigit];
-              if (fingerData) {
-                setCurrentROM({
-                  mcpAngle: fingerData.mcpAngle || 0,
-                  pipAngle: fingerData.pipAngle || 0,
-                  dipAngle: fingerData.dipAngle || 0,
-                  totalActiveRom: fingerData.totalActiveRom || 0
-                });
+            if (frame.landmarks && frame.landmarks.length >= 21) {
+              // Convert selectedDigit to uppercase format for calculateFingerROM
+              const fingerType = selectedDigit.toUpperCase() as 'INDEX' | 'MIDDLE' | 'RING' | 'PINKY';
+              const rom = calculateFingerROM(frame.landmarks, fingerType);
+              if (rom && typeof rom.mcpAngle === 'number' && typeof rom.pipAngle === 'number' && typeof rom.dipAngle === 'number') {
+                setCurrentROM(rom);
               } else {
                 setCurrentROM({ mcpAngle: 0, pipAngle: 0, dipAngle: 0, totalActiveRom: 0 });
               }
@@ -428,7 +424,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
               setCurrentROM({ mcpAngle: 0, pipAngle: 0, dipAngle: 0, totalActiveRom: 0 });
             }
           } catch (error) {
-            console.error('Error displaying ROM data:', error);
+            console.error('Error calculating ROM:', error);
             setCurrentROM({ mcpAngle: 0, pipAngle: 0, dipAngle: 0, totalActiveRom: 0 });
           }
         }
