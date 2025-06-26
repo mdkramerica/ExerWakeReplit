@@ -104,6 +104,7 @@ function Router() {
       <Route path="/clinical/patients" component={() => <ProtectedRoute><ClinicalLayout><ClinicalPatients /></ClinicalLayout></ProtectedRoute>} />
       <Route path="/clinical" component={() => <ProtectedRoute><ClinicalLayout><ClinicalDashboard /></ClinicalLayout></ProtectedRoute>} />
       <Route path="/patient/:code/dashboard" component={() => <PatientDailyDashboard />} />
+      <Route path="/patient/:code/progress" component={() => <ProgressCharts />} />
       <Route path="/patient/:code/dash-assessment" component={() => <DashAssessmentPage />} />
       <Route path="/patient/:userCode/dash-results/:assessmentId" component={() => <DashResults />} />
       <Route path="/patient/:code" component={() => <PatientDailyDashboard />} />

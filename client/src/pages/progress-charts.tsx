@@ -397,55 +397,108 @@ export default function ProgressCharts() {
                 </CardHeader>
                 <CardContent>
                   {chartData.length > 0 ? (
-                    <div className="h-80">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={chartData}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis 
-                            dataKey="day" 
-                            label={{ value: 'Post-op Day', position: 'insideBottom', offset: -5 }}
-                          />
-                          <YAxis 
-                            label={{ 
-                              value: assessmentName.includes('Kapandji') ? 'Score' : `ROM (${unit})`, 
-                              angle: -90, 
-                              position: 'insideLeft' 
-                            }}
-                            domain={assessmentName.includes('Kapandji') ? [0, 12] : [0, Math.max(300, target + 50)]}
-                          />
-                          <Tooltip content={<CustomTooltip assessmentName={assessmentName} />} />
-                          <ReferenceLine 
-                            y={target} 
-                            stroke="#059669" 
-                            strokeDasharray="10 5"
-                            strokeWidth={4}
-                            label={{ 
-                              value: `Target: ${target}${unit}`, 
-                              position: "topRight", 
-                              offset: 10,
-                              style: { 
-                                fill: '#059669', 
-                                fontWeight: 'bold', 
-                                fontSize: '14px',
-                                backgroundColor: '#ffffff',
-                                padding: '2px 4px',
-                                border: '1px solid #059669',
-                                borderRadius: '4px'
-                              }
-                            }}
-                          />
+                    <>
+                      <div className="h-80">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart data={chartData}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis 
+                              dataKey="day" 
+                              label={{ value: 'Post-op Day', position: 'insideBottom', offset: -5 }}
+                            />
+                            <YAxis 
+                              label={{ 
+                                value: assessmentName.includes('Kapandji') ? 'Score' : assessmentName === 'DASH Score' ? 'Disability Score' : `ROM (${unit})`, 
+                                angle: -90, 
+                                position: 'insideLeft' 
+                              }}
+                              domain={assessmentName.includes('Kapandji') ? [0, 12] : assessmentName === 'DASH Score' ? [0, 100] : [0, Math.max(300, target + 50)]}
+                            />
+                            <Tooltip content={<CustomTooltip assessmentName={assessmentName} />} />
+                            <ReferenceLine 
+                              y={target} 
+                              stroke="#059669" 
+                              strokeDasharray="10 5"
+                              strokeWidth={4}
+                              label={{ 
+                                value: `Target: ${target}${unit}`, 
+                                position: "top", 
+                                offset: 10,
+                                style: { 
+                                  fill: '#059669', 
+                                  fontWeight: 'bold', 
+                                  fontSize: '14px',
+                                  backgroundColor: '#ffffff',
+                                  padding: '2px 4px',
+                                  border: '1px solid #059669',
+                                  borderRadius: '4px'
+                                }
+                              }}
+                            />
 
-                          <Line 
-                            type="monotone" 
-                            dataKey="value" 
-                            stroke="#3b82f6" 
-                            strokeWidth={2}
-                            dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
-                            activeDot={{ r: 6 }}
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
+                            <Line 
+                              type="monotone" 
+                              dataKey="value" 
+                              stroke="#3b82f6" 
+                              strokeWidth={2}
+                              dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
+                              activeDot={{ r: 6 }}
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                      
+                      {/* DASH Score Legend */}
+                      {assessmentName === 'DASH Score' && (
+                        <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                          <h4 className="font-semibold text-blue-900 mb-3 flex items-center">
+                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            How to Read DASH Scores
+                          </h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <div className="font-medium text-blue-800 mb-2">Score Interpretation:</div>
+                              <div className="space-y-1">
+                                <div className="flex justify-between">
+                                  <span className="text-green-700 font-medium">0-10:</span>
+                                  <span>Minimal disability</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-blue-700 font-medium">11-30:</span>
+                                  <span>Mild disability</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-yellow-700 font-medium">31-50:</span>
+                                  <span>Moderate disability</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-red-700 font-medium">51-100:</span>
+                                  <span>Severe disability</span>
+                                </div>
+                              </div>
+                            </div>
+                            <div>
+                              <div className="font-medium text-blue-800 mb-2">Reading the Chart:</div>
+                              <div className="space-y-1">
+                                <div className="flex items-center">
+                                  <div className="w-4 h-0.5 bg-blue-500 mr-2"></div>
+                                  <span>Blue line shows your progress</span>
+                                </div>
+                                <div className="flex items-center">
+                                  <div className="w-4 h-0.5 bg-green-600 border-dashed border-t mr-2"></div>
+                                  <span>Green line shows recovery target</span>
+                                </div>
+                                <div className="text-xs text-blue-600 mt-2">
+                                  Lower scores indicate better function and less disability
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </>
                   ) : (
                     <div className="h-80 flex items-center justify-center">
                       <div className="text-center">
