@@ -1673,10 +1673,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log(`Calendar check for ${dateStr}: Found ${assessmentsForDate.length} completed assessments`);
           
           if (assessmentsForDate.length > 0) {
-            // Dates with completed assessments
-            completedCount = assessmentsForDate.length;
+            // Count unique assessment types completed (not multiple instances of same type)
+            const uniqueAssessmentTypes = new Set(assessmentsForDate.map(ua => ua.assessmentId));
+            completedCount = uniqueAssessmentTypes.size;
             status = completedCount >= totalAssessments ? 'completed' : 'pending';
-            console.log(`Date ${dateStr}: ${completedCount}/${totalAssessments} assessments, status: ${status}`);
+            console.log(`Date ${dateStr}: ${completedCount}/${totalAssessments} unique assessment types completed (${assessmentsForDate.length} total instances), status: ${status}`);
           } else {
             // Past dates with no actual assessments - default to pending
             status = 'pending';
