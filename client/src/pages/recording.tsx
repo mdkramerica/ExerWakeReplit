@@ -44,6 +44,11 @@ export default function Recording() {
     maxWristFlexion: 0,
     maxWristExtension: 0
   });
+  const [wristDeviation, setWristDeviation] = useState<any>(null);
+  const [sessionMaxDeviation, setSessionMaxDeviation] = useState<any>({
+    maxRadialDeviation: 0,
+    maxUlnarDeviation: 0
+  });
   const [poseLandmarks, setPoseLandmarks] = useState<any[]>([]);
   const [sessionHandType, setSessionHandType] = useState<'LEFT' | 'RIGHT' | 'UNKNOWN'>('UNKNOWN');
   const [, setLocation] = useLocation();
@@ -292,6 +297,26 @@ export default function Recording() {
     // Also use calculated hand type if available
     if (data.handType && data.handType !== 'UNKNOWN') {
       setDetectedHandType(data.handType);
+    }
+    
+    // Process wrist deviation data for radial/ulnar assessments
+    if (data.wristDeviation) {
+      setWristDeviation(data.wristDeviation);
+      
+      // Update session maximums for deviation
+      if (data.wristDeviation.radialDeviation > sessionMaxDeviation.maxRadialDeviation) {
+        setSessionMaxDeviation(prev => ({
+          ...prev,
+          maxRadialDeviation: data.wristDeviation.radialDeviation
+        }));
+      }
+      
+      if (data.wristDeviation.ulnarDeviation > sessionMaxDeviation.maxUlnarDeviation) {
+        setSessionMaxDeviation(prev => ({
+          ...prev,
+          maxUlnarDeviation: data.wristDeviation.ulnarDeviation
+        }));
+      }
     }
     
     // Only update detected hand type if no session lock exists

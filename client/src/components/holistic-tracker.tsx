@@ -236,6 +236,7 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType,
 
     // Calculate wrist angles using elbow reference only during recording
     let wristAngles = null;
+    let wristDeviation = null;
     let currentDetection: any = null;
     
     if (isRecording && isWristAssessment && handLandmarks.length > 0) {
@@ -288,8 +289,7 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType,
       }
       
       // Calculate wrist angles for wrist assessments during recording
-      let wristAngles = null;
-      let wristDeviation = null;
+      wristAngles = null;
       
       if ((isWristAssessment || isRadialUlnarDeviation) && handLandmarks.length >= 21 && poseLandmarks.length > 16) {
         // Use locked hand type if available, otherwise use current detection
@@ -411,6 +411,7 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType,
           visibility: landmark.visibility
         })),
         wristAngles,
+        wristDeviation: wristDeviation,
         handType: currentDetection?.handType || 'UNKNOWN',
         lockedHandType: lastHandTypeRef.current,
         detectedHandSide: results.leftHandLandmarks ? 'LEFT' : (results.rightHandLandmarks ? 'RIGHT' : 'UNKNOWN'),
