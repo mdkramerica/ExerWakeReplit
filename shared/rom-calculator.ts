@@ -191,7 +191,12 @@ export function assessFingerVisibility(landmarks: HandLandmark[], fingerType: 'I
   const allIndices = [...finger.MCP, ...finger.PIP, ...finger.DIP];
   
   // Get unique landmark indices for this finger
-  const uniqueIndices = [...new Set(allIndices)];
+  const uniqueIndices: number[] = [];
+  allIndices.forEach(idx => {
+    if (uniqueIndices.indexOf(idx) === -1) {
+      uniqueIndices.push(idx);
+    }
+  });
   
   let totalVisibility = 0;
   let visibleLandmarks = 0;

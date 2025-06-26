@@ -95,6 +95,16 @@ This is a comprehensive hand rehabilitation assessment platform that combines re
 
 ## Recent Changes
 
+### June 26, 2025 - TAM Extension Deficit Clinical Accuracy Implementation
+- **Implemented proper TAM calculations with extension deficit accounting per clinical standards**
+- **Enhanced ROM calculator to track both maximum flexion AND minimum extension for each joint**
+- **TAM formula now correctly subtracts extension deficits: TAM = Max Flexion - Extension Deficit**
+- **Hyperextension properly ignored (not added to ROM calculations) per hand therapy protocols**
+- **Added comprehensive logging showing flexion, deficit, and final TAM values for clinical transparency**
+- **Updated JointAngles interface to include extension deficit tracking and raw flexion values**
+- **Maintained temporal validation and visibility-based filtering for data quality**
+- **System now complies with established hand therapy measurement standards**
+
 ### June 26, 2025 - DEMO02 User Deployment Fix
 - **Fixed missing DEMO02 user on deployed site by adding to production database**
 - **Added DEMO02 with Wrist Fracture injury type and sample assessment data**
