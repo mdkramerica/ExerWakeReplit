@@ -163,10 +163,12 @@ This is a comprehensive hand rehabilitation assessment platform that combines re
 ## User Preferences
 
 **Communication Style**: Simple, everyday language.
-**Working Methodology**: Always follow the 4-step process:
-1. Clarify the request - Understand exactly what is needed
-2. Take a deep dive - Thoroughly analyze the problem and root causes
-3. Propose a fix - Present solution approach with clear explanation
-4. Ask to proceed - Get approval before implementing changes
+**Working Methodology**: ALWAYS follow the 4-step process for every request:
+1. **Clarify the request** - Understand exactly what is needed
+2. **Take a deep dive** - Thoroughly analyze the problem and root causes
+3. **Propose a fix** - Present solution approach with clear explanation
+4. **Ask to proceed** - Get approval before implementing changes
+
+**Critical Note**: Never skip this process. Always clarify, investigate, propose, then ask before making any changes.
 
 **Patient Interface**: Consistent logout functionality accessible from all patient pages.
