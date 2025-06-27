@@ -95,6 +95,15 @@ This is a comprehensive hand rehabilitation assessment platform that combines re
 
 ## Recent Changes
 
+### June 27, 2025 - Motion Replay Synchronization & Angle Calculation Documentation
+- **Fixed motion replay canvas synchronization issues with angle display and arc coloring**
+- **Resolved JavaScript initialization error causing frameWristAngles access before declaration**
+- **Synchronized canvas angle labels with authoritative calculation engine to eliminate timing lag**
+- **Created comprehensive DEMO01 angle calculation documentation detailing 48.1° flexion / 46.9° extension methodology**
+- **Resolved frame indexing discrepancy between canvas display (1-based) and console logs (0-based)**
+- **Motion replay now shows authentic real-time calculations matching stored assessment results**
+- **Enhanced calculation transparency with complete vector mathematics documentation**
+
 ### June 27, 2025 - Wrist Assessment Elbow Selection Fix
 - **Eliminated all proximity/distance matching for elbow selection in wrist assessments**
 - **Implemented pure anatomical matching: LEFT hand → LEFT elbow, RIGHT hand → RIGHT elbow**

@@ -85,13 +85,18 @@ Elbow → Wrist → Middle MCP
 
 **Sample Frame Analysis:**
 ```
-Frame 53 Example:
-- Elbow: (0.8659, 0.6101, -0.7806)
-- Wrist: (0.4673, 0.4019, -0.0000)
-- MCP: (0.3335, 0.3721, 0.0514)
-- Raw Angle: 40.89°
-- Anatomical Classification: 33.3° Extension
+Canvas Frame 53 (Index 52):
+- Elbow: (0.8661, 0.6103, -0.7676)
+- Wrist: (0.4662, 0.4028, -0.0000)
+- MCP: (0.3311, 0.3654, 0.0493)
+- Raw Angle: 41.13°
+- Anatomical Classification: 32.6° Extension
 ```
+
+**Frame Indexing Note:**
+- Canvas Display: Uses 1-based indexing (Frame 53/145)
+- Console Logs: Uses 0-based indexing (Frame 52)
+- Both refer to the same motion data point
 
 ### 6. Maximum Value Extraction
 **Peak Detection Algorithm:**
