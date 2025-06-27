@@ -20,6 +20,8 @@ interface UserAssessment {
   kapandjiScore?: number;
   maxWristFlexion?: number;
   maxWristExtension?: number;
+  maxRadialDeviation?: string;
+  maxUlnarDeviation?: string;
   handType?: string;
   sessionNumber?: number;
   repetitionData?: any[];
@@ -290,24 +292,52 @@ export default function AssessmentHistory() {
                             <div className="text-sm font-medium text-gray-700 mb-2">Wrist Range of Motion</div>
                             <div className="flex gap-3">
                               {(() => {
-                                // Use the centralized calculator for consistent values
-                                const wristResults = calculateWristResults(record);
-                                return (
-                                  <>
-                                    <div className="px-3 py-2 rounded-lg border-2 bg-orange-50 border-orange-300">
-                                      <div className="font-bold text-xs text-orange-700">Flexion</div>
-                                      <div className="font-bold text-lg text-orange-900">{wristResults.maxFlexion.toFixed(0)}°</div>
-                                    </div>
-                                    <div className="px-3 py-2 rounded-lg border-2 bg-blue-50 border-blue-300">
-                                      <div className="font-bold text-xs text-blue-700">Extension</div>
-                                      <div className="font-bold text-lg text-blue-900">{wristResults.maxExtension.toFixed(0)}°</div>
-                                    </div>
-                                    <div className="px-3 py-2 rounded-lg border-2 bg-green-50 border-green-300">
-                                      <div className="font-bold text-xs text-green-700">Total ROM</div>
-                                      <div className="font-bold text-lg text-green-900">{wristResults.totalROM.toFixed(0)}°</div>
-                                    </div>
-                                  </>
-                                );
+                                // Check if this is a deviation assessment
+                                const isDeviationAssessment = record.assessmentName?.toLowerCase().includes('radial') ||
+                                                             record.assessmentName?.toLowerCase().includes('ulnar') ||
+                                                             record.assessmentName?.toLowerCase().includes('deviation');
+                                
+                                if (isDeviationAssessment) {
+                                  // For deviation assessments, calculate radial/ulnar values
+                                  const radialDeviation = record.maxRadialDeviation ? parseFloat(record.maxRadialDeviation) : 0;
+                                  const ulnarDeviation = record.maxUlnarDeviation ? parseFloat(record.maxUlnarDeviation) : 0;
+                                  
+                                  return (
+                                    <>
+                                      <div className="px-3 py-2 rounded-lg border-2 bg-orange-50 border-orange-300">
+                                        <div className="font-bold text-xs text-orange-700">Radial</div>
+                                        <div className="font-bold text-lg text-orange-900">{radialDeviation.toFixed(0)}°</div>
+                                      </div>
+                                      <div className="px-3 py-2 rounded-lg border-2 bg-purple-50 border-purple-300">
+                                        <div className="font-bold text-xs text-purple-700">Ulnar</div>
+                                        <div className="font-bold text-lg text-purple-900">{ulnarDeviation.toFixed(0)}°</div>
+                                      </div>
+                                      <div className="px-3 py-2 rounded-lg border-2 bg-green-50 border-green-300">
+                                        <div className="font-bold text-xs text-green-700">Total ROM</div>
+                                        <div className="font-bold text-lg text-green-900">{(radialDeviation + ulnarDeviation).toFixed(0)}°</div>
+                                      </div>
+                                    </>
+                                  );
+                                } else {
+                                  // For flexion/extension assessments, use the existing calculator
+                                  const wristResults = calculateWristResults(record);
+                                  return (
+                                    <>
+                                      <div className="px-3 py-2 rounded-lg border-2 bg-orange-50 border-orange-300">
+                                        <div className="font-bold text-xs text-orange-700">Flexion</div>
+                                        <div className="font-bold text-lg text-orange-900">{wristResults.maxFlexion.toFixed(0)}°</div>
+                                      </div>
+                                      <div className="px-3 py-2 rounded-lg border-2 bg-blue-50 border-blue-300">
+                                        <div className="font-bold text-xs text-blue-700">Extension</div>
+                                        <div className="font-bold text-lg text-blue-900">{wristResults.maxExtension.toFixed(0)}°</div>
+                                      </div>
+                                      <div className="px-3 py-2 rounded-lg border-2 bg-green-50 border-green-300">
+                                        <div className="font-bold text-xs text-green-700">Total ROM</div>
+                                        <div className="font-bold text-lg text-green-900">{wristResults.totalROM.toFixed(0)}°</div>
+                                      </div>
+                                    </>
+                                  );
+                                }
                               })()}
                             </div>
                           </div>
@@ -333,16 +363,27 @@ export default function AssessmentHistory() {
 
                       {/* View Results Button */}
                       {record.assessmentName?.toLowerCase().includes('wrist') ? (
-                        <Link href={`/wrist-results/${userCode}/${record.id}`}>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-blue-600 border-blue-200 hover:bg-blue-50"
-                          >
-                            <TrendingUp className="w-3 h-3 mr-1" />
-                            View Results
-                          </Button>
-                        </Link>
+                        (() => {
+                          const isDeviationAssessment = record.assessmentName?.toLowerCase().includes('radial') ||
+                                                       record.assessmentName?.toLowerCase().includes('ulnar') ||
+                                                       record.assessmentName?.toLowerCase().includes('deviation');
+                          const href = isDeviationAssessment 
+                            ? `/wrist-deviation-results/${userCode}/${record.id}`
+                            : `/wrist-results/${userCode}/${record.id}`;
+                          
+                          return (
+                            <Link href={href}>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                              >
+                                <TrendingUp className="w-3 h-3 mr-1" />
+                                View Results
+                              </Button>
+                            </Link>
+                          );
+                        })()
                       ) : (
                         <Link href={`/assessment-results/${userCode}/${record.id}`}>
                           <Button
