@@ -445,12 +445,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Clinical Dashboard - Outlier Alerts
   app.get("/api/alerts", requireAuth, async (req, res) => {
     try {
-      console.log('Alerts API called - Storage type:', storage.constructor.name);
+      console.log('=== ALERTS API DEBUG ===');
+      console.log('Storage type:', storage.constructor.name);
+      console.log('Storage has getOutlierAlerts:', typeof storage.getOutlierAlerts);
       const patientId = req.query.patientId ? parseInt(req.query.patientId as string) : undefined;
-      console.log('Calling getOutlierAlerts with patientId:', patientId);
-      const alerts = await storage.getOutlierAlerts(patientId);
-      console.log('Alerts returned:', alerts.length);
-      res.json(alerts);
+      console.log('PatientId parameter:', patientId);
+      
+      if (typeof storage.getOutlierAlerts === 'function') {
+        console.log('Calling getOutlierAlerts...');
+        const alerts = await storage.getOutlierAlerts(patientId);
+        console.log('Alerts returned:', alerts?.length || 0);
+        console.log('Alerts sample:', alerts?.slice(0, 2));
+        res.json(alerts);
+      } else {
+        console.log('getOutlierAlerts method not found on storage');
+        res.json([]);
+      }
     } catch (error) {
       console.error('Error in alerts API:', error);
       res.status(500).json({ message: "Failed to fetch alerts" });
