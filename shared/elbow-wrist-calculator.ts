@@ -28,6 +28,17 @@ let recordingSessionShoulderIndex: number | undefined;
 let recordingSessionHandType: 'LEFT' | 'RIGHT' | 'UNKNOWN' | undefined;
 let lastWristAngle: number | undefined;
 
+// Reset function to clear session state
+export function resetElbowSessionState() {
+  recordingSessionElbowLocked = false;
+  recordingSessionElbowIndex = undefined;
+  recordingSessionWristIndex = undefined;
+  recordingSessionShoulderIndex = undefined;
+  recordingSessionHandType = undefined;
+  lastWristAngle = undefined;
+  console.log('🔄 ELBOW SESSION STATE RESET');
+}
+
 // MediaPipe Pose landmark indices
 const POSE_LANDMARKS = {
   LEFT_SHOULDER: 11,
@@ -315,6 +326,7 @@ export function calculateElbowReferencedWristAngleWithForce(
   }
   
   if (!recordingSessionElbowLocked) {
+    // FORCE ANATOMICAL MATCHING: LEFT hand MUST use LEFT elbow, RIGHT hand MUST use RIGHT elbow
     const useLeftElbow = forceHandType === 'LEFT';
     recordingSessionElbowIndex = useLeftElbow ? 13 : 14;
     recordingSessionWristIndex = useLeftElbow ? 15 : 16;
@@ -322,7 +334,15 @@ export function calculateElbowReferencedWristAngleWithForce(
     recordingSessionHandType = forceHandType;
     recordingSessionElbowLocked = true;
     
-    console.log(`🔒 ANATOMICAL SESSION LOCKED: ${forceHandType} hand uses ${useLeftElbow ? 'LEFT' : 'RIGHT'} elbow (index ${recordingSessionElbowIndex})`);
+    console.log(`🔒 ANATOMICAL SESSION LOCKED: ${forceHandType} hand → ${useLeftElbow ? 'LEFT' : 'RIGHT'} elbow (index ${recordingSessionElbowIndex})`);
+    
+    // Verify the selection makes sense
+    if (poseLandmarks[13] && poseLandmarks[14] && handLandmarks[0]) {
+      const distToLeft = euclideanDistance3D(handLandmarks[0], poseLandmarks[13]);
+      const distToRight = euclideanDistance3D(handLandmarks[0], poseLandmarks[14]);
+      console.log(`🔍 VERIFICATION - Distances: Left=${distToLeft.toFixed(3)}, Right=${distToRight.toFixed(3)}`);
+      console.log(`🔍 ANATOMICAL CHOICE: Using ${useLeftElbow ? 'LEFT' : 'RIGHT'} elbow for ${forceHandType} hand (distance=${useLeftElbow ? distToLeft.toFixed(3) : distToRight.toFixed(3)})`);
+    }
   }
   
   // Use locked session selection
