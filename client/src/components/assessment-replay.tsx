@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Play, Pause, RotateCcw, Download } from "lucide-react";
 import { calculateFingerROM, type JointAngles } from "@shared/rom-calculator";
 import { calculateKapandjiScore, calculateMaxKapandjiScore, type KapandjiScore } from "@shared/kapandji-calculator";
-import { calculateWristAngleByHandType, calculateElbowReferencedWristAngleWithForce, getRecordingSessionElbowSelection, setReplayMode, clearSessionLock, type ElbowWristAngles } from "@shared/elbow-wrist-calculator";
+import { calculateWristAngleByHandType, calculateElbowReferencedWristAngleWithForce, getRecordingSessionElbowSelection, setReplayMode, type ElbowWristAngles } from "@shared/elbow-wrist-calculator";
+import { calculateWristDeviationResults } from "@shared/wrist-deviation-calculator";
 import { calculateWristResults } from "@shared/wrist-results-calculator";
 // Remove the import since we'll load the image directly
 
@@ -347,49 +348,73 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
             confidence: 0.8
           };
           
-          // Use the EXACT same hand detection method as session maximum calculation
-          if (frame.landmarks && frame.poseLandmarks) {
-            // DETERMINE CORRECT HAND TYPE BASED ON PROXIMITY TO ELBOWS (same as session calc)
-            const handWrist = frame.landmarks[0];
-            const leftElbow = frame.poseLandmarks[13];
-            const rightElbow = frame.poseLandmarks[14];
-            
-            let frameHandType = 'RIGHT'; // default
-            
-            if (leftElbow && rightElbow && handWrist) {
-              const distanceToLeft = Math.sqrt(
-                Math.pow(handWrist.x - leftElbow.x, 2) +
-                Math.pow(handWrist.y - leftElbow.y, 2) +
-                Math.pow(handWrist.z - (leftElbow.z || 0), 2)
-              );
-              const distanceToRight = Math.sqrt(
-                Math.pow(handWrist.x - rightElbow.x, 2) +
-                Math.pow(handWrist.y - rightElbow.y, 2) +
-                Math.pow(handWrist.z - (rightElbow.z || 0), 2)
+          // Check if this is a deviation assessment
+          const isWristDeviationAssessment = assessmentName.toLowerCase().includes('deviation') ||
+                                           assessmentName.toLowerCase().includes('radial') ||
+                                           assessmentName.toLowerCase().includes('ulnar');
+          
+          if (isWristDeviationAssessment) {
+            // Use deviation calculator for deviation assessments
+            if (frame.landmarks && frame.poseLandmarks) {
+              const deviationResult = calculateWristDeviationResults(frame.landmarks, frame.poseLandmarks);
+              
+              // Convert deviation result to wrist angles format for display
+              currentWrist = {
+                wristFlexionAngle: 0,
+                wristExtensionAngle: 0,
+                forearmToHandAngle: deviationResult.maxRadialDeviation - deviationResult.maxUlnarDeviation,
+                handType: deviationResult.handType,
+                elbowDetected: deviationResult.qualityScore > 0.7,
+                confidence: deviationResult.qualityScore
+              };
+              
+              console.log(`DEVIATION FRAME ${currentFrame}: Radial: ${deviationResult.maxRadialDeviation.toFixed(1)}°, Ulnar: ${deviationResult.maxUlnarDeviation.toFixed(1)}°`);
+            }
+          } else {
+            // Use flexion/extension calculator for flexion/extension assessments
+            if (frame.landmarks && frame.poseLandmarks) {
+              // DETERMINE CORRECT HAND TYPE BASED ON PROXIMITY TO ELBOWS (same as session calc)
+              const handWrist = frame.landmarks[0];
+              const leftElbow = frame.poseLandmarks[13];
+              const rightElbow = frame.poseLandmarks[14];
+              
+              let frameHandType = 'RIGHT'; // default
+              
+              if (leftElbow && rightElbow && handWrist) {
+                const distanceToLeft = Math.sqrt(
+                  Math.pow(handWrist.x - leftElbow.x, 2) +
+                  Math.pow(handWrist.y - leftElbow.y, 2) +
+                  Math.pow(handWrist.z - (leftElbow.z || 0), 2)
+                );
+                const distanceToRight = Math.sqrt(
+                  Math.pow(handWrist.x - rightElbow.x, 2) +
+                  Math.pow(handWrist.y - rightElbow.y, 2) +
+                  Math.pow(handWrist.z - (rightElbow.z || 0), 2)
+                );
+                
+                // Use closest elbow
+                frameHandType = distanceToLeft < distanceToRight ? 'LEFT' : 'RIGHT';
+              }
+              
+              // Override with authoritative hand type if available
+              if (authoritativeWristResults?.handType && authoritativeWristResults.handType !== 'UNKNOWN') {
+                frameHandType = authoritativeWristResults.handType;
+              } else if (maxWristAngles?.handType && maxWristAngles.handType !== 'UNKNOWN') {
+                frameHandType = maxWristAngles.handType;
+              }
+              
+              // Use IDENTICAL calculation method as session maximums
+              currentWrist = calculateElbowReferencedWristAngleWithForce(
+                frame.landmarks, 
+                frame.poseLandmarks, 
+                frameHandType as 'LEFT' | 'RIGHT'
               );
               
-              // Use closest elbow
-              frameHandType = distanceToLeft < distanceToRight ? 'LEFT' : 'RIGHT';
+              console.log(`MOTION FRAME ${currentFrame}: ${frameHandType} hand - Flexion: ${currentWrist.wristFlexionAngle.toFixed(1)}°, Extension: ${currentWrist.wristExtensionAngle.toFixed(1)}°`);
+            } else if (frame.wristAngles && frame.wristAngles.elbowDetected) {
+              currentWrist = { ...frame.wristAngles };
+              console.log(`MOTION FRAME ${currentFrame}: Using recorded angles - Flexion: ${currentWrist.wristFlexionAngle.toFixed(1)}°, Extension: ${currentWrist.wristExtensionAngle.toFixed(1)}°`);
             }
-            
-            // Override with authoritative hand type if available
-            if (authoritativeWristResults?.handType && authoritativeWristResults.handType !== 'UNKNOWN') {
-              frameHandType = authoritativeWristResults.handType;
-            } else if (maxWristAngles?.handType && maxWristAngles.handType !== 'UNKNOWN') {
-              frameHandType = maxWristAngles.handType;
-            }
-            
-            // Use IDENTICAL calculation method as session maximums
-            currentWrist = calculateElbowReferencedWristAngleWithForce(
-              frame.landmarks, 
-              frame.poseLandmarks, 
-              frameHandType
-            );
-            
-            console.log(`MOTION FRAME ${currentFrame}: ${frameHandType} hand - Flexion: ${currentWrist.wristFlexionAngle.toFixed(1)}°, Extension: ${currentWrist.wristExtensionAngle.toFixed(1)}°`);
-          } else if (frame.wristAngles && frame.wristAngles.elbowDetected) {
-            currentWrist = { ...frame.wristAngles };
-            console.log(`MOTION FRAME ${currentFrame}: Using recorded angles - Flexion: ${currentWrist.wristFlexionAngle.toFixed(1)}°, Extension: ${currentWrist.wristExtensionAngle.toFixed(1)}°`);
           }
           
           setCurrentWristAngles(currentWrist);
