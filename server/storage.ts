@@ -603,13 +603,22 @@ export class DatabaseStorage implements IStorage {
 
   // Outlier Alert methods
   async getOutlierAlerts(patientId?: number): Promise<OutlierAlert[]> {
-    const query = db.select().from(outlierAlerts).where(eq(outlierAlerts.isResolved, false));
-    
-    if (patientId) {
-      query.where(and(eq(outlierAlerts.isResolved, false), eq(outlierAlerts.patientId, patientId)));
+    try {
+      let query = db.select().from(outlierAlerts);
+      
+      if (patientId) {
+        query = query.where(and(eq(outlierAlerts.isResolved, false), eq(outlierAlerts.patientId, patientId)));
+      } else {
+        query = query.where(eq(outlierAlerts.isResolved, false));
+      }
+      
+      const results = await query.orderBy(desc(outlierAlerts.createdAt));
+      console.log('Outlier alerts query returned:', results.length, 'alerts');
+      return results;
+    } catch (error) {
+      console.error('Error fetching outlier alerts:', error);
+      return [];
     }
-    
-    return await query.orderBy(desc(outlierAlerts.createdAt));
   }
 
   async createOutlierAlert(insertAlert: InsertOutlierAlert): Promise<OutlierAlert> {
