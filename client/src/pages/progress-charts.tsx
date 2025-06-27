@@ -18,8 +18,8 @@ const targetROM = {
     'Wrist Extension': 70,
     'Forearm Pronation/Supination': 80,
     'Wrist Radial/Ulnar Deviation': 30,
-    'Wrist Radial Deviation': 20,
-    'Wrist Ulnar Deviation': 30,
+    'Wrist Radial Deviation': 15,
+    'Wrist Ulnar Deviation': 35,
     'DASH Score': 15
   },
   'Trigger Finger': {
@@ -33,6 +33,8 @@ const targetROM = {
     'Wrist Extension': 60,
     'Forearm Pronation/Supination': 70,
     'Wrist Radial/Ulnar Deviation': 25,
+    'Wrist Radial Deviation': 15,
+    'Wrist Ulnar Deviation': 30,
     'DASH Score': 20
   },
   'CMC Arthroplasty': {
@@ -451,7 +453,13 @@ export default function ProgressCharts() {
                                 angle: -90, 
                                 position: 'insideLeft' 
                               }}
-                              domain={assessmentName.includes('Kapandji') ? [0, 12] : assessmentName === 'DASH Score' ? [0, 100] : [0, Math.max(300, target + 50)]}
+                              domain={
+                                assessmentName.includes('Kapandji') ? [0, 12] : 
+                                assessmentName === 'DASH Score' ? [0, 100] :
+                                assessmentName.includes('Radial Deviation') ? [0, Math.max(25, target + 10)] :
+                                assessmentName.includes('Ulnar Deviation') ? [0, Math.max(50, target + 15)] :
+                                [0, Math.max(300, target + 50)]
+                              }
                             />
                             <Tooltip content={<CustomTooltip assessmentName={assessmentName} />} />
                             <ReferenceLine 
