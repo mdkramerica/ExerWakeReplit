@@ -44,7 +44,9 @@ export function calculateWristDeviationResults(userAssessment: any): WristDeviat
       hasPoseLandmarks: !!motionData[0]?.poseLandmarks,
       hasLandmarks: !!motionData[0]?.landmarks,
       handType: userAssessment.handType,
-      frameKeys: Object.keys(motionData[0] || {})
+      frameKeys: Object.keys(motionData[0] || {}),
+      landmarksLength: motionData[0]?.landmarks?.length,
+      poseLength: motionData[0]?.poseLandmarks?.length
     });
     
     let maxRadial = 0;
@@ -92,8 +94,8 @@ export function calculateWristDeviationResults(userAssessment: any): WristDeviat
           console.log(`📈 NEW MAX ULNAR: ${maxUlnar.toFixed(1)}° at frame ${index}`);
         }
         
-        if (index % 30 === 0) { // Log every 30th frame
-          console.log(`Frame ${index}: Angle ${deviationAngle.toFixed(1)}° (Radial: ${radialComponent.toFixed(1)}°, Ulnar: ${ulnarComponent.toFixed(1)}°) | Max: R${maxRadial.toFixed(1)}° U${maxUlnar.toFixed(1)}°`);
+        if (index === 0 || index % 30 === 0 || index === motionData.length - 1) { // Log key frames
+          console.log(`🎯 DEVIATION FRAME ${index}: Angle ${deviationAngle.toFixed(1)}° (Radial: ${radialComponent.toFixed(1)}°, Ulnar: ${ulnarComponent.toFixed(1)}°) | Running Max: R${maxRadial.toFixed(1)}° U${maxUlnar.toFixed(1)}°`);
         }
       }
     });
