@@ -244,45 +244,45 @@ function determineHandType(
     return 'UNKNOWN';
   }
 
-  // Calculate distances to both elbows (more reliable than wrist distances)
-  const distanceToLeftElbow = euclideanDistance3D(handWrist, leftElbow);
-  const distanceToRightElbow = euclideanDistance3D(handWrist, rightElbow);
+  // Get shoulder landmarks for body centerline approach
+  const leftShoulder = poseLandmarks[POSE_LANDMARKS.LEFT_SHOULDER];
+  const rightShoulder = poseLandmarks[POSE_LANDMARKS.RIGHT_SHOULDER];
 
-  // Get visibility scores for validation
-  const leftElbowVisibility = leftElbow.visibility || 0;
-  const rightElbowVisibility = rightElbow.visibility || 0;
-  
-  console.log(`🔍 ELBOW DETECTION - Left distance: ${distanceToLeftElbow.toFixed(4)}, Right distance: ${distanceToRightElbow.toFixed(4)}`);
-  console.log(`🔍 VISIBILITY - Left elbow: ${leftElbowVisibility.toFixed(3)}, Right elbow: ${rightElbowVisibility.toFixed(3)}`);
-  
-  // Use closest elbow with good visibility as primary indicator
-  const closestToLeft = distanceToLeftElbow < distanceToRightElbow;
-  
-  // Enhanced validation: require both reasonable distance and visibility
-  if (closestToLeft && leftElbowVisibility > 0.3) {
-    console.log(`✅ HAND TYPE DETERMINED: LEFT (closest to left elbow with good visibility)`);
-    return 'LEFT';
-  } else if (!closestToLeft && rightElbowVisibility > 0.3) {
-    console.log(`✅ HAND TYPE DETERMINED: RIGHT (closest to right elbow with good visibility)`);
-    return 'RIGHT';
+  if (!leftShoulder || !rightShoulder) {
+    console.log(`❌ HAND TYPE: Missing shoulder landmarks`);
+    return 'UNKNOWN';
   }
 
-  // If closest elbow has poor visibility, check if the other has much better visibility
-  if (closestToLeft && leftElbowVisibility <= 0.3 && rightElbowVisibility > 0.6) {
-    console.log(`✅ HAND TYPE DETERMINED: RIGHT (left elbow low visibility, right much better)`);
+  // Use body centerline approach instead of proximity matching
+  // Calculate body center between shoulders
+  const bodyCenterX = (leftShoulder.x + rightShoulder.x) / 2;
+  
+  // Determine handedness based on hand position relative to body center
+  // MediaPipe coordinates: x=0 is left edge, x=1 is right edge (from camera perspective)
+  const handRelativeToCenter = handWrist.x - bodyCenterX;
+  
+  console.log(`🔍 BODY CENTER DETECTION - Body center X: ${bodyCenterX.toFixed(3)}, Hand X: ${handWrist.x.toFixed(3)}`);
+  console.log(`🔍 HAND RELATIVE TO CENTER: ${handRelativeToCenter.toFixed(3)} (negative=left side, positive=right side)`);
+  
+  // Determine hand type based on position relative to body center
+  if (handRelativeToCenter < -0.05) { // Hand significantly left of center
+    console.log(`✅ HAND TYPE DETERMINED: LEFT (hand left of body center)`);
+    return 'LEFT';
+  } else if (handRelativeToCenter > 0.05) { // Hand significantly right of center
+    console.log(`✅ HAND TYPE DETERMINED: RIGHT (hand right of body center)`);
     return 'RIGHT';
-  } else if (!closestToLeft && rightElbowVisibility <= 0.3 && leftElbowVisibility > 0.6) {
-    console.log(`✅ HAND TYPE DETERMINED: LEFT (right elbow low visibility, left much better)`);
-    return 'LEFT';
-  }
-
-  // Final fallback: use closest elbow regardless of visibility
-  if (closestToLeft) {
-    console.log(`✅ HAND TYPE DETERMINED: LEFT (closest elbow fallback)`);
-    return 'LEFT';
   } else {
-    console.log(`✅ HAND TYPE DETERMINED: RIGHT (closest elbow fallback)`);
-    return 'RIGHT';
+    // Hand very close to center - use shoulder visibility as tiebreaker
+    const leftShoulderVisibility = leftShoulder.visibility || 0;
+    const rightShoulderVisibility = rightShoulder.visibility || 0;
+    
+    if (leftShoulderVisibility > rightShoulderVisibility) {
+      console.log(`✅ HAND TYPE DETERMINED: LEFT (center position, better left shoulder visibility)`);
+      return 'LEFT';
+    } else {
+      console.log(`✅ HAND TYPE DETERMINED: RIGHT (center position, better right shoulder visibility)`);
+      return 'RIGHT';
+    }
   }
 }
 
@@ -326,7 +326,7 @@ export function calculateElbowReferencedWristAngleWithForce(
   }
   
   if (!recordingSessionElbowLocked) {
-    // FORCE ANATOMICAL MATCHING: LEFT hand MUST use LEFT elbow, RIGHT hand MUST use RIGHT elbow
+    // PURE ANATOMICAL MATCHING: LEFT hand → LEFT elbow, RIGHT hand → RIGHT elbow (NO proximity checks)
     const useLeftElbow = forceHandType === 'LEFT';
     recordingSessionElbowIndex = useLeftElbow ? 13 : 14;
     recordingSessionWristIndex = useLeftElbow ? 15 : 16;
@@ -334,15 +334,7 @@ export function calculateElbowReferencedWristAngleWithForce(
     recordingSessionHandType = forceHandType;
     recordingSessionElbowLocked = true;
     
-    console.log(`🔒 ANATOMICAL SESSION LOCKED: ${forceHandType} hand → ${useLeftElbow ? 'LEFT' : 'RIGHT'} elbow (index ${recordingSessionElbowIndex})`);
-    
-    // Verify the selection makes sense
-    if (poseLandmarks[13] && poseLandmarks[14] && handLandmarks[0]) {
-      const distToLeft = euclideanDistance3D(handLandmarks[0], poseLandmarks[13]);
-      const distToRight = euclideanDistance3D(handLandmarks[0], poseLandmarks[14]);
-      console.log(`🔍 VERIFICATION - Distances: Left=${distToLeft.toFixed(3)}, Right=${distToRight.toFixed(3)}`);
-      console.log(`🔍 ANATOMICAL CHOICE: Using ${useLeftElbow ? 'LEFT' : 'RIGHT'} elbow for ${forceHandType} hand (distance=${useLeftElbow ? distToLeft.toFixed(3) : distToRight.toFixed(3)})`);
-    }
+    console.log(`🔒 PURE ANATOMICAL LOCK: ${forceHandType} hand → ${useLeftElbow ? 'LEFT' : 'RIGHT'} elbow (index ${recordingSessionElbowIndex}) - NO proximity matching`);
   }
   
   // Use locked session selection
@@ -363,20 +355,12 @@ export function calculateElbowReferencedWristAngleWithForce(
   console.log(`Selected Elbow (${elbowIndex}): x=${elbow?.x?.toFixed(3)}, y=${elbow?.y?.toFixed(3)}`);
   console.log(`Hand Wrist (0): x=${handLandmarks[0]?.x?.toFixed(3)}, y=${handLandmarks[0]?.y?.toFixed(3)}`);
   
-  // VALIDATE ELBOW SELECTION: Ensure calculation and replay are using same elbow
-  if (poseLandmarks[13] && poseLandmarks[14] && handLandmarks[0]) {
-    const distToLeftElbow = euclideanDistance3D(handLandmarks[0], poseLandmarks[13]);
-    const distToRightElbow = euclideanDistance3D(handLandmarks[0], poseLandmarks[14]);
-    const closestElbow = distToLeftElbow < distToRightElbow ? 'LEFT' : 'RIGHT';
-    const closestElbowIndex = distToLeftElbow < distToRightElbow ? 13 : 14;
-    
-    console.log(`🔍 PROXIMITY CHECK - Distance to Left: ${distToLeftElbow.toFixed(3)}, Right: ${distToRightElbow.toFixed(3)}`);
-    console.log(`🔍 CLOSEST ELBOW: ${closestElbow} (${closestElbowIndex}) - Using elbow index: ${elbowIndex}`);
-    
-    // Alert if there's a mismatch between closest and selected
-    if (elbowIndex !== closestElbowIndex) {
-      console.warn(`⚠️ ELBOW MISMATCH: Selected ${elbowIndex} but closest is ${closestElbowIndex}`);
-    }
+  // ANATOMICAL VALIDATION: Confirm we're using the correct anatomical elbow
+  const expectedElbowIndex = forceHandType === 'LEFT' ? 13 : 14;
+  if (elbowIndex === expectedElbowIndex) {
+    console.log(`✅ ANATOMICAL VALIDATION: ${forceHandType} hand correctly using ${forceHandType} elbow (index ${elbowIndex})`);
+  } else {
+    console.warn(`⚠️ ANATOMICAL MISMATCH: ${forceHandType} hand using elbow index ${elbowIndex}, expected ${expectedElbowIndex}`);
   }
 
   console.log(`🔍 Pose landmarks availability:`, {

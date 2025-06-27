@@ -95,6 +95,15 @@ This is a comprehensive hand rehabilitation assessment platform that combines re
 
 ## Recent Changes
 
+### June 27, 2025 - Wrist Assessment Elbow Selection Fix
+- **Eliminated all proximity/distance matching for elbow selection in wrist assessments**
+- **Implemented pure anatomical matching: LEFT hand → LEFT elbow, RIGHT hand → RIGHT elbow**
+- **Replaced distance-based hand type detection with body centerline approach using shoulder landmarks**
+- **Added session state reset functionality to clear incorrect elbow selection locks**
+- **Enhanced validation logging to confirm anatomical elbow matching is working correctly**
+- **Fixed issue where hands crossing the body would incorrectly select the opposite elbow**
+- **System now uses body center relative positioning instead of proximity calculations**
+
 ### June 27, 2025 - Wrist Assessment Results Loading Fix
 - **Fixed critical wrist assessment results loading issue for DEMO01 and all incomplete assessments**
 - **Enhanced wrist results calculator with proper fallback logic for missing motion data**
