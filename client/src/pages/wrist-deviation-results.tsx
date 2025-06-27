@@ -110,6 +110,15 @@ export default function WristDeviationResults() {
     source: 'centralized-deviation-calculator'
   });
 
+  console.log('📊 RAW USER ASSESSMENT DATA:', {
+    id: userAssessment?.id,
+    assessmentId: userAssessment?.assessmentId,
+    handType: userAssessment?.handType,
+    motionDataLength: userAssessment?.repetitionData?.[0]?.motionData?.length,
+    storedRadial: userAssessment?.maxRadialDeviation,
+    storedUlnar: userAssessment?.maxUlnarDeviation
+  });
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <div className="max-w-4xl mx-auto space-y-8">

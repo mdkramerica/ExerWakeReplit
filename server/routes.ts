@@ -1070,6 +1070,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         maxWristFlexion: maxWristFlexion !== null ? String(maxWristFlexion) : null,
         maxWristExtension: maxWristExtension !== null ? String(maxWristExtension) : null,
         
+        // Wrist deviation data
+        maxRadialDeviation: req.body.maxRadialDeviation ? String(req.body.maxRadialDeviation) : null,
+        maxUlnarDeviation: req.body.maxUlnarDeviation ? String(req.body.maxUlnarDeviation) : null,
+        
         // DASH assessment data
         dashScore: dashScore !== null ? dashScore : null,
         responses: responses ? JSON.stringify(responses) : null
