@@ -62,6 +62,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
   const [selectedDigit, setSelectedDigit] = useState<'INDEX' | 'MIDDLE' | 'RING' | 'PINKY'>('INDEX');
   const [allDigitsROM, setAllDigitsROM] = useState<{[key: string]: JointAngles} | null>(null);
   const [kapandjiScore, setKapandjiScore] = useState<KapandjiScore | null>(null);
+  const [sessionHandType, setSessionHandType] = useState<'LEFT' | 'RIGHT' | 'UNKNOWN'>('UNKNOWN');
 
   // Get assessment data for hand type information
   const { data: assessmentData } = useQuery({
@@ -117,7 +118,6 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
         setCurrentFrame(0); // Start from beginning for Kapandji
       } else if (isWristAssessment) {
         // Use recorded session data instead of recalculating to preserve hand type
-        let sessionHandType: 'LEFT' | 'RIGHT' | 'UNKNOWN' = 'UNKNOWN';
         
         // Extract hand type from recorded session data with comprehensive fallback
         const frameWithHandType = replayData.find(f => f.sessionHandType && f.sessionHandType !== 'UNKNOWN');
@@ -356,29 +356,10 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
           if (isWristDeviationAssessment) {
             // Use deviation calculator for deviation assessments
             if (frame.landmarks && frame.poseLandmarks) {
-              // Determine hand type for deviation calculation
-              const handWrist = frame.landmarks[0];
-              const leftElbow = frame.poseLandmarks[13];
-              const rightElbow = frame.poseLandmarks[14];
+              // Use session-locked hand type for consistent deviation calculation
+              const isLeftHand = sessionHandType === 'LEFT';
               
-              let isLeftHand = false; // default to right hand
-              
-              if (leftElbow && rightElbow && handWrist) {
-                const distanceToLeft = Math.sqrt(
-                  Math.pow(handWrist.x - leftElbow.x, 2) +
-                  Math.pow(handWrist.y - leftElbow.y, 2) +
-                  Math.pow(handWrist.z - (leftElbow.z || 0), 2)
-                );
-                const distanceToRight = Math.sqrt(
-                  Math.pow(handWrist.x - rightElbow.x, 2) +
-                  Math.pow(handWrist.y - rightElbow.y, 2) +
-                  Math.pow(handWrist.z - (rightElbow.z || 0), 2)
-                );
-                
-                isLeftHand = distanceToLeft < distanceToRight;
-              }
-              
-              // Calculate deviation angle for this frame
+              // Calculate deviation angle for this frame using session hand type
               const deviationAngle = calculateWristDeviation(
                 frame.poseLandmarks,
                 frame.landmarks,
@@ -390,7 +371,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
                 wristFlexionAngle: 0,
                 wristExtensionAngle: 0,
                 forearmToHandAngle: deviationAngle,
-                handType: isLeftHand ? 'LEFT' : 'RIGHT',
+                handType: sessionHandType,
                 elbowDetected: true,
                 confidence: 0.8
               };
@@ -398,7 +379,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
               const radialComponent = deviationAngle > 0 ? deviationAngle : 0;
               const ulnarComponent = deviationAngle < 0 ? Math.abs(deviationAngle) : 0;
               
-              console.log(`DEVIATION FRAME ${currentFrame}: Angle ${deviationAngle.toFixed(1)}° (Radial: ${radialComponent.toFixed(1)}°, Ulnar: ${ulnarComponent.toFixed(1)}°)`);
+              console.log(`DEVIATION FRAME ${currentFrame}: ${sessionHandType} hand - Angle ${deviationAngle.toFixed(1)}° (Radial: ${radialComponent.toFixed(1)}°, Ulnar: ${ulnarComponent.toFixed(1)}°)`);
             }
           } else {
             // Use flexion/extension calculator for flexion/extension assessments
