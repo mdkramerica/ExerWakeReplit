@@ -86,15 +86,15 @@ export default function ProgressCharts() {
   });
 
   const { data: progress } = useQuery({
-    queryKey: [`/api/users/${userId}/progress`],
-    enabled: !!userId,
+    queryKey: [`/api/users/${user?.user?.id || userId}/progress`],
+    enabled: !!(user?.user?.id || userId),
   });
 
   const queryClient = useQueryClient();
 
   const { data: history } = useQuery({
-    queryKey: [`/api/users/${userId}/history`],
-    enabled: !!userId,
+    queryKey: [`/api/users/${user?.user?.id || userId}/history`],
+    enabled: !!(user?.user?.id || userId),
     staleTime: 0, // Force fresh data to bypass cache
     refetchOnMount: true,
     refetchOnWindowFocus: true,
@@ -102,14 +102,15 @@ export default function ProgressCharts() {
 
   // Clear cache for history to force fresh data on mount
   React.useEffect(() => {
-    if (userId) {
-      queryClient.invalidateQueries({ queryKey: [`/api/users/${userId}/history`] });
+    const actualUserId = user?.user?.id || userId;
+    if (actualUserId) {
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${actualUserId}/history`] });
     }
-  }, [userId, queryClient]);
+  }, [user?.user?.id, userId, queryClient]);
 
   const { data: assessments } = useQuery({
-    queryKey: [`/api/users/${userId}/assessments`],
-    enabled: !!userId,
+    queryKey: [`/api/users/${user?.user?.id || userId}/assessments`],
+    enabled: !!(user?.user?.id || userId),
   });
 
   const actualUserId = user?.user?.id || userId;
@@ -280,6 +281,7 @@ export default function ProgressCharts() {
   const assessmentTypes = Object.keys(targetROM[injuryType] || {});
   console.log('All assessment types for injury:', assessmentTypes);
   console.log('Checking assessment data availability...');
+  console.log('User history items:', userHistory.map(h => h.assessmentName));
   
   // Filter out assessments with no data
   const assessmentTypesWithData = assessmentTypes.filter(assessmentName => {
@@ -300,6 +302,7 @@ export default function ProgressCharts() {
       return dashHistory.length > 0;
     } else if (assessmentName === 'Wrist Radial Deviation' || assessmentName === 'Wrist Ulnar Deviation') {
       const deviationHistory = userHistory.filter(h => h.assessmentName === 'Wrist Radial/Ulnar Deviation');
+      console.log(`Found ${deviationHistory.length} deviation assessments for ${assessmentName}`);
       return deviationHistory.length > 0;
     }
     return true; // Show other assessment types by default
