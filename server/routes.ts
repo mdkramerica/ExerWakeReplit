@@ -34,7 +34,7 @@ let auditLog: any;
 export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize memory storage for rollback state
   // Use database storage if enabled, otherwise file storage
-  const useDatabase = process.env.USE_DATABASE === 'true' || process.env.NODE_ENV === 'production';
+  const useDatabase = process.env.USE_DATABASE === 'true' || process.env.NODE_ENV === 'production' || process.env.DATABASE_URL;
   const storage = useDatabase ? new DatabaseStorage() : new PersistentMemoryStorage();
   
   // Initialize authentication middleware with storage reference
