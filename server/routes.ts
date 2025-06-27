@@ -37,6 +37,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const useDatabase = process.env.USE_DATABASE === 'true' || process.env.NODE_ENV === 'production' || process.env.DATABASE_URL;
   const storage = useDatabase ? new DatabaseStorage() : new PersistentMemoryStorage();
   
+  console.log('Storage system initialized:', useDatabase ? 'DatabaseStorage' : 'PersistentMemoryStorage');
+  console.log('Environment check - USE_DATABASE:', process.env.USE_DATABASE, 'NODE_ENV:', process.env.NODE_ENV, 'DATABASE_URL exists:', !!process.env.DATABASE_URL);
+  
   // Initialize authentication middleware with storage reference
   requireAuth = async (req: any, res: any, next: any) => {
     const authHeader = req.headers.authorization;
@@ -442,10 +445,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Clinical Dashboard - Outlier Alerts
   app.get("/api/alerts", requireAuth, async (req, res) => {
     try {
+      console.log('Alerts API called - Storage type:', storage.constructor.name);
       const patientId = req.query.patientId ? parseInt(req.query.patientId as string) : undefined;
+      console.log('Calling getOutlierAlerts with patientId:', patientId);
       const alerts = await storage.getOutlierAlerts(patientId);
+      console.log('Alerts returned:', alerts.length);
       res.json(alerts);
     } catch (error) {
+      console.error('Error in alerts API:', error);
       res.status(500).json({ message: "Failed to fetch alerts" });
     }
   });

@@ -1030,4 +1030,17 @@ export class PersistentMemoryStorage {
 
     return { assessments: assessmentsWithStatus };
   }
+
+  // Outlier Alert methods (stub implementations for interface compatibility)
+  async getOutlierAlerts(patientId?: number): Promise<any[]> {
+    return []; // PersistentMemoryStorage doesn't have outlier alerts
+  }
+
+  async createOutlierAlert(insertAlert: any): Promise<any> {
+    return { id: Date.now(), ...insertAlert, createdAt: new Date() };
+  }
+
+  async resolveOutlierAlert(id: number): Promise<boolean> {
+    return true; // Always succeed for compatibility
+  }
 }
