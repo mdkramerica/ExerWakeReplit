@@ -404,7 +404,7 @@ export default function ProgressCharts() {
         {displayAssessments.map((assessmentName) => {
           const chartData = getChartData(assessmentName);
           const target = assessmentName.includes('Kapandji') ? 10 : (targetROM[injuryType]?.[assessmentName] || 100);
-          const unit = assessmentName.includes('Kapandji') ? '' : '°';
+          const unit = (assessmentName.includes('Kapandji') || assessmentName === 'DASH Score') ? '' : '°';
           const latestValue = chartData[chartData.length - 1]?.value || 0;
           const percentageOfTarget = Math.round((latestValue / target) * 100);
           
@@ -425,7 +425,7 @@ export default function ProgressCharts() {
                       <div className="flex items-center gap-2">
                         <Badge variant="outline">
                           <Target className="h-3 w-3 mr-1" />
-                          Target: {target}{assessmentName.includes('Kapandji') ? '' : unit}
+                          Target: {target}{unit}
                         </Badge>
                         <Badge variant={percentageOfTarget >= 80 ? "default" : "secondary"}>
                           Current: {latestValue}{unit} ({percentageOfTarget}%)
