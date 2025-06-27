@@ -226,55 +226,53 @@ function determineHandType(
   }
 
   const handWrist = handLandmarks[HAND_LANDMARKS.WRIST];
-  const leftPoseWrist = poseLandmarks[POSE_LANDMARKS.LEFT_WRIST];
-  const rightPoseWrist = poseLandmarks[POSE_LANDMARKS.RIGHT_WRIST];
   const leftElbow = poseLandmarks[POSE_LANDMARKS.LEFT_ELBOW];
   const rightElbow = poseLandmarks[POSE_LANDMARKS.RIGHT_ELBOW];
 
-  if (!leftPoseWrist || !rightPoseWrist || !handWrist || !leftElbow || !rightElbow) {
+  if (!handWrist || !leftElbow || !rightElbow) {
     return 'UNKNOWN';
   }
 
-  // Check visibility thresholds to avoid low-confidence detections
-  const leftWristVisibility = leftPoseWrist.visibility || 0;
-  const rightWristVisibility = rightPoseWrist.visibility || 0;
+  // Calculate distances to both elbows (more reliable than wrist distances)
+  const distanceToLeftElbow = euclideanDistance3D(handWrist, leftElbow);
+  const distanceToRightElbow = euclideanDistance3D(handWrist, rightElbow);
+
+  // Get visibility scores for validation
   const leftElbowVisibility = leftElbow.visibility || 0;
   const rightElbowVisibility = rightElbow.visibility || 0;
-
-  // Calculate distances to both wrists
-  const distanceToLeft = euclideanDistance3D(handWrist, leftPoseWrist);
-  const distanceToRight = euclideanDistance3D(handWrist, rightPoseWrist);
-
-  // CORRECTED: Use distance as primary determinant, with visibility as secondary validation
-  // Distance is more reliable for hand type detection than visibility scores
   
-  console.log(`🔍 HAND DETECTION - Left distance: ${distanceToLeft.toFixed(4)}, Right distance: ${distanceToRight.toFixed(4)}`);
+  console.log(`🔍 ELBOW DETECTION - Left distance: ${distanceToLeftElbow.toFixed(4)}, Right distance: ${distanceToRightElbow.toFixed(4)}`);
   console.log(`🔍 VISIBILITY - Left elbow: ${leftElbowVisibility.toFixed(3)}, Right elbow: ${rightElbowVisibility.toFixed(3)}`);
   
-  // Primary choice based on distance (most reliable indicator)
-  const primaryChoice: 'LEFT' | 'RIGHT' = distanceToLeft < distanceToRight ? 'LEFT' : 'RIGHT';
+  // Use closest elbow with good visibility as primary indicator
+  const closestToLeft = distanceToLeftElbow < distanceToRightElbow;
   
-  // Validate choice with minimum visibility requirements
-  if (primaryChoice === 'LEFT' && leftElbowVisibility > 0.1) {
-    console.log(`✅ HAND TYPE DETERMINED: LEFT (distance-based, validated by visibility)`);
+  // Enhanced validation: require both reasonable distance and visibility
+  if (closestToLeft && leftElbowVisibility > 0.3) {
+    console.log(`✅ HAND TYPE DETERMINED: LEFT (closest to left elbow with good visibility)`);
     return 'LEFT';
-  } else if (primaryChoice === 'RIGHT' && rightElbowVisibility > 0.1) {
-    console.log(`✅ HAND TYPE DETERMINED: RIGHT (distance-based, validated by visibility)`);
+  } else if (!closestToLeft && rightElbowVisibility > 0.3) {
+    console.log(`✅ HAND TYPE DETERMINED: RIGHT (closest to right elbow with good visibility)`);
     return 'RIGHT';
   }
 
-  // Fallback to visibility if distance choice fails validation
-  if (leftElbowVisibility > rightElbowVisibility && leftElbowVisibility > 0.1) {
-    console.log(`✅ HAND TYPE DETERMINED: LEFT (visibility fallback)`);
-    return 'LEFT';
-  } else if (rightElbowVisibility > 0.1) {
-    console.log(`✅ HAND TYPE DETERMINED: RIGHT (visibility fallback)`);
+  // If closest elbow has poor visibility, check if the other has much better visibility
+  if (closestToLeft && leftElbowVisibility <= 0.3 && rightElbowVisibility > 0.6) {
+    console.log(`✅ HAND TYPE DETERMINED: RIGHT (left elbow low visibility, right much better)`);
     return 'RIGHT';
+  } else if (!closestToLeft && rightElbowVisibility <= 0.3 && leftElbowVisibility > 0.6) {
+    console.log(`✅ HAND TYPE DETERMINED: LEFT (right elbow low visibility, left much better)`);
+    return 'LEFT';
   }
 
-  // Final resort - use distance without validation
-  console.log(`⚠️ HAND TYPE DETERMINED: ${primaryChoice} (distance only, low confidence)`);
-  return primaryChoice;
+  // Final fallback: use closest elbow regardless of visibility
+  if (closestToLeft) {
+    console.log(`✅ HAND TYPE DETERMINED: LEFT (closest elbow fallback)`);
+    return 'LEFT';
+  } else {
+    console.log(`✅ HAND TYPE DETERMINED: RIGHT (closest elbow fallback)`);
+    return 'RIGHT';
+  }
 }
 
 export function calculateElbowReferencedWristAngleWithForce(
@@ -992,16 +990,25 @@ function calculateWristAngleByHandType(
   poseLandmarks?: PoseLandmark[],
   forceHandType?: 'LEFT' | 'RIGHT'
 ): ElbowWristAngles {
-  // Use session-locked handedness to prevent elbow jumping during assessment
+  // Always use forced hand type if provided (for replay consistency)
   let handType = forceHandType;
   
+  // If no forced type, determine from current frame data
   if (!handType && poseLandmarks && poseLandmarks.length > 16) {
-    if (!recordingSessionHandType) {
-      // First detection - determine and lock handedness for session
-      handType = determineHandType(handLandmarks, poseLandmarks);
-      if (handType !== 'UNKNOWN') {
+    // Always determine handedness from current frame data for consistency
+    const detectedHandType = determineHandType(handLandmarks, poseLandmarks);
+    
+    // Only use detected type if it's not UNKNOWN
+    if (detectedHandType && detectedHandType !== 'UNKNOWN') {
+      handType = detectedHandType;
+      
+      // If session variables exist and match, use them for logging consistency
+      if (recordingSessionHandType && recordingSessionHandType === handType) {
+        console.log(`🔐 USING LOCKED HANDEDNESS: ${handType} (session-locked)`);
+      } else {
+        // Update session variables to match current detection
         recordingSessionHandType = handType;
-        console.log(`🔒 WRIST SESSION HANDEDNESS LOCKED: ${handType} hand detected and locked for assessment duration`);
+        console.log(`🔒 HANDEDNESS DETERMINED: ${handType} hand detected from current frame`);
         
         // Clear any previous elbow locking to ensure fresh session start
         recordingSessionElbowLocked = false;
@@ -1009,10 +1016,6 @@ function calculateWristAngleByHandType(
         recordingSessionWristIndex = undefined;
         recordingSessionShoulderIndex = undefined;
       }
-    } else {
-      // Use locked handedness for consistent tracking
-      handType = recordingSessionHandType;
-      console.log(`🔐 USING LOCKED HANDEDNESS: ${handType} (session-locked)`);
     }
   }
   
