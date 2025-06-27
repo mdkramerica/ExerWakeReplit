@@ -38,7 +38,7 @@ export default function AssessmentHistory() {
     queryKey: [`/api/users/by-code/${userCode}/history`],
     enabled: !!userCode,
     staleTime: 0, // Always refetch to get latest data
-    cacheTime: 0, // Don't cache results
+    gcTime: 0, // Don't cache results
   });
 
   // Fetch user data for the PatientHeader
@@ -62,7 +62,7 @@ export default function AssessmentHistory() {
     );
   }
 
-  if (!historyData?.history || historyData.history.length === 0) {
+  if (!historyData || !(historyData as any)?.history || (historyData as any).history.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
         <div className="max-w-4xl mx-auto">
@@ -120,7 +120,7 @@ export default function AssessmentHistory() {
           <Card>
             <CardContent className="pt-6">
               <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">{historyData.history.length}</div>
+                <div className="text-2xl font-bold text-blue-600">{(historyData as any).history.length}</div>
                 <div className="text-sm text-muted-foreground">Total Assessments</div>
               </div>
             </CardContent>
@@ -130,7 +130,7 @@ export default function AssessmentHistory() {
             <CardContent className="pt-6">
               <div className="text-center">
                 <div className="text-2xl font-bold text-green-600">
-                  {Math.round(historyData.history.reduce((sum, h) => sum + (h.qualityScore || 0), 0) / historyData.history.length)}%
+                  {Math.round((historyData as any).history.reduce((sum: number, h: any) => sum + (h.qualityScore || 0), 0) / (historyData as any).history.length)}%
                 </div>
                 <div className="text-sm text-muted-foreground">Average Quality</div>
               </div>
@@ -141,7 +141,7 @@ export default function AssessmentHistory() {
             <CardContent className="pt-6">
               <div className="text-center">
                 <div className="text-2xl font-bold text-purple-600">
-                  {new Date(historyData.history[0]?.completedAt).toLocaleDateString()}
+                  {new Date((historyData as any).history[0]?.completedAt).toLocaleDateString()}
                 </div>
                 <div className="text-sm text-muted-foreground">Last Assessment</div>
               </div>
