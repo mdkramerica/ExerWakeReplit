@@ -872,18 +872,13 @@ function calculateAnatomicalWristAngle(
   const clampedDot = Math.max(-1, Math.min(1, dotProduct));
   const rawAngle = Math.acos(clampedDot) * (180 / Math.PI);
   
-  // Sign determination using cross product Z-component
-  const cross = {
-    x: uForearm.y * uHand.z - uForearm.z * uHand.y,
-    y: uForearm.z * uHand.x - uForearm.x * uHand.z,
-    z: uForearm.x * uHand.y - uForearm.y * uHand.x
-  };
-  
-  // IMPROVED SENSITIVITY: Tighter neutral zone for better clinical detection
-  // Based on observation that raw angles range 44-66° for this dataset
+  // SIMPLIFIED ANATOMICAL CLASSIFICATION
+  // Use Y-coordinate comparison for reliable flexion/extension determination
+  // In MediaPipe coordinate system: lower Y values = higher on screen = extension
+  //                                higher Y values = lower on screen = flexion
   
   const NEUTRAL_CENTER = 55; // degrees - center of observed neutral range
-  const NEUTRAL_TOLERANCE = 3; // degrees - ±3° around center considered neutral (reduced from 10°)
+  const NEUTRAL_TOLERANCE = 3; // degrees - ±3° around center considered neutral
   
   // Calculate deviation from the data-driven neutral center
   const deviationFromNeutral = Math.abs(rawAngle - NEUTRAL_CENTER);
@@ -895,22 +890,16 @@ function calculateAnatomicalWristAngle(
     wristBendAngle = 0;
   } else {
     // Outside neutral - calculate actual bend with improved sensitivity
-    // Use higher scaling factor for better clinical resolution
-    const bendMagnitude = (deviationFromNeutral - NEUTRAL_TOLERANCE) * 3; // Increased scale factor from 2 to 3
+    const bendMagnitude = (deviationFromNeutral - NEUTRAL_TOLERANCE) * 3;
     
-    // Use cross product for direction (flexion vs extension)
-    const signRaw = Math.sign(cross.z + 1e-9);
-    const sideFactor = wrist.x < elbow.x ? -1 : 1;
+    // RELIABLE FLEXION/EXTENSION DETERMINATION using Y-coordinates
+    // Compare middle MCP Y position relative to wrist Y position
+    // If MCP is BELOW wrist (higher Y value), it's FLEXION
+    // If MCP is ABOVE wrist (lower Y value), it's EXTENSION
     
-    // For this coordinate system, determine flexion/extension based on angle direction
-    let directionSign = signRaw * sideFactor;
+    const isFlexion = middleMcp.y > wrist.y; // Hand pointing downward = flexion
     
-    // If raw angle is below neutral center, it's one direction; above is the other
-    if (rawAngle < NEUTRAL_CENTER) {
-      directionSign *= -1; // Invert for angles below neutral
-    }
-    
-    wristBendAngle = bendMagnitude * directionSign;
+    wristBendAngle = isFlexion ? bendMagnitude : -bendMagnitude;
     
     // Clamp to reasonable physiological range
     wristBendAngle = Math.max(-90, Math.min(90, wristBendAngle));
