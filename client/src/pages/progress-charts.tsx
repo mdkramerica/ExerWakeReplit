@@ -284,9 +284,22 @@ export default function ProgressCharts() {
   
   // For Metacarpal ORIF, show digit breakdown
   const showDigitBreakdown = injuryType === 'Metacarpal ORIF';
-  const displayAssessments = showDigitBreakdown ? 
+  
+  // Split radial/ulnar deviation into separate charts
+  const splitDeviationAssessments = (assessments: string[]) => {
+    return assessments.flatMap(assessment => {
+      if (assessment.includes('Radial/Ulnar')) {
+        return ['Wrist Radial Deviation', 'Wrist Ulnar Deviation'];
+      }
+      return assessment;
+    });
+  };
+  
+  const baseAssessments = showDigitBreakdown ? 
     ['TAM (Total Active Motion)', 'Index Finger TAM', 'Middle Finger TAM', 'Ring Finger TAM', 'Pinky Finger TAM'] :
     assessmentTypesWithData;
+    
+  const displayAssessments = splitDeviationAssessments(baseAssessments);
 
   // Calculate days remaining based on study duration
   const studyDuration = injuryType === 'Trigger Finger' || injuryType === 'Metacarpal ORIF' || injuryType === 'Phalanx Fracture' ? 28 : 84;
