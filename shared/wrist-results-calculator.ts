@@ -35,7 +35,7 @@ export function calculateWristResults(userAssessment: any): WristResultsData {
   );
 
   // Always calculate from motion data first for accuracy - stored values may be incorrect
-  if (userAssessment.repetitionData && userAssessment.repetitionData[0]?.motionData) {
+  if (userAssessment.repetitionData && userAssessment.repetitionData[0]?.motionData && userAssessment.repetitionData[0].motionData.length > 0) {
     console.log('🔄 CALCULATING FROM MOTION DATA - Primary calculation method');
     
     const motionData = userAssessment.repetitionData[0].motionData;
@@ -57,8 +57,8 @@ export function calculateWristResults(userAssessment: any): WristResultsData {
       const calculatedMaxExtension = allExtensionAngles.length > 0 ? Math.max(...allExtensionAngles) : 0;
       
       console.log(`✅ CALCULATED VALUES - Flexion: ${calculatedMaxFlexion.toFixed(1)}° (from ${allFlexionAngles.length} flexion frames), Extension: ${calculatedMaxExtension.toFixed(1)}° (from ${allExtensionAngles.length} extension frames)`);
-      console.log(`📊 Sample flexion angles: [${allFlexionAngles.slice(0, 5).map(a => a.toFixed(1)).join(', ')}${allFlexionAngles.length > 5 ? '...' : ''}]`);
-      console.log(`📊 Sample extension angles: [${allExtensionAngles.slice(0, 5).map(a => a.toFixed(1)).join(', ')}${allExtensionAngles.length > 5 ? '...' : ''}]`);
+      console.log(`📊 Sample flexion angles: [${allFlexionAngles.slice(0, 5).map((a: number) => a.toFixed(1)).join(', ')}${allFlexionAngles.length > 5 ? '...' : ''}]`);
+      console.log(`📊 Sample extension angles: [${allExtensionAngles.slice(0, 5).map((a: number) => a.toFixed(1)).join(', ')}${allExtensionAngles.length > 5 ? '...' : ''}]`);
       
       return {
         maxFlexion: calculatedMaxFlexion,

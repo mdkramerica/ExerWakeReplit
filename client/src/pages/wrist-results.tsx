@@ -12,13 +12,17 @@ import AssessmentReplay from "@/components/assessment-replay";
 interface WristResultsData {
   userAssessment: {
     id: number;
+    userId?: number;
+    assessmentId?: number;
     wristFlexionAngle: number;
     wristExtensionAngle: number;
     maxWristFlexion: number;
     maxWristExtension: number;
     completedAt: string;
     qualityScore: number;
+    handType?: string;
     motionData: any[];
+    repetitionData?: any[];
   };
   assessment: {
     id: number;
