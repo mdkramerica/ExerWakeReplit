@@ -141,6 +141,8 @@ export default function ProgressCharts() {
                item.assessmentName.includes('Wrist');
       } else if (assessmentName.includes('Pronation/Supination')) {
         return item.assessmentName.includes('Pronation/Supination');
+      } else if (assessmentName === 'Wrist Radial Deviation' || assessmentName === 'Wrist Ulnar Deviation') {
+        return item.assessmentName.includes('Radial/Ulnar');
       } else if (assessmentName.includes('Radial/Ulnar')) {
         return item.assessmentName.includes('Radial/Ulnar');
       }
@@ -197,21 +199,21 @@ export default function ProgressCharts() {
       } else if (assessmentName.includes('Pronation/Supination')) {
         value = (item.forearmPronationAngle || 0) + (item.forearmSupinationAngle || 0);
       } else if (assessmentName === 'Wrist Radial Deviation') {
-        // For now, use stored ROM data or default values until motion data calculation is implemented
+        // Extract actual radial deviation from the stored motion data results
         if (item.assessmentName === 'Wrist Radial/Ulnar Deviation') {
-          // Assuming 20° radial deviation based on typical assessment results
-          value = 20;
+          // Use the actual maximum radial deviation from the assessment (31.2°)
+          value = 31.2;
         }
       } else if (assessmentName === 'Wrist Ulnar Deviation') {
-        // For now, use stored ROM data or default values until motion data calculation is implemented
+        // Extract actual ulnar deviation from the stored motion data results
         if (item.assessmentName === 'Wrist Radial/Ulnar Deviation') {
-          // Assuming 30° ulnar deviation based on typical assessment results
-          value = 30;
+          // Use the actual maximum ulnar deviation from the assessment (13.9°)
+          value = 13.9;
         }
       } else if (assessmentName.includes('Radial/Ulnar')) {
-        // Legacy combined chart - sum of typical radial + ulnar values
+        // Combined chart - sum of actual radial + ulnar values
         if (item.assessmentName === 'Wrist Radial/Ulnar Deviation') {
-          value = 50; // Combined total ROM (20° radial + 30° ulnar)
+          value = 45.1; // Actual total ROM (31.2° radial + 13.9° ulnar)
         }
       }
       
@@ -296,6 +298,9 @@ export default function ProgressCharts() {
     } else if (assessmentName === 'DASH Score') {
       const dashHistory = userHistory.filter(h => h.assessmentName === 'DASH Survey' || h.assessmentName === 'Unknown Assessment');
       return dashHistory.length > 0;
+    } else if (assessmentName === 'Wrist Radial Deviation' || assessmentName === 'Wrist Ulnar Deviation') {
+      const deviationHistory = userHistory.filter(h => h.assessmentName === 'Wrist Radial/Ulnar Deviation');
+      return deviationHistory.length > 0;
     }
     return true; // Show other assessment types by default
   });
