@@ -411,9 +411,9 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
               );
               
               console.log(`MOTION FRAME ${currentFrame}: ${frameHandType} hand - Flexion: ${currentWrist.wristFlexionAngle.toFixed(1)}°, Extension: ${currentWrist.wristExtensionAngle.toFixed(1)}°`);
-            } else if (frame.wristAngles && frame.wristAngles.elbowDetected) {
-              currentWrist = { ...frame.wristAngles };
-              console.log(`MOTION FRAME ${currentFrame}: Using recorded angles - Flexion: ${currentWrist.wristFlexionAngle.toFixed(1)}°, Extension: ${currentWrist.wristExtensionAngle.toFixed(1)}°`);
+            } else {
+              // Fallback when no calculation possible
+              console.log(`MOTION FRAME ${currentFrame}: No wrist angle calculation available`);
             }
           }
           
