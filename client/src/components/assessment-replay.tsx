@@ -42,8 +42,14 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
   // Check assessment types first
   const isKapandjiAssessment = assessmentName === "Kapandji Score" || 
                               assessmentName?.includes("Kapandji");
-  const isWristAssessment = assessmentName === "Wrist Flexion/Extension" ||
-                           assessmentName?.toLowerCase().includes("wrist");
+  const isWristDeviationAssessment = assessmentName === "Wrist Radial/Ulnar Deviation" ||
+                                    assessmentName?.toLowerCase().includes("radial") ||
+                                    assessmentName?.toLowerCase().includes("ulnar") ||
+                                    assessmentName?.toLowerCase().includes("deviation");
+  const isWristFlexionExtensionAssessment = (assessmentName === "Wrist Flexion/Extension" ||
+                                            assessmentName?.toLowerCase().includes("wrist")) &&
+                                           !isWristDeviationAssessment;
+  const isWristAssessment = isWristFlexionExtensionAssessment || isWristDeviationAssessment;
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -998,41 +1004,67 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
       ctx.lineWidth = 2;
       ctx.strokeRect(wristBoxX, wristBoxY, wristBoxWidth, wristBoxHeight);
       
-      // Title
+      // Title - different for deviation vs flexion/extension
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 14px Arial';
-      ctx.fillText('Wrist Angle Analysis', wristBoxX + 10, wristBoxY + 20);
+      if (isWristDeviationAssessment) {
+        ctx.fillText('Wrist Deviation Analysis', wristBoxX + 10, wristBoxY + 20);
+      } else {
+        ctx.fillText('Wrist Angle Analysis', wristBoxX + 10, wristBoxY + 20);
+      }
       
       // Current forearm-to-hand angle
       ctx.fillStyle = '#10b981';
       ctx.font = 'bold 16px Arial';
-      ctx.fillText(`Raw Angle: ${currentWristAngles.forearmToHandAngle.toFixed(1)}°`, wristBoxX + 10, wristBoxY + 45);
-      
-      // Calculate frame-synchronized angles for info panel using EXACT same method as results calculator
-      let frameAngles = { wristFlexionAngle: 0, wristExtensionAngle: 0 };
-      if (frame.landmarks && frame.poseLandmarks) {
-        // Use the same hand type determination as the authoritative calculation
-        const determinedHandType = authoritativeWristResults?.handType || currentWristAngles?.handType || 'RIGHT';
-        
-        // Force the same calculation method used in wrist-results-calculator
-        const frameCalc = calculateElbowReferencedWristAngleWithForce(
-          frame.landmarks, 
-          frame.poseLandmarks, 
-          determinedHandType
-        );
-        frameAngles = frameCalc;
-        
-        console.log(`FRAME ${currentFrame}: ${determinedHandType} hand - Flexion: ${frameCalc.wristFlexionAngle.toFixed(1)}°, Extension: ${frameCalc.wristExtensionAngle.toFixed(1)}°`);
+      if (isWristDeviationAssessment) {
+        ctx.fillText(`Deviation Angle: ${currentWristAngles.forearmToHandAngle.toFixed(1)}°`, wristBoxX + 10, wristBoxY + 45);
+      } else {
+        ctx.fillText(`Raw Angle: ${currentWristAngles.forearmToHandAngle.toFixed(1)}°`, wristBoxX + 10, wristBoxY + 45);
       }
       
-      // Flexion angle
-      ctx.fillStyle = frameAngles.wristFlexionAngle > 0 ? '#3b82f6' : '#6b7280';
-      ctx.font = '12px Arial';
-      ctx.fillText(`Flexion: ${frameAngles.wristFlexionAngle.toFixed(1)}°`, wristBoxX + 10, wristBoxY + 70);
-      
-      // Extension angle
-      ctx.fillStyle = frameAngles.wristExtensionAngle > 0 ? '#f59e0b' : '#6b7280';
-      ctx.fillText(`Extension: ${frameAngles.wristExtensionAngle.toFixed(1)}°`, wristBoxX + 130, wristBoxY + 70);
+      if (isWristDeviationAssessment) {
+        // For deviation assessments, show radial/ulnar components
+        const currentDeviationAngle = currentWristAngles.forearmToHandAngle || 0;
+        const radialComponent = currentDeviationAngle > 0 ? currentDeviationAngle : 0;
+        const ulnarComponent = currentDeviationAngle < 0 ? Math.abs(currentDeviationAngle) : 0;
+        
+        // Radial deviation
+        ctx.fillStyle = radialComponent > 0 ? '#f97316' : '#6b7280';
+        ctx.font = '12px Arial';
+        ctx.fillText(`Radial: ${radialComponent.toFixed(1)}°`, wristBoxX + 10, wristBoxY + 70);
+        
+        // Ulnar deviation
+        ctx.fillStyle = ulnarComponent > 0 ? '#8b5cf6' : '#6b7280';
+        ctx.fillText(`Ulnar: ${ulnarComponent.toFixed(1)}°`, wristBoxX + 130, wristBoxY + 70);
+        
+        console.log(`DEVIATION FRAME ${currentFrame}: Angle ${currentDeviationAngle.toFixed(1)}° (Radial: ${radialComponent.toFixed(1)}°, Ulnar: ${ulnarComponent.toFixed(1)}°)`);
+      } else {
+        // Calculate frame-synchronized angles for flexion/extension assessments
+        let frameAngles = { wristFlexionAngle: 0, wristExtensionAngle: 0 };
+        if (frame.landmarks && frame.poseLandmarks) {
+          // Use the same hand type determination as the authoritative calculation
+          const determinedHandType = authoritativeWristResults?.handType || currentWristAngles?.handType || 'RIGHT';
+          
+          // Force the same calculation method used in wrist-results-calculator
+          const frameCalc = calculateElbowReferencedWristAngleWithForce(
+            frame.landmarks, 
+            frame.poseLandmarks, 
+            determinedHandType
+          );
+          frameAngles = frameCalc;
+          
+          console.log(`FRAME ${currentFrame}: ${determinedHandType} hand - Flexion: ${frameCalc.wristFlexionAngle.toFixed(1)}°, Extension: ${frameCalc.wristExtensionAngle.toFixed(1)}°`);
+        }
+        
+        // Flexion angle
+        ctx.fillStyle = frameAngles.wristFlexionAngle > 0 ? '#3b82f6' : '#6b7280';
+        ctx.font = '12px Arial';
+        ctx.fillText(`Flexion: ${frameAngles.wristFlexionAngle.toFixed(1)}°`, wristBoxX + 10, wristBoxY + 70);
+        
+        // Extension angle
+        ctx.fillStyle = frameAngles.wristExtensionAngle > 0 ? '#f59e0b' : '#6b7280';
+        ctx.fillText(`Extension: ${frameAngles.wristExtensionAngle.toFixed(1)}°`, wristBoxX + 130, wristBoxY + 70);
+      }
       
       // Hand type and confidence
       ctx.fillStyle = '#9ca3af';
@@ -1041,7 +1073,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
       ctx.fillText(`Confidence: ${(currentWristAngles.confidence * 100).toFixed(1)}%`, wristBoxX + 10, wristBoxY + 110);
       
       // Session Maximum angles from motion replay frames
-      if (maxWristAngles) {
+      if (maxWristAngles && !isWristDeviationAssessment) {
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 11px Arial';
         ctx.fillText('Session Maximum (Motion Replay):', wristBoxX + 10, wristBoxY + 135);
@@ -1056,27 +1088,27 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
         const totalReplayROM = maxWristAngles.wristFlexionAngle + maxWristAngles.wristExtensionAngle;
         ctx.fillStyle = '#10b981';
         ctx.fillText(`Total ROM: ${totalReplayROM.toFixed(1)}°`, wristBoxX + 10, wristBoxY + 180);
-        
-        // Range indicators showing current position relative to motion replay maximums
-        const currentFlexion = frameAngles.wristFlexionAngle;
-        const currentExtension = frameAngles.wristExtensionAngle;
-        const maxFlexion = maxWristAngles.wristFlexionAngle;
-        const maxExtension = maxWristAngles.wristExtensionAngle;
-        
+      } else if (isWristDeviationAssessment) {
+        // Show deviation session maximums
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 11px Arial';
-        ctx.fillText('Range Achievement:', wristBoxX + 10, wristBoxY + 205);
+        ctx.fillText('Session Maximum (Motion Replay):', wristBoxX + 10, wristBoxY + 135);
         
-        // Flexion achievement bar
-        const flexionPercent = maxFlexion > 0 ? (currentFlexion / maxFlexion) * 100 : 0;
-        ctx.fillStyle = '#3b82f6';
+        // For now, show current values as maximums (will be enhanced with proper tracking)
+        const currentDeviationAngle = currentWristAngles.forearmToHandAngle || 0;
+        const sessionRadial = Math.max(0, currentDeviationAngle);
+        const sessionUlnar = Math.max(0, -currentDeviationAngle);
+        
+        ctx.fillStyle = '#f97316';
         ctx.font = '10px Arial';
-        ctx.fillText(`Flexion: ${flexionPercent.toFixed(0)}% of max (${maxFlexion.toFixed(1)}°)`, wristBoxX + 10, wristBoxY + 220);
+        ctx.fillText(`Max Radial: ${sessionRadial.toFixed(1)}°`, wristBoxX + 10, wristBoxY + 150);
         
-        // Extension achievement bar  
-        const extensionPercent = maxExtension > 0 ? (currentExtension / maxExtension) * 100 : 0;
-        ctx.fillStyle = '#f59e0b';
-        ctx.fillText(`Extension: ${extensionPercent.toFixed(0)}% of max (${maxExtension.toFixed(1)}°)`, wristBoxX + 10, wristBoxY + 235);
+        ctx.fillStyle = '#8b5cf6';
+        ctx.fillText(`Max Ulnar: ${sessionUlnar.toFixed(1)}°`, wristBoxX + 10, wristBoxY + 165);
+        
+        const totalDeviationROM = sessionRadial + sessionUlnar;
+        ctx.fillStyle = '#10b981';
+        ctx.fillText(`Total Deviation ROM: ${totalDeviationROM.toFixed(1)}°`, wristBoxX + 10, wristBoxY + 180);
       }
       
       // Visual angle indicator with elbow and forearm line
