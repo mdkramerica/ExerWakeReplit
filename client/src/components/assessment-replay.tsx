@@ -6,7 +6,7 @@ import { Play, Pause, RotateCcw, Download } from "lucide-react";
 import { calculateFingerROM, type JointAngles } from "@shared/rom-calculator";
 import { calculateKapandjiScore, calculateMaxKapandjiScore, type KapandjiScore } from "@shared/kapandji-calculator";
 import { calculateWristAngleByHandType, calculateElbowReferencedWristAngleWithForce, getRecordingSessionElbowSelection, setReplayMode, type ElbowWristAngles } from "@shared/elbow-wrist-calculator";
-import { calculateWristDeviationResults } from "@shared/wrist-deviation-calculator";
+import { calculateWristDeviation } from "@shared/rom-calculator";
 import { calculateWristResults } from "@shared/wrist-results-calculator";
 // Remove the import since we'll load the image directly
 
@@ -356,19 +356,49 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
           if (isWristDeviationAssessment) {
             // Use deviation calculator for deviation assessments
             if (frame.landmarks && frame.poseLandmarks) {
-              const deviationResult = calculateWristDeviationResults(frame.landmarks, frame.poseLandmarks);
+              // Determine hand type for deviation calculation
+              const handWrist = frame.landmarks[0];
+              const leftElbow = frame.poseLandmarks[13];
+              const rightElbow = frame.poseLandmarks[14];
+              
+              let isLeftHand = false; // default to right hand
+              
+              if (leftElbow && rightElbow && handWrist) {
+                const distanceToLeft = Math.sqrt(
+                  Math.pow(handWrist.x - leftElbow.x, 2) +
+                  Math.pow(handWrist.y - leftElbow.y, 2) +
+                  Math.pow(handWrist.z - (leftElbow.z || 0), 2)
+                );
+                const distanceToRight = Math.sqrt(
+                  Math.pow(handWrist.x - rightElbow.x, 2) +
+                  Math.pow(handWrist.y - rightElbow.y, 2) +
+                  Math.pow(handWrist.z - (rightElbow.z || 0), 2)
+                );
+                
+                isLeftHand = distanceToLeft < distanceToRight;
+              }
+              
+              // Calculate deviation angle for this frame
+              const deviationAngle = calculateWristDeviation(
+                frame.poseLandmarks,
+                frame.landmarks,
+                isLeftHand
+              );
               
               // Convert deviation result to wrist angles format for display
               currentWrist = {
                 wristFlexionAngle: 0,
                 wristExtensionAngle: 0,
-                forearmToHandAngle: deviationResult.maxRadialDeviation - deviationResult.maxUlnarDeviation,
-                handType: deviationResult.handType,
-                elbowDetected: deviationResult.qualityScore > 0.7,
-                confidence: deviationResult.qualityScore
+                forearmToHandAngle: deviationAngle,
+                handType: isLeftHand ? 'LEFT' : 'RIGHT',
+                elbowDetected: true,
+                confidence: 0.8
               };
               
-              console.log(`DEVIATION FRAME ${currentFrame}: Radial: ${deviationResult.maxRadialDeviation.toFixed(1)}°, Ulnar: ${deviationResult.maxUlnarDeviation.toFixed(1)}°`);
+              const radialComponent = deviationAngle > 0 ? deviationAngle : 0;
+              const ulnarComponent = deviationAngle < 0 ? Math.abs(deviationAngle) : 0;
+              
+              console.log(`DEVIATION FRAME ${currentFrame}: Angle ${deviationAngle.toFixed(1)}° (Radial: ${radialComponent.toFixed(1)}°, Ulnar: ${ulnarComponent.toFixed(1)}°)`);
             }
           } else {
             // Use flexion/extension calculator for flexion/extension assessments
