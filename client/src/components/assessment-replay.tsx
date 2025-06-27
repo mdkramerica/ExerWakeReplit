@@ -927,33 +927,29 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
     if (!displayHandType || displayHandType === 'UNKNOWN') {
       // For wrist assessments, prioritize calculation results over display logic
       if (isWristAssessment) {
-        // Priority 1: Use maxWristAngles from calculation results
-        if (maxWristAngles?.handType && maxWristAngles.handType !== 'UNKNOWN') {
+        // Priority 1: Establish session-locked handedness from first frame to match calculation behavior
+        if (replayData.length > 0 && replayData[0].landmarks && replayData[0].poseLandmarks) {
+          // This establishes the same session lock used during recording calculations
+          const sessionLockCalc = calculateWristAngleByHandType(replayData[0].landmarks, replayData[0].poseLandmarks);
+          if (sessionLockCalc.handType && sessionLockCalc.handType !== 'UNKNOWN') {
+            displayHandType = sessionLockCalc.handType;
+          }
+        }
+        // Priority 2: Use maxWristAngles from calculation results as fallback
+        else if (maxWristAngles?.handType && maxWristAngles.handType !== 'UNKNOWN') {
           displayHandType = maxWristAngles.handType;
         }
-        // Priority 2: Use current wrist angles if available
+        // Priority 3: Use current wrist angles if available
         else if (currentWristAngles?.handType && currentWristAngles.handType !== 'UNKNOWN') {
           displayHandType = currentWristAngles.handType;
         }
-        // Priority 3: Use session data from recorded frames
+        // Priority 4: Use session data from recorded frames
         else if (frame.sessionHandType && frame.sessionHandType !== 'UNKNOWN') {
           displayHandType = frame.sessionHandType;
         }
-        // Priority 4: Use handedness from recorded frames
+        // Priority 5: Use handedness from recorded frames
         else if (frame.handedness && frame.handedness !== 'UNKNOWN') {
           displayHandType = frame.handedness;
-        }
-        // Priority 5: Check all frames for consistent hand type
-        else {
-          const allHandTypes = replayData
-            .map(f => f.sessionHandType || f.handedness)
-            .filter(h => h && h !== 'UNKNOWN');
-          
-          if (allHandTypes.length > 0) {
-            const leftCount = allHandTypes.filter(h => h === 'LEFT' || h === 'Left').length;
-            const rightCount = allHandTypes.filter(h => h === 'RIGHT' || h === 'Right').length;
-            displayHandType = leftCount > rightCount ? 'LEFT' : 'RIGHT';
-          }
         }
       } 
       // For non-wrist assessments, use existing logic
