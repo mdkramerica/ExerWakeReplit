@@ -1115,10 +1115,10 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
       }
       
       if (isWristDeviationAssessment) {
-        // For deviation assessments, show radial/ulnar components
+        // For deviation assessments, show radial/ulnar components - anatomically correct
         const currentDeviationAngle = currentWristAngles.forearmToHandAngle || 0;
-        const radialComponent = currentDeviationAngle > 0 ? currentDeviationAngle : 0;
-        const ulnarComponent = currentDeviationAngle < 0 ? Math.abs(currentDeviationAngle) : 0;
+        const radialComponent = currentDeviationAngle < 0 ? Math.abs(currentDeviationAngle) : 0;
+        const ulnarComponent = currentDeviationAngle > 0 ? currentDeviationAngle : 0;
         
         // Radial deviation
         ctx.fillStyle = radialComponent > 0 ? '#f97316' : '#6b7280';
@@ -1129,7 +1129,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
         ctx.fillStyle = ulnarComponent > 0 ? '#8b5cf6' : '#6b7280';
         ctx.fillText(`Ulnar: ${ulnarComponent.toFixed(1)}°`, wristBoxX + 130, wristBoxY + 70);
         
-        console.log(`DEVIATION FRAME ${currentFrame}: Angle ${currentDeviationAngle.toFixed(1)}° (Radial: ${radialComponent.toFixed(1)}°, Ulnar: ${ulnarComponent.toFixed(1)}°)`);
+        console.log(`Canvas display - Frame hand: ${sessionHandType}, Handedness: ${sessionHandType}, Final: ${sessionHandType}`);
       } else {
         // Calculate frame-synchronized angles for flexion/extension assessments
         let frameAngles = { wristFlexionAngle: 0, wristExtensionAngle: 0 };
