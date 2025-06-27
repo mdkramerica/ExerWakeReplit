@@ -136,7 +136,7 @@ export default function WristResults() {
     const percentages = getWristPercentages(wristResults);
     flexionPercentage = percentages.flexionPercentage;
     extensionPercentage = percentages.extensionPercentage;
-  } catch (calculationError) {
+  } catch (calculationError: any) {
     console.error('Wrist calculation error:', calculationError);
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
@@ -144,7 +144,7 @@ export default function WristResults() {
           <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-6 py-4 rounded-lg">
             <h3 className="font-semibold mb-2">Assessment Incomplete</h3>
             <p className="text-sm mb-4">
-              {calculationError.message || 'This assessment needs to be completed before viewing results.'}
+              {calculationError?.message || 'This assessment needs to be completed before viewing results.'}
             </p>
             <Link href={`/assessment-list/${userCode}`}>
               <Button variant="outline" size="sm">
