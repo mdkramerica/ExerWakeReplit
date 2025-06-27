@@ -927,12 +927,28 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
     if (!displayHandType || displayHandType === 'UNKNOWN') {
       // For wrist assessments, prioritize calculation results over display logic
       if (isWristAssessment) {
-        // Priority 1: Establish session-locked handedness from first frame to match calculation behavior
-        if (replayData.length > 0 && replayData[0].landmarks && replayData[0].poseLandmarks) {
-          // This establishes the same session lock used during recording calculations
-          const sessionLockCalc = calculateWristAngleByHandType(replayData[0].landmarks, replayData[0].poseLandmarks);
-          if (sessionLockCalc.handType && sessionLockCalc.handType !== 'UNKNOWN') {
-            displayHandType = sessionLockCalc.handType;
+        // Priority 1: Analyze multiple frames to establish consistent handedness
+        if (replayData.length > 0) {
+          // Analyze first 10 frames to establish consistent handedness
+          const handednessVotes: ('LEFT' | 'RIGHT')[] = [];
+          const framesToAnalyze = Math.min(10, replayData.length);
+          
+          for (let i = 0; i < framesToAnalyze; i++) {
+            const frameData = replayData[i];
+            if (frameData.landmarks && frameData.poseLandmarks) {
+              const frameCalc = calculateWristAngleByHandType(frameData.landmarks, frameData.poseLandmarks);
+              if (frameCalc.handType && frameCalc.handType !== 'UNKNOWN') {
+                handednessVotes.push(frameCalc.handType);
+              }
+            }
+          }
+          
+          // Use majority vote for consistent handedness
+          if (handednessVotes.length > 0) {
+            const leftCount = handednessVotes.filter(h => h === 'LEFT').length;
+            const rightCount = handednessVotes.filter(h => h === 'RIGHT').length;
+            displayHandType = leftCount > rightCount ? 'LEFT' : 'RIGHT';
+            console.log(`🗳️ HANDEDNESS CONSENSUS: ${displayHandType} (${displayHandType === 'LEFT' ? leftCount : rightCount}/${handednessVotes.length} votes)`);
           }
         }
         // Priority 2: Use maxWristAngles from calculation results as fallback
