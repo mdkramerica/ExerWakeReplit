@@ -164,7 +164,7 @@ export default function AssessmentHistory() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {historyData.history.map((record: UserAssessment, index: number) => (
+              {(historyData as any).history.map((record: UserAssessment, index: number) => (
                 <div
                   key={record.id}
                   className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
@@ -173,7 +173,7 @@ export default function AssessmentHistory() {
                     <div className="flex items-start gap-4 flex-1">
                       <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
                         <span className="text-xs font-medium text-green-700">
-                          {historyData.history.length - index}
+                          {(historyData as any).history.length - index}
                         </span>
                       </div>
                       
