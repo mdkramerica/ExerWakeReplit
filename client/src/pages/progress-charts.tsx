@@ -313,14 +313,17 @@ export default function ProgressCharts() {
   // For Metacarpal ORIF, show digit breakdown
   const showDigitBreakdown = injuryType === 'Metacarpal ORIF';
   
-  // Split radial/ulnar deviation into separate charts
+  // Split radial/ulnar deviation into separate charts and remove duplicates
   const splitDeviationAssessments = (assessments: string[]) => {
-    return assessments.flatMap(assessment => {
+    const result = assessments.flatMap(assessment => {
       if (assessment.includes('Radial/Ulnar')) {
         return ['Wrist Radial Deviation', 'Wrist Ulnar Deviation'];
       }
       return assessment;
     });
+    
+    // Remove duplicates by creating a Set and converting back to array
+    return Array.from(new Set(result));
   };
   
   const baseAssessments = showDigitBreakdown ? 
