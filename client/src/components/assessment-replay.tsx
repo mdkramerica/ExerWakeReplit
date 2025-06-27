@@ -365,8 +365,8 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
                 confidence: 0.8
               };
               
-              const radialComponent = deviationAngle > 0 ? deviationAngle : 0;
-              const ulnarComponent = deviationAngle < 0 ? Math.abs(deviationAngle) : 0;
+              const radialComponent = deviationAngle < 0 ? Math.abs(deviationAngle) : 0;
+              const ulnarComponent = deviationAngle > 0 ? deviationAngle : 0;
               
               console.log(`DEVIATION FRAME ${currentFrame}: ${sessionHandType} hand - Angle ${deviationAngle.toFixed(1)}° (Radial: ${radialComponent.toFixed(1)}°, Ulnar: ${ulnarComponent.toFixed(1)}°)`);
             }

@@ -80,9 +80,9 @@ export function calculateWristDeviationResults(userAssessment: any): WristDeviat
         confidenceSum += handVisibility;
         validFrames++;
         
-        // Extract radial (positive) and ulnar (negative) components
-        const radialComponent = deviationAngle > 0 ? deviationAngle : 0;
-        const ulnarComponent = deviationAngle < 0 ? Math.abs(deviationAngle) : 0;
+        // Extract radial (negative) and ulnar (positive) components - anatomically correct
+        const radialComponent = deviationAngle < 0 ? Math.abs(deviationAngle) : 0;
+        const ulnarComponent = deviationAngle > 0 ? deviationAngle : 0;
         
         // Track maximum deviations
         if (radialComponent > maxRadial) {
