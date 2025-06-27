@@ -32,11 +32,20 @@ export function calculateWristDeviationResults(userAssessment: any): WristDeviat
     ulnar: storedUlnar.toFixed(1)
   });
 
-  // Get motion data from repetitions
-  const motionData = userAssessment?.repetitionData?.[0]?.motionData;
+  // Get motion data from repetitions - try multiple data structure formats
+  const motionData = userAssessment?.repetitionData?.[0]?.motionData || 
+                    userAssessment?.motionData || 
+                    userAssessment?.replayData;
   
   if (motionData && Array.isArray(motionData) && motionData.length > 0) {
     console.log(`🎬 PROCESSING ${motionData.length} MOTION FRAMES for deviation analysis`);
+    console.log('🔍 SAMPLE FRAME STRUCTURE:', {
+      hasHandLandmarks: !!motionData[0]?.handLandmarks,
+      hasPoseLandmarks: !!motionData[0]?.poseLandmarks,
+      hasLandmarks: !!motionData[0]?.landmarks,
+      handType: userAssessment.handType,
+      frameKeys: Object.keys(motionData[0] || {})
+    });
     
     let maxRadial = 0;
     let maxUlnar = 0;
@@ -46,37 +55,45 @@ export function calculateWristDeviationResults(userAssessment: any): WristDeviat
     
     // Process each frame to find maximum deviations
     motionData.forEach((frame: any, index: number) => {
-      if (frame.handLandmarks?.length > 0 && frame.poseLandmarks?.length > 0) {
+      // Support multiple data structure formats
+      const handLandmarks = frame.handLandmarks || frame.landmarks;
+      const poseLandmarks = frame.poseLandmarks;
+      
+      if (handLandmarks?.length > 0 && poseLandmarks?.length > 0) {
+        // Determine hand type for this frame
+        const isLeftHand = userAssessment.handType === 'LEFT';
+        
         const deviationAngle = calculateWristDeviation(
-          frame.poseLandmarks,
-          frame.handLandmarks,
-          userAssessment.handType === 'LEFT'
+          poseLandmarks,
+          handLandmarks,
+          isLeftHand
         );
         
-        if (deviationAngle !== 0) {
-          frameCount++;
-          
-          // Calculate confidence from landmark visibility
-          const handVisibility = frame.handLandmarks.reduce((sum: number, landmark: any) => 
-            sum + (landmark.visibility || 0.7), 0) / frame.handLandmarks.length;
-          confidenceSum += handVisibility;
-          validFrames++;
-          
-          // Extract radial (positive) and ulnar (negative) components
-          const radialComponent = deviationAngle > 0 ? deviationAngle : 0;
-          const ulnarComponent = deviationAngle < 0 ? Math.abs(deviationAngle) : 0;
-          
-          // Track maximum deviations
-          if (radialComponent > maxRadial) {
-            maxRadial = radialComponent;
-          }
-          if (ulnarComponent > maxUlnar) {
-            maxUlnar = ulnarComponent;
-          }
-          
-          if (index % 30 === 0) { // Log every 30th frame
-            console.log(`Frame ${index}: Angle ${deviationAngle.toFixed(1)}° (Radial: ${radialComponent.toFixed(1)}°, Ulnar: ${ulnarComponent.toFixed(1)}°)`);
-          }
+        // Process all frames, not just non-zero ones
+        frameCount++;
+        
+        // Calculate confidence from landmark visibility
+        const handVisibility = handLandmarks?.reduce((sum: number, landmark: any) => 
+          sum + (landmark.visibility || 0.7), 0) / handLandmarks.length || 0.7;
+        confidenceSum += handVisibility;
+        validFrames++;
+        
+        // Extract radial (positive) and ulnar (negative) components
+        const radialComponent = deviationAngle > 0 ? deviationAngle : 0;
+        const ulnarComponent = deviationAngle < 0 ? Math.abs(deviationAngle) : 0;
+        
+        // Track maximum deviations
+        if (radialComponent > maxRadial) {
+          maxRadial = radialComponent;
+          console.log(`📈 NEW MAX RADIAL: ${maxRadial.toFixed(1)}° at frame ${index}`);
+        }
+        if (ulnarComponent > maxUlnar) {
+          maxUlnar = ulnarComponent;
+          console.log(`📈 NEW MAX ULNAR: ${maxUlnar.toFixed(1)}° at frame ${index}`);
+        }
+        
+        if (index % 30 === 0) { // Log every 30th frame
+          console.log(`Frame ${index}: Angle ${deviationAngle.toFixed(1)}° (Radial: ${radialComponent.toFixed(1)}°, Ulnar: ${ulnarComponent.toFixed(1)}°) | Max: R${maxRadial.toFixed(1)}° U${maxUlnar.toFixed(1)}°`);
         }
       }
     });

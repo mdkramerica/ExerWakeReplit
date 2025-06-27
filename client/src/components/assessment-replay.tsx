@@ -557,57 +557,124 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
   function generateHandLandmarks(centerX: number, centerY: number, time: number): Array<{x: number, y: number, z: number}> {
     const landmarks = [];
     
-    // Wrist (0)
-    landmarks.push({ x: centerX, y: centerY, z: 0 });
+    // Check if this is a wrist deviation assessment
+    const isWristDeviationAssessment = assessmentName.toLowerCase().includes('radial') || 
+                                      assessmentName.toLowerCase().includes('ulnar') || 
+                                      assessmentName.toLowerCase().includes('deviation');
     
-    // Thumb (1-4)
-    const thumbAngle = Math.sin(time * 2) * 0.3;
-    for (let i = 1; i <= 4; i++) {
-      landmarks.push({
-        x: centerX - 0.08 + (i * 0.02) + Math.cos(thumbAngle) * 0.03,
-        y: centerY - 0.05 + (i * 0.015) + Math.sin(thumbAngle) * 0.02,
-        z: 0
+    if (isWristDeviationAssessment) {
+      // For wrist deviation: animate side-to-side (radial/ulnar) movement
+      const deviationAngle = Math.sin(time * 1.5) * 0.3; // Side-to-side movement
+      
+      // Wrist (0) - moves side to side
+      landmarks.push({ 
+        x: centerX + deviationAngle * 0.1, 
+        y: centerY, 
+        z: 0 
       });
-    }
-    
-    // Index finger (5-8)
-    const indexFlex = Math.sin(time * 1.5) * 0.4 + 0.6;
-    for (let i = 1; i <= 4; i++) {
-      landmarks.push({
-        x: centerX - 0.04 + (i * 0.01),
-        y: centerY - 0.08 - (i * 0.02 * indexFlex),
-        z: 0
-      });
-    }
-    
-    // Middle finger (9-12)
-    const middleFlex = Math.sin(time * 1.2 + 0.5) * 0.4 + 0.6;
-    for (let i = 1; i <= 4; i++) {
-      landmarks.push({
-        x: centerX + (i * 0.005),
-        y: centerY - 0.08 - (i * 0.025 * middleFlex),
-        z: 0
-      });
-    }
-    
-    // Ring finger (13-16)
-    const ringFlex = Math.sin(time * 1.1 + 1) * 0.4 + 0.6;
-    for (let i = 1; i <= 4; i++) {
-      landmarks.push({
-        x: centerX + 0.04 + (i * 0.005),
-        y: centerY - 0.08 - (i * 0.02 * ringFlex),
-        z: 0
-      });
-    }
-    
-    // Pinky (17-20)
-    const pinkyFlex = Math.sin(time * 1.3 + 1.5) * 0.4 + 0.6;
-    for (let i = 1; i <= 4; i++) {
-      landmarks.push({
-        x: centerX + 0.08 + (i * 0.005),
-        y: centerY - 0.06 - (i * 0.015 * pinkyFlex),
-        z: 0
-      });
+      
+      // All fingers move together with wrist for deviation
+      const handOffset = deviationAngle * 0.1;
+      
+      // Thumb (1-4) - moves with hand
+      for (let i = 1; i <= 4; i++) {
+        landmarks.push({
+          x: centerX - 0.08 + (i * 0.02) + handOffset,
+          y: centerY - 0.05 + (i * 0.015),
+          z: 0
+        });
+      }
+      
+      // Index finger (5-8) - moves with hand
+      for (let i = 1; i <= 4; i++) {
+        landmarks.push({
+          x: centerX - 0.04 + (i * 0.01) + handOffset,
+          y: centerY - 0.08 - (i * 0.02),
+          z: 0
+        });
+      }
+      
+      // Middle finger (9-12) - moves with hand
+      for (let i = 1; i <= 4; i++) {
+        landmarks.push({
+          x: centerX + (i * 0.005) + handOffset,
+          y: centerY - 0.08 - (i * 0.025),
+          z: 0
+        });
+      }
+      
+      // Ring finger (13-16) - moves with hand
+      for (let i = 1; i <= 4; i++) {
+        landmarks.push({
+          x: centerX + 0.04 + (i * 0.005) + handOffset,
+          y: centerY - 0.08 - (i * 0.02),
+          z: 0
+        });
+      }
+      
+      // Pinky (17-20) - moves with hand
+      for (let i = 1; i <= 4; i++) {
+        landmarks.push({
+          x: centerX + 0.08 + (i * 0.005) + handOffset,
+          y: centerY - 0.06 - (i * 0.015),
+          z: 0
+        });
+      }
+    } else {
+      // For flexion/extension assessments: animate up-down movement
+      
+      // Wrist (0)
+      landmarks.push({ x: centerX, y: centerY, z: 0 });
+      
+      // Thumb (1-4)
+      const thumbAngle = Math.sin(time * 2) * 0.3;
+      for (let i = 1; i <= 4; i++) {
+        landmarks.push({
+          x: centerX - 0.08 + (i * 0.02) + Math.cos(thumbAngle) * 0.03,
+          y: centerY - 0.05 + (i * 0.015) + Math.sin(thumbAngle) * 0.02,
+          z: 0
+        });
+      }
+      
+      // Index finger (5-8)
+      const indexFlex = Math.sin(time * 1.5) * 0.4 + 0.6;
+      for (let i = 1; i <= 4; i++) {
+        landmarks.push({
+          x: centerX - 0.04 + (i * 0.01),
+          y: centerY - 0.08 - (i * 0.02 * indexFlex),
+          z: 0
+        });
+      }
+      
+      // Middle finger (9-12)
+      const middleFlex = Math.sin(time * 1.2 + 0.5) * 0.4 + 0.6;
+      for (let i = 1; i <= 4; i++) {
+        landmarks.push({
+          x: centerX + (i * 0.005),
+          y: centerY - 0.08 - (i * 0.025 * middleFlex),
+          z: 0
+        });
+      }
+      
+      // Ring finger (13-16)
+      const ringFlex = Math.sin(time * 1.1 + 1) * 0.4 + 0.6;
+      for (let i = 1; i <= 4; i++) {
+        landmarks.push({
+          x: centerX + 0.04 + (i * 0.005),
+          y: centerY - 0.08 - (i * 0.02 * ringFlex),
+          z: 0
+        });
+      }
+      
+      // Pinky (17-20)
+      const pinkyFlex = Math.sin(time * 1.3 + 1.5) * 0.4 + 0.6;
+      for (let i = 1; i <= 4; i++) {
+        landmarks.push({
+          x: centerX + 0.08 + (i * 0.005),
+          y: centerY - 0.06 - (i * 0.015 * pinkyFlex),
+          z: 0
+        });
+      }
     }
     
     return landmarks;
