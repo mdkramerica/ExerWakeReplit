@@ -1216,6 +1216,22 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
         ctx.fillText(`Total Deviation ROM: ${totalDeviationROM.toFixed(1)}°`, wristBoxX + 10, wristBoxY + 180);
       }
       
+      // Calculate wrist angles for this frame FIRST (needed for arc coloring and labels)
+      let frameWristAngles = { wristFlexionAngle: 0, wristExtensionAngle: 0 };
+      
+      if (frame.landmarks && frame.poseLandmarks) {
+        // Use the EXACT same calculation method that produces the correct angles
+        const determinedHandType = authoritativeWristResults?.handType || currentWristAngles?.handType || 'RIGHT';
+        const frameCalculation = calculateElbowReferencedWristAngleWithForce(
+          frame.landmarks, 
+          frame.poseLandmarks, 
+          determinedHandType
+        );
+        frameWristAngles = frameCalculation;
+        
+        console.log(`🎨 CANVAS SYNC DISPLAY: Frame ${currentFrame} - Flexion: ${frameWristAngles.wristFlexionAngle.toFixed(1)}°, Extension: ${frameWristAngles.wristExtensionAngle.toFixed(1)}°`);
+      }
+
       // Visual angle indicator with elbow and forearm line
       if (frame.landmarks && frame.landmarks.length >= 21 && frame.poseLandmarks) {
         const wrist = frame.landmarks[0]; // Wrist landmark
@@ -1419,8 +1435,8 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
               const startAngle = Math.min(forearmAngle, handAngle);
               const endAngle = Math.max(forearmAngle, handAngle);
               
-              // Color based on flexion/extension
-              const isFlexion = currentWristAngles.wristFlexionAngle > Math.abs(currentWristAngles.wristExtensionAngle);
+              // Color based on flexion/extension using frame-synchronized angles
+              const isFlexion = frameWristAngles.wristFlexionAngle > frameWristAngles.wristExtensionAngle;
               ctx.strokeStyle = isFlexion ? '#ef4444' : '#3b82f6'; // Red for flexion, blue for extension
               ctx.lineWidth = 3;
               ctx.setLineDash([]);
@@ -1440,16 +1456,10 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
               ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
               ctx.fillRect(textX - 25, textY - 10, 50, 20);
               
-              // Angle text using frame-synchronized data
+              // Angle text using frame-synchronized data (use the same frameWristAngles calculated above)
               ctx.fillStyle = '#ffffff';
               ctx.font = 'bold 12px Arial';
-              let syncFrameAngles = { wristFlexionAngle: 0, wristExtensionAngle: 0 };
-              if (frame.landmarks && frame.poseLandmarks) {
-                const syncCalc = calculateWristAngleByHandType(frame.landmarks, frame.poseLandmarks);
-                syncCalc.handType = currentWristAngles?.handType || 'RIGHT';
-                syncFrameAngles = syncCalc;
-              }
-              const displayAngle = Math.abs(isFlexion ? syncFrameAngles.wristFlexionAngle : syncFrameAngles.wristExtensionAngle);
+              const displayAngle = Math.abs(isFlexion ? frameWristAngles.wristFlexionAngle : frameWristAngles.wristExtensionAngle);
               ctx.fillText(`${displayAngle.toFixed(1)}°`, textX - 15, textY + 3);
             }
             
@@ -1477,17 +1487,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
           }
         }
         
-        // Calculate wrist angles directly for THIS frame to avoid timing lag
-        let frameWristAngles = { wristFlexionAngle: 0, wristExtensionAngle: 0 };
-        
-        if (frame.landmarks && frame.poseLandmarks) {
-          // Calculate real-time angles for this specific frame
-          const frameCalculation = calculateWristAngleByHandType(frame.landmarks, frame.poseLandmarks);
-          frameCalculation.handType = currentWristAngles?.handType || 'RIGHT';
-          frameWristAngles = frameCalculation;
-          
-          console.log(`🎨 FRAME-SYNC DISPLAY: Frame ${currentFrame} - Flexion: ${frameWristAngles.wristFlexionAngle.toFixed(1)}°, Extension: ${frameWristAngles.wristExtensionAngle.toFixed(1)}°`);
-        }
+        // frameWristAngles already calculated above - use the existing calculation
         
         // Add angle indicator text near middle MCP - show flexion/extension angle
         ctx.fillStyle = '#ffffff';
