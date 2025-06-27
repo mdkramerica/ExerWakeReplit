@@ -84,6 +84,12 @@ export function calculateWristResults(userAssessment: any): WristResultsData {
     };
   }
 
+  // Handle incomplete assessments gracefully
+  if (!userAssessment.isCompleted) {
+    console.log('⚠️ INCOMPLETE ASSESSMENT - Assessment not yet completed');
+    throw new Error('Assessment not completed. Please complete the assessment first.');
+  }
+
 
 
   // Last resort fallback

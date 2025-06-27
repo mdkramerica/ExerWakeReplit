@@ -127,10 +127,36 @@ export default function WristResults() {
     }
   }
   
-  // Use the centralized calculation - SINGLE SOURCE OF TRUTH
-  const wristResults = calculateWristResults(userAssessment);
-  const interpretation = getWristClinicalInterpretation(wristResults);
-  const { flexionPercentage, extensionPercentage } = getWristPercentages(wristResults);
+  // Use the centralized calculation - SINGLE SOURCE OF TRUTH with error handling
+  let wristResults, interpretation, flexionPercentage, extensionPercentage;
+  
+  try {
+    wristResults = calculateWristResults(userAssessment);
+    interpretation = getWristClinicalInterpretation(wristResults);
+    const percentages = getWristPercentages(wristResults);
+    flexionPercentage = percentages.flexionPercentage;
+    extensionPercentage = percentages.extensionPercentage;
+  } catch (calculationError) {
+    console.error('Wrist calculation error:', calculationError);
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto">
+          <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-6 py-4 rounded-lg">
+            <h3 className="font-semibold mb-2">Assessment Incomplete</h3>
+            <p className="text-sm mb-4">
+              {calculationError.message || 'This assessment needs to be completed before viewing results.'}
+            </p>
+            <Link href={`/assessment-list/${userCode}`}>
+              <Button variant="outline" size="sm">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Assessments
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
   
   // Extract values for display
   const { maxFlexion, maxExtension, totalROM, frameCount } = wristResults;
