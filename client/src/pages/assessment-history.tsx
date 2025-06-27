@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Calendar, Clock, TrendingUp, History, CheckCircle } from 'lucide-react';
 import { calculateWristResults } from '@shared/wrist-results-calculator';
+import { calculateWristDeviationResults } from '@shared/wrist-deviation-calculator';
 import { PatientHeader } from '@/components/patient-header';
 
 interface UserAssessment {
@@ -298,9 +299,10 @@ export default function AssessmentHistory() {
                                                              record.assessmentName?.toLowerCase().includes('deviation');
                                 
                                 if (isDeviationAssessment) {
-                                  // For deviation assessments, calculate radial/ulnar values
-                                  const radialDeviation = record.maxRadialDeviation ? parseFloat(record.maxRadialDeviation) : 0;
-                                  const ulnarDeviation = record.maxUlnarDeviation ? parseFloat(record.maxUlnarDeviation) : 0;
+                                  // Use the centralized wrist deviation calculator for authentic values
+                                  const deviationResults = calculateWristDeviationResults(record);
+                                  const radialDeviation = deviationResults.maxRadialDeviation;
+                                  const ulnarDeviation = deviationResults.maxUlnarDeviation;
                                   
                                   return (
                                     <>
