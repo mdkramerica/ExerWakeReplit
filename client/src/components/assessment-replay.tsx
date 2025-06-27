@@ -216,17 +216,18 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
           // Use session hand type consistently
           const finalHandType = sessionHandType !== 'UNKNOWN' ? sessionHandType : authoritativeResults.handType;
           
+          // Use the authoritative results for session maximums to match results page
           setMaxWristAngles({
-            forearmToHandAngle: 90,
-            wristFlexionAngle: replayMaxFlexion,
-            wristExtensionAngle: replayMaxExtension,
+            forearmToHandAngle: Math.max(authoritativeResults.maxFlexion, authoritativeResults.maxExtension),
+            wristFlexionAngle: authoritativeResults.maxFlexion,
+            wristExtensionAngle: authoritativeResults.maxExtension,
             elbowDetected: true,
             handType: finalHandType,
             confidence: authoritativeResults.averageConfidence
           });
           
-              console.log(`🎯 MOTION REPLAY MAXIMUMS: Flexion: ${replayMaxFlexion.toFixed(1)}°, Extension: ${replayMaxExtension.toFixed(1)}° (from ${allFlexionAngles.length} flexion, ${allExtensionAngles.length} extension frames)`);
-          console.log(`🎯 AUTHORITATIVE RESULTS: Flexion: ${authoritativeResults.maxFlexion.toFixed(1)}°, Extension: ${authoritativeResults.maxExtension.toFixed(1)}°`);
+          console.log(`🎯 MOTION REPLAY SESSION MAXIMUMS (using authoritative): Flexion: ${authoritativeResults.maxFlexion.toFixed(1)}°, Extension: ${authoritativeResults.maxExtension.toFixed(1)}°`);
+          console.log(`📊 Frame-by-frame maximums (calculated): Flexion: ${replayMaxFlexion.toFixed(1)}°, Extension: ${replayMaxExtension.toFixed(1)}°`);
           
           // Log sample angles for debugging
           if (allFlexionAngles.length > 0) {
