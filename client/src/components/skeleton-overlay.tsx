@@ -72,10 +72,8 @@ export function SkeletonOverlay({
           const x = landmark.x * actualWidth;
           const y = landmark.y * actualHeight;
           
-          // Variable dot sizes for different landmarks
-          let radius = 2; // Default small dot size
-          if (index === 0) radius = 3; // Wrist - slightly larger
-          if ([4, 8, 12, 16, 20].includes(index)) radius = 2.5; // Fingertips - small
+          // Consistent dot size for all landmarks
+          let radius = 5; // Larger, more visible dots
           
           // Draw clean dots without outline
           ctx.beginPath();
@@ -134,7 +132,7 @@ export function SkeletonOverlay({
           
           // Draw clean pose dots without outline
           ctx.beginPath();
-          ctx.arc(x, y, 3, 0, 2 * Math.PI);
+          ctx.arc(x, y, 5, 0, 2 * Math.PI);
           ctx.fill();
         }
       });
