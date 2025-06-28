@@ -199,11 +199,8 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
         console.log(`REPLAY: Processed ${wristAnglesAllFrames.length} frames with forced hand type = ${sessionHandType}`);
         
         if (wristAnglesAllFrames.length > 0) {
-          // Use the EXACT same calculation that wrist-results.tsx uses
-          const authoritativeResults = calculateWristResults(userAssessment);
-          
-          // Store the authoritative results for display
-          setAuthoritativeWristResults(authoritativeResults);
+          // SINGLE SOURCE OF TRUTH: Use only calculated frame values
+          // No authoritative override - motion replay shows actual recorded movement
           
           // CALCULATE SESSION MAXIMUMS FROM ACTUAL MOTION REPLAY FRAMES
           // This ensures motion replay shows real frame-by-frame maximums
@@ -214,20 +211,31 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
           const replayMaxExtension = allExtensionAngles.length > 0 ? Math.max(...allExtensionAngles) : 0;
           
           // Use session hand type consistently
-          const finalHandType = sessionHandType !== 'UNKNOWN' ? sessionHandType : authoritativeResults.handType;
+          const consensusHandType = sessionHandType !== 'UNKNOWN' ? sessionHandType : 
+            (wristAnglesAllFrames.find(w => w.handType !== 'UNKNOWN')?.handType || 'RIGHT');
           
-          // Use the authoritative results for session maximums to match results page
+          // Use calculated maximums as single source of truth for motion replay
           setMaxWristAngles({
-            forearmToHandAngle: Math.max(authoritativeResults.maxFlexion, authoritativeResults.maxExtension),
-            wristFlexionAngle: authoritativeResults.maxFlexion,
-            wristExtensionAngle: authoritativeResults.maxExtension,
+            forearmToHandAngle: Math.max(replayMaxFlexion, replayMaxExtension),
+            wristFlexionAngle: replayMaxFlexion,
+            wristExtensionAngle: replayMaxExtension,
             elbowDetected: true,
-            handType: finalHandType,
-            confidence: authoritativeResults.averageConfidence
+            handType: consensusHandType,
+            confidence: 0.9
           });
           
-          console.log(`🎯 MOTION REPLAY SESSION MAXIMUMS (using authoritative): Flexion: ${authoritativeResults.maxFlexion.toFixed(1)}°, Extension: ${authoritativeResults.maxExtension.toFixed(1)}°`);
-          console.log(`📊 Frame-by-frame maximums (calculated): Flexion: ${replayMaxFlexion.toFixed(1)}°, Extension: ${replayMaxExtension.toFixed(1)}°`);
+          // Store calculated results for display consistency
+          setAuthoritativeWristResults({
+            maxFlexion: replayMaxFlexion,
+            maxExtension: replayMaxExtension,
+            totalROM: replayMaxFlexion + replayMaxExtension,
+            frameCount: wristAnglesAllFrames.length,
+            handType: consensusHandType,
+            averageConfidence: 0.9
+          });
+          
+          console.log(`🎯 MOTION REPLAY SESSION MAXIMUMS (calculated only): Flexion: ${replayMaxFlexion.toFixed(1)}°, Extension: ${replayMaxExtension.toFixed(1)}°`);
+          console.log(`📊 Single source of truth - no authoritative override conflicts`);
           
           // Log sample angles for debugging
           if (allFlexionAngles.length > 0) {
