@@ -108,6 +108,7 @@ export interface IStorage {
   
   // Legacy methods
   getUser(id: number): Promise<User | undefined>;
+  getUserById(id: number): Promise<User | undefined>;
   getUserByCode(code: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, updates: Partial<User>): Promise<User | undefined>;
@@ -116,6 +117,7 @@ export interface IStorage {
   getAssessment(id: number): Promise<Assessment | undefined>;
   createAssessment(assessment: InsertAssessment): Promise<Assessment>;
   getUserAssessments(userId: number): Promise<UserAssessment[]>;
+  getUserAssessmentById(id: number): Promise<UserAssessment | undefined>;
   getUserAssessment(userId: number, assessmentId: number): Promise<UserAssessment | undefined>;
   createUserAssessment(userAssessment: InsertUserAssessment): Promise<UserAssessment>;
   updateUserAssessment(id: number, updates: Partial<UserAssessment>): Promise<UserAssessment | undefined>;
@@ -736,6 +738,11 @@ export class DatabaseStorage implements IStorage {
     }).filter(data => data.outcomeRom !== undefined);
   }
   async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async getUserById(id: number): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user || undefined;
   }
