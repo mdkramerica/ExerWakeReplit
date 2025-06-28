@@ -60,13 +60,12 @@ export default function WristDeviationResults() {
 
   console.log('Wrist Deviation Results data received:', resultsData);
   
-  const results = resultsData as DeviationResultsData;
-  if (!results) {
+  if (!resultsData) {
     console.log('No deviation results data available');
     return <div className="p-4">No results data available</div>;
   }
 
-  const { userAssessment, assessment, user } = results;
+  const { userAssessment, assessment, user } = resultsData as any;
   
   if (!assessment || !userAssessment || !user) {
     console.log('Missing deviation data:', { assessment: !!assessment, userAssessment: !!userAssessment, user: !!user });
