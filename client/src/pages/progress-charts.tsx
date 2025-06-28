@@ -95,8 +95,8 @@ export default function ProgressCharts() {
   const queryClient = useQueryClient();
 
   const { data: history } = useQuery({
-    queryKey: [`/api/users/${user?.user?.id || userId}/history`],
-    enabled: !!(user?.user?.id || userId),
+    queryKey: [`/api/users/by-code/${userCode}/history`],
+    enabled: !!userCode,
     staleTime: 0, // Force fresh data to bypass cache
     refetchOnMount: true,
     refetchOnWindowFocus: true,
@@ -104,11 +104,10 @@ export default function ProgressCharts() {
 
   // Clear cache for history to force fresh data on mount
   React.useEffect(() => {
-    const actualUserId = user?.user?.id || userId;
-    if (actualUserId) {
-      queryClient.invalidateQueries({ queryKey: [`/api/users/${actualUserId}/history`] });
+    if (userCode) {
+      queryClient.invalidateQueries({ queryKey: [`/api/users/by-code/${userCode}/history`] });
     }
-  }, [user?.user?.id, userId, queryClient]);
+  }, [userCode, queryClient]);
 
   const { data: assessments } = useQuery({
     queryKey: [`/api/users/${user?.user?.id || userId}/assessments`],
@@ -135,8 +134,8 @@ export default function ProgressCharts() {
         return item.assessmentName === 'Kapandji Score';
       } else if (assessmentName === 'DASH Score') {
         console.log('Filtering for DASH Score');
-        console.log('DASH items found:', userHistory.filter(h => h.assessmentId === 6));
-        return item.assessmentId === 6;
+        console.log('DASH items found:', userHistory.filter(h => h.assessmentId === 6 || h.assessmentName?.includes('DASH')));
+        return item.assessmentId === 6 || item.assessmentName?.includes('DASH');
       } else if (assessmentName === 'Wrist Flexion' || assessmentName === 'Wrist Extension') {
         return item.assessmentName.includes('Flexion/Extension') || 
                item.assessmentName.includes('Flexion') || 
@@ -284,6 +283,7 @@ export default function ProgressCharts() {
   console.log('All assessment types for injury:', assessmentTypes);
   console.log('Checking assessment data availability...');
   console.log('User history items:', userHistory.map(h => h.assessmentName));
+  console.log('Full user history data:', userHistory.map(h => ({ id: h.id, name: h.assessmentName, assessmentId: h.assessmentId })));
   
   // Filter out assessments with no data
   const assessmentTypesWithData = assessmentTypes.filter(assessmentName => {
@@ -300,7 +300,9 @@ export default function ProgressCharts() {
       );
       return wristHistory.length > 0;
     } else if (assessmentName === 'DASH Score') {
-      const dashHistory = userHistory.filter(h => h.assessmentName === 'DASH Survey' || h.assessmentName === 'Unknown Assessment');
+      const dashHistory = userHistory.filter(h => h.assessmentId === 6 || h.assessmentName?.includes('DASH'));
+      console.log(`DASH Score assessment check: found ${dashHistory.length} DASH assessments`);
+      console.log('DASH items details:', dashHistory.map(h => ({ id: h.id, name: h.assessmentName, assessmentId: h.assessmentId })));
       return dashHistory.length > 0;
     } else if (assessmentName === 'Wrist Radial Deviation' || assessmentName === 'Wrist Ulnar Deviation') {
       const deviationHistory = userHistory.filter(h => h.assessmentName === 'Wrist Radial/Ulnar Deviation');
