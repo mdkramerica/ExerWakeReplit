@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Calendar, Clock, TrendingUp, History, CheckCircle } from 'lucide-react';
 import { calculateWristResults } from '@shared/wrist-results-calculator';
 import { calculateWristDeviationResults } from '@shared/wrist-deviation-calculator';
+import { calculateElbowReferencedWristAngleWithForce } from '@shared/elbow-wrist-calculator';
 import { PatientHeader } from '@/components/patient-header';
 
 interface UserAssessment {
@@ -321,8 +322,47 @@ export default function AssessmentHistory() {
                                     </>
                                   );
                                 } else {
-                                  // For flexion/extension assessments, use the existing calculator
-                                  const wristResults = calculateWristResults(record);
+                                  // For flexion/extension assessments, use motion replay calculation like wrist results page
+                                  let wristResults = calculateWristResults(record);
+                                  
+                                  // Override with motion replay calculations to match wrist results page
+                                  if (record.repetitionData && record.repetitionData[0]?.motionData) {
+                                    console.log('🔄 ASSESSMENT HISTORY - Overriding with motion replay calculations');
+                                    
+                                    const motionData = record.repetitionData[0].motionData;
+                                    const detectedHandType = (record.handType as 'LEFT' | 'RIGHT') || 'LEFT';
+                                    console.log(`🔍 ASSESSMENT HISTORY - Using detected hand type: ${detectedHandType}`);
+                                    
+                                    const wristAnglesAllFrames = motionData.map((frame: any) => {
+                                      if (frame.landmarks && frame.poseLandmarks) {
+                                        return calculateElbowReferencedWristAngleWithForce(
+                                          frame.landmarks, 
+                                          frame.poseLandmarks, 
+                                          detectedHandType
+                                        );
+                                      }
+                                      return null;
+                                    }).filter(Boolean);
+                                    
+                                    if (wristAnglesAllFrames.length > 0) {
+                                      const allFlexionAngles = wristAnglesAllFrames.map((w: any) => w.wristFlexionAngle).filter((angle: number) => !isNaN(angle) && angle >= 0);
+                                      const allExtensionAngles = wristAnglesAllFrames.map((w: any) => w.wristExtensionAngle).filter((angle: number) => !isNaN(angle) && angle >= 0);
+                                      
+                                      const calculatedMaxFlexion = allFlexionAngles.length > 0 ? Math.max(...allFlexionAngles) : 0;
+                                      const calculatedMaxExtension = allExtensionAngles.length > 0 ? Math.max(...allExtensionAngles) : 0;
+                                      
+                                      // Override with motion replay values
+                                      wristResults = {
+                                        ...wristResults,
+                                        maxFlexion: calculatedMaxFlexion,
+                                        maxExtension: calculatedMaxExtension,
+                                        totalROM: calculatedMaxFlexion + calculatedMaxExtension
+                                      };
+                                      
+                                      console.log(`🎯 ASSESSMENT HISTORY - Using motion replay values: Flexion: ${calculatedMaxFlexion.toFixed(1)}°, Extension: ${calculatedMaxExtension.toFixed(1)}°`);
+                                    }
+                                  }
+                                  
                                   return (
                                     <>
                                       <div className="px-3 py-2 rounded-lg border-2 bg-orange-50 border-orange-300">
