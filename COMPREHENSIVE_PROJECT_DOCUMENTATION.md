@@ -23,7 +23,7 @@ ExerAI is a comprehensive hand rehabilitation assessment platform that combines 
 
 ### Core Capabilities
 - **Real-time Motion Tracking**: MediaPipe-powered hand and pose detection
-- **Clinical Assessments**: TAM (Total Active Motion), Kapandji scoring, Wrist ROM, DASH surveys
+- **Clinical Assessments**: TAM (Total Active Motion), Kapandji scoring, Wrist Flexion/Extension, Wrist Radial/Ulnar Deviation, DASH surveys, Forearm Pronation/Supination (planned)
 - **Research Platform**: Multi-cohort studies with longitudinal tracking
 - **Clinical Dashboard**: Professional interface for healthcare providers
 - **Motion Replay**: Frame-by-frame visualization with angle calculations
@@ -138,7 +138,47 @@ angle = arccos(dotProduct(vector1, vector2) / (magnitude1 * magnitude2))
 - Signed angle calculations for directional accuracy
 - Motion replay with frame-by-frame visualization
 
-### 4. DASH (Disabilities of Arm, Shoulder, Hand) Survey
+### 4. Wrist Radial/Ulnar Deviation Assessment
+**Purpose**: Measures side-to-side wrist movement using 3D vector mathematics
+
+**Calculation Method**:
+```typescript
+// Calculate deviation using hand landmark vectors
+const indexFingerBase = handLandmarks[5];  // Index finger MCP
+const pinkyFingerBase = handLandmarks[17]; // Pinky finger MCP
+const wrist = handLandmarks[0];            // Wrist center
+
+// Create hand orientation vector
+const handVector = {
+  x: pinkyFingerBase.x - indexFingerBase.x,
+  y: pinkyFingerBase.y - indexFingerBase.y,
+  z: pinkyFingerBase.z - indexFingerBase.z
+};
+
+// Calculate deviation angle from neutral position
+deviationAngle = calculateAngleFromNeutral(handVector, referenceVector);
+
+// Classification: Positive = Radial, Negative = Ulnar
+```
+
+**Key Features**:
+- Real-time 3D vector calculations
+- AMA clinical standard compliance
+- Confidence-based validation (70% threshold)
+- Separate radial and ulnar component tracking
+- Frame-by-frame motion replay visualization
+
+**Normal Ranges**:
+- Radial Deviation: 0-20 degrees
+- Ulnar Deviation: 0-30 degrees
+- Total Deviation ROM: 50 degrees combined
+
+**Clinical Significance**:
+- Critical for post-fracture recovery assessment
+- Functional limitation indicator
+- Treatment efficacy measurement
+
+### 5. DASH (Disabilities of Arm, Shoulder, Hand) Survey
 **Purpose**: Standardized functional outcome questionnaire
 
 **Implementation**:
@@ -146,6 +186,15 @@ angle = arccos(dotProduct(vector1, vector2) / (magnitude1 * magnitude2))
 - 0-100 scoring scale (lower = better function)
 - Integration with assessment workflow
 - Progress tracking over time
+
+### 6. Forearm Pronation/Supination Assessment (Planned)
+**Purpose**: Measures forearm rotation capabilities
+
+**Current Status**: Assessment type defined, implementation in development
+- Forearm rotation measurement framework
+- Palm up/palm down movement tracking
+- Integration with existing motion tracking system
+- Clinical protocol development in progress
 
 ---
 
@@ -205,6 +254,19 @@ export function calculateWristAngle(
   // Elbow-wrist vector calculation
   // Reference plane determination
   // Signed angle classification
+}
+```
+
+**Wrist Deviation Calculator** (`shared/wrist-deviation-calculator.ts`):
+```typescript
+export function calculateWristDeviation(
+  poseLandmarks: Landmark[],
+  handLandmarks: Landmark[],
+  isLeftHand: boolean
+): number {
+  // Hand orientation vector calculation
+  // Radial/ulnar deviation angle determination
+  // AMA standard compliance validation
 }
 ```
 
@@ -314,6 +376,11 @@ patient_assessments (
   wrist_extension_angle NUMERIC(5,2),
   max_wrist_flexion NUMERIC(5,2),
   max_wrist_extension NUMERIC(5,2),
+  
+  -- Wrist deviation measurements
+  max_radial_deviation NUMERIC(5,2),
+  max_ulnar_deviation NUMERIC(5,2),
+  total_deviation_rom NUMERIC(5,2),
   
   -- Kapandji scoring
   kapandji_score INTEGER,
@@ -564,7 +631,9 @@ export function ResultsDisplay({ assessment, showMotionReplay, showProgressChart
 - `pages/assessment/tam.tsx` - TAM finger ROM assessment
 - `pages/assessment/kapandji.tsx` - Thumb opposition test
 - `pages/assessment/wrist.tsx` - Wrist flexion/extension
+- `pages/assessment/wrist-deviation.tsx` - Wrist radial/ulnar deviation
 - `pages/assessment/dash.tsx` - Functional outcome survey
+- `pages/assessment/pronation-supination.tsx` - Forearm rotation (planned)
 
 ---
 
@@ -688,6 +757,7 @@ exerai-platform/
 │   │   │   │   ├── tam.tsx
 │   │   │   │   ├── kapandji.tsx
 │   │   │   │   ├── wrist.tsx
+│   │   │   │   ├── wrist-deviation.tsx
 │   │   │   │   └── dash.tsx
 │   │   │   ├── clinical/      # Healthcare provider pages
 │   │   │   │   ├── dashboard.tsx
@@ -872,7 +942,7 @@ npm run db:push  # Applies schema changes to database
 ### Planned Enhancements
 
 **Assessment Expansion**:
-- Radial/ulnar deviation measurements
+- Forearm pronation/supination measurements (implementation completion)
 - Grip strength integration
 - Pain scale assessments
 - Functional task evaluations
