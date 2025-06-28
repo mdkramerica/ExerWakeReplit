@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, Download, Share2, TrendingUp, Activity, Calculator, Info, FileText, ChevronDown, ChevronUp } from "lucide-react";
 import { calculateWristResults, getWristClinicalInterpretation, getWristPercentages } from "@shared/wrist-results-calculator";
+import { calculateElbowReferencedWristAngleWithForce } from "@shared/elbow-wrist-calculator";
 import AssessmentReplay from "@/components/assessment-replay";
 
 interface WristResultsData {
@@ -125,11 +126,49 @@ export default function WristResults() {
     }
   }
   
-  // Use the centralized calculation - SINGLE SOURCE OF TRUTH with error handling
+  // Use the same anatomical calculations as Session Maximum - SINGLE SOURCE OF TRUTH
   let wristResults, interpretation, flexionPercentage, extensionPercentage;
   
   try {
     wristResults = calculateWristResults(userAssessment);
+    
+    // Override with motion replay calculations to match Session Maximum values
+    if (userAssessment.repetitionData && userAssessment.repetitionData[0]?.motionData) {
+      console.log('🔄 BOTTOM COMPONENT - Overriding with motion replay calculations');
+      
+      const motionData = userAssessment.repetitionData[0].motionData;
+      
+      // Calculate using the same method as Session Maximum
+      const wristAnglesAllFrames = motionData.map((frame: any) => {
+        if (frame.landmarks && frame.poseLandmarks) {
+          return calculateElbowReferencedWristAngleWithForce(
+            frame.landmarks, 
+            frame.poseLandmarks, 
+            'LEFT'  // Use LEFT consistently like Session Maximum
+          );
+        }
+        return null;
+      }).filter(Boolean);
+      
+      if (wristAnglesAllFrames.length > 0) {
+        const allFlexionAngles = wristAnglesAllFrames.map((w: any) => w.wristFlexionAngle).filter((angle: number) => !isNaN(angle) && angle >= 0);
+        const allExtensionAngles = wristAnglesAllFrames.map((w: any) => w.wristExtensionAngle).filter((angle: number) => !isNaN(angle) && angle >= 0);
+        
+        const calculatedMaxFlexion = allFlexionAngles.length > 0 ? Math.max(...allFlexionAngles) : 0;
+        const calculatedMaxExtension = allExtensionAngles.length > 0 ? Math.max(...allExtensionAngles) : 0;
+        
+        // Override with motion replay values to match Session Maximum
+        wristResults = {
+          ...wristResults,
+          maxFlexion: calculatedMaxFlexion,
+          maxExtension: calculatedMaxExtension,
+          totalROM: calculatedMaxFlexion + calculatedMaxExtension
+        };
+        
+        console.log(`🎯 BOTTOM COMPONENT - Using motion replay values: Flexion: ${calculatedMaxFlexion.toFixed(1)}°, Extension: ${calculatedMaxExtension.toFixed(1)}°`);
+      }
+    }
+    
     interpretation = getWristClinicalInterpretation(wristResults);
     const percentages = getWristPercentages(wristResults);
     flexionPercentage = percentages.flexionPercentage;
