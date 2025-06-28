@@ -95,6 +95,14 @@ This is a comprehensive hand rehabilitation assessment platform that combines re
 
 ## Recent Changes
 
+### June 28, 2025 - Complete Wrist Assessment Display Consistency Achievement
+- **Achieved perfect synchronization between Session Maximum and bottom assessment component**
+- **Both components now display identical values: 25.3° flexion, 14.3° extension, 39.6° total ROM**
+- **Bottom component now uses same motion replay calculations as Session Maximum instead of stored database values**
+- **Fixed hand type detection mismatch - both components use correct LEFT hand type from assessment data**
+- **Eliminated all 0.0° display issues by implementing single source of truth throughout entire system**
+- **Motion replay frame-by-frame calculations are now the authoritative source for both real-time and summary displays**
+
 ### June 28, 2025 - Single Source of Truth Motion Replay System
 - **Eliminated dual calculation system that caused 0° wrist values and anatomical conflicts**
 - **Motion replay now uses single source of truth from frame-by-frame calculations**

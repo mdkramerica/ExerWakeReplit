@@ -138,13 +138,16 @@ export default function WristResults() {
       
       const motionData = userAssessment.repetitionData[0].motionData;
       
-      // Calculate using the same method as Session Maximum
+      // Calculate using the same method as Session Maximum - use actual hand type
+      const detectedHandType = (userAssessment.handType as 'LEFT' | 'RIGHT') || 'RIGHT'; // Use stored hand type
+      console.log(`🔍 BOTTOM COMPONENT - Using detected hand type: ${detectedHandType}`);
+      
       const wristAnglesAllFrames = motionData.map((frame: any) => {
         if (frame.landmarks && frame.poseLandmarks) {
           return calculateElbowReferencedWristAngleWithForce(
             frame.landmarks, 
             frame.poseLandmarks, 
-            'LEFT'  // Use LEFT consistently like Session Maximum
+            detectedHandType  // Use actual detected hand type, not hardcoded LEFT
           );
         }
         return null;
