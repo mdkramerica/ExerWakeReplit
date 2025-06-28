@@ -22,8 +22,9 @@
 ExerAI is a comprehensive hand rehabilitation assessment platform that combines real-time motion tracking with clinical analytics for precise biomechanical assessments. The system serves both individual patient care and clinical research applications.
 
 ### Core Capabilities
-- **Real-time Motion Tracking**: MediaPipe-powered hand and pose detection
+- **Real-time Motion Tracking**: MediaPipe-powered hand and pose detection with skeleton overlay visualization
 - **Clinical Assessments**: TAM (Total Active Motion), Kapandji scoring, Wrist Flexion/Extension, Wrist Radial/Ulnar Deviation, DASH surveys, Forearm Pronation/Supination (planned)
+- **Skeleton Tracking Overlay**: Real-time landmark visualization with toggle controls
 - **Research Platform**: Multi-cohort studies with longitudinal tracking
 - **Clinical Dashboard**: Professional interface for healthcare providers
 - **Motion Replay**: Frame-by-frame visualization with angle calculations
@@ -269,6 +270,35 @@ export function calculateWristDeviation(
   // AMA standard compliance validation
 }
 ```
+
+### Skeleton Tracking Overlay System
+
+**SkeletonOverlay Component** (`client/src/components/skeleton-overlay.tsx`):
+```typescript
+interface SkeletonOverlayProps {
+  canvasRef: React.RefObject<HTMLCanvasElement>;
+  handLandmarks: any[];
+  poseLandmarks: any[];
+  isVisible: boolean;
+  canvasWidth: number;
+  canvasHeight: number;
+}
+
+export function SkeletonOverlay(props: SkeletonOverlayProps) {
+  // Real-time landmark visualization
+  // 21 hand landmarks + 6 pose landmarks
+  // ExerAI brand color consistency (#14B8A6)
+  // Toggle visibility controls
+}
+```
+
+**Key Features**:
+- **Real-time Visualization**: Live landmark detection overlay
+- **Hand Skeleton**: 21 landmarks with finger connections
+- **Pose Skeleton**: 6 key landmarks (shoulders, elbows, wrists)
+- **Brand Consistency**: ExerAI teal color scheme
+- **User Control**: Toggle show/hide functionality
+- **Performance Optimized**: Minimal canvas operations
 
 ---
 

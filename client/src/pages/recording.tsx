@@ -3,7 +3,7 @@ import { useLocation, useParams } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, Hand, Lightbulb, Square, RotateCcw } from "lucide-react";
+import { ArrowLeft, Hand, Lightbulb, Square, RotateCcw, Eye, EyeOff } from "lucide-react";
 import ProgressBar from "@/components/progress-bar";
 import HolisticTracker from "@/components/holistic-tracker";
 import { apiRequest } from "@/lib/queryClient";
@@ -49,6 +49,7 @@ export default function Recording() {
     maxRadialDeviation: 0,
     maxUlnarDeviation: 0
   });
+  const [showSkeletonOverlay, setShowSkeletonOverlay] = useState(true);
   const [poseLandmarks, setPoseLandmarks] = useState<any[]>([]);
   const [sessionHandType, setSessionHandType] = useState<'LEFT' | 'RIGHT' | 'UNKNOWN'>('UNKNOWN');
   const [, setLocation] = useLocation();
@@ -512,6 +513,7 @@ export default function Recording() {
                   assessmentType={assessment.name}
                   sessionMaxWristAngles={sessionMaxWristAngles}
                   lockedHandType={sessionHandType}
+                  showSkeletonOverlay={showSkeletonOverlay}
                 />
                 
                 {/* Recording indicator with countdown timer */}
@@ -604,6 +606,21 @@ export default function Recording() {
                 >
                   <RotateCcw className="w-4 h-4 mr-2" />
                   Retake
+                </Button>
+                
+                {/* Skeleton Overlay Toggle */}
+                <Button
+                  onClick={() => setShowSkeletonOverlay(!showSkeletonOverlay)}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  {showSkeletonOverlay ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                  {showSkeletonOverlay ? 'Hide' : 'Show'} Tracking
                 </Button>
               </div>
             </div>
