@@ -234,6 +234,7 @@ export const userAssessments = pgTable("user_assessments", {
   wristExtensionAngle: numeric("wrist_extension_angle", { precision: 5, scale: 2 }),
   maxWristFlexion: numeric("max_wrist_flexion", { precision: 5, scale: 2 }),
   maxWristExtension: numeric("max_wrist_extension", { precision: 5, scale: 2 }),
+  dashScore: numeric("dash_score", { precision: 5, scale: 2 }),
   shareToken: text("share_token").unique(),
 });
 
