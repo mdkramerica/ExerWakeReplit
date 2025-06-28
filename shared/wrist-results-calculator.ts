@@ -34,22 +34,29 @@ export function calculateWristResults(userAssessment: any): WristResultsData {
     0
   );
 
-  // Always calculate from motion data first for accuracy - stored values may be incorrect
+  // ANATOMICAL CALCULATION PRIORITY - Use frame-by-frame anatomical angles as truth
   if (userAssessment.repetitionData && userAssessment.repetitionData[0]?.motionData && userAssessment.repetitionData[0].motionData.length > 0) {
-    console.log('🔄 CALCULATING FROM MOTION DATA - Primary calculation method');
+    console.log('🔄 ANATOMICAL CALCULATION FROM MOTION DATA - Using accurate frame calculations');
     
     const motionData = userAssessment.repetitionData[0].motionData;
     
-    // Calculate wrist angles for all frames
-    const wristAnglesAllFrames = motionData.map((frame: any) => {
+    // Calculate anatomical wrist angles for all frames - same as canvas display
+    const wristAnglesAllFrames = motionData.map((frame: any, index: number) => {
       if (frame.landmarks && frame.poseLandmarks) {
-        return calculateWristAngleByHandType(frame.landmarks, frame.poseLandmarks);
+        const result = calculateWristAngleByHandType(frame.landmarks, frame.poseLandmarks);
+        
+        // Debug log first few calculations to verify anatomical values
+        if (index < 3) {
+          console.log(`🔍 FRAME ${index} ANATOMICAL CALC: Flexion=${result.wristFlexionAngle.toFixed(1)}°, Extension=${result.wristExtensionAngle.toFixed(1)}°`);
+        }
+        
+        return result;
       }
       return null;
     }).filter(Boolean);
     
     if (wristAnglesAllFrames.length > 0) {
-      // Extract maximum values with debug logging
+      // Extract anatomical angle maximums - these match canvas display perfectly
       const allFlexionAngles = wristAnglesAllFrames.map((w: any) => w.wristFlexionAngle).filter((angle: number) => !isNaN(angle) && angle >= 0);
       const allExtensionAngles = wristAnglesAllFrames.map((w: any) => w.wristExtensionAngle).filter((angle: number) => !isNaN(angle) && angle >= 0);
       
