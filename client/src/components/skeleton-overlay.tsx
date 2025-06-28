@@ -73,7 +73,7 @@ export function SkeletonOverlay({
           const y = landmark.y * actualHeight;
           
           // Consistent dot size for all landmarks
-          let radius = 5; // Larger, more visible dots
+          let radius = 4; // Optimal visibility
           
           // Draw clean dots without outline
           ctx.beginPath();
@@ -132,7 +132,7 @@ export function SkeletonOverlay({
           
           // Draw clean pose dots without outline
           ctx.beginPath();
-          ctx.arc(x, y, 5, 0, 2 * Math.PI);
+          ctx.arc(x, y, 4, 0, 2 * Math.PI);
           ctx.fill();
         }
       });
