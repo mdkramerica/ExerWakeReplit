@@ -160,9 +160,12 @@ export default function ProgressCharts() {
       console.log('Sample item:', relevantHistory[0]);
     }
 
-    return relevantHistory.map(item => {
+    // Sort by completion date to ensure proper day sequence
+    const sortedHistory = relevantHistory.sort((a, b) => new Date(a.completedAt!).getTime() - new Date(b.completedAt!).getTime());
+    
+    const chartData = sortedHistory.map(item => {
       const itemDate = new Date(item.completedAt!);
-      const day = Math.floor((itemDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+      const day = Math.floor((itemDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
       
       // Get the appropriate value based on assessment type
       let value = 0;
@@ -231,12 +234,26 @@ export default function ProgressCharts() {
       }
       
       return {
-        day: Math.max(1, day),
+        day: Math.max(0, day),
         value,
         date: itemDate.toLocaleDateString(),
         percentage
       };
     }).sort((a, b) => a.day - b.day);
+    
+    // Ensure chart always starts at day 0 by adding a day 0 point if needed
+    if (chartData.length > 0 && chartData[0].day > 0) {
+      // Add day 0 with baseline value
+      const baselineValue = assessmentName === 'DASH Score' ? 100 : 0; // DASH starts high, others start low
+      chartData.unshift({
+        day: 0,
+        value: baselineValue,
+        date: startDate.toLocaleDateString(),
+        percentage: assessmentName === 'DASH Score' ? 0 : 0 // Poor starting performance
+      });
+    }
+    
+    return chartData;
   };
 
   const CustomTooltip = ({ active, payload, label, assessmentName }: any) => {
@@ -451,6 +468,9 @@ export default function ProgressCharts() {
                             <XAxis 
                               dataKey="day" 
                               label={{ value: 'Post-op Day', position: 'insideBottom', offset: -5 }}
+                              domain={[0, 'dataMax']}
+                              type="number"
+                              scale="linear"
                             />
                             <YAxis 
                               label={{ 
