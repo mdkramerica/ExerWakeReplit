@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback, useState } from "react";
 import { calculateElbowReferencedWristAngle, calculateElbowReferencedWristAngleWithForce, resetRecordingSession, getRecordingSessionElbowSelection } from "@shared/elbow-wrist-calculator";
 import { calculateWristDeviation } from "@shared/rom-calculator";
+import { SkeletonOverlay } from "./skeleton-overlay";
 
 // MediaPipe type declarations for window object
 declare global {
@@ -18,17 +19,21 @@ interface HolisticTrackerProps {
   assessmentType: string;
   sessionMaxWristAngles?: any;
   lockedHandType?: 'LEFT' | 'RIGHT' | 'UNKNOWN';
+  showSkeletonOverlay?: boolean;
 }
 
-export default function HolisticTracker({ onUpdate, isRecording, assessmentType, sessionMaxWristAngles, lockedHandType }: HolisticTrackerProps) {
+export default function HolisticTracker({ onUpdate, isRecording, assessmentType, sessionMaxWristAngles, lockedHandType, showSkeletonOverlay = true }: HolisticTrackerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const skeletonCanvasRef = useRef<HTMLCanvasElement>(null);
   const holisticRef = useRef<any>(null);
   const animationRef = useRef<number>();
   
   const [holisticInitialized, setHolisticInitialized] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
   const [isInitializing, setIsInitializing] = useState(false);
+  const [currentHandLandmarks, setCurrentHandLandmarks] = useState<any[]>([]);
+  const [currentPoseLandmarks, setCurrentPoseLandmarks] = useState<any[]>([]);
   
   // Add temporal stability for hand type detection
   const lastHandTypeRef = useRef<'LEFT' | 'RIGHT' | 'UNKNOWN'>('UNKNOWN');
@@ -233,6 +238,10 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType,
         trackingQuality = poseLandmarks.length > 0 ? "Excellent" : "Good";
       }
     }
+
+    // Update skeleton overlay landmarks
+    setCurrentHandLandmarks(handLandmarks || []);
+    setCurrentPoseLandmarks(poseLandmarks || []);
 
     // Calculate wrist angles using elbow reference only during recording
     let wristAngles = null;
@@ -553,6 +562,18 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType,
         className="w-full h-auto"
         style={{ maxHeight: '400px' }}
       />
+      
+      {/* Skeleton Overlay */}
+      {showSkeletonOverlay && cameraReady && (
+        <SkeletonOverlay
+          canvasRef={skeletonCanvasRef}
+          handLandmarks={currentHandLandmarks}
+          poseLandmarks={currentPoseLandmarks}
+          isVisible={showSkeletonOverlay}
+          canvasWidth={canvasRef.current?.width || 640}
+          canvasHeight={canvasRef.current?.height || 480}
+        />
+      )}
       
       <div className="absolute top-2 left-2 bg-black bg-opacity-50 rounded px-2 py-1">
         <div className="text-white text-sm font-semibold">Exer AI</div>

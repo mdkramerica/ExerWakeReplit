@@ -1,0 +1,381 @@
+# MediaPipe Skeleton Tracking Overlay Implementation Guide
+
+This guide provides everything needed to implement the skeleton tracking overlay system in any React/TypeScript project using MediaPipe Holistic.
+
+## Overview
+
+The skeleton tracking system displays real-time landmark detection dots over video feeds, showing exactly what MediaPipe is detecting. Users can toggle visibility and see 21 hand landmarks plus 6 key pose landmarks in brand-consistent colors.
+
+## Required Dependencies
+
+Add these to your `package.json`:
+
+```json
+{
+  "@mediapipe/holistic": "^0.5.1675471629",
+  "@mediapipe/camera_utils": "^0.3.1640029074", 
+  "@mediapipe/drawing_utils": "^0.3.1620248257"
+}
+```
+
+## Core Component: SkeletonOverlay.tsx
+
+Create `components/skeleton-overlay.tsx`:
+
+```tsx
+import React, { useEffect, useRef } from 'react';
+
+interface SkeletonOverlayProps {
+  canvasRef: React.RefObject<HTMLCanvasElement>;
+  handLandmarks: any[];
+  poseLandmarks: any[];
+  isVisible: boolean;
+  canvasWidth: number;
+  canvasHeight: number;
+}
+
+export function SkeletonOverlay({ 
+  canvasRef, 
+  handLandmarks, 
+  poseLandmarks, 
+  isVisible, 
+  canvasWidth, 
+  canvasHeight 
+}: SkeletonOverlayProps) {
+  
+  useEffect(() => {
+    if (!isVisible || !canvasRef.current) return;
+    
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Update canvas dimensions for calculations
+    const actualWidth = canvas.width;
+    const actualHeight = canvas.height;
+
+    const drawHandSkeleton = (ctx: CanvasRenderingContext2D, landmarks: any[]) => {
+      // Hand landmark connections (MediaPipe hand model)
+      const connections = [
+        // Thumb
+        [0, 1], [1, 2], [2, 3], [3, 4],
+        // Index finger
+        [0, 5], [5, 6], [6, 7], [7, 8],
+        // Middle finger
+        [0, 9], [9, 10], [10, 11], [11, 12],
+        // Ring finger
+        [0, 13], [13, 14], [14, 15], [15, 16],
+        // Pinky
+        [0, 17], [17, 18], [18, 19], [19, 20]
+      ];
+
+      // Draw connection lines (optional - can be removed for dots-only)
+      ctx.strokeStyle = '#14B8A6';
+      ctx.lineWidth = 1;
+      ctx.globalAlpha = 0.3;
+
+      connections.forEach(([startIdx, endIdx]) => {
+        const startPoint = landmarks[startIdx];
+        const endPoint = landmarks[endIdx];
+        if (startPoint && endPoint && 
+            startPoint.x !== undefined && startPoint.y !== undefined &&
+            endPoint.x !== undefined && endPoint.y !== undefined) {
+          ctx.beginPath();
+          ctx.moveTo(startPoint.x * actualWidth, startPoint.y * actualHeight);
+          ctx.lineTo(endPoint.x * actualWidth, endPoint.y * actualHeight);
+          ctx.stroke();
+        }
+      });
+
+      ctx.globalAlpha = 1.0;
+
+      // Draw landmark dots on top - Exer brand teal
+      ctx.fillStyle = '#14B8A6'; // Change this to your brand color
+
+      landmarks.forEach((landmark, index) => {
+        // Hand landmarks from MediaPipe might not have visibility property
+        if (landmark && landmark.x !== undefined && landmark.y !== undefined) {
+          const x = landmark.x * actualWidth;
+          const y = landmark.y * actualHeight;
+          
+          // Variable dot sizes for different landmarks
+          let radius = 2; // Default small dot size
+          if (index === 0) radius = 3; // Wrist - slightly larger
+          if ([4, 8, 12, 16, 20].includes(index)) radius = 2.5; // Fingertips - small
+          
+          // Draw clean dots without outline
+          ctx.beginPath();
+          ctx.arc(x, y, radius, 0, 2 * Math.PI);
+          ctx.fill();
+        }
+      });
+    };
+
+    const drawPoseSkeleton = (ctx: CanvasRenderingContext2D, landmarks: any[]) => {
+      // Key pose landmarks for wrist assessments
+      const keyPosePoints = [
+        11, // Left shoulder
+        12, // Right shoulder  
+        13, // Left elbow
+        14, // Right elbow
+        15, // Left wrist
+        16  // Right wrist
+      ];
+
+      // Draw connection lines between pose points (optional)
+      ctx.strokeStyle = '#14B8A6';
+      ctx.lineWidth = 2;
+      ctx.globalAlpha = 0.4;
+
+      const connections = [
+        [11, 12], // Shoulders
+        [11, 13], // Left shoulder to elbow
+        [12, 14], // Right shoulder to elbow
+        [13, 15], // Left elbow to wrist
+        [14, 16]  // Right elbow to wrist
+      ];
+
+      connections.forEach(([startIdx, endIdx]) => {
+        const startPoint = landmarks[startIdx];
+        const endPoint = landmarks[endIdx];
+        if (startPoint && endPoint && 
+            startPoint.visibility > 0.5 && endPoint.visibility > 0.5) {
+          ctx.beginPath();
+          ctx.moveTo(startPoint.x * actualWidth, startPoint.y * actualHeight);
+          ctx.lineTo(endPoint.x * actualWidth, endPoint.y * actualHeight);
+          ctx.stroke();
+        }
+      });
+
+      ctx.globalAlpha = 1.0;
+
+      // Draw pose landmark dots
+      ctx.fillStyle = '#14B8A6'; // Change this to your brand color
+
+      keyPosePoints.forEach((index) => {
+        const landmark = landmarks[index];
+        if (landmark && landmark.visibility > 0.5) {
+          const x = landmark.x * actualWidth;
+          const y = landmark.y * actualHeight;
+          
+          // Draw clean pose dots without outline
+          ctx.beginPath();
+          ctx.arc(x, y, 3, 0, 2 * Math.PI);
+          ctx.fill();
+        }
+      });
+    };
+
+    const drawSkeleton = () => {
+      // Clear previous drawings
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (handLandmarks.length > 0) {
+        drawHandSkeleton(ctx, handLandmarks);
+      }
+
+      // Draw pose landmarks (key points for wrist assessments)
+      if (poseLandmarks.length > 0) {
+        drawPoseSkeleton(ctx, poseLandmarks);
+      }
+    };
+
+    drawSkeleton();
+  }, [handLandmarks, poseLandmarks, isVisible, canvasWidth, canvasHeight]);
+
+  if (!isVisible) return null;
+
+  return (
+    <canvas
+      ref={canvasRef}
+      width={canvasWidth}
+      height={canvasHeight}
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        zIndex: 10,
+        pointerEvents: 'none',
+        width: '100%',
+        height: '100%'
+      }}
+    />
+  );
+}
+```
+
+## Integration with MediaPipe Holistic
+
+### 1. MediaPipe Setup
+
+```tsx
+// In your main tracking component
+import { Holistic } from '@mediapipe/holistic';
+import { Camera } from '@mediapipe/camera_utils';
+
+const [handLandmarks, setHandLandmarks] = useState([]);
+const [poseLandmarks, setPoseLandmarks] = useState([]);
+const [skeletonVisible, setSkeletonVisible] = useState(true);
+
+// Initialize MediaPipe Holistic
+useEffect(() => {
+  const holistic = new Holistic({
+    locateFile: (file) => {
+      return `https://cdn.jsdelivr.net/npm/@mediapipe/holistic/${file}`;
+    }
+  });
+
+  holistic.setOptions({
+    modelComplexity: 1,
+    smoothLandmarks: true,
+    enableSegmentation: false,
+    smoothSegmentation: false,
+    refineFaceLandmarks: false,
+    minDetectionConfidence: 0.5,
+    minTrackingConfidence: 0.5
+  });
+
+  holistic.onResults((results) => {
+    // Update landmarks for skeleton overlay
+    if (results.rightHandLandmarks) {
+      setHandLandmarks(results.rightHandLandmarks);
+    } else if (results.leftHandLandmarks) {
+      setHandLandmarks(results.leftHandLandmarks);
+    } else {
+      setHandLandmarks([]);
+    }
+
+    if (results.poseLandmarks) {
+      setPoseLandmarks(results.poseLandmarks);
+    } else {
+      setPoseLandmarks([]);
+    }
+  });
+
+  // Camera setup
+  if (videoRef.current) {
+    const camera = new Camera(videoRef.current, {
+      onFrame: async () => {
+        await holistic.send({ image: videoRef.current });
+      },
+      width: 640,
+      height: 480
+    });
+    camera.start();
+  }
+}, []);
+```
+
+### 2. Component Usage
+
+```tsx
+// In your video component JSX
+const videoRef = useRef<HTMLVideoElement>(null);
+const skeletonCanvasRef = useRef<HTMLCanvasElement>(null);
+
+return (
+  <div style={{ position: 'relative', width: '640px', height: '480px' }}>
+    {/* Video element */}
+    <video
+      ref={videoRef}
+      style={{ width: '100%', height: '100%' }}
+      autoPlay
+      muted
+      playsInline
+    />
+    
+    {/* Skeleton overlay */}
+    <SkeletonOverlay
+      canvasRef={skeletonCanvasRef}
+      handLandmarks={handLandmarks}
+      poseLandmarks={poseLandmarks}
+      isVisible={skeletonVisible}
+      canvasWidth={640}
+      canvasHeight={480}
+    />
+    
+    {/* Toggle button */}
+    <button
+      onClick={() => setSkeletonVisible(!skeletonVisible)}
+      style={{
+        position: 'absolute',
+        top: '10px',
+        right: '10px',
+        zIndex: 20
+      }}
+    >
+      {skeletonVisible ? 'Hide' : 'Show'} Skeleton
+    </button>
+  </div>
+);
+```
+
+## Customization Options
+
+### Colors
+Change the brand color by modifying the `ctx.fillStyle` and `ctx.strokeStyle` values:
+```tsx
+ctx.fillStyle = '#your-brand-color'; // Replace with your brand color
+ctx.strokeStyle = '#your-brand-color';
+```
+
+### Dot Sizes
+Adjust dot sizes by modifying the radius values:
+```tsx
+let radius = 2; // Default size
+if (index === 0) radius = 4; // Wrist - larger
+if ([4, 8, 12, 16, 20].includes(index)) radius = 3; // Fingertips
+```
+
+### Connection Lines
+Remove connection lines by commenting out the line drawing sections:
+```tsx
+// Comment out these sections to show dots only
+connections.forEach(([startIdx, endIdx]) => {
+  // ... line drawing code
+});
+```
+
+### Visibility Threshold
+Adjust pose landmark visibility threshold:
+```tsx
+if (landmark && landmark.visibility > 0.7) { // Higher threshold = more strict
+```
+
+## Key Features
+
+1. **Real-time Updates**: Automatically redraws when landmarks change
+2. **Toggle Visibility**: Users can show/hide the skeleton overlay
+3. **Brand Consistency**: Easy color customization
+4. **Performance Optimized**: Minimal canvas operations
+5. **Clean Design**: No outlines or labels for production use
+
+## Troubleshooting
+
+### Dots Not Appearing
+- Ensure canvas dimensions match video dimensions
+- Check that landmarks array is not empty
+- Verify MediaPipe is detecting hands/pose
+
+### Canvas Positioning Issues
+- Make sure parent container has `position: relative`
+- Verify canvas has `position: absolute` and correct z-index
+
+### Performance Issues  
+- Reduce dot sizes or remove connection lines
+- Lower MediaPipe detection confidence thresholds
+- Use `requestAnimationFrame` for smoother updates
+
+## File Structure
+
+```
+src/
+├── components/
+│   └── skeleton-overlay.tsx
+├── hooks/
+│   └── use-mediapipe.ts (optional custom hook)
+└── pages/
+    └── assessment.tsx (main component)
+```
+
+This implementation provides a complete, production-ready skeleton tracking overlay that can be easily integrated into any MediaPipe-based application.
