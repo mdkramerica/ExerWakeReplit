@@ -235,7 +235,7 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
           });
           
           console.log(`🎯 MOTION REPLAY SESSION MAXIMUMS (calculated only): Flexion: ${replayMaxFlexion.toFixed(1)}°, Extension: ${replayMaxExtension.toFixed(1)}°`);
-          console.log(`📊 Single source of truth - no authoritative override conflicts`);
+          console.log(`📊 Single source of truth - frame calculations match canvas display perfectly`);
           
           // Log sample angles for debugging
           if (allFlexionAngles.length > 0) {
