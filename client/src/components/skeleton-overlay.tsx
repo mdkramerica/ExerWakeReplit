@@ -46,7 +46,7 @@ export function SkeletonOverlay({
 
       // Draw connection lines with ExerAI brand color
       ctx.strokeStyle = '#14B8A6'; // ExerAI teal
-      ctx.lineWidth = 1;
+      ctx.lineWidth = 2;
       ctx.globalAlpha = 0.3;
 
       connections.forEach(([startIdx, endIdx]) => {
@@ -96,7 +96,7 @@ export function SkeletonOverlay({
 
       // Draw connection lines between pose points
       ctx.strokeStyle = '#14B8A6'; // ExerAI teal
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 3;
       ctx.globalAlpha = 0.4;
 
       const connections = [
