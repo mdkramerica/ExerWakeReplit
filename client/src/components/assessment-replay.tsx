@@ -27,6 +27,7 @@ interface AssessmentReplayProps {
   userAssessmentId?: string;
   recordingData?: ReplayData[];
   onClose: () => void;
+  onSessionMaximumsCalculated?: (maximums: {maxFlexion: number, maxExtension: number}) => void;
 }
 
 // Hand landmark connections for drawing skeleton

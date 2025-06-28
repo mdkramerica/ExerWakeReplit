@@ -40,6 +40,7 @@ export default function WristResults() {
   const { userCode, userAssessmentId } = useParams();
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [showDetailedDocs, setShowDetailedDocs] = useState(false);
+  const [sessionMaximums, setSessionMaximums] = useState<{maxFlexion: number, maxExtension: number} | null>(null);
 
   useEffect(() => {
     const savedUser = sessionStorage.getItem('currentUser');
