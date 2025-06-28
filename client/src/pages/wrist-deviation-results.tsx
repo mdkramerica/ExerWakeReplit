@@ -67,7 +67,7 @@ export default function WristDeviationResults() {
 
   const { userAssessment, assessment, user } = resultsData as any;
   
-  if (!assessment || !userAssessment || !user) {
+  if (!assessment || !userAssessment) {
     console.log('Missing deviation data:', { assessment: !!assessment, userAssessment: !!userAssessment, user: !!user });
     
     return (
