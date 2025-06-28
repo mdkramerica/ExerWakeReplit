@@ -40,7 +40,7 @@ const HAND_CONNECTIONS = [
   [0, 17] // palm connection
 ];
 
-export default function AssessmentReplay({ assessmentName, userAssessmentId, recordingData = [], onClose }: AssessmentReplayProps) {
+export default function AssessmentReplay({ assessmentName, userAssessmentId, recordingData = [], onClose, onSessionMaximumsCalculated }: AssessmentReplayProps) {
   // Check assessment types first
   const isKapandjiAssessment = assessmentName === "Kapandji Score" || 
                               assessmentName?.includes("Kapandji");
@@ -234,6 +234,14 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
             handType: consensusHandType,
             averageConfidence: 0.9
           });
+
+          // Pass calculated maximums to parent component for results consistency
+          if (onSessionMaximumsCalculated) {
+            onSessionMaximumsCalculated({
+              maxFlexion: replayMaxFlexion,
+              maxExtension: replayMaxExtension
+            });
+          }
           
           console.log(`🎯 MOTION REPLAY SESSION MAXIMUMS (calculated only): Flexion: ${replayMaxFlexion.toFixed(1)}°, Extension: ${replayMaxExtension.toFixed(1)}°`);
           console.log(`📊 Single source of truth - frame calculations match canvas display perfectly`);

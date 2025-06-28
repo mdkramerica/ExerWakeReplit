@@ -157,8 +157,11 @@ export default function WristResults() {
     );
   }
   
-  // Extract values for display
-  const { maxFlexion, maxExtension, totalROM, frameCount } = wristResults;
+  // Extract values for display - use session maximums if available
+  const maxFlexion = sessionMaximums?.maxFlexion ?? wristResults.maxFlexion;
+  const maxExtension = sessionMaximums?.maxExtension ?? wristResults.maxExtension;
+  const totalROM = maxFlexion + maxExtension;
+  const frameCount = wristResults.frameCount;
   const totalFrames = frameCount;
   
   const getQualityColor = (score: number) => {
@@ -226,6 +229,7 @@ export default function WristResults() {
                   assessmentName="Wrist Flexion/Extension"
                   userAssessmentId={userAssessmentId}
                   onClose={() => {}}
+                  onSessionMaximumsCalculated={setSessionMaximums}
                 />
               </div>
             </div>
