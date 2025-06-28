@@ -787,7 +787,17 @@ export function calculateMaxElbowWristAngles(
   };
 
   for (const frame of motionFrames) {
-    const frameResult = calculateElbowReferencedWristAngleWithForce(frame.landmarks, frame.poseLandmarks || [], 'LEFT');
+    // Detect correct hand type for each frame instead of hardcoding LEFT
+    let frameHandType: 'LEFT' | 'RIGHT' = 'RIGHT'; // Default fallback
+    
+    if (frame.landmarks && frame.poseLandmarks && frame.poseLandmarks.length > 16) {
+      const detectedType = determineHandType(frame.landmarks, frame.poseLandmarks);
+      if (detectedType && detectedType !== 'UNKNOWN') {
+        frameHandType = detectedType;
+      }
+    }
+    
+    const frameResult = calculateElbowReferencedWristAngleWithForce(frame.landmarks, frame.poseLandmarks || [], frameHandType);
     
     // Track all maximum values regardless of confidence for session tracking
     if (frameResult.elbowDetected) {
