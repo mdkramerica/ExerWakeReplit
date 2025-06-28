@@ -1310,18 +1310,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Try direct lookup first via getUserAssessmentById
       try {
         userAssessment = await storage.getUserAssessmentById(userAssessmentId);
+        console.log('Direct getUserAssessmentById result:', { userAssessment: !!userAssessment, userId: userAssessment?.userId });
         if (userAssessment) {
           user = await storage.getUserById(userAssessment.userId);
+          console.log('getUserById result:', { user: !!user, userId: userAssessment.userId });
         }
       } catch (e) {
+        console.log('Direct lookup failed, trying fallback search:', e.message);
         // Fallback to searching through all users
         for (let userId = 1; userId <= 100; userId++) {
           try {
             const userAssessments = await storage.getUserAssessments(userId);
             const found = userAssessments.find(ua => ua.id === userAssessmentId);
             if (found) {
+              console.log('Found userAssessment via fallback search:', { userAssessmentId, foundUserId: userId });
               userAssessment = found;
               user = await storage.getUserById(userId);
+              console.log('Fallback getUserById result:', { user: !!user, userId });
               break;
             }
           } catch (e) {
