@@ -79,7 +79,7 @@ export default function WristResults() {
     return <div className="p-4">No results data available</div>;
   }
 
-  const { userAssessment, assessment, user } = results;
+  let { userAssessment, assessment, user } = results;
   
   // Handle cases where assessment might not be loaded yet
   if (!assessment || !userAssessment || !user) {
@@ -89,22 +89,20 @@ export default function WristResults() {
     // If we have partial data, try to proceed with fallbacks
     if (userAssessment && !assessment) {
       // Create a fallback assessment object
-      const fallbackAssessment = {
+      assessment = {
         id: userAssessment.assessmentId || 3,
         name: 'Wrist Flexion/Extension',
         description: 'Measure wrist forward and backward bending range of motion'
       };
-      results.assessment = fallbackAssessment;
     }
     
     if (userAssessment && !user) {
       // Create a fallback user object
-      const fallbackUser = {
+      user = {
         id: userAssessment.userId || 11,
         code: userCode || 'DEMO02',
         injuryType: 'Distal Radius Fracture'
       };
-      results.user = fallbackUser;
     }
     
     // If we still don't have the essential data, show loading
