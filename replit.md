@@ -95,6 +95,21 @@ This is a comprehensive hand rehabilitation assessment platform that combines re
 
 ## Recent Changes
 
+### June 28, 2025 - Motion Replay Anatomical Elbow Selection Fix
+- **Fixed critical issue where LEFT hands incorrectly used RIGHT elbow for wrist angle calculations**
+- **Replaced proximity-based elbow selection with pure anatomical matching in motion replay**
+- **LEFT hands now correctly use LEFT elbow (index 13), RIGHT hands use RIGHT elbow (index 14)**
+- **Added elbow session state reset when recording starts to clear incorrect locks**
+- **Motion replay now uses frame handedness directly instead of recalculating with proximity**
+- **Wrist assessments now show realistic angles for minimal movement instead of unrealistic 90° extensions**
+
+### June 28, 2025 - Progress Charts Day 0 Start & DASH Score Data Fix
+- **Fixed DASH Score progress charts - data now displays correctly with authentic scores (18.5 → 12.5)**
+- **Added X-axis domain configuration to start all progress charts at day 0**
+- **Fixed database schema mapping issue where dashScore field was undefined**
+- **All progress chart types now have proper day 0 baseline points**
+- **Charts show authentic declining DASH scores indicating patient improvement**
+
 ### June 27, 2025 - Motion Replay Synchronization & Angle Calculation Documentation
 - **Fixed motion replay canvas synchronization issues with angle display and arc coloring**
 - **Resolved JavaScript initialization error causing frameWristAngles access before declaration**

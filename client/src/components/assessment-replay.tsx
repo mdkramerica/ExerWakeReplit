@@ -374,28 +374,12 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
           } else {
             // Use flexion/extension calculator for flexion/extension assessments
             if (frame.landmarks && frame.poseLandmarks) {
-              // DETERMINE CORRECT HAND TYPE BASED ON PROXIMITY TO ELBOWS (same as session calc)
-              const handWrist = frame.landmarks[0];
-              const leftElbow = frame.poseLandmarks[13];
-              const rightElbow = frame.poseLandmarks[14];
+              // USE ANATOMICAL HAND TYPE - match the displayed handedness instead of proximity
+              let frameHandType = frame.handedness || 'RIGHT'; // Use frame handedness directly
               
-              let frameHandType = 'RIGHT'; // default
-              
-              if (leftElbow && rightElbow && handWrist) {
-                const distanceToLeft = Math.sqrt(
-                  Math.pow(handWrist.x - leftElbow.x, 2) +
-                  Math.pow(handWrist.y - leftElbow.y, 2) +
-                  Math.pow(handWrist.z - (leftElbow.z || 0), 2)
-                );
-                const distanceToRight = Math.sqrt(
-                  Math.pow(handWrist.x - rightElbow.x, 2) +
-                  Math.pow(handWrist.y - rightElbow.y, 2) +
-                  Math.pow(handWrist.z - (rightElbow.z || 0), 2)
-                );
-                
-                // Use closest elbow
-                frameHandType = distanceToLeft < distanceToRight ? 'LEFT' : 'RIGHT';
-              }
+              // Convert MediaPipe handedness to standard format
+              if (frameHandType === 'Left') frameHandType = 'LEFT';
+              if (frameHandType === 'Right') frameHandType = 'RIGHT';
               
               // Override with authoritative hand type if available
               if (authoritativeWristResults?.handType && authoritativeWristResults.handType !== 'UNKNOWN') {
@@ -403,6 +387,8 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
               } else if (maxWristAngles?.handType && maxWristAngles.handType !== 'UNKNOWN') {
                 frameHandType = maxWristAngles.handType;
               }
+              
+              console.log(`REPLAY: Using anatomical hand type - ${frameHandType} hand uses ${frameHandType} elbow (index ${frameHandType === 'LEFT' ? 13 : 14})`);
               
               // Use IDENTICAL calculation method as session maximums
               currentWrist = calculateElbowReferencedWristAngleWithForce(
