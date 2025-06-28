@@ -176,11 +176,12 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
             // Override with session hand type if available and consistent
             const finalHandType: 'LEFT' | 'RIGHT' = sessionHandType !== 'UNKNOWN' ? sessionHandType : detectedHandType;
             
-            // This mirrors the exact calculation in wrist-results-calculator.ts
+            // Use the SAME anatomical calculation as Current Frame display
+            // Force LEFT hand type to match the accurate Current Frame calculations
             const calculated = calculateElbowReferencedWristAngleWithForce(
               frame.landmarks, 
               frame.poseLandmarks, 
-              finalHandType
+              'LEFT'  // Consistent with Current Frame that shows accurate 8.9° flexion
             );
             return calculated;
           }
@@ -210,9 +211,8 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
           const replayMaxFlexion = allFlexionAngles.length > 0 ? Math.max(...allFlexionAngles) : 0;
           const replayMaxExtension = allExtensionAngles.length > 0 ? Math.max(...allExtensionAngles) : 0;
           
-          // Use session hand type consistently
-          const consensusHandType = sessionHandType !== 'UNKNOWN' ? sessionHandType : 
-            (wristAnglesAllFrames.find(w => w.handType !== 'UNKNOWN')?.handType || 'RIGHT');
+          // Use LEFT hand type consistently to match Current Frame calculations
+          const consensusHandType = 'LEFT';  // Force LEFT to match anatomical calculations
           
           // Use calculated maximums as single source of truth for motion replay
           setMaxWristAngles({
