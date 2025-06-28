@@ -331,15 +331,21 @@ export function calculateElbowReferencedWristAngleWithForce(
   }
   
   if (!recordingSessionElbowLocked) {
-    // PURE ANATOMICAL MATCHING: LEFT hand → LEFT elbow, RIGHT hand → RIGHT elbow (NO proximity checks)
-    const useLeftElbow = forceHandType === 'LEFT';
-    recordingSessionElbowIndex = useLeftElbow ? 13 : 14;
-    recordingSessionWristIndex = useLeftElbow ? 15 : 16;
-    recordingSessionShoulderIndex = useLeftElbow ? 11 : 12;
+    // PURE ANATOMICAL MATCHING: LEFT hand → LEFT elbow, RIGHT hand → RIGHT elbow
+    // MediaPipe Pose landmarks: LEFT_ELBOW=13, RIGHT_ELBOW=14
+    if (forceHandType === 'LEFT') {
+      recordingSessionElbowIndex = POSE_LANDMARKS.LEFT_ELBOW; // 13
+      recordingSessionWristIndex = POSE_LANDMARKS.LEFT_WRIST; // 15
+      recordingSessionShoulderIndex = POSE_LANDMARKS.LEFT_SHOULDER; // 11
+    } else {
+      recordingSessionElbowIndex = POSE_LANDMARKS.RIGHT_ELBOW; // 14
+      recordingSessionWristIndex = POSE_LANDMARKS.RIGHT_WRIST; // 16
+      recordingSessionShoulderIndex = POSE_LANDMARKS.RIGHT_SHOULDER; // 12
+    }
     recordingSessionHandType = forceHandType;
     recordingSessionElbowLocked = true;
     
-    console.log(`🔒 PURE ANATOMICAL LOCK: ${forceHandType} hand → ${useLeftElbow ? 'LEFT' : 'RIGHT'} elbow (index ${recordingSessionElbowIndex}) - NO proximity matching`);
+    console.log(`🔒 ANATOMICAL LOCK: ${forceHandType} hand → ${forceHandType} elbow (index ${recordingSessionElbowIndex})`);
   }
   
   // Use locked session selection

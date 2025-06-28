@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback, useState } from "react";
-import { calculateElbowReferencedWristAngle, calculateElbowReferencedWristAngleWithForce, resetRecordingSession, getRecordingSessionElbowSelection } from "@shared/elbow-wrist-calculator";
+import { calculateElbowReferencedWristAngle, calculateElbowReferencedWristAngleWithForce, resetRecordingSession, getRecordingSessionElbowSelection, resetElbowSessionState } from "@shared/elbow-wrist-calculator";
 import { calculateWristDeviation } from "@shared/rom-calculator";
 import { SkeletonOverlay } from "./skeleton-overlay";
 
@@ -45,6 +45,9 @@ export default function HolisticTracker({ onUpdate, isRecording, assessmentType,
   // Use locked hand type when recording starts, or reset if none provided
   useEffect(() => {
     if (isRecording) {
+      // Reset elbow session state to ensure correct anatomical matching
+      resetElbowSessionState();
+      
       if (lockedHandType && lockedHandType !== 'UNKNOWN') {
         lastHandTypeRef.current = lockedHandType;
         handTypeConfidenceRef.current = 1;
