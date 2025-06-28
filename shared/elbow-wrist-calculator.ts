@@ -259,28 +259,33 @@ function determineHandType(
   
   // Determine handedness based on hand position relative to body center
   // MediaPipe coordinates: x=0 is left edge, x=1 is right edge (from camera perspective)
+  // IMPORTANT: Front-facing camera creates mirror effect - need to invert logic
   const handRelativeToCenter = handWrist.x - bodyCenterX;
   
   console.log(`🔍 BODY CENTER DETECTION - Body center X: ${bodyCenterX.toFixed(3)}, Hand X: ${handWrist.x.toFixed(3)}`);
   console.log(`🔍 HAND RELATIVE TO CENTER: ${handRelativeToCenter.toFixed(3)} (negative=left side, positive=right side)`);
   
-  // Determine hand type based on position relative to body center
-  if (handRelativeToCenter < -0.05) { // Hand significantly left of center
-    console.log(`✅ HAND TYPE DETERMINED: LEFT (hand left of body center)`);
-    return 'LEFT';
-  } else if (handRelativeToCenter > 0.05) { // Hand significantly right of center
-    console.log(`✅ HAND TYPE DETERMINED: RIGHT (hand right of body center)`);
+  // MIRROR CORRECTION: Front-facing camera flips the image
+  // When user raises LEFT hand, it appears on RIGHT side of screen (positive handRelativeToCenter)
+  // When user raises RIGHT hand, it appears on LEFT side of screen (negative handRelativeToCenter)
+  if (handRelativeToCenter < -0.05) { // Hand significantly left of screen = user's RIGHT hand
+    console.log(`✅ HAND TYPE DETERMINED: RIGHT (user's right hand appears left on mirrored camera)`);
     return 'RIGHT';
+  } else if (handRelativeToCenter > 0.05) { // Hand significantly right of screen = user's LEFT hand
+    console.log(`✅ HAND TYPE DETERMINED: LEFT (user's left hand appears right on mirrored camera)`);
+    return 'LEFT';
   } else {
     // Hand very close to center - use shoulder visibility as tiebreaker
+    // MIRROR CORRECTION: Higher right shoulder visibility = user's LEFT hand (mirrored)
+    // Higher left shoulder visibility = user's RIGHT hand (mirrored)
     const leftShoulderVisibility = leftShoulder.visibility || 0;
     const rightShoulderVisibility = rightShoulder.visibility || 0;
     
-    if (leftShoulderVisibility > rightShoulderVisibility) {
-      console.log(`✅ HAND TYPE DETERMINED: LEFT (center position, better left shoulder visibility)`);
+    if (rightShoulderVisibility > leftShoulderVisibility) {
+      console.log(`✅ HAND TYPE DETERMINED: LEFT (center position, better right shoulder visibility on mirrored camera)`);
       return 'LEFT';
     } else {
-      console.log(`✅ HAND TYPE DETERMINED: RIGHT (center position, better right shoulder visibility)`);
+      console.log(`✅ HAND TYPE DETERMINED: RIGHT (center position, better left shoulder visibility on mirrored camera)`);
       return 'RIGHT';
     }
   }

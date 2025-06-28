@@ -1171,10 +1171,10 @@ export default function AssessmentReplay({ assessmentName, userAssessmentId, rec
         ctx.fillText(`Extension: ${frameAngles.wristExtensionAngle.toFixed(1)}°`, wristBoxX + 130, wristBoxY + 70);
       }
       
-      // Hand type and confidence
+      // Hand type and confidence - use consistent hand type display
       ctx.fillStyle = '#9ca3af';
       ctx.font = '11px Arial';
-      ctx.fillText(`Hand: ${currentWristAngles.handType}`, wristBoxX + 10, wristBoxY + 95);
+      ctx.fillText(`Hand: ${displayHandType || currentWristAngles.handType}`, wristBoxX + 10, wristBoxY + 95);
       ctx.fillText(`Confidence: ${(currentWristAngles.confidence * 100).toFixed(1)}%`, wristBoxX + 10, wristBoxY + 110);
       
       // Session Maximum angles from motion replay frames
