@@ -1,0 +1,41 @@
+I understand you want to develop your prompt before I take action. Let me help you think through the key aspects of creating a slimmed-down version of your hand assessment app.
+
+Questions to Help Shape Your Prompt:
+1. Core Functionality Scope
+Which specific assessments do you want to keep? (TAM, Kapandji, Wrist Flexion/Extension, Wrist Deviation, DASH Survey)
+-keep all assessments
+Do you want to keep the motion replay visualization features?
+-keep motion replay features but only to show the replay of the motion (no need for on canvas calculations)
+Should progress tracking and assessment history remain?
+-progress tracking and assessment history should remain, but with the focus more for the patient on completing all their required daily recordings and not on progress from a range of motion or healing standpoint
+2. User Experience Focus
+Do you want just the patient interface, or also need some basic clinical review capabilities?
+-patient interface and also basic clinical review (mostly to be able to check on patient compliance with doing their recordings, ability to download the .json files easily, and ability to create new access codes for new patients to sign in (should be able to generate unique random number log in code for each patient, that corresponds to a sequentially generated patient ID number, as well as able to select which condition they have to make the login process easier)
+
+Should patients still use 6-digit access codes, or do you want a different login system?
+-yes still 6 digit log in generated on back end system by admin
+Do you want to keep the injury type selection flow?
+-yes 
+3. Technical Architecture
+Keep the current database structure but simplified, or start with a completely new schema?
+keep
+Maintain the MediaPipe motion tracking system as-is?
+keep
+Keep the existing calculation engines (they're working well)?
+keep
+4. Data and Analytics
+Basic progress charts only, or remove analytics entirely?
+-remove progress charts, only focus on encouraging patients to complete their required daily assessments
+Keep assessment comparison features?
+Maintain the quality scoring system for motion tracking?
+5. Deployment Strategy
+Create as a completely separate project/repository?
+want to be able to create separate project
+Build as a simplified mode of the current app?
+Extract as a reusable component library?
+6. Future Considerations
+Should the slimmed version be expandable later?
+Any specific performance or simplicity goals?
+Target audience (patients only, small clinics, research, etc.)?
+-want user experience to be easy for patients with overall goal of this being a portal for them to come to daily to have their motion recorded and motion log captured for further post-processing
+What aspects are most important to you? This will help me understand whether you want a minimal patient-only assessment tool, a simplified clinical version, or something else entirely.
