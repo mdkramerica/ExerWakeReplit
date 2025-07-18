@@ -8,9 +8,17 @@ const isTest = process.env.VITEST;
 
 export async function setupVite(app: Express, server: Server) {
   const vite = await import("vite");
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+  
   const viteServer = await vite.createServer({
-    server: { hmr: { port: 5174 } },
+    root: path.resolve(__dirname, "..", "client"),
+    server: { 
+      hmr: { port: 5174 },
+      middlewareMode: true
+    },
     appType: "custom",
+    configFile: path.resolve(__dirname, "..", "vite.config.ts")
   });
 
   app.use(viteServer.middlewares);
