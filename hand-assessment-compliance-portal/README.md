@@ -16,7 +16,18 @@ The following test users are available in the database:
 
 ## Running the Application
 
-The application is running on port 5000. Access it at http://localhost:5000
+### Option 1: Manual Terminal Commands
+1. Open a terminal in Replit
+2. Navigate to the compliance portal: `cd hand-assessment-compliance-portal`
+3. Run the development server: `npm run dev`
+4. Access the portal at: http://localhost:5000
+
+### Option 2: Using the Helper Script
+1. Open a terminal in Replit
+2. From the root directory, run: `node run-compliance-portal.js`
+3. Access the portal at: http://localhost:5000
+
+**Important:** The compliance portal runs as a separate application. You cannot run both the original app and compliance portal simultaneously on port 5000.
 
 ## Features
 
