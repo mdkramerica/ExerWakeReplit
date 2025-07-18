@@ -24,8 +24,8 @@ export default function PatientLogin() {
     try {
       const res = await apiRequest('POST', '/api/patient/login', { code });
       const data = await res.json();
-      sessionStorage.setItem('patientId', data.id.toString());
-      sessionStorage.setItem('patientCode', code);
+      // Store complete user data for use in dashboard
+      localStorage.setItem('patientData', JSON.stringify(data));
       setLocation('/patient/dashboard');
     } catch (error) {
       toast({
