@@ -6,7 +6,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 // Check if we should run the compliance portal instead
-if (true) { // Temporarily force compliance portal
+if (process.env.RUN_COMPLIANCE_PORTAL === "true") {
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
   const portalPath = path.join(__dirname, "../hand-assessment-compliance-portal");
